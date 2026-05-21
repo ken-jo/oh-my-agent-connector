@@ -1,7 +1,7 @@
 # Fallback Classification Inventory — G001 Source-Overall Cleanup
 
-Worker: worker-3  
-Task: G001 fallback classification inventory  
+Worker: worker-3
+Task: G001 fallback classification inventory
 Scope: readiness artifact only; no source edits; no `.omx/ultragoal` mutation.
 
 ## Inputs and method
