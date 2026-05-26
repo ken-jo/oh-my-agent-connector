@@ -178,6 +178,29 @@ describe('plugin-setup.mjs hook command portability', () => {
     expect(wikiSessionEnd).not.toContain('sh ');
   });
 
+  it('normalizes every bundled sh/find-node hook command to direct node on Windows', () => {
+    const hooksJson = JSON.parse(readFileSync(join(PACKAGE_ROOT, 'hooks', 'hooks.json'), 'utf-8')) as {
+      hooks: Record<string, Array<{ hooks: Array<{ command?: string }> }>>;
+    };
+    const commands = Object.entries(hooksJson.hooks).flatMap(([event, groups]) =>
+      groups.flatMap(group =>
+        group.hooks
+          .map(hook => hook.command)
+          .filter((command): command is string => typeof command === 'string')
+          .map(command => ({ event, command })),
+      ),
+    );
+
+    expect(commands.length).toBeGreaterThan(0);
+    for (const { event, command } of commands) {
+      const patched = patchCommand(command, WINDOWS_PREFIX);
+      expect(patched, event).toMatch(/^node "\$CLAUDE_PLUGIN_ROOT"\/scripts\/run\.cjs /);
+      expect(patched, event).not.toContain('find-node.sh');
+      expect(patched, event).not.toContain('/bin/sh');
+      expect(patched, event).not.toMatch(/^sh /);
+    }
+  });
+
   it('normalizes current sh find-node commands to node run.cjs on Windows', () => {
     const current =
       'sh "$CLAUDE_PLUGIN_ROOT"/scripts/find-node.sh "$CLAUDE_PLUGIN_ROOT"/scripts/run.cjs "$CLAUDE_PLUGIN_ROOT"/scripts/session-end.mjs';

@@ -51,7 +51,7 @@ vi.mock('../features/builtin-skills/skills.js', () => ({
     },
 }));
 // Import after mock setup
-import { checkHookConflicts, checkClaudeMdStatus, checkConfigIssues, checkLegacySkills, runConflictCheck, } from '../cli/commands/doctor-conflicts.js';
+import { checkHookConflicts, checkClaudeMdStatus, checkConfigIssues, checkLegacySkills, checkWindowsUnsafePluginHooks, runConflictCheck, } from '../cli/commands/doctor-conflicts.js';
 describe('doctor-conflicts: hook ownership classification', () => {
     let cwdSpy;
     beforeEach(() => {
@@ -137,6 +137,70 @@ describe('doctor-conflicts: hook ownership classification', () => {
         const conflicts = checkHookConflicts();
         expect(conflicts).toHaveLength(1);
         expect(conflicts[0].isOmc).toBe(true);
+    });
+    it('warns on native Windows when a plugin cache hooks manifest still contains sh/find-node commands', () => {
+        const pluginRoot = mkdtempSync(join(tmpdir(), 'omc-doctor-win-plugin-'));
+        const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+        try {
+            mkdirSync(join(pluginRoot, 'hooks'), { recursive: true });
+            writeFileSync(join(pluginRoot, 'hooks', 'hooks.json'), JSON.stringify({
+                hooks: {
+                    Stop: [{
+                            hooks: [{
+                                    type: 'command',
+                                    command: 'sh "$CLAUDE_PLUGIN_ROOT"/scripts/find-node.sh "$CLAUDE_PLUGIN_ROOT"/scripts/run.cjs "$CLAUDE_PLUGIN_ROOT"/scripts/persistent-mode.mjs',
+                                }],
+                        }],
+                    SessionEnd: [{
+                            hooks: [{
+                                    type: 'command',
+                                    command: 'node "$CLAUDE_PLUGIN_ROOT"/scripts/run.cjs "$CLAUDE_PLUGIN_ROOT"/scripts/session-end.mjs',
+                                }],
+                        }],
+                },
+            }));
+            process.env.CLAUDE_PLUGIN_ROOT = pluginRoot;
+            Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
+            const unsafe = checkWindowsUnsafePluginHooks();
+            expect(unsafe).toHaveLength(1);
+            expect(unsafe[0]).toMatchObject({ pluginRoot, event: 'Stop' });
+            expect(unsafe[0].command).toContain('find-node.sh');
+            expect(runConflictCheck().hasConflicts).toBe(true);
+        }
+        finally {
+            delete process.env.CLAUDE_PLUGIN_ROOT;
+            if (originalPlatform) {
+                Object.defineProperty(process, 'platform', originalPlatform);
+            }
+            rmSync(pluginRoot, { recursive: true, force: true });
+        }
+    });
+    it('does not warn on native Windows when plugin hooks already use direct node run.cjs commands', () => {
+        const pluginRoot = mkdtempSync(join(tmpdir(), 'omc-doctor-win-plugin-clean-'));
+        const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+        try {
+            mkdirSync(join(pluginRoot, 'hooks'), { recursive: true });
+            writeFileSync(join(pluginRoot, 'hooks', 'hooks.json'), JSON.stringify({
+                hooks: {
+                    Stop: [{
+                            hooks: [{
+                                    type: 'command',
+                                    command: 'node "$CLAUDE_PLUGIN_ROOT"/scripts/run.cjs "$CLAUDE_PLUGIN_ROOT"/scripts/persistent-mode.mjs',
+                                }],
+                        }],
+                },
+            }));
+            process.env.CLAUDE_PLUGIN_ROOT = pluginRoot;
+            Object.defineProperty(process, 'platform', { value: 'win32', configurable: true });
+            expect(checkWindowsUnsafePluginHooks()).toEqual([]);
+        }
+        finally {
+            delete process.env.CLAUDE_PLUGIN_ROOT;
+            if (originalPlatform) {
+                Object.defineProperty(process, 'platform', originalPlatform);
+            }
+            rmSync(pluginRoot, { recursive: true, force: true });
+        }
     });
     it('classifies non-OMC hooks as not OMC-owned', () => {
         const settings = {
