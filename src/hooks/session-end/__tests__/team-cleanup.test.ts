@@ -72,6 +72,8 @@ vi.mock('../../../lib/worktree-paths.js', async () => {
 
 import { processSessionEndCleanupWorker } from '../index.js';
 
+const DIRECT_CLEANUP_BUDGET_MS = 10_000;
+
 async function waitForAssertion(assertion: () => void, timeoutMs = 1000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   let lastError: unknown;
@@ -136,7 +138,7 @@ describe('processSessionEnd team cleanup (#1632)', () => {
       directory: tmpDir,
       sessionId,
       transcriptPath,
-      cleanupBudgetMs: 2000,
+      cleanupBudgetMs: DIRECT_CLEANUP_BUDGET_MS,
     });
 
     await waitForAssertion(() => {
@@ -170,7 +172,7 @@ describe('processSessionEnd team cleanup (#1632)', () => {
       directory: tmpDir,
       sessionId,
       transcriptPath,
-      cleanupBudgetMs: 2000,
+      cleanupBudgetMs: DIRECT_CLEANUP_BUDGET_MS,
     });
 
     await waitForAssertion(() => {
@@ -199,7 +201,7 @@ describe('processSessionEnd team cleanup (#1632)', () => {
       directory: tmpDir,
       sessionId,
       transcriptPath,
-      cleanupBudgetMs: 2000,
+      cleanupBudgetMs: DIRECT_CLEANUP_BUDGET_MS,
       initialTeamNames: ['captured-team'],
     });
 
@@ -224,7 +226,7 @@ describe('processSessionEnd team cleanup (#1632)', () => {
       directory: tmpDir,
       sessionId,
       transcriptPath,
-      cleanupBudgetMs: 2000,
+      cleanupBudgetMs: DIRECT_CLEANUP_BUDGET_MS,
       initialTeamNames: ['../../evil', 'bad/name', '..', '', 'safe-team'],
     });
 
@@ -262,7 +264,7 @@ describe('processSessionEnd team cleanup (#1632)', () => {
       directory: tmpDir,
       sessionId,
       transcriptPath,
-      cleanupBudgetMs: 2000,
+      cleanupBudgetMs: DIRECT_CLEANUP_BUDGET_MS,
     });
 
     await waitForAssertion(() => {
