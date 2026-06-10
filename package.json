@@ -1,0 +1,19 @@
+{
+  "name": "omc-ac",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Dogfooding: deploy oh-my-claudecode's MCP server + 19 bridged hook scripts + 87 content surfaces (19 agents / 40 skills / 28 commands) across agent CLIs via @ken-jo/agent-connector, replacing OMC's installer / hooks.json / plugin manifests. OMC itself runs UNCHANGED from the upstream checkout (runtime dependency by path).",
+  "bin": {
+    "omc-ac": "./bin.mjs"
+  },
+  "scripts": {
+    "detect": "node bin.mjs detect",
+    "install:dry": "node bin.mjs install --dry-run",
+    "doctor": "node bin.mjs doctor --probe"
+  },
+  "dependencies": {
+    "@ken-jo/agent-connector": "file:../agent-connector"
+  },
+  "license": "Apache-2.0"
+}
