@@ -13,10 +13,10 @@ UNCHANGED — only the deployment plumbing is replaced.
 
 | Metric | OMC upstream (before) | this repo (after) | Δ |
 |---|---:|---:|---|
-| **Deployment-plumbing bucket (BASELINE.md)** | **20,999** | **324 code** (480 with comments) | **−98.5% (65×)** |
-| Strictly eliminated layer only (honest subset, below) | 9,239 | 324 | −96.5% (29×) |
+| **Deployment-plumbing bucket (BASELINE.md)** | **20,999** | **394 code** (584 with comments) | **−98.1% (53×)** |
+| Strictly eliminated layer only (honest subset, below) | 9,239 | 394 | −95.7% (23×) |
 | Platforms for the mapped surfaces | **1** (claude-code only; one extra CLI = a whole sibling repo) | **5 targeted / 4 evidenced** (1 live isolated install + 3 dry-run planned; 29 in AC registry) | +3 evidenced, +28 addressable |
-| Hook events wired | 11 keys / 13 groups / 24 command entries (BASELINE's "12" rounds this) | **8/11 keys, 9/13 groups, 19/24 entries bridged** | 5 entries residue (enumerated) |
+| Hook events wired | 11 keys / 13 groups / 24 command entries (BASELINE's "12" rounds this) | **11/11 keys, 13/13 groups, 24/24 entries bridged** (since AC's E1 8→12-event extension) | full hook coverage |
 | Files to touch to add a platform | new sibling project (oh-my-codex, oh-my-opencode) | **0** (`--targets` flag) | — |
 | MCP / agents / skills / commands parity (claude-code) | plugin install | 49/49 tools · 19/19 · 80/80 · 28/28 | exact |
 
@@ -40,47 +40,51 @@ REUSED unchanged (functionality, not plumbing — spawned by the bridge straight
 from the upstream checkout, a runtime dependency by path; nothing copied):
 | Layer | LOC |
 |---|---:|
-| 19 bridged hook scripts (`keyword-detector`, `session-start`, `pre-tool-enforcer`, `persistent-mode`, `post-tool-verifier`, …) + `run.cjs` (kept for its per-script hooks.json timeout enforcement; its *install-side* role — being the settings.json command — is replaced by AC's home-bin shim) | 8,445 |
+| 19 originally-bridged hook scripts (`keyword-detector`, `session-start`, `pre-tool-enforcer`, `persistent-mode`, `post-tool-verifier`, …) + `run.cjs` (kept for its per-script hooks.json timeout enforcement; its *install-side* role — being the settings.json command — is replaced by AC's home-bin shim) | 8,445 |
+| The 4 formerly-DROPPED residue scripts, bridged since AC's E1 extension (8→12 events): `permission-handler.mjs` 21 (PermissionRequest/Bash) + `post-tool-use-failure.mjs` 489 + `subagent-tracker.mjs` 53 (SubagentStart/Stop) + `verify-deliverables.mjs` 238 (SubagentStop) | 801 |
 | `src/hooks/**` shared logic (78,336) · `bridge/mcp-server.cjs` (28,786-line bundle, 49 tools) · 128 content files → 87 defs | never the target |
 
-DROPPED (residue — capability honestly lost, not counted as savings):
-| Script | LOC | Why |
-|---|---:|---|
-| `permission-handler.mjs` (PermissionRequest/Bash) | 21 | Claude-only event; no AC equivalent |
-| `post-tool-use-failure.mjs` (PostToolUseFailure) | 489 | no AC event; `[TOOL ERROR]` recovery guidance lost |
-| `subagent-tracker.mjs` (SubagentStart/Stop) | 53 | no AC events; lifecycle accounting lost |
-| `verify-deliverables.mjs` (SubagentStop) | 238 | deliverables nudge on subagent exit lost |
-| **Total residue** | **801** | 5/24 command entries across 3/11 event keys |
+DROPPED (residue — capability honestly lost, not counted as savings): **none of
+the 24 hook command entries any more** — the previous 801-LOC / 5-entry hook
+residue moved to REUSED above. The remaining non-hook residue (statusline HUD,
+`CLAUDE.md` managed block, `systemMessage` channel) is enumerated under Scope
+honesty and docs/surface-map.md §4.
 
 OUT OF SCOPE (lived in `scripts/` and inflated the baseline bucket, but are
 dev/build/demo utilities never installed anywhere — neither replaced nor
 reused): build-*/eval-*/smoke-/audit-/demo-/status/risk-assess/… = **2,514**.
 
-Check: 9,239 + 8,445 + 801 + 2,514 = 20,999. ✓
+Check: 9,239 + (8,445 + 801) + 2,514 = 20,999. ✓
 
 REPLACEMENT (this repo, total):
 | File | Lines | Code lines |
 |---|---:|---:|
-| `agent-connector.config.mjs` (defineConnector: server + 7 hook bridges + 87-def content compiler) | 449 | 309 |
+| `agent-connector.config.mjs` (defineConnector: server + 11 hook bridges + 87-def content compiler) | 553 | 379 |
 | `bin.mjs` (branded CLI via createConnectorCli) | 31 | 15 |
-| **Total** | **480** | **324** |
+| **Total** | **584** | **394** |
 
-The port is ~4× larger than context-mode's 76 lines because OMC's surface is
-~4× bigger: 7 event chains × 19 scripts with per-script timeouts, deny/ask/
-context merge semantics, and a load-time compiler for 128 content files —
-still 29–65× smaller than what it replaces.
+The port is ~5× larger than context-mode's 76 lines because OMC's surface is
+~5× bigger: 11 event chains × 23 scripts with per-script timeouts, deny/ask/
+context merge semantics (plus the PermissionRequest never-auto-grant merge),
+and a load-time compiler for 128 content files — still 23–53× smaller than
+what it replaces.
 
-## What the 324 lines bought (verified, not claimed — VERIFICATION.md)
+## What the 394 lines bought (verified, not claimed — VERIFICATION.md)
 
-- **Isolated install (claude-code): 136 artifacts** — MCP registration in
-  `~/.claude.json`, 7 settings.json hook events, 127 content files (19 agents +
-  28 commands + 40 SKILL.md + 40 resources), settings backup. Idempotent re-run:
-  135 skipped, 0 warnings. Full `uninstall` inverse for free.
+- **Isolated install (claude-code): 140 artifacts** — MCP registration in
+  `~/.claude.json`, **11 settings.json hook events (11/11 upstream keys)**,
+  127 content files (19 agents + 28 commands + 40 SKILL.md + 40 resources),
+  settings backup. Full `uninstall` inverse for free.
 - **`doctor --probe`: 94 pass / 0 fail** — upstream's unchanged
   `bridge/mcp-server.cjs` initialized through the telemetry wrapper, 49/49 tools.
 - **Live hook bridge, end-to-end:** `ralph` keyword → `[MAGIC KEYWORD: RALPH]`
   injection (UserPromptSubmit); SessionStart context relay; Stop with an active
   ralph state — `persistent-mode.mjs` iterated 1→2 on disk through the bridge.
+- **The last 4 hooks live (E1):** PermissionRequest `git status` →
+  `decision{behavior:"allow"}` grant / `rm -rf build` → fall-through (no
+  decision); PostToolUseFailure → recovery `additionalContext`; SubagentStart →
+  tracker context; SubagentStop → clean pass + advisory deliverables warning
+  with seeded team state.
 - **3 more platforms from a flag:** `install --dry-run --targets
   codex,opencode,gemini-cli` planned 397 writes — codex TOML MCP + 6-event
   hooks.json, opencode JSON MCP + plugin module, gemini settings MCP + 6 native
@@ -91,18 +95,17 @@ still 29–65× smaller than what it replaces.
 
 ## Scope honesty
 
-- **Hook coverage is 19/24, not 24/24.** The 5 residual command entries
-  (PermissionRequest, PostToolUseFailure, SubagentStart/Stop ×2 + verify-
-  deliverables) need events agent-connector's 8-event union does not have;
-  docs/surface-map.md §4 enumerates each loss. Statusline HUD and the
-  `~/.claude/CLAUDE.md` managed block are likewise not AC surfaces (HUD stays
+- **Hook coverage is 24/24 (11/11 event keys)** since agent-connector's E1
+  extension normalized PermissionRequest / PostToolUseFailure / SubagentStart /
+  SubagentStop (8 → 12 canonical events); docs/surface-map.md §4 items 1–3
+  record the former residue as resolved. Statusline HUD and the
+  `~/.claude/CLAUDE.md` managed block are still not AC surfaces (HUD stays
   manually installable; the block's text can be session-injected instead).
   `systemMessage` notices fold into `additionalContext` (cosmetic).
-- **R1 is real and blocks ralph/ultrawork persistence parity on claude-code:**
-  AC's claude-code adapter renders every deny as PreToolUse-shaped
-  `permissionDecision`, which Claude ignores on Stop. Diagnosed live
-  (VERIFICATION.md §6) with a fix sketch; per phase mandate it is *not* fixed
-  here — parity claim for the Stop loop is contingent on that adapter fix.
+- **R1 is RESOLVED:** AC's claude-code adapter now has an event-aware deny path
+  (Stop/SubagentStop/UserPromptSubmit/PostToolUse → top-level
+  `{"decision":"block"}`), verified with a live isolated-home Stop round trip —
+  ralph/ultrawork persistence parity holds on claude-code.
 - **Sequential chains:** AC registers one entry per event; the bridge runs each
   chain sequentially (upstream Claude ran the 24 entries independently).
   Per-script timeouts are preserved via `run.cjs`; worst case adds wall-time on

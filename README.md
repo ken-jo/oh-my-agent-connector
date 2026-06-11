@@ -8,9 +8,10 @@ functionality runs UNCHANGED; only its deployment plumbing (installer /
 one `defineConnector()`. Same playbook as the proven
 [context-mode migration](../context-mode-with-agent-connector) (20,322 → 76).
 
-**Result: 20,999-LOC plumbing bucket → 324 code lines (−98.5%, 65×); strictly
-eliminated subset 9,239 → 324 (−96.5%, 29×); honest reused/dropped split in
-[`EFFICIENCY.md`](./EFFICIENCY.md).**
+**Result: 20,999-LOC plumbing bucket → 394 code lines (−98.1%, 53×); strictly
+eliminated subset 9,239 → 394 (−95.7%, 23×); hook coverage 11/11 event keys /
+24/24 command entries since agent-connector's E1 8→12-event extension; honest
+reused/dropped split in [`EFFICIENCY.md`](./EFFICIENCY.md).**
 
 ## Progress
 
@@ -20,8 +21,9 @@ eliminated subset 9,239 → 324 (−96.5%, 29×); honest reused/dropped split in
 | 2. Surface map — 11 hook keys/24 entries → 8 AC events, MCP, 128→87 content defs, residue + risks | ✅ done | fea3c63 |
 | 3. The port — one `defineConnector()` (P1a bridge + load-time content compiler) + branded CLI | ✅ done | 8e0a013 |
 | 4. Verify — isolated-home install (136 artifacts, idempotent), doctor --probe 94/94 (49 tools), live hook bridge (ralph keyword / SessionStart / Stop state 1→2), multi-platform dry-run (397 writes, 1 honest warn) | ✅ done | 230f2b6 |
-| 5. Quantify efficiency (20,999 → 324 code lines; honest split) | ✅ done | this commit |
-| 6. Fix AC defect R1 upstream (Stop deny shape — event-aware `decision:"block"`) | ⏳ next | |
+| 5. Quantify efficiency (20,999 → 324 code lines; honest split) | ✅ done | 478be3a |
+| 6. Fix AC defect R1 upstream (Stop deny shape — event-aware `decision:"block"`) | ✅ done | AC `2c506ab` |
+| 6b. Bridge the last 4 hooks (AC E1: PermissionRequest/PostToolUseFailure/SubagentStart/SubagentStop, 8→12 events) — **11/11 keys, 24/24 entries**, live round-trips | ✅ done | this commit |
 | 7. Live non-claude hook verification (codex/gemini/opencode, isolated homes) | ⬜ | |
 
 ## Key documents

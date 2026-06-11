@@ -10,18 +10,20 @@
 //   - hooks/hooks.json              212 lines (12-event wiring manifest)
 //   - .claude-plugin/plugin.json + .mcp.json  70 lines (manifests)
 //
-// Mapping evidence + the honest residue list (PermissionRequest,
-// PostToolUseFailure, SubagentStart/Stop, statusline HUD, CLAUDE.md block,
-// systemMessage) live in docs/surface-map.md. This is the same P1a hook-bridge
-// idiom proven by the context-mode migration
+// Mapping evidence + the honest residue list (statusline HUD, CLAUDE.md
+// block, systemMessage) live in docs/surface-map.md. This is the same P1a
+// hook-bridge idiom proven by the context-mode migration
 // (/home/ubuntu/workspace/github/context-mode-with-agent-connector).
 //
-// KNOWN PENDING (surface-map R1): agent-connector's claude-code formatReply
-// renders every "deny" as hookSpecificOutput.permissionDecision; for the Stop
-// event Claude honors top-level {"decision":"block"}. The adapter (ours) needs
-// an event-aware deny path before claiming live ralph/ultrawork persistence
-// parity. Tracked for the verification phase with a live isolated-home Stop
-// round trip.
+// RESOLVED (surface-map R1): agent-connector's claude-code formatReply now has
+// an event-aware deny path (Stop/SubagentStop/UserPromptSubmit/PostToolUse →
+// top-level {"decision":"block"}), verified with a live isolated-home Stop
+// round trip — see VERIFICATION.md.
+//
+// RESOLVED (surface-map §4 hook residue): agent-connector's E1 extension
+// normalized PermissionRequest / PostToolUseFailure / SubagentStart /
+// SubagentStop (8 → 12 canonical events), so ALL 11 of upstream's hooks.json
+// event keys (24/24 command entries) now route through this connector.
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -70,6 +72,25 @@ function claudeStdin(evt, hookEventName) {
   if (evt.source !== undefined) p.source = evt.source;
   if (evt.trigger !== undefined) p.trigger = evt.trigger;
   if (evt.stopHookActive !== undefined) p.stop_hook_active = evt.stopHookActive;
+  // PermissionRequest (NOTE: the docs state this event has NO tool_use_id)
+  if (evt.permissionSuggestions !== undefined) {
+    p.permission_suggestions = evt.permissionSuggestions;
+  }
+  // PostToolUseFailure
+  if (evt.error !== undefined) p.error = evt.error;
+  if (evt.toolUseId !== undefined) p.tool_use_id = evt.toolUseId;
+  if (evt.isInterrupt !== undefined) p.is_interrupt = evt.isInterrupt;
+  if (evt.durationMs !== undefined) p.duration_ms = evt.durationMs;
+  // SubagentStart / SubagentStop (agent_type may be absent on stop — the
+  // tracker compensates from its own state, exactly as upstream)
+  if (evt.agentId !== undefined) p.agent_id = evt.agentId;
+  if (evt.agentType !== undefined) p.agent_type = evt.agentType;
+  if (evt.agentTranscriptPath !== undefined) {
+    p.agent_transcript_path = evt.agentTranscriptPath;
+  }
+  if (evt.lastAssistantMessage !== undefined) {
+    p.last_assistant_message = evt.lastAssistantMessage;
+  }
   return JSON.stringify(p);
 }
 
@@ -187,6 +208,61 @@ function bridge(hookEventName, chain) {
         return mergeOmcOutputs(outs);
       } catch {
         return { decision: "allow" }; // fail-open, never wedge the host
+      }
+    },
+  };
+}
+
+/**
+ * PermissionRequest needs its OWN merge — the generic mergeOmcOutputs defaults
+ * to {decision:"allow"}, but on PermissionRequest an explicit "allow" is an
+ * ACTIVE GRANT that suppresses the host's permission dialog. The scripts'
+ * vocabulary is hookSpecificOutput.decision.behavior:
+ *   behavior "deny"   → {decision:"deny", reason: message}   (deny wins)
+ *   behavior "allow"  → {decision:"allow"} (+updatedInput passthrough) — what
+ *                       permission-handler.mjs emits for whitelisted-safe Bash
+ *                       commands; the host still enforces its own deny rules.
+ *   anything else     → return void (NO decision) so the bridge falls through
+ *                       to the native dialog — permission-handler.mjs's
+ *                       {continue:true[, suppressOutput:true]} default, and
+ *                       the fail-open path too (never auto-grant on error).
+ */
+function permissionBridge(matcher, chain) {
+  return {
+    matcher,
+    handler(evt) {
+      try {
+        const stdin = claudeStdin(evt, "PermissionRequest");
+        let allow = null;
+        for (const [script, timeoutSec, args] of chain) {
+          const o = runOmcScript(script, args ?? [], stdin, timeoutSec);
+          const d =
+            o && typeof o === "object" && o.hookSpecificOutput &&
+            typeof o.hookSpecificOutput === "object"
+              ? o.hookSpecificOutput.decision
+              : undefined;
+          if (!d || typeof d !== "object") continue;
+          if (d.behavior === "deny") {
+            return {
+              decision: "deny",
+              reason:
+                typeof d.message === "string" && d.message !== ""
+                  ? d.message
+                  : "Blocked by oh-my-claudecode permission handler",
+            };
+          }
+          if (d.behavior === "allow") {
+            allow ??= {
+              decision: "allow",
+              ...(d.updatedInput && typeof d.updatedInput === "object"
+                ? { updatedInput: d.updatedInput }
+                : {}),
+            };
+          }
+        }
+        return allow ?? undefined; // undefined → fall through to the dialog
+      } catch {
+        return undefined; // fail SAFE here: never grant on a bridge error
       }
     },
   };
@@ -369,10 +445,11 @@ export default defineConnector({
     timeoutMs: 30_000,
   },
 
-  // 8 of OMC's 11 hooks.json event keys map onto agent-connector's normalized
-  // events (19 of 24 command entries). Chains run in upstream order with
-  // upstream timeouts. Residue (no AC event): PermissionRequest,
-  // PostToolUseFailure, SubagentStart, SubagentStop — surface-map §4.
+  // ALL 11 of OMC's hooks.json event keys map onto agent-connector's
+  // normalized events (24 of 24 command entries) since AC's E1 extension
+  // added PermissionRequest / PostToolUseFailure / SubagentStart /
+  // SubagentStop (8 → 12 canonical events). Chains run in upstream order with
+  // upstream timeouts.
   hooks: {
     UserPromptSubmit: bridge("UserPromptSubmit", [
       ["keyword-detector.mjs", 5],
@@ -407,10 +484,37 @@ export default defineConnector({
     // Upstream matcher `*` → no matcher (match every tool).
     PreToolUse: bridge("PreToolUse", [["pre-tool-enforcer.mjs", 3]]),
 
+    // Upstream matcher "Bash" (the only matched event in hooks.json) carries
+    // over verbatim. permission-handler.mjs auto-allows whitelisted-safe Bash
+    // commands (decision.behavior:"allow") and emits {continue:true} for
+    // everything else — which the bridge maps to NO decision, falling through
+    // to Claude's native permission dialog (never an implied grant).
+    PermissionRequest: permissionBridge("Bash", [["permission-handler.mjs", 5]]),
+
     PostToolUse: bridge("PostToolUse", [
       ["post-tool-verifier.mjs", 3],
       ["project-memory-posttool.mjs", 3],
       ["post-tool-rules-injector.mjs", 3],
+    ]),
+
+    // Feedback-only: post-tool-use-failure.mjs persists recovery state and may
+    // emit continuation guidance (hookSpecificOutput.additionalContext), which
+    // the merge maps to {decision:"context"} → injected beside the error.
+    PostToolUseFailure: bridge("PostToolUseFailure", [
+      ["post-tool-use-failure.mjs", 3],
+    ]),
+
+    // subagent-tracker start/stop maintain OMC's own subagent state (the
+    // upstream workaround for hosts not populating agent_type on stop);
+    // verify-deliverables is ADVISORY on SubagentStop — additionalContext
+    // warnings only, {continue:true, suppressOutput:true} when clean.
+    SubagentStart: bridge("SubagentStart", [
+      ["subagent-tracker.mjs", 3, ["start"]],
+    ]),
+
+    SubagentStop: bridge("SubagentStop", [
+      ["subagent-tracker.mjs", 5, ["stop"]],
+      ["verify-deliverables.mjs", 5],
     ]),
 
     PreCompact: bridge("PreCompact", [

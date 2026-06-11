@@ -37,8 +37,9 @@ Script stdin/stdout contract (verified in the four representative scripts):
 
 ## 1. Per-event mapping table
 
-agent-connector normalized events (8): `SessionStart, SessionEnd, UserPromptSubmit, PreToolUse,
-PostToolUse, PreCompact, Stop, Notification`. One `HookDefinition` per event per connector; the
+agent-connector normalized events (12 since the E1 extension): `SessionStart, SessionEnd,
+UserPromptSubmit, PreToolUse, PostToolUse, PreCompact, Stop, Notification, PermissionRequest,
+PostToolUseFailure, SubagentStart, SubagentStop`. One `HookDefinition` per event per connector; the
 claude-code adapter writes one settings-hook entry per event whose command is the universal
 entrypoint `<home-bin> hook claude-code <Event> --connector <id>` (`buildHomeBinHookCommand`).
 
@@ -49,18 +50,20 @@ entrypoint `<home-bin> hook claude-code <Event> --connector <id>` (`buildHomeBin
 | 3 | `SessionStart` `init` | `setup-init.mjs` (30) | `SessionStart` (route on `evt.raw.source === "init"`) | **BRIDGED-DORMANT** — `init` is not a stock Claude source (`startup\|resume\|clear\|compact`); same dormancy as upstream |
 | 4 | `SessionStart` `maintenance` | `setup-maintenance.mjs` (60) | `SessionStart` (route on `raw.source === "maintenance"`) | **BRIDGED-DORMANT** — ditto |
 | 5 | `PreToolUse` `*` | `pre-tool-enforcer.mjs` (3) | `PreToolUse` (matcher omitted = all) | **BRIDGED** — script's `permissionDecision:"deny"` → `{decision:"deny",reason}`; adapter re-emits the identical Claude shape |
-| 6 | `PermissionRequest` `Bash` | `permission-handler.mjs` (5) | — | **RESIDUE** — no AC event (see residue 1) |
+| 6 | `PermissionRequest` `Bash` | `permission-handler.mjs` (5) | `PermissionRequest` (matcher `Bash`) | **BRIDGED** — dedicated merge: `decision.behavior:"allow"` → `{decision:"allow"}` (active grant), `"deny"` → `{decision:"deny",reason}`, anything else → **no decision** (fall through to the native dialog; never an implied grant) — see residue 1 |
 | 7 | `PostToolUse` `*` | `post-tool-verifier.mjs` (3), `project-memory-posttool.mjs` (3), `post-tool-rules-injector.mjs` (3) | `PostToolUse` | **BRIDGED** — run all 3, concat `additionalContext` |
-| 8 | `PostToolUseFailure` `*` | `post-tool-use-failure.mjs` (3) | — | **RESIDUE** — no AC event (see residue 2) |
-| 9 | `SubagentStart` `*` | `subagent-tracker.mjs start` (3) | — | **RESIDUE** — no AC event (see residue 3) |
-| 10 | `SubagentStop` `*` | `subagent-tracker.mjs stop` (5), `verify-deliverables.mjs` (5) | — | **RESIDUE** — no AC event (see residue 3) |
+| 8 | `PostToolUseFailure` `*` | `post-tool-use-failure.mjs` (3) | `PostToolUseFailure` | **BRIDGED** — recovery guidance `additionalContext` → `{decision:"context"}` (feedback-only; see residue 2) |
+| 9 | `SubagentStart` `*` | `subagent-tracker.mjs start` (3) | `SubagentStart` | **BRIDGED** — tracker context → `{decision:"context"}` injected into the subagent's conversation (see residue 3) |
+| 10 | `SubagentStop` `*` | `subagent-tracker.mjs stop` (5), `verify-deliverables.mjs` (5) | `SubagentStop` | **BRIDGED** — run both; advisory `additionalContext` concat; a `{"decision":"block"}` would map to `{decision:"deny"}` → top-level block (Stop semantics; see residue 3) |
 | 11 | `PreCompact` `*` | `pre-compact.mjs` (10), `project-memory-precompact.mjs` (5), `wiki-pre-compact.mjs` (3) | `PreCompact` | **BRIDGED** — context concat |
-| 12 | `Stop` `*` | `context-guard-stop.mjs` (5), `persistent-mode.mjs` (10), `code-simplifier.mjs` (5) | `Stop` | **BRIDGED** — `{"decision":"block","reason"}` → `{decision:"deny",reason}`; **requires AC adapter fix** (risk R1) |
+| 12 | `Stop` `*` | `context-guard-stop.mjs` (5), `persistent-mode.mjs` (10), `code-simplifier.mjs` (5) | `Stop` | **BRIDGED** — `{"decision":"block","reason"}` → `{decision:"deny",reason}`; AC adapter fix landed (risk R1, resolved) |
 | 13 | `SessionEnd` `*` | `session-end.mjs` (30), `wiki-session-end.mjs` (30) | `SessionEnd` | **BRIDGED** — fire-and-forget (host ignores SessionEnd output) |
 
-Coverage: **8/11 OMC event keys map** (9/13 matcher groups, 19/24 command entries). The 5 residual
-command entries (`permission-handler`, `post-tool-use-failure`, `subagent-tracker start/stop`,
-`verify-deliverables`) are enumerated in §4.
+Coverage: **11/11 OMC event keys map** (13/13 matcher groups, **24/24 command entries**) since
+agent-connector's E1 extension normalized `PermissionRequest` / `PostToolUseFailure` /
+`SubagentStart` / `SubagentStop` (8 → 12 canonical events). The formerly-residual 5 command
+entries (`permission-handler`, `post-tool-use-failure`, `subagent-tracker start/stop`,
+`verify-deliverables`) are bridged; their history is kept in §4 (items 1–3, now resolved).
 
 ### The bridge mechanism (P1a idiom, one handler per AC event)
 
@@ -69,7 +72,10 @@ Each AC `HookDefinition.handler(evt)`:
 1. **Re-serialize to Claude-shaped stdin JSON.** On `evt.hostPlatform === "claude-code"`, pass
    `evt.raw` through **verbatim** (it IS the original Claude payload — `parseEvent` keeps it).
    On other hosts, synthesize the minimal Claude shape from normalized fields:
-   `{ session_id: evt.sessionId, cwd: evt.projectDir, hook_event_name, prompt, tool_name, tool_input, tool_response, source, trigger, stop_hook_active }`.
+   `{ session_id: evt.sessionId, cwd: evt.projectDir, hook_event_name, prompt, tool_name, tool_input, tool_response, source, trigger, stop_hook_active }`
+   plus the E1-event fields where present: `permission_suggestions` (PermissionRequest), `error`,
+   `tool_use_id`, `is_interrupt`, `duration_ms` (PostToolUseFailure), `agent_id`, `agent_type`,
+   `agent_transcript_path`, `last_assistant_message` (SubagentStart/Stop).
 2. **Spawn each OMC script in upstream `hooks.json` order**, unchanged from the checkout:
    `node $OMC/scripts/run.cjs $OMC/scripts/<script>.mjs [args]`, env
    `{ ...process.env, CLAUDE_PLUGIN_ROOT: $OMC }` where
@@ -82,6 +88,11 @@ Each AC `HookDefinition.handler(evt)`:
    - `hookSpecificOutput.additionalContext` values concatenated with `\n\n` → `{decision:"context", additionalContext}`;
    - `{"continue":true}` / `suppressOutput` / empty / unparseable → contributes nothing (fail-open,
      mirroring both OMC's own catch-all `{continue:true}` and AC's fail-open runtime contract).
+   **Exception — PermissionRequest** uses a dedicated merge (`permissionBridge`): the scripts'
+   `hookSpecificOutput.decision.behavior` maps `"deny"` → `{decision:"deny",reason}` /
+   `"allow"` → `{decision:"allow"}` (+`updatedInput` passthrough), and EVERYTHING else (incl. the
+   fail-open error path) returns **no decision**, so the bridge can never silently auto-grant a
+   permission — falling through to the native dialog is the safe default here, not allow.
 4. Kill switches honored for free: the scripts themselves check `DISABLE_OMC` / `OMC_SKIP_HOOKS`,
    which pass through the bridge env untouched.
 
@@ -145,18 +156,21 @@ from one declaration — upstream's answer to this was entire sibling projects (
 
 ## 4. Residue — what does NOT map (honest list)
 
-1. **`PermissionRequest` (matcher `Bash`) → `permission-handler.mjs`.** Claude-only event fired when
-   a permission prompt is about to show; AC's 8-event model has no equivalent. AC's PreToolUse
-   `"ask"` decision is adjacent but fires at a different point and cannot auto-resolve an existing
-   prompt. **Lost**: OMC's automatic allow/deny of permission dialogs.
-2. **`PostToolUseFailure` → `post-tool-use-failure.mjs`.** No AC event. AC's `PostToolUseEvent` has
-   an `isError?` field, but the claude-code adapter registers only `PostToolUse`, and Claude emits
-   failures on a *separate* event AC never subscribes to. **Lost**: `[TOOL ERROR]` recovery-guidance
-   injection.
-3. **`SubagentStart` / `SubagentStop` → `subagent-tracker.mjs`, `verify-deliverables.mjs`.** No AC
-   events. **Lost**: subagent lifecycle accounting and the deliverables-verification nudge on
-   subagent exit. (Stop-event handlers still cover the main-agent loop, which is the load-bearing
-   ralph/ultrawork path.)
+1. **RESOLVED — `PermissionRequest` (matcher `Bash`) → `permission-handler.mjs`.** Bridged since
+   agent-connector's E1 extension added a normalized `PermissionRequest` event (cross-host, not
+   Claude-only: codex/copilot-cli/qwen ship analogs). The bridge uses a DEDICATED merge because on
+   this event an explicit `allow` is an ACTIVE grant that suppresses the dialog: whitelisted-safe
+   commands surface as `decision{behavior:"allow"}`, everything else returns **no decision** and
+   falls through to the native dialog. Verified live (isolated home): `git status` → allow grant;
+   `rm -rf build` → fall-through.
+2. **RESOLVED — `PostToolUseFailure` → `post-tool-use-failure.mjs`.** Bridged via the normalized
+   `PostToolUseFailure` event (feedback-only: deny degrades to context). `[TOOL ERROR]`
+   recovery-guidance injection restored — verified live (`additionalContext` beside the error).
+3. **RESOLVED — `SubagentStart` / `SubagentStop` → `subagent-tracker.mjs`, `verify-deliverables.mjs`.**
+   Bridged via the normalized subagent lifecycle events (matchers match agent type; `agent_type`
+   treated as optional on stop — the tracker's own state compensates, exactly as upstream).
+   Subagent lifecycle accounting + the deliverables-verification nudge restored — verified live
+   (tracker context on start; advisory deliverables warning on stop with seeded team state).
 4. **Statusline HUD.** OMC's `/hud` installs a `statusLine` command into settings.json
    (~8.5k-LOC installer territory). AC has no statusline surface on any platform. The HUD remains
    usable by running OMC's own setup manually; AC will not install/manage it.
@@ -180,12 +194,11 @@ from one declaration — upstream's answer to this was entire sibling projects (
 
 ## 5. Risks
 
-- **R1 (must fix before P1 sign-off): Stop-block reply shape.** AC's claude-code
-  `formatReply` renders every `deny` as `hookSpecificOutput.permissionDecision:"deny"`. For the
-  `Stop` event Claude honors **top-level** `{"decision":"block","reason":...}` — i.e. ralph's
-  persistence loop would silently stop blocking. agent-connector is ours; the adapter needs an
-  event-aware deny path (Stop/UserPromptSubmit → top-level `decision:"block"`). Verify with a live
-  isolated-home Stop-hook round trip.
+- **R1 (RESOLVED): Stop-block reply shape.** AC's claude-code `formatReply` now has an event-aware
+  deny path: `Stop` / `SubagentStop` / `UserPromptSubmit` / `PostToolUse` denies render as the
+  top-level `{"decision":"block","reason":...}` Claude honors (PreToolUse keeps
+  `permissionDecision`). Verified with a live isolated-home Stop round trip (VERIFICATION.md §4c)
+  — ralph's persistence loop blocks correctly through the bridge.
 - **R2: MCP tool-name prefix.** `mcp__t__*` (plugin install) becomes `mcp__<connector-id>__*`.
   Grep over agents/skills/commands found zero hard-coded `mcp__t__` references (they use bare names
   like `lsp_diagnostics`), so exposure is low; re-grep `src/hooks/**` during P2.
