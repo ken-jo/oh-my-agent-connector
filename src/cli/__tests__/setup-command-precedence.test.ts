@@ -1,6 +1,6 @@
 /**
- * Real commander-pipeline tests for `omc setup --plugin-dir-mode` and the
- * OMC_PLUGIN_ROOT auto-detection precedence.
+ * Real commander-pipeline tests for `omac setup --plugin-dir-mode` and the
+ * OMAC_PLUGIN_ROOT auto-detection precedence.
  *
  * These tests drive the *actual* commander program built by `src/cli/index.ts`
  * (via the exported `buildProgram()` helper) and assert on the `InstallOptions`
@@ -11,18 +11,18 @@
  * previously re-implemented this precedence logic in the test file itself):
  *
  *   1. --plugin-dir-mode flag                       → opts.pluginDirMode === true
- *   2. OMC_PLUGIN_ROOT env, no flag                 → opts.pluginDirMode === true + auto-detect log
+ *   2. OMAC_PLUGIN_ROOT env, no flag                 → opts.pluginDirMode === true + auto-detect log
  *   3. neither                                      → opts.pluginDirMode === false
  *   4. --plugin-dir-mode --no-plugin                → pluginDirMode=false, noPlugin=true, conflict warning
- *   5. OMC_PLUGIN_ROOT + --no-plugin                → pluginDirMode=false, noPlugin=true, conflict warning
+ *   5. OMAC_PLUGIN_ROOT + --no-plugin                → pluginDirMode=false, noPlugin=true, conflict warning
  *   6. --plugin-dir-mode --force                    → pluginDirMode=true, force=true
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { OMC_PLUGIN_ROOT_ENV } from '../../lib/env-vars.js';
+import { OMAC_PLUGIN_ROOT_ENV } from '../../lib/env-vars.js';
 
 // Tell src/cli/index.ts not to auto-parse process.argv on import.
-process.env.OMC_CLI_SKIP_PARSE = '1';
+process.env.OMAC_CLI_SKIP_PARSE = '1';
 
 // Capture every install() invocation made by the setup action.
 const installMock = vi.fn(() => ({
@@ -60,7 +60,7 @@ vi.mock('../../features/auto-update.js', async () => {
 });
 
 // Snapshot env so individual tests can mutate freely.
-const ORIG_OMC_PLUGIN_ROOT = process.env[OMC_PLUGIN_ROOT_ENV];
+const ORIG_OMAC_PLUGIN_ROOT = process.env[OMAC_PLUGIN_ROOT_ENV];
 
 let logSpy: ReturnType<typeof vi.spyOn>;
 let warnSpy: ReturnType<typeof vi.spyOn>;
@@ -68,17 +68,17 @@ let errorSpy: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
   installMock.mockClear();
-  delete process.env[OMC_PLUGIN_ROOT_ENV];
+  delete process.env[OMAC_PLUGIN_ROOT_ENV];
   logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
   warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
   errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {
-  if (ORIG_OMC_PLUGIN_ROOT === undefined) {
-    delete process.env[OMC_PLUGIN_ROOT_ENV];
+  if (ORIG_OMAC_PLUGIN_ROOT === undefined) {
+    delete process.env[OMAC_PLUGIN_ROOT_ENV];
   } else {
-    process.env[OMC_PLUGIN_ROOT_ENV] = ORIG_OMC_PLUGIN_ROOT;
+    process.env[OMAC_PLUGIN_ROOT_ENV] = ORIG_OMAC_PLUGIN_ROOT;
   }
   logSpy.mockRestore();
   warnSpy.mockRestore();
@@ -107,18 +107,18 @@ function loggedText(): string {
   return logSpy.mock.calls.map((c: unknown[]) => c.join(' ')).join('\n');
 }
 
-describe('omc setup commander pipeline — pluginDirMode precedence', () => {
+describe('omac setup commander pipeline — pluginDirMode precedence', () => {
   it('1. --plugin-dir-mode flag → pluginDirMode=true', async () => {
     await runSetup(['--plugin-dir-mode', '--quiet']);
     expect(lastInstallOptions().pluginDirMode).toBe(true);
     expect(lastInstallOptions().noPlugin).toBe(false);
   });
 
-  it('2. OMC_PLUGIN_ROOT env, no flag → pluginDirMode auto-enabled with detection log', async () => {
-    process.env[OMC_PLUGIN_ROOT_ENV] = '/tmp/foo';
+  it('2. OMAC_PLUGIN_ROOT env, no flag → pluginDirMode auto-enabled with detection log', async () => {
+    process.env[OMAC_PLUGIN_ROOT_ENV] = '/tmp/foo';
     await runSetup([]);
     expect(lastInstallOptions().pluginDirMode).toBe(true);
-    expect(loggedText()).toMatch(/Detected OMC_PLUGIN_ROOT/);
+    expect(loggedText()).toMatch(/Detected OMAC_PLUGIN_ROOT/);
   });
 
   it('3. neither flag nor env → pluginDirMode=false', async () => {
@@ -135,8 +135,8 @@ describe('omc setup commander pipeline — pluginDirMode precedence', () => {
     expect(loggedText()).toMatch(/conflict/i);
   });
 
-  it('5. OMC_PLUGIN_ROOT env + --no-plugin → noPlugin wins, conflict warning logged', async () => {
-    process.env[OMC_PLUGIN_ROOT_ENV] = '/tmp/bar';
+  it('5. OMAC_PLUGIN_ROOT env + --no-plugin → noPlugin wins, conflict warning logged', async () => {
+    process.env[OMAC_PLUGIN_ROOT_ENV] = '/tmp/bar';
     await runSetup(['--no-plugin']);
     const opts = lastInstallOptions();
     expect(opts.pluginDirMode).toBe(false);

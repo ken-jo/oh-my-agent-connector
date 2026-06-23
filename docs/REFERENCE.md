@@ -1,6 +1,6 @@
 # Reference Documentation
 
-Complete reference for oh-my-claudecode. For quick start, see the main [README.md](../README.md).
+Complete reference for oh-my-agent-connector. For quick start, see the main [README.md](../README.md).
 
 ---
 
@@ -34,15 +34,15 @@ Complete reference for oh-my-claudecode. For quick start, see the main [README.m
 
 ```bash
 # Step 1: Add the marketplace
-/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
+/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-agent-connector
 
 # Step 2: Install the plugin
-/plugin install oh-my-claudecode
+/plugin install oh-my-agent-connector
 ```
 
 This integrates directly with Claude Code's plugin system and uses Node.js hooks.
 
-> **Note**: Direct npm/bun global installs are **not supported** for the plugin install flow. When you only need the packaged CLI surface, the npm package exposes both `oh-my-claudecode` and `omc`; use `omc` in examples unless troubleshooting needs the long alias.
+> **Note**: Direct npm/bun global installs are **not supported** for the plugin install flow. When you only need the packaged CLI surface, the npm package exposes both `oh-my-agent-connector` and `omac`; use `omac` in examples unless troubleshooting needs the long alias.
 
 ### Requirements
 
@@ -57,10 +57,10 @@ This integrates directly with Claude Code's plugin system and uses Node.js hooks
 
 ### Project-Scoped Configuration (Recommended)
 
-Configure omc for the current project only:
+Configure omac for the current project only:
 
 ```
-/oh-my-claudecode:omc-setup --local
+/oh-my-agent-connector:omac-setup --local
 ```
 
 - Creates `./.claude/CLAUDE.md` in your current project
@@ -70,20 +70,20 @@ Configure omc for the current project only:
 
 ### Global Configuration
 
-Configure omc for all Claude Code sessions:
+Configure omac for all Claude Code sessions:
 
 ```
-/oh-my-claudecode:omc-setup
+/oh-my-agent-connector:omac-setup
 ```
 
 - Creates `~/.claude/CLAUDE.md` globally
 - Configuration applies to all projects
 - **Default**: explicitly overwrites existing `~/.claude/CLAUDE.md`
-- **Optional preserve mode**: keeps the base file, writes OMC to `~/.claude/CLAUDE-omc.md`, and lets `omc` force-load that companion config at launch while plain `claude` stays unchanged
+- **Optional preserve mode**: keeps the base file, writes OMAC to `~/.claude/CLAUDE-omac.md`, and lets `omac` force-load that companion config at launch while plain `claude` stays unchanged
 
 ### What Configuration Enables
 
-| Feature           | Without     | With omc Config         |
+| Feature           | Without     | With omac Config         |
 | ----------------- | ----------- | ----------------------- |
 | Agent delegation  | Manual only | Automatic based on task |
 | Keyword detection | Disabled    | ultrawork, search       |
@@ -103,63 +103,63 @@ If both configurations exist, **project-scoped takes precedence** over global:
 
 | Variable                   | Default              | Description                                                                                                                                                                                                                                                                 |
 | -------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `OMC_STATE_DIR`            | _(unset)_            | Centralized state directory. When set, OMC stores state at `$OMC_STATE_DIR/{project-id}/` instead of `{worktree}/.omc/`. This preserves state across worktree deletions. The project identifier is derived from the git remote URL (or worktree path for local-only repos). |
-| `OMC_BRIDGE_SCRIPT`        | _(auto-detected)_    | Path to the Python bridge script                                                                                                                                                                                                                                            |
-| `OMC_PARALLEL_EXECUTION`   | `true`               | Enable/disable parallel agent execution                                                                                                                                                                                                                                     |
-| `OMC_CODEX_DEFAULT_MODEL`  | _(provider default)_ | Default model for Codex CLI workers                                                                                                                                                                                                                                         |
-| `OMC_GEMINI_DEFAULT_MODEL` | _(provider default)_ | Default model for Gemini CLI workers                                                                                                                                                                                                                                        |
-| `OMC_GROK_DEFAULT_MODEL`   | _(provider default)_ | Default model for Grok Build CLI workers                                                                                                                                                                                                                                    |
-| `OMC_LSP_TIMEOUT_MS`       | `15000`              | Timeout (ms) for LSP requests. Increase for large repos or slow language servers                                                                                                                                                                                            |
-| `OMC_MIGRATE_LEGACY_STATE` | _(unset)_            | Set to `1` to enable one-shot legacy→session-scoped state migration on next read. See [Legacy state migration](#legacy-state-migration-omc_migrate_legacy_state) below.                                                                                                      |
-| `OMC_DISABLE_MULTIREPO`    | _(unset)_            | Set to `1` to disable workspace-marker resolution and fall back to git-root + cwd resolution order. `OMC_STATE_DIR` is still honoured. See [Rollback / disable multi-repo](#rollback--disable-multi-repo-omc_disable_multirepo) below.                                       |
-| `DISABLE_OMC`              | _(unset)_            | Set to any value to disable all OMC hooks                                                                                                                                                                                                                                   |
-| `OMC_SKIP_HOOKS`           | _(unset)_            | Comma-separated list of hook names to skip                                                                                                                                                                                                                                  |
+| `OMAC_STATE_DIR`            | _(unset)_            | Centralized state directory. When set, OMAC stores state at `$OMAC_STATE_DIR/{project-id}/` instead of `{worktree}/.omac/`. This preserves state across worktree deletions. The project identifier is derived from the git remote URL (or worktree path for local-only repos). |
+| `OMAC_BRIDGE_SCRIPT`        | _(auto-detected)_    | Path to the Python bridge script                                                                                                                                                                                                                                            |
+| `OMAC_PARALLEL_EXECUTION`   | `true`               | Enable/disable parallel agent execution                                                                                                                                                                                                                                     |
+| `OMAC_CODEX_DEFAULT_MODEL`  | _(provider default)_ | Default model for Codex CLI workers                                                                                                                                                                                                                                         |
+| `OMAC_GEMINI_DEFAULT_MODEL` | _(provider default)_ | Default model for Gemini CLI workers                                                                                                                                                                                                                                        |
+| `OMAC_GROK_DEFAULT_MODEL`   | _(provider default)_ | Default model for Grok Build CLI workers                                                                                                                                                                                                                                    |
+| `OMAC_LSP_TIMEOUT_MS`       | `15000`              | Timeout (ms) for LSP requests. Increase for large repos or slow language servers                                                                                                                                                                                            |
+| `OMAC_MIGRATE_LEGACY_STATE` | _(unset)_            | Set to `1` to enable one-shot legacy→session-scoped state migration on next read. See [Legacy state migration](#legacy-state-migration-omac_migrate_legacy_state) below.                                                                                                      |
+| `OMAC_DISABLE_MULTIREPO`    | _(unset)_            | Set to `1` to disable workspace-marker resolution and fall back to git-root + cwd resolution order. `OMAC_STATE_DIR` is still honoured. See [Rollback / disable multi-repo](#rollback--disable-multi-repo-omac_disable_multirepo) below.                                       |
+| `DISABLE_OMAC`              | _(unset)_            | Set to any value to disable all OMAC hooks                                                                                                                                                                                                                                   |
+| `OMAC_SKIP_HOOKS`           | _(unset)_            | Comma-separated list of hook names to skip                                                                                                                                                                                                                                  |
 
-#### Centralized State with `OMC_STATE_DIR`
+#### Centralized State with `OMAC_STATE_DIR`
 
-By default, OMC stores state in `{worktree}/.omc/`. This is lost when worktrees are deleted. To preserve state across worktree lifecycles, set `OMC_STATE_DIR`:
+By default, OMAC stores state in `{worktree}/.omac/`. This is lost when worktrees are deleted. To preserve state across worktree lifecycles, set `OMAC_STATE_DIR`:
 
 ```bash
 # In your shell profile (~/.bashrc, ~/.zshrc, etc.)
-export OMC_STATE_DIR="$HOME/.claude/omc"
+export OMAC_STATE_DIR="$HOME/.claude/omac"
 ```
 
-This resolves to `~/.claude/omc/{project-identifier}/` where the project identifier uses a hash of the git remote URL (stable across worktrees/clones) with a fallback to the directory path hash for local-only repos.
+This resolves to `~/.claude/omac/{project-identifier}/` where the project identifier uses a hash of the git remote URL (stable across worktrees/clones) with a fallback to the directory path hash for local-only repos.
 
-If both a legacy `{worktree}/.omc/` directory and a centralized directory exist, OMC logs a notice and uses the centralized directory. You can then migrate data from the legacy directory and remove it.
+If both a legacy `{worktree}/.omac/` directory and a centralized directory exist, OMAC logs a notice and uses the centralized directory. You can then migrate data from the legacy directory and remove it.
 
-#### Multi-repo workspaces with `.omc-workspace`
+#### Multi-repo workspaces with `.omac-workspace`
 
-When you have several independent git repos under one parent directory and the parent itself is **not** a git repo, OMC cannot infer a shared root via `git rev-parse --show-toplevel`. Each sub-repo would get its own isolated `.omc/`. To anchor a single `.omc/` at the parent, drop a `.omc-workspace` marker file there:
+When you have several independent git repos under one parent directory and the parent itself is **not** a git repo, OMAC cannot infer a shared root via `git rev-parse --show-toplevel`. Each sub-repo would get its own isolated `.omac/`. To anchor a single `.omac/` at the parent, drop a `.omac-workspace` marker file there:
 
 ```bash
 cd /path/to/my-workspace            # parent dir (not a git repo)
-echo '{}' > .omc-workspace          # empty JSON is fine
+echo '{}' > .omac-workspace          # empty JSON is fine
 ```
 
-From any sub-directory (including inside any sub-git-repo), OMC resolves `.omc/` to `/path/to/my-workspace/.omc/`. The marker may also carry an explicit project identifier so all sessions share state regardless of the parent dir name:
+From any sub-directory (including inside any sub-git-repo), OMAC resolves `.omac/` to `/path/to/my-workspace/.omac/`. The marker may also carry an explicit project identifier so all sessions share state regardless of the parent dir name:
 
 ```json
 { "id": "my-org-bidchex" }
 ```
 
-Resolution order inside `getOmcRoot()`:
+Resolution order inside `getOmacRoot()`:
 
-1. `OMC_STATE_DIR` (centralized).
-2. `.omc-workspace` marker (multi-repo workspace).
+1. `OMAC_STATE_DIR` (centralized).
+2. `.omac-workspace` marker (multi-repo workspace).
 3. `git rev-parse --show-toplevel` (monorepo / single repo).
 4. `process.cwd()` (last resort).
 
-Once a workspace is anchored, multiple Claude Code sessions in different sub-repos can run `/ultragoal`, `/ralph`, `/ultrawork`, `/autopilot` in parallel without bleeding state. For `/ultragoal` specifically, pass `--plan-id <id>` or `--auto-plan-id` on `create-goals` so each session writes to `.omc/ultragoal/plans/{planId}/` instead of the shared `goals.json` — see "ultragoal multi-plan" below. The PARALLEL SESSION WARNING in `session-start.mjs` performs a PID-aware liveness check and no longer suppresses restore when the owner session is dead.
+Once a workspace is anchored, multiple Claude Code sessions in different sub-repos can run `/ultragoal`, `/ralph`, `/ultrawork`, `/autopilot` in parallel without bleeding state. For `/ultragoal` specifically, pass `--plan-id <id>` or `--auto-plan-id` on `create-goals` so each session writes to `.omac/ultragoal/plans/{planId}/` instead of the shared `goals.json` — see "ultragoal multi-plan" below. The PARALLEL SESSION WARNING in `session-start.mjs` performs a PID-aware liveness check and no longer suppresses restore when the owner session is dead.
 
-#### `.omc/handoffs/` shared contract
+#### `.omac/handoffs/` shared contract
 
-`.omc/handoffs/` is intentionally **shared across team runs** by design. Its purpose is inter-session message passing: team stage handoffs (plan → prd → exec → verify) accumulate here so a later `team` run can resume from the last non-terminal stage without losing decision history.
+`.omac/handoffs/` is intentionally **shared across team runs** by design. Its purpose is inter-session message passing: team stage handoffs (plan → prd → exec → verify) accumulate here so a later `team` run can resume from the last non-terminal stage without losing decision history.
 
-**Only the `team` skill writes to `.omc/handoffs/`.** All other code that reads the directory does so read-only. This is enforced by the lint test `tests/lint/handoffs-writers.test.ts`, which scans `src/**` and `templates/**` and fails if any file outside `src/team/` or `src/hooks/team-pipeline/` references `handoffs/` as a write target.
+**Only the `team` skill writes to `.omac/handoffs/`.** All other code that reads the directory does so read-only. This is enforced by the lint test `tests/lint/handoffs-writers.test.ts`, which scans `src/**` and `templates/**` and fails if any file outside `src/team/` or `src/hooks/team-pipeline/` references `handoffs/` as a write target.
 
 - Handoff files survive `TeamDelete` and session cancellation intentionally — they are post-mortem artifacts.
-- Do **not** session-scope `.omc/handoffs/` unless the `team` skill explicitly evolves to per-session inboxes (tracked as a follow-up in the ADR).
+- Do **not** session-scope `.omac/handoffs/` unless the `team` skill explicitly evolves to per-session inboxes (tracked as a follow-up in the ADR).
 
 #### Branded path types (`ReadPath` / `WritePath`)
 
@@ -176,39 +176,39 @@ interface SessionStatePaths {
 
 The brand prevents a hook from silently passing a read-fallback path to a writer (or vice versa) — TypeScript rejects the cross-assignment at compile time. The only legitimate producer of the brand is `resolveSessionStatePaths()` itself; an ESLint `no-restricted-syntax` rule in `eslint.config.js` blocks `as ReadPath` / `as WritePath` casts anywhere outside `worktree-paths.ts` and its tests. Compile-time regression guard at `src/lib/__tests__/session-state-paths.type-test.ts`.
 
-#### Legacy state migration (`OMC_MIGRATE_LEGACY_STATE`)
+#### Legacy state migration (`OMAC_MIGRATE_LEGACY_STATE`)
 
-When you adopt `OMC_STATE_DIR` or `.omc-workspace` on a repo that already has existing `{worktree}/.omc/state/` files, you can opt in to a one-shot copy of legacy state into the new session-scoped path:
+When you adopt `OMAC_STATE_DIR` or `.omac-workspace` on a repo that already has existing `{worktree}/.omac/state/` files, you can opt in to a one-shot copy of legacy state into the new session-scoped path:
 
 ```bash
-export OMC_MIGRATE_LEGACY_STATE=1
+export OMAC_MIGRATE_LEGACY_STATE=1
 ```
 
 Semantics:
 - **Trigger**: checked once per state-file read by callers that wrap their write through the migration helper.
-- **Operation**: copies `{omcRoot}/state/{name}-state.json` → `{omcRoot}/state/sessions/{sessionId}/{name}-state.json` using an atomic `.migrating` sentinel + rename for crash recovery.
+- **Operation**: copies `{omacRoot}/state/{name}-state.json` → `{omacRoot}/state/sessions/{sessionId}/{name}-state.json` using an atomic `.migrating` sentinel + rename for crash recovery.
 - **Idempotent**: a second run with the flag set is a no-op if the session-scoped file already exists.
-- **Opt-in only**: never triggers automatically; only when `OMC_MIGRATE_LEGACY_STATE=1` is set.
+- **Opt-in only**: never triggers automatically; only when `OMAC_MIGRATE_LEGACY_STATE=1` is set.
 - **No auto-trigger**: do not set this permanently in your shell profile; set it once for the migration session, then unset it.
 
-#### Rollback / disable multi-repo (`OMC_DISABLE_MULTIREPO`)
+#### Rollback / disable multi-repo (`OMAC_DISABLE_MULTIREPO`)
 
-If the workspace-marker resolution causes unexpected behaviour (e.g., after dropping a stale `.omc-workspace` marker), you can disable multi-repo path resolution in one env-var flip:
+If the workspace-marker resolution causes unexpected behaviour (e.g., after dropping a stale `.omac-workspace` marker), you can disable multi-repo path resolution in one env-var flip:
 
 ```bash
-export OMC_DISABLE_MULTIREPO=1
+export OMAC_DISABLE_MULTIREPO=1
 ```
 
 Exact semantics:
-- **Skips** `.omc-workspace` marker detection — `findWorkspaceRoot()` returns `null` immediately.
+- **Skips** `.omac-workspace` marker detection — `findWorkspaceRoot()` returns `null` immediately.
 - **Falls back** to the standard `git rev-parse --show-toplevel` → `process.cwd()` resolution order.
-- **Preserves** `OMC_STATE_DIR` if set — centralized state storage still works.
+- **Preserves** `OMAC_STATE_DIR` if set — centralized state storage still works.
 - **Scope**: per-process; set in the shell session where you run `claude`, not project-wide.
 
 To restore multi-repo behaviour, unset the variable:
 
 ```bash
-unset OMC_DISABLE_MULTIREPO
+unset OMAC_DISABLE_MULTIREPO
 ```
 
 #### Ultragoal multi-plan layout
@@ -216,46 +216,46 @@ unset OMC_DISABLE_MULTIREPO
 Default layout (single plan, monorepo / single session):
 
 ```
-.omc/ultragoal/brief.md
-.omc/ultragoal/goals.json
-.omc/ultragoal/ledger.jsonl
+.omac/ultragoal/brief.md
+.omac/ultragoal/goals.json
+.omac/ultragoal/ledger.jsonl
 ```
 
-Multi-plan layout, enabled by `--plan-id <id>` or `--auto-plan-id` on `omc ultragoal create-goals`:
+Multi-plan layout, enabled by `--plan-id <id>` or `--auto-plan-id` on `omac ultragoal create-goals`:
 
 ```
-.omc/ultragoal/plans/{planId}/brief.md
-.omc/ultragoal/plans/{planId}/goals.json
-.omc/ultragoal/plans/{planId}/ledger.jsonl
+.omac/ultragoal/plans/{planId}/brief.md
+.omac/ultragoal/plans/{planId}/goals.json
+.omac/ultragoal/plans/{planId}/ledger.jsonl
 ```
 
-`--auto-plan-id` derives `{epochMs}-{slug}` from the brief title, so two parallel sessions running `omc ultragoal create-goals --auto-plan-id ...` never collide. Subsequent commands (`status`, `add-goal`, `complete-goals`, `checkpoint`, `record-review-blockers`) auto-resolve the plan when there is exactly one; when there are multiple, they require `--plan-id <id>`. `omc ultragoal list-plans` enumerates the available plan ids.
+`--auto-plan-id` derives `{epochMs}-{slug}` from the brief title, so two parallel sessions running `omac ultragoal create-goals --auto-plan-id ...` never collide. Subsequent commands (`status`, `add-goal`, `complete-goals`, `checkpoint`, `record-review-blockers`) auto-resolve the plan when there is exactly one; when there are multiple, they require `--plan-id <id>`. `omac ultragoal list-plans` enumerates the available plan ids.
 
 ### When to Re-run Setup
 
 - **First time**: Run after installation (choose project or global)
 - **After updates**: Re-run to get the latest configuration
 - **Different machines**: Run on each machine where you use Claude Code
-- **New projects**: Run `/oh-my-claudecode:omc-setup --local` in each project that needs omc
+- **New projects**: Run `/oh-my-agent-connector:omac-setup --local` in each project that needs omac
 
-> **NOTE**: After updating the plugin (via `npm update`, `git pull`, or Claude Code's plugin update), you MUST re-run `/oh-my-claudecode:omc-setup` to apply the latest CLAUDE.md changes.
+> **NOTE**: After updating the plugin (via `npm update`, `git pull`, or Claude Code's plugin update), you MUST re-run `/oh-my-agent-connector:omac-setup` to apply the latest CLAUDE.md changes.
 
-### Remote OMC / Remote MCP Access
+### Remote OMAC / Remote MCP Access
 
-Issue #1653 asked whether OMC can "connect to a remote OMC" so one development machine can browse files on lab/test machines without opening an interactive SSH session.
+Issue #1653 asked whether OMAC can "connect to a remote OMAC" so one development machine can browse files on lab/test machines without opening an interactive SSH session.
 
 The narrow, coherent answer today is:
 
 - **Supported**: connect to a **remote MCP server** through the unified MCP registry
-- **Not implemented**: a general "OMC cluster", shared remote filesystem view, or automatic remote-OMC federation
+- **Not implemented**: a general "OMAC cluster", shared remote filesystem view, or automatic remote-OMAC federation
 - **Still appropriate for full remote shell workflows**: SSH, worktrees, or a mounted/network filesystem
 
-If a remote host already exposes an MCP endpoint, add it to your MCP registry (or Claude settings and then re-run setup so OMC syncs the registry to Codex too):
+If a remote host already exposes an MCP endpoint, add it to your MCP registry (or Claude settings and then re-run setup so OMAC syncs the registry to Codex too):
 
 ```json
 {
   "mcpServers": {
-    "remoteOmc": {
+    "remoteOmac": {
       "url": "https://lab.example.com/mcp",
       "timeout": 30
     }
@@ -263,18 +263,18 @@ If a remote host already exposes an MCP endpoint, add it to your MCP registry (o
 }
 ```
 
-This gives OMC a coherent remote connection surface for MCP-backed tools. It does **not** make all remote files magically appear as a local workspace, and it does **not** replace SSH for arbitrary shell access.
+This gives OMAC a coherent remote connection surface for MCP-backed tools. It does **not** make all remote files magically appear as a local workspace, and it does **not** replace SSH for arbitrary shell access.
 
 If you need richer cross-machine behavior in the future, that would require a separate authenticated remote execution/filesystem design rather than stretching the current local-workspace architecture.
 
 ### Company Context via MCP
 
-OMC also supports a narrow company-context contract on top of the existing MCP surface.
+OMAC also supports a narrow company-context contract on top of the existing MCP surface.
 
-Configure it in the standard OMC config files:
+Configure it in the standard OMAC config files:
 
-- Project: `.claude/omc.jsonc`
-- User: `~/.config/claude-omc/config.jsonc`
+- Project: `.claude/omac.jsonc`
+- User: `~/.config/claude-omac/config.jsonc`
 
 ```jsonc
 {
@@ -287,7 +287,7 @@ Configure it in the standard OMC config files:
 
 - `tool` is the full MCP tool name to call.
 - `onError` controls prompt-level fallback: `warn`, `silent`, or `fail`.
-- The MCP server itself is still registered through the normal Claude/OMC MCP setup path.
+- The MCP server itself is still registered through the normal Claude/OMAC MCP setup path.
 
 This remains a prompt-level workflow contract, not runtime enforcement. For the full interface, trigger stages, and trust boundary, see [company-context-interface.md](./company-context-interface.md).
 
@@ -307,7 +307,7 @@ model: opus # or sonnet, haiku
 Your custom system prompt here...
 ```
 
-Bundled OMC agent prompts currently do **not** ship an `effort:` frontmatter field. Any effort language inside `agents/*.md` is behavioral guidance for the prompt body, while runtime effort inherits from the parent Claude Code session unless the agent markdown explicitly declares an override.
+Bundled OMAC agent prompts currently do **not** ship an `effort:` frontmatter field. Any effort language inside `agents/*.md` is behavioral guidance for the prompt body, while runtime effort inherits from the parent Claude Code session unless the agent markdown explicitly declares an override.
 
 ### Project-Level Config
 
@@ -331,21 +331,21 @@ This is a TypeScript monorepo using:
 
 ### Stop Callback Notification Tags
 
-Configure tags for Telegram/Discord stop callbacks with `omc config-stop-callback`.
+Configure tags for Telegram/Discord stop callbacks with `omac config-stop-callback`.
 
 ```bash
 # Set/replace tags
-omc config-stop-callback telegram --enable --token <bot_token> --chat <chat_id> --tag-list "@alice,bob"
-omc config-stop-callback discord --enable --webhook <url> --tag-list "@here,123456789012345678,role:987654321098765432"
+omac config-stop-callback telegram --enable --token <bot_token> --chat <chat_id> --tag-list "@alice,bob"
+omac config-stop-callback discord --enable --webhook <url> --tag-list "@here,123456789012345678,role:987654321098765432"
 
 # Incremental updates
-omc config-stop-callback telegram --add-tag charlie
-omc config-stop-callback discord --remove-tag @here
-omc config-stop-callback discord --clear-tags
+omac config-stop-callback telegram --add-tag charlie
+omac config-stop-callback discord --remove-tag @here
+omac config-stop-callback discord --clear-tags
 
 # Inspect current callback config
-omc config-stop-callback telegram --show
-omc config-stop-callback discord --show
+omac config-stop-callback telegram --show
+omac config-stop-callback discord --show
 ```
 
 Tag behavior:
@@ -358,84 +358,84 @@ Tag behavior:
 
 ## Runtime storage and goal artifacts
 
-OMC documentation should describe goal and workflow artifacts by their logical role first, then map that role to the runtime-specific storage root. Do not treat `.omx/` as a universal path: it is the legacy OMX runtime root, while OMC uses `.omc/` for local project state.
+OMAC documentation should describe goal and workflow artifacts by their logical role first, then map that role to the runtime-specific storage root. Do not treat `.omx/` as a universal path: it is the legacy OMX runtime root, while OMAC uses `.omac/` for local project state.
 
 ### Runtime root mapping
 
 | Runtime                      | Project-local root     | User/global root            | Notes                                                                                                                                                   |
 | ---------------------------- | ---------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| OMC                          | `.omc/`                | `~/.omc/`                   | Canonical OMC storage for project-local state, plans, notepads, logs, research, and ask artifacts.                                                      |
+| OMAC                          | `.omac/`                | `~/.omac/`                   | Canonical OMAC storage for project-local state, plans, notepads, logs, research, and ask artifacts.                                                      |
 | OMX compatibility/runtime-v1 | `.omx/`                | `~/.omx/`                   | Compatibility root for older OMX sessions and cross-runtime handoffs. Mention only when documenting OMX-specific behavior.                              |
-| OMO native                   | runtime-owned OMO path | runtime-owned OMO user path | OMO-native storage is owned by that runtime. OMC docs should name the logical artifact role unless an OMO command explicitly documents a concrete path. |
+| OMO native                   | runtime-owned OMO path | runtime-owned OMO user path | OMO-native storage is owned by that runtime. OMAC docs should name the logical artifact role unless an OMO command explicitly documents a concrete path. |
 
 ### Logical goal artifact roles
 
-Use these names when writing docs or handoffs so the same concept remains portable across OMC, OMX compatibility, and OMO-native runtimes:
+Use these names when writing docs or handoffs so the same concept remains portable across OMAC, OMX compatibility, and OMO-native runtimes:
 
-| Logical role            | OMC path                                                                   | OMX compatibility path                                                     | Purpose                                                                                                                                                                            |
+| Logical role            | OMAC path                                                                   | OMX compatibility path                                                     | Purpose                                                                                                                                                                            |
 | ----------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Goal/spec artifact      | `.omc/specs/<slug>.md` or `.omc/plans/<slug>.md`                           | `.omx/specs/<slug>.md` or `.omx/plans/<slug>.md`                           | Durable statement of the user goal, constraints, acceptance criteria, and execution handoff.                                                                                       |
-| Approved execution plan | `.omc/plans/<slug>.md`                                                     | `.omx/plans/<slug>.md`                                                     | Reviewed implementation plan consumed by execution workflows such as team or ralph.                                                                                                |
-| Task/runtime state      | `.omc/state/<mode>.json` or `.omc/state/sessions/<session-id>/<mode>.json` | `.omx/state/<mode>.json` or `.omx/state/sessions/<session-id>/<mode>.json` | Machine-readable workflow state. Session-scoped state wins over legacy flat files when present.                                                                                    |
-| Team coordination state | `.omc/state/team/<team-name>/...`                                          | `.omx/state/team/<team-name>/...`                                          | Worker task files, mailbox, status, events, and dispatch metadata. Worktree-backed workers should use `OMC_TEAM_STATE_ROOT`/compat env to find the leader-owned coordination root. |
-| Ask/advisor artifacts   | `.omc/artifacts/ask/<provider>-<slug>-<timestamp>.md`                      | `.omx/artifacts/ask/<provider>-<slug>-<timestamp>.md`                      | Persisted advisor output from `omc ask` or compatibility wrappers.                                                                                                                 |
-| Plan-scoped notepad     | `.omc/notepads/<plan-name>/`                                               | `.omx/notepads/<plan-name>/`                                               | Durable notes gathered while planning or executing a named goal.                                                                                                                   |
-| Project memory          | `.omc/project-memory.json` and `.omc/notepad.md`                           | `.omx/project-memory.json` and `.omx/notepad.md`                           | Reusable project facts and session notes.                                                                                                                                          |
+| Goal/spec artifact      | `.omac/specs/<slug>.md` or `.omac/plans/<slug>.md`                           | `.omx/specs/<slug>.md` or `.omx/plans/<slug>.md`                           | Durable statement of the user goal, constraints, acceptance criteria, and execution handoff.                                                                                       |
+| Approved execution plan | `.omac/plans/<slug>.md`                                                     | `.omx/plans/<slug>.md`                                                     | Reviewed implementation plan consumed by execution workflows such as team or ralph.                                                                                                |
+| Task/runtime state      | `.omac/state/<mode>.json` or `.omac/state/sessions/<session-id>/<mode>.json` | `.omx/state/<mode>.json` or `.omx/state/sessions/<session-id>/<mode>.json` | Machine-readable workflow state. Session-scoped state wins over legacy flat files when present.                                                                                    |
+| Team coordination state | `.omac/state/team/<team-name>/...`                                          | `.omx/state/team/<team-name>/...`                                          | Worker task files, mailbox, status, events, and dispatch metadata. Worktree-backed workers should use `OMAC_TEAM_STATE_ROOT`/compat env to find the leader-owned coordination root. |
+| Ask/advisor artifacts   | `.omac/artifacts/ask/<provider>-<slug>-<timestamp>.md`                      | `.omx/artifacts/ask/<provider>-<slug>-<timestamp>.md`                      | Persisted advisor output from `omac ask` or compatibility wrappers.                                                                                                                 |
+| Plan-scoped notepad     | `.omac/notepads/<plan-name>/`                                               | `.omx/notepads/<plan-name>/`                                               | Durable notes gathered while planning or executing a named goal.                                                                                                                   |
+| Project memory          | `.omac/project-memory.json` and `.omac/notepad.md`                           | `.omx/project-memory.json` and `.omx/notepad.md`                           | Reusable project facts and session notes.                                                                                                                                          |
 
-When an environment variable such as `OMC_STATE_DIR` centralizes storage, resolve the OMC project-local root through that setting before expanding the paths above. In docs, phrase this as "the OMC state root" or "the team coordination root" when the exact filesystem path may vary.
+When an environment variable such as `OMAC_STATE_DIR` centralizes storage, resolve the OMAC project-local root through that setting before expanding the paths above. In docs, phrase this as "the OMAC state root" or "the team coordination root" when the exact filesystem path may vary.
 
 ### `/goal` interoperability notes
 
-Claude Code's `/goal` feature owns its hidden goal state. OMC integrations should not mutate hidden Claude Code goal storage directly. When OMC needs a goal-related artifact, create or update an explicit OMC artifact such as `.omc/specs/<slug>.md`, `.omc/plans/<slug>.md`, or `.omc/state/<mode>.json` and record any `/goal` relationship as metadata or prose in that artifact.
+Claude Code's `/goal` feature owns its hidden goal state. OMAC integrations should not mutate hidden Claude Code goal storage directly. When OMAC needs a goal-related artifact, create or update an explicit OMAC artifact such as `.omac/specs/<slug>.md`, `.omac/plans/<slug>.md`, or `.omac/state/<mode>.json` and record any `/goal` relationship as metadata or prose in that artifact.
 
 For cross-runtime handoffs:
 
 - Prefer logical names such as "approved execution plan" or "team coordination root" over hardcoded `.omx/...` paths.
-- Use `.omc/...` examples for OMC-facing docs and commands.
+- Use `.omac/...` examples for OMAC-facing docs and commands.
 - Use `.omx/...` examples only for OMX compatibility behavior.
-- For OMO-native behavior, link to or quote the OMO command's documented path instead of inventing an OMC/OMX path.
+- For OMO-native behavior, link to or quote the OMO command's documented path instead of inventing an OMAC/OMX path.
 
 ---
 
 ## Plugin directory flags
 
-When you launch OMC via a local development checkout instead of the marketplace plugin, you can configure how OMC discovers agents, skills, and commands.
+When you launch OMAC via a local development checkout instead of the marketplace plugin, you can configure how OMAC discovers agents, skills, and commands.
 
-> **Recommended for local development**: Use `omc --plugin-dir <path>` (paired with `omc setup --plugin-dir-mode`). Unlike `claude plugin marketplace add`, this flow loads agents/skills directly from your checkout with **no plugin cache**, so edits are picked up on the next session without `marketplace update` / `plugin update` round-trips — much faster iteration.
+> **Recommended for local development**: Use `omac --plugin-dir <path>` (paired with `omac setup --plugin-dir-mode`). Unlike `claude plugin marketplace add`, this flow loads agents/skills directly from your checkout with **no plugin cache**, so edits are picked up on the next session without `marketplace update` / `plugin update` round-trips — much faster iteration.
 
-### `omc --plugin-dir <path>`
+### `omac --plugin-dir <path>`
 
 **Usage**: Non-consuming launcher flag that captures your local checkout path.
 
 ```bash
-omc --plugin-dir /path/to/oh-my-claudecode setup --plugin-dir-mode
+omac --plugin-dir /path/to/oh-my-agent-connector setup --plugin-dir-mode
 ```
 
-- **What it does**: Parses `--plugin-dir <path>` (or `--plugin-dir=<path>`), resolves it to an absolute path, sets `OMC_PLUGIN_ROOT` environment variable, then passes the flag through to Claude Code untouched.
+- **What it does**: Parses `--plugin-dir <path>` (or `--plugin-dir=<path>`), resolves it to an absolute path, sets `OMAC_PLUGIN_ROOT` environment variable, then passes the flag through to Claude Code untouched.
 - **Non-consuming**: The flag stays in the argument list so Claude Code's plugin loader still sees it.
-- **Precedence**: Explicit `--plugin-dir` flag wins over any pre-existing `OMC_PLUGIN_ROOT` env var (with a warning if they disagree).
+- **Precedence**: Explicit `--plugin-dir` flag wins over any pre-existing `OMAC_PLUGIN_ROOT` env var (with a warning if they disagree).
 - **Resolution**: Relative paths are resolved to absolute via `path.resolve()`. Note: `~` is **not** expanded — use `$HOME` or an absolute path instead.
-- **Pair with setup**: `--plugin-dir` alone only affects the current Claude session. You must **also** run `omc setup --plugin-dir-mode` (or let auto-detection kick in from `OMC_PLUGIN_ROOT`) so HUD, hooks, and CLAUDE.md are installed for the linked checkout. Skipping this step leaves `~/.claude/` pointing at a stale plugin root.
+- **Pair with setup**: `--plugin-dir` alone only affects the current Claude session. You must **also** run `omac setup --plugin-dir-mode` (or let auto-detection kick in from `OMAC_PLUGIN_ROOT`) so HUD, hooks, and CLAUDE.md are installed for the linked checkout. Skipping this step leaves `~/.claude/` pointing at a stale plugin root.
 
 ### `claude --plugin-dir <path>` (direct)
 
-**Usage**: When you launch Claude Code directly without the `omc` shim.
+**Usage**: When you launch Claude Code directly without the `omac` shim.
 
 ```bash
-export OMC_PLUGIN_ROOT=/path/to/oh-my-claudecode
-claude --plugin-dir /path/to/oh-my-claudecode
+export OMAC_PLUGIN_ROOT=/path/to/oh-my-agent-connector
+claude --plugin-dir /path/to/oh-my-agent-connector
 ```
 
-- **Requirement**: You must manually set `OMC_PLUGIN_ROOT` environment variable so the HUD wrapper and other env-aware components can resolve the same path as the plugin loader.
+- **Requirement**: You must manually set `OMAC_PLUGIN_ROOT` environment variable so the HUD wrapper and other env-aware components can resolve the same path as the plugin loader.
 - **Why**: The HUD bundle needs to know where agents/skills/commands are located so they stay in sync with the plugin instance.
-- **Note**: Plain `claude` (without `omc`) does not automatically capture `--plugin-dir` for you.
+- **Note**: Plain `claude` (without `omac`) does not automatically capture `--plugin-dir` for you.
 
-### `omc setup --plugin-dir-mode`
+### `omac setup --plugin-dir-mode`
 
 **Usage**: Explicit flag to enable dev plugin-dir mode during setup.
 
 ```bash
-omc setup --plugin-dir-mode
+omac setup --plugin-dir-mode
 ```
 
 - **What it does**: Skips copying agents and bundled skills into `~/.claude/` because the plugin already provides them at runtime via `--plugin-dir`.
@@ -443,79 +443,79 @@ omc setup --plugin-dir-mode
   - HUD bundle (`~/.claude/hud/`)
   - Git hooks (`.git/hooks/`, if applicable)
   - CLAUDE.md configuration files
-  - `.omc-config.json` state
+  - `.omac-config.json` state
 - **Conflicts with `--no-plugin`**: If both flags are set, `--no-plugin` takes precedence (with a warning).
-- **Auto-detection**: If `OMC_PLUGIN_ROOT` is already set in the environment, `--plugin-dir-mode` is auto-enabled (unless `--no-plugin` overrides it).
+- **Auto-detection**: If `OMAC_PLUGIN_ROOT` is already set in the environment, `--plugin-dir-mode` is auto-enabled (unless `--no-plugin` overrides it).
 
-### `omc doctor --plugin-dir <path>` (NEW)
+### `omac doctor --plugin-dir <path>` (NEW)
 
 **Usage**: Run diagnostics with a specific plugin directory.
 
 ```bash
-omc doctor --plugin-dir /path/to/oh-my-claudecode
-omc doctor conflicts --plugin-dir /path/to/oh-my-claudecode
+omac doctor --plugin-dir /path/to/oh-my-agent-connector
+omac doctor conflicts --plugin-dir /path/to/oh-my-agent-connector
 ```
 
-- **What it does**: Resolves the provided path to absolute, sets `OMC_PLUGIN_ROOT` before the doctor action runs, matching `launch.ts` semantics.
-- **Precedence**: Explicit `--plugin-dir` flag wins over pre-existing `OMC_PLUGIN_ROOT` env var (with a warning if they disagree).
-- **Subcommand support**: Works with both `omc doctor` and `omc doctor conflicts`.
+- **What it does**: Resolves the provided path to absolute, sets `OMAC_PLUGIN_ROOT` before the doctor action runs, matching `launch.ts` semantics.
+- **Precedence**: Explicit `--plugin-dir` flag wins over pre-existing `OMAC_PLUGIN_ROOT` env var (with a warning if they disagree).
+- **Subcommand support**: Works with both `omac doctor` and `omac doctor conflicts`.
 - **Output**: Diagnostic results reflect the plugin directory you specified.
 
-### `OMC_PLUGIN_ROOT` environment variable
+### `OMAC_PLUGIN_ROOT` environment variable
 
 **Usage**: Authoritative source for the active plugin root when launching Claude Code.
 
 ```bash
-export OMC_PLUGIN_ROOT=/path/to/oh-my-claudecode
-claude --plugin-dir /path/to/oh-my-claudecode
+export OMAC_PLUGIN_ROOT=/path/to/oh-my-agent-connector
+claude --plugin-dir /path/to/oh-my-agent-connector
 ```
 
-- **Set by**: `omc --plugin-dir <path>` launcher (via `src/cli/launch.ts`).
+- **Set by**: `omac --plugin-dir <path>` launcher (via `src/cli/launch.ts`).
 - **Read by**: HUD wrapper, setup auto-detect, doctor diagnostics.
-- **Required when**: Using `claude --plugin-dir` directly (without the `omc` shim), so downstream components can resolve the same path.
+- **Required when**: Using `claude --plugin-dir` directly (without the `omac` shim), so downstream components can resolve the same path.
 - **Precedence**: Explicit CLI flags override this env var (with warnings).
 
 ### Decision matrix: which flag/mode to use?
 
 | Your setup                            | Launch command                                               | Setup command                   | Expected behavior                                                   |
 | ------------------------------------- | ------------------------------------------------------------ | ------------------------------- | ------------------------------------------------------------------- |
-| **Marketplace plugin** (recommended)  | `omc` or `claude` (default)                                  | `omc setup`                     | Normal: agents/skills copied to `~/.claude/`                        |
-| **Local dev checkout, want OMC shim** | `omc --plugin-dir /path`                                     | `omc setup --plugin-dir-mode`   | Dev mode: agents/skills loaded from `/path`, not copied             |
-| **Local dev checkout, no OMC shim**   | `claude --plugin-dir /path` + `export OMC_PLUGIN_ROOT=/path` | `omc setup --plugin-dir-mode`   | Dev mode + manual env: agents/skills loaded from `/path`            |
-| **Local dev, want bundled skills**    | `omc --plugin-dir /path`                                     | `omc setup --no-plugin`         | Forces local bundled skills to `~/.claude/skills/`, ignoring plugin |
-| **Troubleshooting a specific path**   | N/A                                                          | `omc doctor --plugin-dir /path` | Diagnostics show status for `/path`                                 |
+| **Marketplace plugin** (recommended)  | `omac` or `claude` (default)                                  | `omac setup`                     | Normal: agents/skills copied to `~/.claude/`                        |
+| **Local dev checkout, want OMAC shim** | `omac --plugin-dir /path`                                     | `omac setup --plugin-dir-mode`   | Dev mode: agents/skills loaded from `/path`, not copied             |
+| **Local dev checkout, no OMAC shim**   | `claude --plugin-dir /path` + `export OMAC_PLUGIN_ROOT=/path` | `omac setup --plugin-dir-mode`   | Dev mode + manual env: agents/skills loaded from `/path`            |
+| **Local dev, want bundled skills**    | `omac --plugin-dir /path`                                     | `omac setup --no-plugin`         | Forces local bundled skills to `~/.claude/skills/`, ignoring plugin |
+| **Troubleshooting a specific path**   | N/A                                                          | `omac doctor --plugin-dir /path` | Diagnostics show status for `/path`                                 |
 
 ---
 
 ## CLI Commands: ask/team/session
 
-### `omc ask`
+### `omac ask`
 
 ```bash
-omc ask claude "review this patch"
-omc ask codex "review this patch from a security perspective"
-omc ask gemini --prompt "suggest UX improvements"
-omc ask claude --agent-prompt executor --prompt "create an implementation plan"
+omac ask claude "review this patch"
+omac ask codex "review this patch from a security perspective"
+omac ask gemini --prompt "suggest UX improvements"
+omac ask claude --agent-prompt executor --prompt "create an implementation plan"
 ```
 
 - Provider matrix: `claude | codex | gemini | grok`
-- Artifacts: `.omc/artifacts/ask/{provider}-{slug}-{timestamp}.md`
-- Canonical env vars: `OMC_ASK_ADVISOR_SCRIPT`, `OMC_ASK_ORIGINAL_TASK`
+- Artifacts: `.omac/artifacts/ask/{provider}-{slug}-{timestamp}.md`
+- Canonical env vars: `OMAC_ASK_ADVISOR_SCRIPT`, `OMAC_ASK_ORIGINAL_TASK`
 - Phase-1 aliases (deprecated warning): `OMX_ASK_ADVISOR_SCRIPT`, `OMX_ASK_ORIGINAL_TASK`
-- Skill entrypoint: `/oh-my-claudecode:ask <claude|codex|gemini|grok> <prompt>` routes to this command
+- Skill entrypoint: `/oh-my-agent-connector:ask <claude|codex|gemini|grok> <prompt>` routes to this command
 
-### `omc team` (CLI runtime surface)
+### `omac team` (CLI runtime surface)
 
 ```bash
-omc team 2:codex "review auth flow"
-omc team status review-auth-flow
-omc team shutdown review-auth-flow --force
-omc team api claim-task --input '{"team_name":"auth-review","task_id":"1","worker":"worker-1"}' --json
+omac team 2:codex "review auth flow"
+omac team status review-auth-flow
+omac team shutdown review-auth-flow --force
+omac team api claim-task --input '{"team_name":"auth-review","task_id":"1","worker":"worker-1"}' --json
 ```
 
-Supported entrypoints: direct start (`omc team [N:agent] "<task>"`), `status`, `shutdown`, and `api`.
+Supported entrypoints: direct start (`omac team [N:agent] "<task>"`), `status`, `shutdown`, and `api`.
 
-Native team worker worktrees are an opt-in/config-gated runtime-v2 rollout. See [Native Team Worktree Mode](TEAM-WORKTREE-MODE.md) for the worktree path contract, canonical `OMC_TEAM_STATE_ROOT` behavior, status fields, and dirty-worktree cleanup policy.
+Native team worker worktrees are an opt-in/config-gated runtime-v2 rollout. See [Native Team Worktree Mode](TEAM-WORKTREE-MODE.md) for the worktree path contract, canonical `OMAC_TEAM_STATE_ROOT` behavior, status fields, and dirty-worktree cleanup policy.
 
 Topology behavior:
 
@@ -523,12 +523,12 @@ Topology behavior:
 - inside cmux (`CMUX_SURFACE_ID` without `$TMUX`): create native cmux splits for visible team workers
 - plain terminal: launch a detached tmux session for team workers
 
-### `omc session search`
+### `omac session search`
 
 ```bash
-omc session search "team leader stale"
-omc session search notify-hook --since 7d
-omc session search provider-routing --project all --json
+omac session search "team leader stale"
+omac session search notify-hook --since 7d
+omac session search provider-routing --project all --json
 ```
 
 - Defaults to the current project/worktree scope
@@ -545,18 +545,18 @@ The Team MCP runtime server is **not enabled by default**. If manually enabled, 
 ```json
 {
   "code": "deprecated_cli_only",
-  "message": "Legacy team MCP runtime tools are deprecated. Use the omc team CLI instead."
+  "message": "Legacy team MCP runtime tools are deprecated. Use the omac team CLI instead."
 }
 ```
 
-Use `omc team ...` replacements instead:
+Use `omac team ...` replacements instead:
 
 | Tool                   | Purpose                                                    |
 | ---------------------- | ---------------------------------------------------------- |
-| `omc_run_team_start`   | **Deprecated** → `omc team [N:agent-type] "<task>"`        |
-| `omc_run_team_status`  | **Deprecated** → `omc team status <team-name>`             |
-| `omc_run_team_wait`    | **Deprecated** → monitor via `omc team status <team-name>` |
-| `omc_run_team_cleanup` | **Deprecated** → `omc team shutdown <team-name> [--force]` |
+| `omac_run_team_start`   | **Deprecated** → `omac team [N:agent-type] "<task>"`        |
+| `omac_run_team_status`  | **Deprecated** → `omac team status <team-name>`             |
+| `omac_run_team_wait`    | **Deprecated** → monitor via `omac team status <team-name>` |
+| `omac_run_team_cleanup` | **Deprecated** → `omac team shutdown <team-name> [--force]` |
 
 Optional compatibility enablement (manual only):
 
@@ -575,18 +575,18 @@ Optional compatibility enablement (manual only):
 
 - **Artifact-first terminal convergence**: team monitors prefer finalized state artifacts when present.
 - **Deterministic parse-failure handling**: malformed result artifacts are treated as terminal `failed`.
-- **Cleanup scope**: shutdown/cleanup only clears `.omc/state/team/{teamName}` for the target team (never sibling teams).
+- **Cleanup scope**: shutdown/cleanup only clears `.omac/state/team/{teamName}` for the target team (never sibling teams).
 
 ### Artifact descriptors and bounded handoff
 
-OMC handoffs follow an artifact-first discipline:
+OMAC handoffs follow an artifact-first discipline:
 
 - **Control plane** data stays small and operational: queue state, worker claims, session state, and interop task/message envelopes.
 - **Data plane** artifacts stay durable: plans, prompts, specs, traces, and result files.
 - Large payloads should be referenced by descriptor instead of copied into control-plane state.
 - Current low-risk call sites follow this split explicitly:
-  - shared interop state writes oversized task descriptions, task results, and shared messages to `.omc/state/interop/artifacts/**`
-  - prompt persistence keeps durable prompt/response files in `.omc/prompts/**` and exposes descriptor metadata through job status records
+  - shared interop state writes oversized task descriptions, task results, and shared messages to `.omac/state/interop/artifacts/**`
+  - prompt persistence keeps durable prompt/response files in `.omac/prompts/**` and exposes descriptor metadata through job status records
 
 Canonical descriptor fields:
 
@@ -605,11 +605,11 @@ Bounded handoff policy:
 
 1. Keep small payloads inline only when the call site's explicit threshold allows it.
 2. For larger payloads, pass a short summary plus the descriptor.
-3. Keep durable content in artifact paths such as `.omc/plans/`, `.omc/prompts/`, and related artifact stores rather than embedding full bodies into queue or status records.
+3. Keep durable content in artifact paths such as `.omac/plans/`, `.omac/prompts/`, and related artifact stores rather than embedding full bodies into queue or status records.
 
 ## Agents (29 Total)
 
-Always use `oh-my-claudecode:` prefix when calling via Task tool.
+Always use `oh-my-agent-connector:` prefix when calling via Task tool.
 
 ### By Domain and Tier
 
@@ -675,15 +675,15 @@ Always use `oh-my-claudecode:` prefix when calling via Task tool.
 
 ## Goal Workflow UX: `/goal`, Ralph, Team, UltraQA, Ultragoal
 
-OMC exposes several ways to pursue a goal-shaped task. They are complementary, not interchangeable. Choose one primary loop authority per session and use the others as evidence producers or handoff targets.
+OMAC exposes several ways to pursue a goal-shaped task. They are complementary, not interchangeable. Choose one primary loop authority per session and use the others as evidence producers or handoff targets.
 
 | Surface                 | Runtime owner                                     | User-facing promise                                           | Completion evidence                                                          | Notes                                                                                                                                                           |
 | ----------------------- | ------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Claude Code `/goal`     | Claude Code native session loop                   | Keep working toward one stated completion condition           | Evidence surfaced in the conversation for the `/goal` evaluator              | Cite Claude Code/Anthropic docs or changelog only for `/goal` behavior. The evaluator must not be described as independently running commands or reading files. |
-| Ralph                   | OMC skill + Stop-hook enforcement                 | Persistent single-owner implementation until PRD stories pass | Tests/build/lint/typecheck plus reviewer verification                        | Prefer when correctness depends on OMC's PRD, progress, and reviewer gates.                                                                                     |
-| Team                    | OMC native/team or CLI team runtime               | Coordinated multi-agent execution over assigned tasks         | Worker task results, commits, staged `team-verify`/`team-fix` evidence       | Prefer when ownership boundaries and parallel lanes matter.                                                                                                     |
-| UltraQA                 | OMC QA cycling skill                              | Repeat diagnose/fix cycles until a quality gate passes        | Command output from the requested QA goal each cycle                         | Prefer after the implementation target is known but verification still fails.                                                                                   |
-| Artifact-only Ultragoal | Durable goal ledger/checkpoints/handoff artifacts | Track goal state without starting another active loop         | Goal artifact, checkpoints, handoff prompt, attached command/review evidence | Prefer when `/goal` is unavailable, unsafe, or conflicts with an active OMC loop.                                                                               |
+| Ralph                   | OMAC skill + Stop-hook enforcement                 | Persistent single-owner implementation until PRD stories pass | Tests/build/lint/typecheck plus reviewer verification                        | Prefer when correctness depends on OMAC's PRD, progress, and reviewer gates.                                                                                     |
+| Team                    | OMAC native/team or CLI team runtime               | Coordinated multi-agent execution over assigned tasks         | Worker task results, commits, staged `team-verify`/`team-fix` evidence       | Prefer when ownership boundaries and parallel lanes matter.                                                                                                     |
+| UltraQA                 | OMAC QA cycling skill                              | Repeat diagnose/fix cycles until a quality gate passes        | Command output from the requested QA goal each cycle                         | Prefer after the implementation target is known but verification still fails.                                                                                   |
+| Artifact-only Ultragoal | Durable goal ledger/checkpoints/handoff artifacts | Track goal state without starting another active loop         | Goal artifact, checkpoints, handoff prompt, attached command/review evidence | Prefer when `/goal` is unavailable, unsafe, or conflicts with an active OMAC loop.                                                                               |
 
 ### `/goal` source and evidence boundary
 
@@ -692,17 +692,17 @@ Use Claude Code/Anthropic sources for `/goal` facts, including:
 - Claude Code `/goal` documentation: <https://code.claude.com/docs/en/goal>
 - Anthropic Claude Code changelog: <https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md>
 
-Do not cite OpenAI/Codex documentation as authority for Claude Code `/goal`. In OMC docs, examples, and handoff prompts, keep this limitation explicit: the `/goal` evaluator judges visible conversation evidence. It should not be described as independently executing shell commands, reading files, inspecting hidden state, or replacing OMC's final review gates.
+Do not cite OpenAI/Codex documentation as authority for Claude Code `/goal`. In OMAC docs, examples, and handoff prompts, keep this limitation explicit: the `/goal` evaluator judges visible conversation evidence. It should not be described as independently executing shell commands, reading files, inspecting hidden state, or replacing OMAC's final review gates.
 
 ### Recommended conflict handling
 
 When multiple loops could apply, use this deterministic policy:
 
 1. **refuse**: if Ralph, Team, UltraQA, autopilot, or another Stop-hook loop is already active and a new `/goal` would compete for continuation authority.
-2. **adopt_existing**: if Claude Code `/goal` is already active and the OMC workflow can attach evidence to that same condition without changing loop ownership.
+2. **adopt_existing**: if Claude Code `/goal` is already active and the OMAC workflow can attach evidence to that same condition without changing loop ownership.
 3. **artifact_only**: if `/goal` is unavailable because of hooks/trust/settings, or if the user only needs durable planning, checkpointing, and evidence capture.
 
-`/goal` evaluator success can be useful evidence, but OMC completion should still require the relevant durable proof: command output, changed files, reviewer verdicts, task results, or release artifacts.
+`/goal` evaluator success can be useful evidence, but OMAC completion should still require the relevant durable proof: command output, changed files, reviewer verdicts, task results, or release artifacts.
 
 For the shorter user-facing chooser, see [Mode Selection Guide](./shared/mode-selection-guide.md#goal-oriented-workflow-selection).
 
@@ -710,83 +710,83 @@ For the shorter user-facing chooser, see [Mode Selection Guide](./shared/mode-se
 
 Includes bundled workflow, utility, domain, and compatibility skills. Runtime truth comes from the builtin skill loader scanning `skills/*/SKILL.md` and expanding aliases declared in frontmatter.
 
-Marketplace/plugin installs compact the native plugin `skills/*/SKILL.md` files during `omc setup`: Claude Code receives concise registry descriptions for every bundled skill, while the full on-demand instructions are preserved under `skill-bodies/*/SKILL.md` and loaded by OMC when a skill is invoked. Source checkouts and standalone installs keep the full `skills/*/SKILL.md` bodies in place.
+Marketplace/plugin installs compact the native plugin `skills/*/SKILL.md` files during `omac setup`: Claude Code receives concise registry descriptions for every bundled skill, while the full on-demand instructions are preserved under `skill-bodies/*/SKILL.md` and loaded by OMAC when a skill is invoked. Source checkouts and standalone installs keep the full `skills/*/SKILL.md` bodies in place.
 
 
 
 | Skill                     | Description                                                      | Manual Command                              |
 | ------------------------- | ---------------------------------------------------------------- | ------------------------------------------- |
-| `ai-slop-cleaner`         | Anti-slop cleanup workflow with optional reviewer-only `--review` pass | `/oh-my-claudecode:ai-slop-cleaner`         |
-| `ask`                     | Ask Claude, Codex, Gemini, or Grok via local CLI and capture a reusable artifact | `/oh-my-claudecode:ask`               |
-| `autoresearch`            | Stateful single-mission evaluator-driven improvement loop           | `/oh-my-claudecode:autoresearch`            |
-| `autopilot`               | Full autonomous execution from idea to working code              | `/oh-my-claudecode:autopilot`               |
-| `cancel`                  | Unified cancellation for active modes                            | `/oh-my-claudecode:cancel`                  |
-| `ccg`                     | Tri-model workflow via `ask codex` + `ask gemini`, then Claude synthesis | `/oh-my-claudecode:ccg`                     |
-| `configure-notifications` | Configure notification integrations (Telegram, Discord, Slack) via natural language | `/oh-my-claudecode:configure-notifications` |
-| `deep-dive`               | Two-stage trace → deep-interview pipeline with context handoff   | `/oh-my-claudecode:deep-dive`               |
+| `ai-slop-cleaner`         | Anti-slop cleanup workflow with optional reviewer-only `--review` pass | `/oh-my-agent-connector:ai-slop-cleaner`         |
+| `ask`                     | Ask Claude, Codex, Gemini, or Grok via local CLI and capture a reusable artifact | `/oh-my-agent-connector:ask`               |
+| `autoresearch`            | Stateful single-mission evaluator-driven improvement loop           | `/oh-my-agent-connector:autoresearch`            |
+| `autopilot`               | Full autonomous execution from idea to working code              | `/oh-my-agent-connector:autopilot`               |
+| `cancel`                  | Unified cancellation for active modes                            | `/oh-my-agent-connector:cancel`                  |
+| `ccg`                     | Tri-model workflow via `ask codex` + `ask gemini`, then Claude synthesis | `/oh-my-agent-connector:ccg`                     |
+| `configure-notifications` | Configure notification integrations (Telegram, Discord, Slack) via natural language | `/oh-my-agent-connector:configure-notifications` |
+| `deep-dive`               | Two-stage trace → deep-interview pipeline with context handoff   | `/oh-my-agent-connector:deep-dive`               |
 | `deep-interview`          | Socratic deep interview with ambiguity gating                    | `/deep-interview`                           |
-| `deepinit`                | Generate hierarchical AGENTS.md docs                             | `/oh-my-claudecode:deepinit`                |
-| `external-context`        | Parallel document-specialist research                            | `/oh-my-claudecode:external-context`        |
-| `hud`                     | Configure HUD/statusline                                         | `/oh-my-claudecode:hud`                     |
-| `skillify`                | Extract reusable skill from session                              | `/oh-my-claudecode:skillify`                |
-| `learner`                 | **Deprecated** compatibility alias for `skillify`                | `/oh-my-claudecode:learner`                 |
-| `mcp-setup`               | Configure MCP servers                                            | `/oh-my-claudecode:mcp-setup`               |
-| `omc-doctor`              | Diagnose and fix installation issues                             | `/oh-my-claudecode:omc-doctor`              |
-| `omc-plan`                | Planning workflow (`/plan` safe alias; bundled directory ID is `plan`) | `/oh-my-claudecode:plan`                    |
-| `omc-reference`           | Detailed OMC agent/tools/team/commit reference skill             | Auto-loaded reference only                  |
-| `omc-setup`               | One-time setup wizard                                            | `/oh-my-claudecode:omc-setup`               |
-| `omc-teams`               | Spawn `claude`/`codex`/`gemini` tmux workers for parallel execution | `/oh-my-claudecode:omc-teams`             |
-| `project-session-manager` | Manage isolated dev environments (git worktrees + tmux)          | `/oh-my-claudecode:project-session-manager` |
-| `psm` | **Deprecated** compatibility alias for `project-session-manager` | `/oh-my-claudecode:psm` |
-| `ralph`                   | Persistence loop until verified completion                       | `/oh-my-claudecode:ralph`                   |
-| `ralplan`                 | Consensus planning alias for `/plan --consensus`                 | `/oh-my-claudecode:ralplan`                 |
-| `release`                 | Automated release workflow                                       | `/oh-my-claudecode:release`                 |
-| `self-improve`            | Autonomous evolutionary code improvement engine with tournament selection; artifacts are topic-scoped under `.omc/self-improve/topics/<topic-slug>/` by default, with flat `.omc/self-improve/` preserved for legacy single-track resumes | `/oh-my-claudecode:self-improve`    |
-| `setup`                   | Unified setup entrypoint for install, diagnostics, and MCP configuration | `/oh-my-claudecode:setup`              |
-| `sciomc`                  | Parallel scientist orchestration                                 | `/oh-my-claudecode:sciomc`                  |
-| `skill`                   | Manage local skills (list/add/remove/search/edit)                | `/oh-my-claudecode:skill`                   |
-| `team`                    | Coordinated multi-agent workflow                                 | `/oh-my-claudecode:team`                    |
-| `trace`                   | Evidence-driven tracing lane with parallel tracer hypotheses     | `/oh-my-claudecode:trace`                   |
-| `ultraqa`                 | QA cycle until goal is met                                       | `/oh-my-claudecode:ultraqa`                 |
-| `ultrawork`               | Maximum parallel throughput mode                                 | `/oh-my-claudecode:ultrawork`               |
-| `visual-verdict`          | Structured visual QA verdict for screenshot/reference comparisons | `/oh-my-claudecode:visual-verdict`          |
-| `wiki`                    | LLM Wiki — persistent markdown knowledge base that compounds across sessions | `/oh-my-claudecode:wiki`           |
-| `writer-memory`           | Agentic memory system for writing projects                       | `/oh-my-claudecode:writer-memory`           |
+| `deepinit`                | Generate hierarchical AGENTS.md docs                             | `/oh-my-agent-connector:deepinit`                |
+| `external-context`        | Parallel document-specialist research                            | `/oh-my-agent-connector:external-context`        |
+| `hud`                     | Configure HUD/statusline                                         | `/oh-my-agent-connector:hud`                     |
+| `skillify`                | Extract reusable skill from session                              | `/oh-my-agent-connector:skillify`                |
+| `learner`                 | **Deprecated** compatibility alias for `skillify`                | `/oh-my-agent-connector:learner`                 |
+| `mcp-setup`               | Configure MCP servers                                            | `/oh-my-agent-connector:mcp-setup`               |
+| `omac-doctor`              | Diagnose and fix installation issues                             | `/oh-my-agent-connector:omac-doctor`              |
+| `omac-plan`                | Planning workflow (`/plan` safe alias; bundled directory ID is `plan`) | `/oh-my-agent-connector:plan`                    |
+| `omac-reference`           | Detailed OMAC agent/tools/team/commit reference skill             | Auto-loaded reference only                  |
+| `omac-setup`               | One-time setup wizard                                            | `/oh-my-agent-connector:omac-setup`               |
+| `omac-teams`               | Spawn `claude`/`codex`/`gemini` tmux workers for parallel execution | `/oh-my-agent-connector:omac-teams`             |
+| `project-session-manager` | Manage isolated dev environments (git worktrees + tmux)          | `/oh-my-agent-connector:project-session-manager` |
+| `psm` | **Deprecated** compatibility alias for `project-session-manager` | `/oh-my-agent-connector:psm` |
+| `ralph`                   | Persistence loop until verified completion                       | `/oh-my-agent-connector:ralph`                   |
+| `ralplan`                 | Consensus planning alias for `/plan --consensus`                 | `/oh-my-agent-connector:ralplan`                 |
+| `release`                 | Automated release workflow                                       | `/oh-my-agent-connector:release`                 |
+| `self-improve`            | Autonomous evolutionary code improvement engine with tournament selection; artifacts are topic-scoped under `.omac/self-improve/topics/<topic-slug>/` by default, with flat `.omac/self-improve/` preserved for legacy single-track resumes | `/oh-my-agent-connector:self-improve`    |
+| `setup`                   | Unified setup entrypoint for install, diagnostics, and MCP configuration | `/oh-my-agent-connector:setup`              |
+| `sciomac`                  | Parallel scientist orchestration                                 | `/oh-my-agent-connector:sciomac`                  |
+| `skill`                   | Manage local skills (list/add/remove/search/edit)                | `/oh-my-agent-connector:skill`                   |
+| `team`                    | Coordinated multi-agent workflow                                 | `/oh-my-agent-connector:team`                    |
+| `trace`                   | Evidence-driven tracing lane with parallel tracer hypotheses     | `/oh-my-agent-connector:trace`                   |
+| `ultraqa`                 | QA cycle until goal is met                                       | `/oh-my-agent-connector:ultraqa`                 |
+| `ultrawork`               | Maximum parallel throughput mode                                 | `/oh-my-agent-connector:ultrawork`               |
+| `visual-verdict`          | Structured visual QA verdict for screenshot/reference comparisons | `/oh-my-agent-connector:visual-verdict`          |
+| `wiki`                    | LLM Wiki — persistent markdown knowledge base that compounds across sessions | `/oh-my-agent-connector:wiki`           |
+| `writer-memory`           | Agentic memory system for writing projects                       | `/oh-my-agent-connector:writer-memory`           |
 
 
 ---
 
 ## Slash Commands
 
-Most installed skills are exposed as `/oh-my-claudecode:<skill-name>`. Deep Interview is intentionally documented with the short `/deep-interview` path because that path receives OMC's rendered runtime threshold guidance before the interview starts. The skills table above is the full runtime-backed list; the commands below highlight common entrypoints and aliases. Compatibility keyword modes like `deep-analyze` and `tdd` are prompt-triggered behaviors, not standalone slash commands. OMC's manual compaction helper is plugin-scoped as `/oh-my-claudecode:compact`; bare `/compact` remains Claude Code's native command and is not shadowed by OMC. The helper preserves the user's note and instructs them to run bare `/compact`; OMC does not invoke native compaction itself because Claude Code's built-in `/compact` is not a prompt skill.
+Most installed skills are exposed as `/oh-my-agent-connector:<skill-name>`. Deep Interview is intentionally documented with the short `/deep-interview` path because that path receives OMAC's rendered runtime threshold guidance before the interview starts. The skills table above is the full runtime-backed list; the commands below highlight common entrypoints and aliases. Compatibility keyword modes like `deep-analyze` and `tdd` are prompt-triggered behaviors, not standalone slash commands. OMAC's manual compaction helper is plugin-scoped as `/oh-my-agent-connector:compact`; bare `/compact` remains Claude Code's native command and is not shadowed by OMAC. The helper preserves the user's note and instructs them to run bare `/compact`; OMAC does not invoke native compaction itself because Claude Code's built-in `/compact` is not a prompt skill.
 
 | Command                                                  | Description                                                                                   |
 | -------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `/oh-my-claudecode:ai-slop-cleaner <target>`             | Run the anti-slop cleanup workflow (`--review` for reviewer-only pass)                        |
-| `/oh-my-claudecode:ask <claude\|codex\|gemini\|grok> <prompt>` | Route a prompt through the selected advisor CLI and capture an ask artifact                   |
-| `/oh-my-claudecode:autopilot <task>`                     | Full autonomous execution                                                                     |
-| `/oh-my-claudecode:configure-notifications`              | Configure notification integrations                                                           |
-| `/oh-my-claudecode:compact [note]`                        | Prepare an OMC-safe manual handoff telling the user to run bare `/compact [note]`              |
-| `/oh-my-claudecode:deep-dive <problem>`                  | Run the trace → deep-interview pipeline                                                       |
+| `/oh-my-agent-connector:ai-slop-cleaner <target>`             | Run the anti-slop cleanup workflow (`--review` for reviewer-only pass)                        |
+| `/oh-my-agent-connector:ask <claude\|codex\|gemini\|grok> <prompt>` | Route a prompt through the selected advisor CLI and capture an ask artifact                   |
+| `/oh-my-agent-connector:autopilot <task>`                     | Full autonomous execution                                                                     |
+| `/oh-my-agent-connector:configure-notifications`              | Configure notification integrations                                                           |
+| `/oh-my-agent-connector:compact [note]`                        | Prepare an OMAC-safe manual handoff telling the user to run bare `/compact [note]`              |
+| `/oh-my-agent-connector:deep-dive <problem>`                  | Run the trace → deep-interview pipeline                                                       |
 | `/deep-interview <idea>`                                 | Socratic interview with ambiguity scoring before execution                                    |
-| `/oh-my-claudecode:deepinit [path]`                      | Index codebase with hierarchical AGENTS.md files                                              |
-| `/oh-my-claudecode:mcp-setup`                            | Configure MCP servers                                                                         |
-| `/oh-my-claudecode:omc-doctor`                           | Diagnose and fix installation issues                                                          |
-| `/oh-my-claudecode:plan <description>`                   | Start planning session (supports consensus structured deliberation)                           |
-| `/oh-my-claudecode:omc-setup`                            | One-time setup wizard                                                                         |
-| `/oh-my-claudecode:omc-teams <N>:<agent> <task>`         | Spawn `claude`/`codex`/`gemini` tmux workers for legacy parallel execution                    |
-| `/oh-my-claudecode:project-session-manager <arguments>`  | Manage isolated dev environments with git worktrees + tmux                                    |
-| `/oh-my-claudecode:psm <arguments>`                      | Deprecated alias for project session manager                                                  |
-| `/oh-my-claudecode:ralph <task>`                         | Self-referential loop until task completion (`--critic=architect \| critic \| codex`)       |
-| `/oh-my-claudecode:ralplan <description>`                | Iterative planning with consensus structured deliberation (`--deliberate` for high-risk mode) |
-| `/oh-my-claudecode:release`                              | Automated release workflow                                                                    |
-| `/oh-my-claudecode:setup`                                | Unified setup entrypoint (`setup`, `setup doctor`, `setup mcp`)                               |
-| `/oh-my-claudecode:sciomc <topic>`                       | Parallel research orchestration                                                               |
-| `/oh-my-claudecode:team <N>:<agent> <task>`              | Coordinated native team workflow                                                              |
-| `/oh-my-claudecode:trace`                                | Evidence-driven tracing lane that orchestrates parallel tracer hypotheses in team mode        |
-| `/oh-my-claudecode:ultraqa <goal>`                       | Autonomous QA cycling workflow                                                                |
-| `/oh-my-claudecode:ultrawork <task>`                     | Maximum performance mode with parallel agents                                                 |
-| `/oh-my-claudecode:visual-verdict <task>`                | Structured visual QA verdict for screenshot/reference comparisons                             |
+| `/oh-my-agent-connector:deepinit [path]`                      | Index codebase with hierarchical AGENTS.md files                                              |
+| `/oh-my-agent-connector:mcp-setup`                            | Configure MCP servers                                                                         |
+| `/oh-my-agent-connector:omac-doctor`                           | Diagnose and fix installation issues                                                          |
+| `/oh-my-agent-connector:plan <description>`                   | Start planning session (supports consensus structured deliberation)                           |
+| `/oh-my-agent-connector:omac-setup`                            | One-time setup wizard                                                                         |
+| `/oh-my-agent-connector:omac-teams <N>:<agent> <task>`         | Spawn `claude`/`codex`/`gemini` tmux workers for legacy parallel execution                    |
+| `/oh-my-agent-connector:project-session-manager <arguments>`  | Manage isolated dev environments with git worktrees + tmux                                    |
+| `/oh-my-agent-connector:psm <arguments>`                      | Deprecated alias for project session manager                                                  |
+| `/oh-my-agent-connector:ralph <task>`                         | Self-referential loop until task completion (`--critic=architect \| critic \| codex`)       |
+| `/oh-my-agent-connector:ralplan <description>`                | Iterative planning with consensus structured deliberation (`--deliberate` for high-risk mode) |
+| `/oh-my-agent-connector:release`                              | Automated release workflow                                                                    |
+| `/oh-my-agent-connector:setup`                                | Unified setup entrypoint (`setup`, `setup doctor`, `setup mcp`)                               |
+| `/oh-my-agent-connector:sciomac <topic>`                       | Parallel research orchestration                                                               |
+| `/oh-my-agent-connector:team <N>:<agent> <task>`              | Coordinated native team workflow                                                              |
+| `/oh-my-agent-connector:trace`                                | Evidence-driven tracing lane that orchestrates parallel tracer hypotheses in team mode        |
+| `/oh-my-agent-connector:ultraqa <goal>`                       | Autonomous QA cycling workflow                                                                |
+| `/oh-my-agent-connector:ultrawork <task>`                     | Maximum performance mode with parallel agents                                                 |
+| `/oh-my-agent-connector:visual-verdict <task>`                | Structured visual QA verdict for screenshot/reference comparisons                             |
 
 
 ### Skill Pipeline Metadata (Preview)
@@ -797,36 +797,36 @@ Built-in skills and slash-loaded skills can now declare a lightweight pipeline/h
 pipeline: [deep-interview, plan, autopilot]
 next-skill: plan
 next-skill-args: --consensus --direct
-handoff: .omc/specs/deep-interview-{slug}.md
+handoff: .omac/specs/deep-interview-{slug}.md
 ```
 
-When present, OMC appends a standardized **Skill Pipeline** section to the rendered skill prompt so the current stage, handoff artifact, and explicit next `Skill("oh-my-claudecode:...")` invocation are carried forward consistently.
+When present, OMAC appends a standardized **Skill Pipeline** section to the rendered skill prompt so the current stage, handoff artifact, and explicit next `Skill("oh-my-agent-connector:...")` invocation are carried forward consistently.
 
 ### Skills 2.0 Compatibility (MVP)
 
-OMC's canonical project-local skill directory remains `.omc/skills/`, and the runtime also reads Claude Code project skills from `.claude/skills/` plus compatibility skills from `.agents/skills/`.
+OMAC's canonical project-local skill directory remains `.omac/skills/`, and the runtime also reads Claude Code project skills from `.claude/skills/` plus compatibility skills from `.agents/skills/`.
 
-For builtin and slash-loaded skills, OMC also appends a standardized **Skill Resources** section when the skill directory contains bundled assets such as helper scripts, templates, or support libraries. This helps agents reuse packaged skill resources instead of recreating them ad hoc.
+For builtin and slash-loaded skills, OMAC also appends a standardized **Skill Resources** section when the skill directory contains bundled assets such as helper scripts, templates, or support libraries. This helps agents reuse packaged skill resources instead of recreating them ad hoc.
 
 ---
 
 ## Claude Code `/goal` Adapter Design
 
-OMC treats Claude Code `/goal` as a native execution loop that can be handed off to, not as the durable source of truth for OMC completion. The design contract is documented in [docs/design/CLAUDE_CODE_GOAL_ADAPTER.md](./design/CLAUDE_CODE_GOAL_ADAPTER.md).
+OMAC treats Claude Code `/goal` as a native execution loop that can be handed off to, not as the durable source of truth for OMAC completion. The design contract is documented in [docs/design/CLAUDE_CODE_GOAL_ADAPTER.md](./design/CLAUDE_CODE_GOAL_ADAPTER.md).
 
 Key contract points:
 
 - Claude Code `/goal` facts must cite Claude Code or Anthropic sources only. OpenAI/Codex references are comparison sources, not authority for Claude Code behavior.
 - The adapter renders a measurable `/goal <condition>` handoff; it must not mutate hidden Claude Code session state directly.
 - The deterministic conflict policy is exactly one of `refuse`, `adopt_existing`, or `artifact_only`; competing Ralph/autopilot/Stop-hook/Team/UltraQA loops must not continue with only a warning.
-- `/goal` evaluator success is evidence for OMC final review, not completion by itself; OMC still requires surfaced command/test/docs evidence.
-- OMC stores durable goal ledgers and evidence under OMC-owned logical artifacts and `.omc/`-resolved paths, not hardcoded `.omx/` paths.
+- `/goal` evaluator success is evidence for OMAC final review, not completion by itself; OMAC still requires surfaced command/test/docs evidence.
+- OMAC stores durable goal ledgers and evidence under OMAC-owned logical artifacts and `.omac/`-resolved paths, not hardcoded `.omx/` paths.
 
 ---
 
 ## Hooks System
 
-OMC registers 20 hook scripts across 11 Claude Code lifecycle events. For detailed documentation, see [HOOKS.md](./HOOKS.md).
+OMAC registers 20 hook scripts across 11 Claude Code lifecycle events. For detailed documentation, see [HOOKS.md](./HOOKS.md).
 
 ### Hooks by Lifecycle Event
 
@@ -850,11 +850,11 @@ OMC registers 20 hook scripts across 11 Claude Code lifecycle events. For detail
 
 The `code-simplifier` Stop hook automatically delegates recently modified source files to the
 `code-simplifier` agent after each Claude turn. It is **disabled by default** and must be
-explicitly enabled via the global OMC config file:
+explicitly enabled via the global OMAC config file:
 
-- Linux/Unix default: `${XDG_CONFIG_HOME:-~/.config}/omc/config.json`
-- macOS/Windows legacy/default path: `~/.omc/config.json`
-- Existing legacy `~/.omc/config.json` continues to be read as a fallback where applicable.
+- Linux/Unix default: `${XDG_CONFIG_HOME:-~/.config}/omac/config.json`
+- macOS/Windows legacy/default path: `~/.omac/config.json`
+- Existing legacy `~/.omac/config.json` continues to be read as a fallback where applicable.
 
 **Enable:**
 
@@ -912,7 +912,7 @@ Use these trigger phrases in natural language prompts to activate enhanced modes
 | `tdd`, `test first`, `red green`                                               | TDD workflow enforcement                                                                      |
 | `code review`, `review code`                                                   | Comprehensive code review mode                                                                |
 | `security review`, `review security`                                           | Security-focused review mode                                                                  |
-| `cancelomc`, `stopomc`                                                         | Unified cancellation                                                                          |
+| `cancelomac`, `stopomac`                                                         | Unified cancellation                                                                          |
 
 ### Localized triggers (Korean / Japanese)
 
@@ -933,7 +933,7 @@ The keyword detector recognizes localized aliases in addition to the English tri
 | `deepsearch`     | 딥 서치     | ディープ サーチ    |
 | `analyze`        | 딥 분석     | ディープ アナライズ |
 
-`cancelomc` / `stopomc` have no localized alias (cancellation is matched only by the English tokens).
+`cancelomac` / `stopomac` have no localized alias (cancellation is matched only by the English tokens).
 
 #### Localized routing behavior
 
@@ -972,7 +972,7 @@ ralplan this feature
 tdd: implement password validation
 
 # Stop active orchestration
-stopomc
+stopomac
 ```
 
 ---
@@ -989,9 +989,9 @@ stopomc
 
 > **Note**: Bash hooks are fully portable across macOS and Linux (no GNU-specific dependencies).
 
-> **Windows**: Native Windows (win32) support is experimental. OMC requires tmux, which is not available on native Windows. **WSL2 is strongly recommended** for Windows users. See the [WSL2 installation guide](https://learn.microsoft.com/en-us/windows/wsl/install). Native Windows issues may have limited support.
+> **Windows**: Native Windows (win32) support is experimental. OMAC requires tmux, which is not available on native Windows. **WSL2 is strongly recommended** for Windows users. See the [WSL2 installation guide](https://learn.microsoft.com/en-us/windows/wsl/install). Native Windows issues may have limited support.
 
-> **Advanced**: Set `OMC_USE_NODE_HOOKS=1` to use Node.js hooks on macOS/Linux.
+> **Advanced**: Set `OMAC_USE_NODE_HOOKS=1` to use Node.js hooks on macOS/Linux.
 
 ### Available Tools
 
@@ -1040,7 +1040,7 @@ stopomc
 
 ## Performance Monitoring
 
-oh-my-claudecode includes comprehensive monitoring for agent performance, token usage, and debugging parallel workflows.
+oh-my-agent-connector includes comprehensive monitoring for agent performance, token usage, and debugging parallel workflows.
 
 For complete documentation, see **[Performance Monitoring Guide](./PERFORMANCE-MONITORING.md)**.
 
@@ -1049,18 +1049,18 @@ For complete documentation, see **[Performance Monitoring Guide](./PERFORMANCE-M
 | Feature                   | Description                                           | Access                                 |
 | ------------------------- | ----------------------------------------------------- | -------------------------------------- |
 | **Agent Observatory**     | Real-time agent status, efficiency, bottlenecks       | HUD / API                              |
-| **Session-End Summaries** | Persisted per-session summaries and callback payloads | `.omc/sessions/*.json`, `session-end`  |
-| **Session Replay**        | Event timeline for post-session analysis              | `.omc/state/agent-replay-*.jsonl`      |
-| **Session Search**        | Search prior local transcript/session artifacts       | `omc session search`, `session_search` |
+| **Session-End Summaries** | Persisted per-session summaries and callback payloads | `.omac/sessions/*.json`, `session-end`  |
+| **Session Replay**        | Event timeline for post-session analysis              | `.omac/state/agent-replay-*.jsonl`      |
+| **Session Search**        | Search prior local transcript/session artifacts       | `omac session search`, `session_search` |
 | **Intervention System**   | Auto-detection of stale agents, cost overruns         | Automatic                              |
 
 ### CLI Commands
 
 ```bash
-omc hud                              # Render the current HUD statusline
-omc team status <team-name>          # Inspect a running team job
-tail -20 .omc/state/agent-replay-*.jsonl
-ls .omc/sessions/*.json
+omac hud                              # Render the current HUD statusline
+omac team status <team-name>          # Inspect a running team job
+tail -20 .omac/state/agent-replay-*.jsonl
+ls .omac/sessions/*.json
 ```
 
 ### HUD Presets
@@ -1069,7 +1069,7 @@ Enable a supported preset for agent and context visibility in your status line:
 
 ```json
 {
-  "omcHud": {
+  "omacHud": {
     "preset": "focused"
   }
 }
@@ -1086,7 +1086,7 @@ Enable a supported preset for agent and context visibility in your status line:
 ### Diagnose Installation Issues
 
 ```bash
-/oh-my-claudecode:omc-doctor
+/oh-my-agent-connector:omac-doctor
 ```
 
 Checks for:
@@ -1100,7 +1100,7 @@ Checks for:
 ### Configure HUD Statusline
 
 ```bash
-/oh-my-claudecode:hud setup
+/oh-my-agent-connector:hud setup
 ```
 
 Installs or repairs the HUD statusline for real-time status updates.
@@ -1111,7 +1111,7 @@ Configure HUD elements in `~/.claude/settings.json`:
 
 ```json
 {
-  "omcHud": {
+  "omacHud": {
     "preset": "focused",
     "elements": {
       "cwd": true,
@@ -1128,8 +1128,8 @@ Configure HUD elements in `~/.claude/settings.json`:
 | `cwd`        | Show current working directory                                                                                       | `false` |
 | `gitRepo`    | Show git repository name                                                                                             | `false` |
 | `gitBranch`  | Show current git branch                                                                                              | `false` |
-| `omcLabel`   | Show [OMC] label                                                                                                     | `true`  |
-| `updateNotification` | Show available-update prompt text after the OMC label                                                                  | `true`  |
+| `omacLabel`   | Show [OMAC] label                                                                                                     | `true`  |
+| `updateNotification` | Show available-update prompt text after the OMAC label                                                                  | `true`  |
 | `contextBar` | Show context window usage                                                                                            | `true`  |
 | `agents`     | Show active agents count                                                                                             | `true`  |
 | `todos`      | Show todo progress                                                                                                   | `true`  |
@@ -1137,7 +1137,7 @@ Configure HUD elements in `~/.claude/settings.json`:
 | `autopilot`  | Show autopilot status                                                                                                | `true`  |
 | `showTokens` | Show transcript-derived token usage (`tok:i1.2k/o340`, plus `r...` reasoning and `s...` session total when reliable) | `false` |
 
-Additional `omcHud` layout and label options (top-level):
+Additional `omacHud` layout and label options (top-level):
 
 | Option     | Description                                                                       | Default    |
 | ---------- | --------------------------------------------------------------------------------- | ---------- |
@@ -1152,7 +1152,7 @@ Example:
 
 ```json
 {
-  "omcHud": {
+  "omacHud": {
     "locale": "zh-CN",
     "labels": {
       "context": "CTX"
@@ -1167,11 +1167,11 @@ Available presets: `minimal`, `focused`, `full`, `dense`, `analytics`, `opencode
 
 | Issue                 | Solution                                                                         |
 | --------------------- | -------------------------------------------------------------------------------- |
-| Commands not found    | Re-run `/oh-my-claudecode:omc-setup`                                             |
+| Commands not found    | Re-run `/oh-my-agent-connector:omac-setup`                                             |
 | Hooks not executing   | Check hook permissions: `chmod +x ~/.claude/hooks/**/*.sh`                       |
 | Agents not delegating | Verify CLAUDE.md is loaded: check `./.claude/CLAUDE.md` or `~/.claude/CLAUDE.md` |
 | LSP tools not working | Install language servers: `npm install -g typescript-language-server`            |
-| Token limit errors    | Use `/oh-my-claudecode:` for token-efficient execution                           |
+| Token limit errors    | Use `/oh-my-agent-connector:` for token-efficient execution                           |
 
 ### Auto-Update
 
@@ -1190,7 +1190,7 @@ To manually update, re-run the plugin install command or use Claude Code's built
 Use Claude Code's plugin management:
 
 ```
-/plugin uninstall oh-my-claudecode@oh-my-claudecode
+/plugin uninstall oh-my-agent-connector@oh-my-agent-connector
 ```
 
 Or manually remove the installed files:

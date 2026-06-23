@@ -35,7 +35,7 @@ function writeSubagentTrackingState(
   tempDir: string,
   agents: Array<Record<string, unknown>>,
 ): void {
-  const stateDir = join(tempDir, '.omc', 'state');
+  const stateDir = join(tempDir, '.omac', 'state');
   mkdirSync(stateDir, { recursive: true });
   writeFileSync(
     join(stateDir, 'subagent-tracking-state.json'),
@@ -79,8 +79,8 @@ describe('skill-state', () => {
     it('returns none for instant/read-only skills', () => {
       expect(getSkillProtection('trace')).toBe('none');
       expect(getSkillProtection('hud')).toBe('none');
-      expect(getSkillProtection('omc-help')).toBe('none');
-      expect(getSkillProtection('omc-doctor')).toBe('none');
+      expect(getSkillProtection('omac-help')).toBe('none');
+      expect(getSkillProtection('omac-doctor')).toBe('none');
     });
 
     it('returns light only for explicitly protected simple utility skills', () => {
@@ -104,14 +104,14 @@ describe('skill-state', () => {
       expect(getSkillProtection('deepinit')).toBe('heavy');
     });
 
-    it('defaults to none for unknown/non-OMC skills', () => {
+    it('defaults to none for unknown/non-OMAC skills', () => {
       expect(getSkillProtection('unknown-skill')).toBe('none');
       expect(getSkillProtection('my-custom-skill')).toBe('none');
     });
 
-    it('strips oh-my-claudecode: prefix', () => {
-      expect(getSkillProtection('oh-my-claudecode:plan')).toBe('medium');
-      expect(getSkillProtection('oh-my-claudecode:ralph')).toBe('none');
+    it('strips oh-my-agent-connector: prefix', () => {
+      expect(getSkillProtection('oh-my-agent-connector:plan')).toBe('medium');
+      expect(getSkillProtection('oh-my-agent-connector:ralph')).toBe('none');
     });
 
     it('is case-insensitive', () => {
@@ -119,20 +119,20 @@ describe('skill-state', () => {
       expect(getSkillProtection('Plan')).toBe('medium');
     });
 
-    it('returns none for project custom skills with same name as OMC skills (issue #1581)', () => {
-      // rawSkillName without oh-my-claudecode: prefix → project custom skill
+    it('returns none for project custom skills with same name as OMAC skills (issue #1581)', () => {
+      // rawSkillName without oh-my-agent-connector: prefix → project custom skill
       expect(getSkillProtection('plan', 'plan')).toBe('none');
       expect(getSkillProtection('review', 'review')).toBe('none');
       expect(getSkillProtection('tdd', 'tdd')).toBe('none');
     });
 
-    it('returns protection for OMC skills when rawSkillName has prefix', () => {
-      expect(getSkillProtection('plan', 'oh-my-claudecode:plan')).toBe('medium');
-      expect(getSkillProtection('deepinit', 'oh-my-claudecode:deepinit')).toBe('heavy');
+    it('returns protection for OMAC skills when rawSkillName has prefix', () => {
+      expect(getSkillProtection('plan', 'oh-my-agent-connector:plan')).toBe('medium');
+      expect(getSkillProtection('deepinit', 'oh-my-agent-connector:deepinit')).toBe('heavy');
     });
 
     it('returns none for other plugin skills with rawSkillName', () => {
-      // ouroboros:plan, claude-mem:make-plan etc. should not get OMC protection
+      // ouroboros:plan, claude-mem:make-plan etc. should not get OMAC protection
       expect(getSkillProtection('plan', 'ouroboros:plan')).toBe('none');
       expect(getSkillProtection('make-plan', 'claude-mem:make-plan')).toBe('none');
     });
@@ -197,30 +197,30 @@ describe('skill-state', () => {
 
       expect(state).toBeNull();
       expect(readSkillActiveState(tempDir, 'session-1')).toBeNull();
-      expect(existsSync(join(tempDir, '.omc', 'state', 'sessions', 'session-1'))).toBe(false);
+      expect(existsSync(join(tempDir, '.omac', 'state', 'sessions', 'session-1'))).toBe(false);
     });
 
     it('creates state file on disk', () => {
       writeSkillActiveState(tempDir, 'skill', 'session-1');
-      const stateDir = join(tempDir, '.omc', 'state', 'sessions', 'session-1');
+      const stateDir = join(tempDir, '.omac', 'state', 'sessions', 'session-1');
       const files = existsSync(stateDir);
       expect(files).toBe(true);
     });
 
     it('strips namespace prefix from skill name', () => {
-      const state = writeSkillActiveState(tempDir, 'oh-my-claudecode:plan', 'session-1');
+      const state = writeSkillActiveState(tempDir, 'oh-my-agent-connector:plan', 'session-1');
       expect(state!.skill_name).toBe('plan');
     });
 
-    it('does not write state for project custom skills with same name as OMC skills (issue #1581)', () => {
+    it('does not write state for project custom skills with same name as OMAC skills (issue #1581)', () => {
       // rawSkillName='plan' (no prefix) → project custom skill → no state
       const state = writeSkillActiveState(tempDir, 'plan', 'session-1', 'plan');
       expect(state).toBeNull();
       expect(readSkillActiveState(tempDir, 'session-1')).toBeNull();
     });
 
-    it('writes state for OMC skills when rawSkillName has prefix', () => {
-      const state = writeSkillActiveState(tempDir, 'plan', 'session-1', 'oh-my-claudecode:plan');
+    it('writes state for OMAC skills when rawSkillName has prefix', () => {
+      const state = writeSkillActiveState(tempDir, 'plan', 'session-1', 'oh-my-agent-connector:plan');
       expect(state).not.toBeNull();
       expect(state!.skill_name).toBe('plan');
       expect(state!.max_reinforcements).toBe(5);
@@ -248,19 +248,19 @@ describe('skill-state', () => {
       expect(readBack!.skill_name).toBe('plan');
     });
 
-    it('does not overwrite when mcp-setup is invoked inside omc-setup (canonical nesting scenario)', () => {
-      writeSkillActiveState(tempDir, 'omc-setup', 'session-1');
+    it('does not overwrite when mcp-setup is invoked inside omac-setup (canonical nesting scenario)', () => {
+      writeSkillActiveState(tempDir, 'omac-setup', 'session-1');
       const child = writeSkillActiveState(tempDir, 'mcp-setup', 'session-1');
       expect(child).toBeNull();
-      expect(readSkillActiveState(tempDir, 'session-1')!.skill_name).toBe('omc-setup');
+      expect(readSkillActiveState(tempDir, 'session-1')!.skill_name).toBe('omac-setup');
     });
 
     it('blocks triple nesting: third child cannot overwrite grandparent', () => {
-      writeSkillActiveState(tempDir, 'omc-setup', 'session-1');
+      writeSkillActiveState(tempDir, 'omac-setup', 'session-1');
       writeSkillActiveState(tempDir, 'mcp-setup', 'session-1'); // blocked
       const grandchild = writeSkillActiveState(tempDir, 'plan', 'session-1');
       expect(grandchild).toBeNull();
-      expect(readSkillActiveState(tempDir, 'session-1')!.skill_name).toBe('omc-setup');
+      expect(readSkillActiveState(tempDir, 'session-1')!.skill_name).toBe('omac-setup');
     });
 
     it('re-invocation resets reinforcement count', () => {
@@ -296,7 +296,7 @@ describe('skill-state', () => {
     });
 
     it('returns null for invalid JSON', () => {
-      const stateDir = join(tempDir, '.omc', 'state', 'sessions', 'session-1');
+      const stateDir = join(tempDir, '.omac', 'state', 'sessions', 'session-1');
       mkdirSync(stateDir, { recursive: true });
       writeFileSync(join(stateDir, 'skill-active-state.json'), 'not json');
       expect(readSkillActiveState(tempDir, 'session-1')).toBeNull();
@@ -479,7 +479,7 @@ describe('skill-state', () => {
       const past = new Date(Date.now() - 10 * 60 * 1000).toISOString();
       state.started_at = past;
       state.last_checked_at = past;
-      const statePath = join(tempDir, '.omc', 'state', 'sessions', 'session-1', 'skill-active-state.json');
+      const statePath = join(tempDir, '.omac', 'state', 'sessions', 'session-1', 'skill-active-state.json');
       writeFileSync(statePath, JSON.stringify(state, null, 2));
 
       const result = checkSkillActiveState(tempDir, 'session-1');
@@ -512,15 +512,15 @@ describe('skill-state', () => {
     });
 
     it('nesting-aware clear: child completion preserves parent state, parent completion clears it', () => {
-      // Simulates the full omc-setup → mcp-setup lifecycle including
+      // Simulates the full omac-setup → mcp-setup lifecycle including
       // the PostToolUse nesting-aware clear logic from bridge.ts:1828-1840.
       //
       // This is the direct verification for the PR test plan item:
-      // "Verify stop hook no longer blocks after omc-setup completes with nested mcp-setup"
+      // "Verify stop hook no longer blocks after omac-setup completes with nested mcp-setup"
 
-      // 1. Parent skill (omc-setup) starts
-      writeSkillActiveState(tempDir, 'omc-setup', 'session-1');
-      expect(readSkillActiveState(tempDir, 'session-1')!.skill_name).toBe('omc-setup');
+      // 1. Parent skill (omac-setup) starts
+      writeSkillActiveState(tempDir, 'omac-setup', 'session-1');
+      expect(readSkillActiveState(tempDir, 'session-1')!.skill_name).toBe('omac-setup');
 
       // 2. Child skill (mcp-setup) starts — nesting guard blocks write
       const childWrite = writeSkillActiveState(tempDir, 'mcp-setup', 'session-1');
@@ -536,17 +536,17 @@ describe('skill-state', () => {
       // Parent state must survive — child does not own it
       const parentState = readSkillActiveState(tempDir, 'session-1');
       expect(parentState).not.toBeNull();
-      expect(parentState!.skill_name).toBe('omc-setup');
+      expect(parentState!.skill_name).toBe('omac-setup');
       expect(parentState!.active).toBe(true);
 
       // 4. Stop hook still blocks (parent is still active)
       const stopCheck = checkSkillActiveState(tempDir, 'session-1');
       expect(stopCheck.shouldBlock).toBe(true);
-      expect(stopCheck.skillName).toBe('omc-setup');
+      expect(stopCheck.skillName).toBe('omac-setup');
 
       // 5. Parent skill completes — simulate PostToolUse nesting-aware clear
       const stateAfterParentDone = readSkillActiveState(tempDir, 'session-1');
-      const completingParent = 'omc-setup';
+      const completingParent = 'omac-setup';
       if (!stateAfterParentDone || !stateAfterParentDone.active || stateAfterParentDone.skill_name === completingParent) {
         clearSkillActiveState(tempDir, 'session-1');
       }
@@ -563,9 +563,9 @@ describe('skill-state', () => {
   // writeSkillActiveStateCopies — dual-write invariant (spec a/b)
   // -----------------------------------------------------------------------
   describe('writeSkillActiveStateCopies — dual-write invariant (spec a/b)', () => {
-    const rootFilePath = (dir: string) => join(dir, '.omc', 'state', 'skill-active-state.json');
+    const rootFilePath = (dir: string) => join(dir, '.omac', 'state', 'skill-active-state.json');
     const sessionFilePath = (dir: string, sid: string) =>
-      join(dir, '.omc', 'state', 'sessions', sid, 'skill-active-state.json');
+      join(dir, '.omac', 'state', 'sessions', sid, 'skill-active-state.json');
 
     it('writes both root and session copies on seed', () => {
       const sessionId = 'dwc-seed-01';
@@ -616,7 +616,7 @@ describe('skill-state', () => {
       writeSkillActiveStateCopies(tempDir, state);
 
       expect(existsSync(rootFilePath(tempDir))).toBe(true);
-      expect(existsSync(join(tempDir, '.omc', 'state', 'sessions'))).toBe(false);
+      expect(existsSync(join(tempDir, '.omac', 'state', 'sessions'))).toBe(false);
     });
 
     it('both copies reflect tombstone after markWorkflowSkillCompleted (spec b)', () => {
@@ -688,7 +688,7 @@ describe('skill-state', () => {
     });
 
     it('normalizes v1 scalar payload into support_skill branch', () => {
-      const stateDir = join(tempDir, '.omc', 'state');
+      const stateDir = join(tempDir, '.omac', 'state');
       mkdirSync(stateDir, { recursive: true });
       const v1 = {
         active: true,
@@ -710,7 +710,7 @@ describe('skill-state', () => {
 
     it('session copy is authoritative for session-local reads', () => {
       const sessionId = 'norm-auth-01';
-      const rootDir = join(tempDir, '.omc', 'state');
+      const rootDir = join(tempDir, '.omac', 'state');
       const sessionDir = join(rootDir, 'sessions', sessionId);
       mkdirSync(rootDir, { recursive: true });
       mkdirSync(sessionDir, { recursive: true });
@@ -754,7 +754,7 @@ describe('skill-state', () => {
     });
 
     it('returns empty state when sessionId provided but no session copy exists (no cross-session leak)', () => {
-      const rootDir = join(tempDir, '.omc', 'state');
+      const rootDir = join(tempDir, '.omac', 'state');
       mkdirSync(rootDir, { recursive: true });
       const rootState: SkillActiveStateV2 = {
         version: 2,
@@ -945,13 +945,13 @@ describe('skill-state', () => {
   // Diverged-copy reconciliation (spec d)
   // -----------------------------------------------------------------------
   describe('diverged-copy reconciliation (spec d)', () => {
-    const rootFilePath = (dir: string) => join(dir, '.omc', 'state', 'skill-active-state.json');
+    const rootFilePath = (dir: string) => join(dir, '.omac', 'state', 'skill-active-state.json');
     const sessionFilePath = (dir: string, sid: string) =>
-      join(dir, '.omc', 'state', 'sessions', sid, 'skill-active-state.json');
+      join(dir, '.omac', 'state', 'sessions', sid, 'skill-active-state.json');
 
     it('session copy is authoritative when root and session copies diverge', () => {
       const sessionId = 'drift-auth-01';
-      const rootDir = join(tempDir, '.omc', 'state');
+      const rootDir = join(tempDir, '.omac', 'state');
       const sessionDir = join(rootDir, 'sessions', sessionId);
       mkdirSync(rootDir, { recursive: true });
       mkdirSync(sessionDir, { recursive: true });
@@ -980,7 +980,7 @@ describe('skill-state', () => {
 
     it('next writeSkillActiveStateCopies re-syncs diverged copies', () => {
       const sessionId = 'drift-resync-01';
-      const rootDir = join(tempDir, '.omc', 'state');
+      const rootDir = join(tempDir, '.omac', 'state');
       const sessionDir = join(rootDir, 'sessions', sessionId);
       mkdirSync(rootDir, { recursive: true });
       mkdirSync(sessionDir, { recursive: true });
@@ -1045,8 +1045,8 @@ describe('skill-state', () => {
       expect(confirmed.active_skills['ralph']?.last_confirmed_at).toBe('2026-04-17T00:00:00Z');
     });
 
-    it('strips oh-my-claudecode: prefix from skill name', () => {
-      const state = upsertWorkflowSkillSlot(emptySkillActiveStateV2(), 'oh-my-claudecode:ralph', {
+    it('strips oh-my-agent-connector: prefix from skill name', () => {
+      const state = upsertWorkflowSkillSlot(emptySkillActiveStateV2(), 'oh-my-agent-connector:ralph', {
         session_id: 's1',
         mode_state_path: 'r.json',
         initialized_mode: 'ralph',
@@ -1054,7 +1054,7 @@ describe('skill-state', () => {
         initialized_session_state_path: '',
       });
       expect(state.active_skills['ralph']).toBeDefined();
-      expect(state.active_skills['oh-my-claudecode:ralph']).toBeUndefined();
+      expect(state.active_skills['oh-my-agent-connector:ralph']).toBeUndefined();
     });
 
     it('does not mutate the original state object', () => {

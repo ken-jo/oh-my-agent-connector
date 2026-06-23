@@ -3,7 +3,7 @@
  *
  * Mirrors OMX scripts/notify-hook/team-worker.js behavior exactly.
  *
- * Short-circuit: if OMC_TEAM_WORKER is not set, returns immediately (<1ms).
+ * Short-circuit: if OMAC_TEAM_WORKER is not set, returns immediately (<1ms).
  *
  * State files:
  *   workers/{name}/heartbeat.json
@@ -17,7 +17,7 @@ import { readFile, writeFile, mkdir, appendFile, rename, stat } from 'fs/promise
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { createSwallowedErrorLogger } from '../lib/swallowed-error.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 
 // ── Env helpers ────────────────────────────────────────────────────────────
 
@@ -44,34 +44,34 @@ export function parseTeamWorkerEnv(rawValue: unknown): { teamName: string; worke
 }
 
 export function resolveWorkerIdleNotifyEnabled(): boolean {
-  const raw = safeString(process.env.OMC_TEAM_WORKER_IDLE_NOTIFY || '').trim().toLowerCase();
+  const raw = safeString(process.env.OMAC_TEAM_WORKER_IDLE_NOTIFY || '').trim().toLowerCase();
   if (raw === 'false' || raw === '0' || raw === 'off') return false;
   return true;
 }
 
 export function resolveWorkerIdleCooldownMs(): number {
-  const raw = safeString(process.env.OMC_TEAM_WORKER_IDLE_COOLDOWN_MS || '');
+  const raw = safeString(process.env.OMAC_TEAM_WORKER_IDLE_COOLDOWN_MS || '');
   const parsed = asNumber(raw);
   if (parsed !== null && parsed >= 5_000 && parsed <= 600_000) return parsed;
   return 30_000;
 }
 
 export function resolveAllWorkersIdleCooldownMs(): number {
-  const raw = safeString(process.env.OMC_TEAM_ALL_IDLE_COOLDOWN_MS || '');
+  const raw = safeString(process.env.OMAC_TEAM_ALL_IDLE_COOLDOWN_MS || '');
   const parsed = asNumber(raw);
   if (parsed !== null && parsed >= 5_000 && parsed <= 600_000) return parsed;
   return 60_000;
 }
 
 function resolveStatusStaleMs(): number {
-  const raw = safeString(process.env.OMC_TEAM_STATUS_STALE_MS || '');
+  const raw = safeString(process.env.OMAC_TEAM_STATUS_STALE_MS || '');
   const parsed = asNumber(raw);
   if (parsed !== null && parsed >= 5_000 && parsed <= 3_600_000) return parsed;
   return 120_000;
 }
 
 function resolveHeartbeatStaleMs(): number {
-  const raw = safeString(process.env.OMC_TEAM_HEARTBEAT_STALE_MS || '');
+  const raw = safeString(process.env.OMAC_TEAM_HEARTBEAT_STALE_MS || '');
   const parsed = asNumber(raw);
   if (parsed !== null && parsed >= 5_000 && parsed <= 3_600_000) return parsed;
   return 180_000;
@@ -244,7 +244,7 @@ export async function updateWorkerHeartbeat(
 
 // ── Idle notifications ─────────────────────────────────────────────────────
 
-const DEFAULT_MARKER = '[OMC_TMUX_INJECT]';
+const DEFAULT_MARKER = '[OMAC_TMUX_INJECT]';
 
 export async function maybeNotifyLeaderWorkerIdle(params: {
   cwd: string;
@@ -328,7 +328,7 @@ export async function maybeNotifyLeaderWorkerIdle(params: {
   if (!leaderPaneId) return;
 
   // Build notification message
-  const parts = [`[OMC] ${workerName} idle`];
+  const parts = [`[OMAC] ${workerName} idle`];
   if (prevState && prevState !== 'unknown') parts.push(`(was: ${prevState})`);
   if (currentTaskId) parts.push(`task: ${currentTaskId}`);
   if (currentReason) parts.push(`reason: ${currentReason}`);
@@ -416,7 +416,7 @@ export async function maybeNotifyLeaderAllWorkersIdle(params: {
   if (!leaderPaneId) return;
 
   const N = workers.length;
-  const message = `[OMC] All ${N} worker${N === 1 ? '' : 's'} idle. Ready for next instructions. ${DEFAULT_MARKER}`;
+  const message = `[OMAC] All ${N} worker${N === 1 ? '' : 's'} idle. Ready for next instructions. ${DEFAULT_MARKER}`;
   const logAllWorkersIdlePersistenceFailure = createSwallowedErrorLogger(
     'hooks.team-worker maybeNotifyLeaderAllWorkersIdle persistence failed',
   );
@@ -461,7 +461,7 @@ export async function handleWorkerTurn(
   cwd: string,
   tmux?: TmuxRunner,
 ): Promise<void> {
-  const stateDir = join(getOmcRoot(cwd), 'state');
+  const stateDir = join(getOmacRoot(cwd), 'state');
   const parsedTeamWorker = { teamName, workerName };
 
   await updateWorkerHeartbeat(stateDir, teamName, workerName);

@@ -6,10 +6,10 @@
  * delete, and clean up shared key-value entries namespaced by
  * session group or pipeline run.
  *
- * Storage: .omc/state/shared-memory/{namespace}/{key}.json
- * Config gate: agents.sharedMemory.enabled in ~/.claude/.omc-config.json
+ * Storage: .omac/state/shared-memory/{namespace}/{key}.json
+ * Config gate: agents.sharedMemory.enabled in ~/.claude/.omac-config.json
  *
- * @see https://github.com/anthropics/oh-my-claudecode/issues/1119
+ * @see https://github.com/anthropics/oh-my-agent-connector/issues/1119
  */
 
 import { z } from 'zod';
@@ -30,7 +30,7 @@ import type { ToolDefinition } from './types.js';
 // Helpers
 // ---------------------------------------------------------------------------
 
-const DISABLED_MSG = `Shared memory is disabled. Set agents.sharedMemory.enabled = true in ${getClaudeConfigDir()}/.omc-config.json to enable.`;
+const DISABLED_MSG = `Shared memory is disabled. Set agents.sharedMemory.enabled = true in ${getClaudeConfigDir()}/.omac-config.json to enable.`;
 
 function disabledResponse() {
   return {

@@ -4,10 +4,10 @@ import { dirname, join } from 'path';
 
 import { getClaudeConfigDir } from '../utils/config-dir.js';
 import {
-  getGlobalOmcConfigPath,
-  getGlobalOmcConfigCandidates,
-  getGlobalOmcStatePath,
-  getGlobalOmcStateCandidates,
+  getGlobalOmacConfigPath,
+  getGlobalOmacConfigCandidates,
+  getGlobalOmacStatePath,
+  getGlobalOmacStateCandidates,
 } from '../utils/paths.js';
 
 export interface UnifiedMcpRegistryEntry {
@@ -45,29 +45,29 @@ export interface UnifiedMcpRegistryStatus {
   codexMismatched: string[];
 }
 
-const MANAGED_START = '# BEGIN OMC MANAGED MCP REGISTRY';
-const MANAGED_END = '# END OMC MANAGED MCP REGISTRY';
+const MANAGED_START = '# BEGIN OMAC MANAGED MCP REGISTRY';
+const MANAGED_END = '# END OMAC MANAGED MCP REGISTRY';
 const DEFAULT_LAUNCHER_MCP_STARTUP_TIMEOUT_SEC = 15;
 const CODEX_MCP_SERVER_NAME_PATTERN = /^[A-Za-z0-9_-]+$/;
 
 export function getUnifiedMcpRegistryPath(): string {
-  return process.env.OMC_MCP_REGISTRY_PATH?.trim() || getGlobalOmcConfigPath('mcp-registry.json');
+  return process.env.OMAC_MCP_REGISTRY_PATH?.trim() || getGlobalOmacConfigPath('mcp-registry.json');
 }
 
 function getUnifiedMcpRegistryStatePath(): string {
-  return getGlobalOmcStatePath('mcp-registry-state.json');
+  return getGlobalOmacStatePath('mcp-registry-state.json');
 }
 
 function getUnifiedMcpRegistryPathCandidates(): string[] {
-  if (process.env.OMC_MCP_REGISTRY_PATH?.trim()) {
-    return [process.env.OMC_MCP_REGISTRY_PATH.trim()];
+  if (process.env.OMAC_MCP_REGISTRY_PATH?.trim()) {
+    return [process.env.OMAC_MCP_REGISTRY_PATH.trim()];
   }
 
-  return getGlobalOmcConfigCandidates('mcp-registry.json');
+  return getGlobalOmacConfigCandidates('mcp-registry.json');
 }
 
 function getUnifiedMcpRegistryStatePathCandidates(): string[] {
-  return getGlobalOmcStateCandidates('mcp-registry-state.json');
+  return getGlobalOmacStateCandidates('mcp-registry-state.json');
 }
 
 export function getClaudeMcpConfigPath(): string {

@@ -1,4 +1,4 @@
-# Screenshot Guide for OMC Seminar
+# Screenshot Guide for OMAC Seminar
 
 This guide documents all screenshots needed for the seminar presentation, with detailed capture instructions and ASCII mockups that can serve as standalone visuals.
 
@@ -46,7 +46,7 @@ autopilot: build a React dashboard with user authentication
 **ASCII Mockup:**
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ claude @ oh-my-claudecode                                    [Phase 4/5] ⚡ │
+│ claude @ oh-my-agent-connector                                    [Phase 4/5] ⚡ │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │ > autopilot: build a REST API for bookstore inventory                       │
@@ -68,7 +68,7 @@ autopilot: build a React dashboard with user authentication
 │   ✓ Defined API endpoints (12 routes)                                      │
 │   ✓ Database schema designed (3 tables)                                    │
 │                                                                             │
-│   📄 Output: .omc/autopilot/spec.md (428 lines)                            │
+│   📄 Output: .omac/autopilot/spec.md (428 lines)                            │
 │                                                                             │
 │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ │
 │ ▶ Phase 1: Planning                                              [1m 48s]  │
@@ -84,7 +84,7 @@ autopilot: build a React dashboard with user authentication
 │   ✓ Technical feasibility: APPROVED                                        │
 │   ✓ Risk assessment: LOW                                                   │
 │                                                                             │
-│   📄 Output: .omc/plans/autopilot-impl.md (23 tasks)                       │
+│   📄 Output: .omac/plans/autopilot-impl.md (23 tasks)                       │
 │                                                                             │
 │ ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ │
 │ ▶ Phase 2: Execution                                             [4m 32s]  │
@@ -160,7 +160,7 @@ autopilot: build a React dashboard with user authentication
 
 ### 2. `before-after.png` (Slide 6)
 
-**Description:** Split-screen comparison showing manual Claude Code usage on left vs. OMC orchestrated on right, demonstrating the difference in workflow.
+**Description:** Split-screen comparison showing manual Claude Code usage on left vs. OMAC orchestrated on right, demonstrating the difference in workflow.
 
 **Capture Instructions:**
 1. Use `tmux` or terminal split feature
@@ -175,7 +175,7 @@ autopilot: build a React dashboard with user authentication
    > Can you test this?
    > (wait for response)
    ```
-3. Right pane: OMC workflow
+3. Right pane: OMAC workflow
    ```bash
    # In right pane
    claude
@@ -187,7 +187,7 @@ autopilot: build a React dashboard with user authentication
 **ASCII Mockup:**
 ```
 ┌─────────────────────────────────────┬─────────────────────────────────────┐
-│ BEFORE: Manual Claude Code          │ AFTER: OMC Orchestration            │
+│ BEFORE: Manual Claude Code          │ AFTER: OMAC Orchestration            │
 ├─────────────────────────────────────┼─────────────────────────────────────┤
 │ > Can you implement user auth?      │ > autopilot: implement user auth    │
 │                                     │   with validation and tests         │
@@ -252,7 +252,7 @@ Create as a slide graphic using:
 **Description:** HUD statusline showing active agents, todo progress, token usage, and context window status in real-time.
 
 **Capture Instructions:**
-1. Ensure HUD is installed: `claude` then `/oh-my-claudecode:hud setup`
+1. Ensure HUD is installed: `claude` then `/oh-my-agent-connector:hud setup`
 2. Start a task with multiple agents:
    ```
    ultrawork: refactor the authentication system
@@ -263,7 +263,7 @@ Create as a slide graphic using:
 **ASCII Mockup:**
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ 🎯 OMC HUD │ Agents: 3 active │ Todos: 8/15 done │ Tokens: 145K/200K │ 🟢   │
+│ 🎯 OMAC HUD │ Agents: 3 active │ Todos: 8/15 done │ Tokens: 145K/200K │ 🟢   │
 │ Active: [executor:sonnet] [executor-low:haiku] [architect:opus]            │
 │ Current: Refactoring auth middleware... │ Context: 72% │ Cost: $1.23        │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -286,7 +286,7 @@ Create as a slide graphic using:
 ```
 ┌────┬──────────┬─────────────┬──────────────┬────────┐
 │ 🎯 │  Agents  │    Todos    │    Tokens    │ Status │
-│ OMC│ 3 active │  8/15 done  │ 145K/200K    │  🟢    │
+│ OMAC│ 3 active │  8/15 done  │ 145K/200K    │  🟢    │
 │ HUD│          │   (53%)     │   (73%)      │        │
 └────┴──────────┴─────────────┴──────────────┴────────┘
 
@@ -500,10 +500,10 @@ Time →
 **Capture Instructions:**
 1. Use a pipeline preset or custom pipeline:
    ```
-   /oh-my-claudecode:pipeline review "analyze the authentication system"
+   /oh-my-agent-connector:pipeline review "analyze the authentication system"
    ```
 2. Capture showing each stage completing and passing data to next
-3. Alternative: Check `.omc/logs/pipeline.log` for formatted output
+3. Alternative: Check `.omac/logs/pipeline.log` for formatted output
 
 **ASCII Mockup:**
 ```
@@ -759,10 +759,10 @@ Time →
 **Capture Instructions:**
 1. Start swarm mode:
    ```
-   /oh-my-claudecode:swarm 5:executor "implement all CRUD operations"
+   /oh-my-agent-connector:swarm 5:executor "implement all CRUD operations"
    ```
 2. Capture when agents are actively claiming tasks
-3. Check `.omc/state/swarm-tasks.json` for task status
+3. Check `.omac/state/swarm-tasks.json` for task status
 
 **ASCII Mockup:**
 ```
@@ -857,7 +857,7 @@ Time →
 **ASCII Mockup:**
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                       OMC 3-Tier Model Routing                              │
+│                       OMAC 3-Tier Model Routing                              │
 └─────────────────────────────────────────────────────────────────────────────┘
 
                               Task Arrives
@@ -1025,7 +1025,7 @@ to the most cost-effective model that can handle it successfully.
 ### Terminal Recording
 ```bash
 # Use asciinema for terminal recording
-asciinema rec -t "OMC Autopilot Demo" autopilot-demo.cast
+asciinema rec -t "OMAC Autopilot Demo" autopilot-demo.cast
 
 # Convert to animated GIF
 agg autopilot-demo.cast autopilot-phases.gif
@@ -1042,7 +1042,7 @@ tmux new-session \; \
   select-pane -t 0 \; \
   send-keys "# BEFORE: Manual workflow" C-m \; \
   select-pane -t 1 \; \
-  send-keys "# AFTER: OMC workflow" C-m
+  send-keys "# AFTER: OMAC workflow" C-m
 ```
 
 ### Screenshot Tools

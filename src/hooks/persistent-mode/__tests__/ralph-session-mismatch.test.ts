@@ -53,8 +53,8 @@ function writeRalphStateFile(
   // Write to the legacy unscoped path when sessionId is undefined,
   // session-scoped path when defined.
   const stateDir = sessionId
-    ? join(tempDir, '.omc', 'state', 'sessions', sessionId)
-    : join(tempDir, '.omc', 'state');
+    ? join(tempDir, '.omac', 'state', 'sessions', sessionId)
+    : join(tempDir, '.omac', 'state');
   mkdirSync(stateDir, { recursive: true });
 
   const state: Record<string, unknown> = {
@@ -80,7 +80,7 @@ describe('persistent-mode ralph session-id mismatch (stuck counter regression)',
     // Simulate the bug: state file written without a session_id (e.g. ralph
     // started before the session_id was known, or an older state schema).
     // Place it at the SESSION-SCOPED path so readRalphState finds it.
-    const stateDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+    const stateDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
     mkdirSync(stateDir, { recursive: true });
     writeFileSync(
       join(stateDir, 'ralph-state.json'),
@@ -119,7 +119,7 @@ describe('persistent-mode ralph session-id mismatch (stuck counter regression)',
     expect(result.mode).not.toBe('ralph');
 
     // Session A's state should be unchanged
-    const stateFile = join(tempDir, '.omc', 'state', 'sessions', sessionA, 'ralph-state.json');
+    const stateFile = join(tempDir, '.omac', 'state', 'sessions', sessionA, 'ralph-state.json');
     const unchanged = JSON.parse(readFileSync(stateFile, 'utf-8')) as { iteration: number };
     expect(unchanged.iteration).toBe(5);
   });
@@ -134,7 +134,7 @@ describe('persistent-mode ralph session-id mismatch (stuck counter regression)',
     const result = await checkPersistentModes(sessionId, tempDir);
     expect(result.mode).toBe('ralph');
 
-    const stateFile = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ralph-state.json');
+    const stateFile = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ralph-state.json');
     const updated = JSON.parse(readFileSync(stateFile, 'utf-8')) as { iteration: number };
     expect(updated.iteration).toBe(4);
   });

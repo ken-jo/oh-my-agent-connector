@@ -1,6 +1,6 @@
-# Contributing to oh-my-claudecode
+# Contributing to oh-my-agent-connector
 
-Thank you for your interest in contributing to oh-my-claudecode (OMC). This guide covers everything from forking to submitting your PR.
+Thank you for your interest in contributing to oh-my-agent-connector (OMAC). This guide covers everything from forking to submitting your PR.
 
 ## 1. Audience & Prerequisites
 
@@ -18,26 +18,26 @@ This guide assumes you're comfortable with terminal commands and git branching.
 
 ## 2. Fork & Clone
 
-1. **Fork the repository** on GitHub by clicking the "Fork" button at https://github.com/Yeachan-Heo/oh-my-claudecode
+1. **Fork the repository** on GitHub by clicking the "Fork" button at https://github.com/Yeachan-Heo/oh-my-agent-connector
 
 2. **Clone your fork**:
    ```bash
-   git clone https://github.com/<your-username>/oh-my-claudecode.git
-   cd oh-my-claudecode
+   git clone https://github.com/<your-username>/oh-my-agent-connector.git
+   cd oh-my-agent-connector
    ```
 
 3. **Add the upstream remote** so you can sync with the main repository:
    ```bash
-   git remote add upstream https://github.com/Yeachan-Heo/oh-my-claudecode.git
+   git remote add upstream https://github.com/Yeachan-Heo/oh-my-agent-connector.git
    ```
 
 4. **Verify your remotes**:
    ```bash
    git remote -v
-   # origin    https://github.com/<your-username>/oh-my-claudecode.git (fetch)
-   # origin    https://github.com/<your-username>/oh-my-claudecode.git (push)
-   # upstream  https://github.com/Yeachan-Heo/oh-my-claudecode.git (fetch)
-   # upstream  https://github.com/Yeachan-Heo/oh-my-claudecode.git (read-only)
+   # origin    https://github.com/<your-username>/oh-my-agent-connector.git (fetch)
+   # origin    https://github.com/<your-username>/oh-my-agent-connector.git (push)
+   # upstream  https://github.com/Yeachan-Heo/oh-my-agent-connector.git (fetch)
+   # upstream  https://github.com/Yeachan-Heo/oh-my-agent-connector.git (read-only)
    ```
 
 5. **Check available branches**:
@@ -86,37 +86,37 @@ All TypeScript and bundling steps are handled. The output goes to `dist/` and `b
 
 ---
 
-## 4. Linking Your Checkout as the Active OMC Plugin
+## 4. Linking Your Checkout as the Active OMAC Plugin
 
 Once built, you need to tell Claude Code to use your local checkout. Here are three flows:
 
-### Bootstrap: make the `omc` command available
+### Bootstrap: make the `omac` command available
 
-All three flows below use the `omc` CLI. If you don't have it installed globally (via `npm i -g oh-my-claude-sisyphus`), create a symlink from your checkout:
+All three flows below use the `omac` CLI. If you don't have it installed globally (via `npm i -g oh-my-agent-connector`), create a symlink from your checkout:
 
 ```bash
 # Create ~/.local/bin if it doesn't exist
 mkdir -p ~/.local/bin
 
-# Symlink omc to the checkout's bridge entry point
-ln -sf "$PWD/bridge/cli.cjs" ~/.local/bin/omc
+# Symlink omac to the checkout's bridge entry point
+ln -sf "$PWD/bridge/cli.cjs" ~/.local/bin/omac
 
 # Verify (you may need ~/.local/bin on your PATH)
-omc --version
+omac --version
 ```
 
-### Flow A: `omc --plugin-dir` + `omc setup --plugin-dir-mode` (recommended — lowest friction)
+### Flow A: `omac --plugin-dir` + `omac setup --plugin-dir-mode` (recommended — lowest friction)
 
-**Advantages**: Single command, automatic env var handling, matches the OMC philosophy.
+**Advantages**: Single command, automatic env var handling, matches the OMAC philosophy.
 
 ```bash
 # From your checkout directory
-omc --plugin-dir "$PWD" setup --plugin-dir-mode
+omac --plugin-dir "$PWD" setup --plugin-dir-mode
 ```
 
 Then launch Claude Code normally — it will use your local checkout.
 
-**Disable the `.mcp.json` server conflict**: The repo ships `.mcp.json` with an MCP server named `"t"` (the OMC bridge). When using `--plugin-dir`, the plugin also registers its own `"t"` server, causing a name collision. To resolve this, add to your `~/.claude/settings.json` (or `$CLAUDE_CONFIG_DIR/settings.json`):
+**Disable the `.mcp.json` server conflict**: The repo ships `.mcp.json` with an MCP server named `"t"` (the OMAC bridge). When using `--plugin-dir`, the plugin also registers its own `"t"` server, causing a name collision. To resolve this, add to your `~/.claude/settings.json` (or `$CLAUDE_CONFIG_DIR/settings.json`):
 
 ```json
 {
@@ -134,7 +134,7 @@ This tells Claude Code to ignore the repo's `.mcp.json` entry and use the plugin
 **Rebuilding**: After code changes:
 ```bash
 npm run build
-omc setup --plugin-dir-mode  # or just re-run build and restart Claude Code
+omac setup --plugin-dir-mode  # or just re-run build and restart Claude Code
 ```
 
 ### Flow B: Marketplace lifecycle (if you prefer plugin system isolation)
@@ -143,10 +143,10 @@ omc setup --plugin-dir-mode  # or just re-run build and restart Claude Code
 
 ```bash
 # Add local directory as a marketplace source
-claude plugin marketplace add /path/to/oh-my-claudecode
+claude plugin marketplace add /path/to/oh-my-agent-connector
 
 # Install the plugin
-claude plugin install oh-my-claudecode@oh-my-claudecode
+claude plugin install oh-my-agent-connector@oh-my-agent-connector
 
 # Run setup
 /setup
@@ -155,17 +155,17 @@ claude plugin install oh-my-claudecode@oh-my-claudecode
 **Rebuilding**: After code changes:
 ```bash
 npm run build
-claude plugin marketplace update oh-my-claudecode
-claude plugin update oh-my-claudecode@oh-my-claudecode
+claude plugin marketplace update oh-my-agent-connector
+claude plugin update oh-my-agent-connector@oh-my-agent-connector
 /setup
 ```
 
-### Flow C: `omc setup --no-plugin` (fallback, bundled skills)
+### Flow C: `omac setup --no-plugin` (fallback, bundled skills)
 
 **Advantages**: Forces local bundled skills to `~/.claude/skills/`, no plugin system.
 
 ```bash
-omc --plugin-dir "$PWD" setup --no-plugin
+omac --plugin-dir "$PWD" setup --no-plugin
 ```
 
 This skips the plugin system entirely and installs agents/skills to your home directory.
@@ -174,9 +174,9 @@ This skips the plugin system entirely and installs agents/skills to your home di
 
 | Flow | Command | Plugin system? | Files location | Rebuild cost | Use when |
 |------|---------|---|---|---|---|
-| **A (recommended)** | `omc --plugin-dir "$PWD" setup --plugin-dir-mode` | Yes, via `--plugin-dir` | Live from checkout | Low (no copy on rebuild) | Developing OMC itself |
+| **A (recommended)** | `omac --plugin-dir "$PWD" setup --plugin-dir-mode` | Yes, via `--plugin-dir` | Live from checkout | Low (no copy on rebuild) | Developing OMAC itself |
 | **B** | `claude plugin marketplace add` + `install` | Yes, full marketplace | Plugin cache | Medium (marketplace update) | Testing plugin isolation |
-| **C** | `omc setup --no-plugin` | No | `~/.claude/skills/` | Low (direct copy) | Fallback / troubleshooting |
+| **C** | `omac setup --no-plugin` | No | `~/.claude/skills/` | Low (direct copy) | Fallback / troubleshooting |
 
 ---
 
@@ -185,28 +185,28 @@ This skips the plugin system entirely and installs agents/skills to your home di
 Add these to your `.bashrc` / `.zshrc` for a smoother dev workflow:
 
 ```bash
-# Your OMC dev root (change path as needed)
-export OMC_DEV_ROOT="$HOME/_Git/_Claude/oh-my-claudecode"
+# Your OMAC dev root (change path as needed)
+export OMAC_DEV_ROOT="$HOME/_Git/_Claude/oh-my-agent-connector"
 
-# Run OMC from your local checkout
-alias omcdev='omc --plugin-dir "$OMC_DEV_ROOT"'
+# Run OMAC from your local checkout
+alias omacdev='omac --plugin-dir "$OMAC_DEV_ROOT"'
 
 # Build quickly
-alias omcbuild='(cd "$OMC_DEV_ROOT" && npm run build)'
+alias omacbuild='(cd "$OMAC_DEV_ROOT" && npm run build)'
 
 # Run tests
-alias omctest='(cd "$OMC_DEV_ROOT" && npm run test:run)'
+alias omactest='(cd "$OMAC_DEV_ROOT" && npm run test:run)'
 
 # Full watch mode (tsc + esbuild)
-alias omcwatch='(cd "$OMC_DEV_ROOT" && npm run dev:full)'
+alias omacwatch='(cd "$OMAC_DEV_ROOT" && npm run dev:full)'
 ```
 
 Then you can use:
 ```bash
-omcbuild                                # Rebuild in 10–15 seconds
-omcdev setup --plugin-dir-mode          # Link your checkout
-omcwatch                                # Auto-rebuild on file changes
-omctest                                 # Run test suite
+omacbuild                                # Rebuild in 10–15 seconds
+omacdev setup --plugin-dir-mode          # Link your checkout
+omacwatch                                # Auto-rebuild on file changes
+omactest                                 # Run test suite
 ```
 
 ---
@@ -233,7 +233,7 @@ After editing markdown files in `agents/`, `skills/`, or `commands/`:
 
 ```bash
 npm run build
-omc setup --plugin-dir-mode
+omac setup --plugin-dir-mode
 ```
 
 The setup command re-reads the markdown files and refreshes the in-session command registry.
@@ -331,7 +331,7 @@ npm run test:run
    ```
 
 2. **Open a PR** on GitHub:
-   - Go to https://github.com/Yeachan-Heo/oh-my-claudecode/pulls
+   - Go to https://github.com/Yeachan-Heo/oh-my-agent-connector/pulls
    - Click "New pull request"
    - Select your fork and branch
    - Fill in the PR title and description
@@ -342,7 +342,7 @@ npm run test:run
    - GitHub will auto-populate the template when you open the PR
 
 4. **Release workflow** (advanced):
-   - If your PR should trigger a release, you can invoke the `/oh-my-claudecode:release` skill
+   - If your PR should trigger a release, you can invoke the `/oh-my-agent-connector:release` skill
    - This is typically for maintainers; ask in the PR if unsure
 
 5. **What happens next**:
@@ -355,19 +355,19 @@ npm run test:run
 
 ## 10. Troubleshooting
 
-### "OMC_PLUGIN_ROOT is not set"
+### "OMAC_PLUGIN_ROOT is not set"
 
-You're using `claude --plugin-dir` directly without the `omc` shim. Export it:
+You're using `claude --plugin-dir` directly without the `omac` shim. Export it:
 
 ```bash
-export OMC_PLUGIN_ROOT=/path/to/oh-my-claudecode
-claude --plugin-dir /path/to/oh-my-claudecode
+export OMAC_PLUGIN_ROOT=/path/to/oh-my-agent-connector
+claude --plugin-dir /path/to/oh-my-agent-connector
 ```
 
-Or use the `omc` shim which sets it automatically:
+Or use the `omac` shim which sets it automatically:
 
 ```bash
-omc --plugin-dir /path/to/oh-my-claudecode
+omac --plugin-dir /path/to/oh-my-agent-connector
 ```
 
 ### "Skills/agents not showing up after rebuild"
@@ -375,7 +375,7 @@ omc --plugin-dir /path/to/oh-my-claudecode
 After `npm run build`, you must re-run setup to refresh the in-session command registry:
 
 ```bash
-omc setup --plugin-dir-mode
+omac setup --plugin-dir-mode
 ```
 
 Then restart Claude Code.
@@ -409,7 +409,7 @@ The plugin cache may need a refresh:
 
 ```bash
 npm run build
-omc setup --plugin-dir-mode
+omac setup --plugin-dir-mode
 # Restart Claude Code
 ```
 
@@ -418,9 +418,9 @@ omc setup --plugin-dir-mode
 Run the diagnostics tool:
 
 ```bash
-omc doctor
-omc doctor conflicts
-omc doctor --plugin-dir /path/to/oh-my-claudecode
+omac doctor
+omac doctor conflicts
+omac doctor --plugin-dir /path/to/oh-my-agent-connector
 ```
 
 Or check the troubleshooting sections in:
@@ -436,7 +436,7 @@ Or check the troubleshooting sections in:
 - **Reference Docs**: [docs/REFERENCE.md](./docs/REFERENCE.md)
 - **Local Plugin Install**: [docs/LOCAL_PLUGIN_INSTALL.md](./docs/LOCAL_PLUGIN_INSTALL.md)
 - **Getting Started**: [docs/GETTING-STARTED.md](./docs/GETTING-STARTED.md)
-- **GitHub Issues**: https://github.com/Yeachan-Heo/oh-my-claudecode/issues
+- **GitHub Issues**: https://github.com/Yeachan-Heo/oh-my-agent-connector/issues
 - **Discord Community**: https://discord.gg/PUwSMR9XNk
 
 Happy contributing!

@@ -4,12 +4,12 @@ import * as readline from 'readline';
 import { spawn as spawnChildProcess } from 'child_process';
 import { fileURLToPath } from 'url';
 import { triggerStopCallbacks } from './callbacks.js';
-import { getOMCConfig } from '../../features/auto-update.js';
+import { getOMACConfig } from '../../features/auto-update.js';
 import { buildConfigFromEnv, getEnabledPlatforms, getNotificationConfig } from '../../notifications/config.js';
 import { notify } from '../../notifications/index.js';
 import type { NotificationPlatform } from '../../notifications/types.js';
 import { cleanupBridgeSessions } from '../../tools/python-repl/bridge-manager.js';
-import { resolveToWorktreeRoot, getOmcRoot, validateSessionId, isValidTranscriptPath, resolveSessionStatePath } from '../../lib/worktree-paths.js';
+import { resolveToWorktreeRoot, getOmacRoot, validateSessionId, isValidTranscriptPath, resolveSessionStatePath } from '../../lib/worktree-paths.js';
 import { SESSION_END_MODE_STATE_FILES, SESSION_METRICS_MODE_FILES } from '../../lib/mode-names.js';
 import { clearModeStateFile, readModeState } from '../../lib/mode-state-io.js';
 
@@ -48,7 +48,7 @@ const SESSION_STARTED_MARKER_FILE = 'session-started.json';
 
 const DEFAULT_SESSION_END_CLEANUP_BUDGET_MS = 2_000;
 const MAX_SESSION_END_CLEANUP_BUDGET_MS = 10_000;
-const SESSION_END_CLEANUP_BUDGET_ENV = 'OMC_SESSIONEND_CLEANUP_BUDGET_MS';
+const SESSION_END_CLEANUP_BUDGET_ENV = 'OMAC_SESSIONEND_CLEANUP_BUDGET_MS';
 
 export interface SessionEndCleanupWorkerPayload {
   directory: string;
@@ -58,7 +58,7 @@ export interface SessionEndCleanupWorkerPayload {
   initialTeamNames?: string[];
 }
 
-const SESSION_END_CLEANUP_WORKER_ARG = '--omc-session-end-cleanup-worker';
+const SESSION_END_CLEANUP_WORKER_ARG = '--omac-session-end-cleanup-worker';
 
 const SESSION_END_SAFE_TEAM_NAME_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
@@ -108,7 +108,7 @@ function runSessionEndCleanupWithBudget(
 }
 
 function hasExplicitNotificationConfig(profileName?: string): boolean {
-  const config = getOMCConfig();
+  const config = getOMACConfig();
 
   if (profileName) {
     const profile = config.notificationProfiles?.[profileName];
@@ -144,7 +144,7 @@ function getLegacyPlatformsCoveredByNotifications(
  * Read agent tracking to get spawn/completion counts
  */
 function getAgentCounts(directory: string): { spawned: number; completed: number } {
-  const trackingPath = path.join(getOmcRoot(directory), 'state', 'subagent-tracking.json');
+  const trackingPath = path.join(getOmacRoot(directory), 'state', 'subagent-tracking.json');
 
   if (!fs.existsSync(trackingPath)) {
     return { spawned: 0, completed: 0 };
@@ -168,7 +168,7 @@ function getAgentCounts(directory: string): { spawned: number; completed: number
  * Detect which modes were used during the session
  */
 function getModesUsed(directory: string): string[] {
-  const stateDir = path.join(getOmcRoot(directory), 'state');
+  const stateDir = path.join(getOmacRoot(directory), 'state');
   const modes: string[] = [];
 
   if (!fs.existsSync(stateDir)) {
@@ -201,7 +201,7 @@ function getModesUsed(directory: string): string[] {
  * ultrawork).
  */
 export function getSessionStartTime(directory: string, sessionId?: string): string | undefined {
-  const stateDir = path.join(getOmcRoot(directory), 'state');
+  const stateDir = path.join(getOmacRoot(directory), 'state');
 
   if (!fs.existsSync(stateDir)) {
     return undefined;
@@ -296,14 +296,14 @@ export function recordSessionMetrics(directory: string, input: SessionEndInput):
  */
 export function cleanupTransientState(directory: string, endingSessionId?: string): number {
   let filesRemoved = 0;
-  const omcDir = getOmcRoot(directory);
+  const omacDir = getOmacRoot(directory);
 
-  if (!fs.existsSync(omcDir)) {
+  if (!fs.existsSync(omacDir)) {
     return filesRemoved;
   }
 
   // Remove transient agent tracking
-  const trackingPath = path.join(omcDir, 'state', 'subagent-tracking.json');
+  const trackingPath = path.join(omacDir, 'state', 'subagent-tracking.json');
   if (fs.existsSync(trackingPath)) {
     try {
       fs.unlinkSync(trackingPath);
@@ -314,7 +314,7 @@ export function cleanupTransientState(directory: string, endingSessionId?: strin
   }
 
   // Clean stale checkpoints (older than 24 hours)
-  const checkpointsDir = path.join(omcDir, 'checkpoints');
+  const checkpointsDir = path.join(omacDir, 'checkpoints');
   if (fs.existsSync(checkpointsDir)) {
     const now = Date.now();
     const oneDayAgo = now - 24 * 60 * 60 * 1000;
@@ -335,7 +335,7 @@ export function cleanupTransientState(directory: string, endingSessionId?: strin
     }
   }
 
-  // Remove .tmp files in .omc/
+  // Remove .tmp files in .omac/
   const removeTmpFiles = (dir: string) => {
     try {
       const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -355,10 +355,10 @@ export function cleanupTransientState(directory: string, endingSessionId?: strin
     }
   };
 
-  removeTmpFiles(omcDir);
+  removeTmpFiles(omacDir);
 
   // Remove transient state files that accumulate across sessions
-  const stateDir = path.join(omcDir, 'state');
+  const stateDir = path.join(omacDir, 'state');
   if (fs.existsSync(stateDir)) {
     const transientPatterns = [
       /^agent-replay-.*\.jsonl$/,
@@ -401,7 +401,7 @@ export function cleanupTransientState(directory: string, endingSessionId?: strin
       // would reintroduce cross-session interference.
       const endingSessionOnlyPatterns = [
         // HUD's stdin cache is session-scoped (see `src/hud/stdin.ts`)
-        // and consumed by `omc hud --watch` for the owning session.
+        // and consumed by `omac hud --watch` for the owning session.
         /^hud-stdin-cache\.json$/,
       ];
       const isEndingSession = (sid: string): boolean =>
@@ -533,7 +533,7 @@ export async function extractPythonReplSessionIdsFromTranscript(transcriptPath: 
 export function cleanupModeStates(directory: string, sessionId?: string): { filesRemoved: number; modesCleaned: string[] } {
   let filesRemoved = 0;
   const modesCleaned: string[] = [];
-  const stateDir = path.join(getOmcRoot(directory), 'state');
+  const stateDir = path.join(getOmacRoot(directory), 'state');
 
   if (!fs.existsSync(stateDir)) {
     return { filesRemoved, modesCleaned };
@@ -610,7 +610,7 @@ export function cleanupModeStates(directory: string, sessionId?: string): { file
  * session-sourced missions.
  */
 export function cleanupMissionState(directory: string, sessionId?: string): number {
-  const missionStatePath = path.join(getOmcRoot(directory), 'state', 'mission-state.json');
+  const missionStatePath = path.join(getOmacRoot(directory), 'state', 'mission-state.json');
 
   if (!fs.existsSync(missionStatePath)) {
     return 0;
@@ -662,7 +662,7 @@ function cleanupSessionStartedMarker(directory: string, sessionId: string): void
   }
 
   try {
-    const markerPath = path.join(getOmcRoot(directory), 'state', 'sessions', sessionId, SESSION_STARTED_MARKER_FILE);
+    const markerPath = path.join(getOmacRoot(directory), 'state', 'sessions', sessionId, SESSION_STARTED_MARKER_FILE);
     if (fs.existsSync(markerPath)) {
       fs.unlinkSync(markerPath);
     }
@@ -684,7 +684,7 @@ async function findSessionOwnedTeams(directory: string, sessionId: string): Prom
     teamNames.add(stateTeamName);
   }
 
-  const teamRoot = path.join(getOmcRoot(directory), 'state', 'team');
+  const teamRoot = path.join(getOmacRoot(directory), 'state', 'team');
   if (!fs.existsSync(teamRoot)) {
     return [...teamNames];
   }
@@ -761,7 +761,7 @@ async function cleanupSessionOwnedTeams(
         };
         const sessionName = typeof legacyConfig.tmuxSession === 'string' && legacyConfig.tmuxSession.trim() !== ''
           ? legacyConfig.tmuxSession.trim()
-          : `omc-team-${teamName}`;
+          : `omac-team-${teamName}`;
         const leaderPaneId = typeof legacyConfig.leaderPaneId === 'string' && legacyConfig.leaderPaneId.trim() !== ''
           ? legacyConfig.leaderPaneId.trim()
           : undefined;
@@ -784,10 +784,10 @@ async function cleanupSessionOwnedTeams(
 }
 
 /**
- * Export session summary to .omc/sessions/
+ * Export session summary to .omac/sessions/
  */
 export function exportSessionSummary(directory: string, metrics: SessionMetrics): void {
-  const sessionsDir = path.join(getOmcRoot(directory), 'sessions');
+  const sessionsDir = path.join(getOmacRoot(directory), 'sessions');
 
   // Create sessions directory if it doesn't exist
   if (!fs.existsSync(sessionsDir)) {
@@ -906,7 +906,7 @@ function runSessionEndCleanupWorkerAndExit(payload: SessionEndCleanupWorkerPaylo
  * Process session end
  */
 export async function processSessionEnd(input: SessionEndInput): Promise<HookOutput> {
-  // Normalize cwd to the git worktree root so .omc/state/ is always resolved
+  // Normalize cwd to the git worktree root so .omac/state/ is always resolved
   // from the repo root, even when Claude Code is running from a subdirectory (issue #891).
   const directory = resolveToWorktreeRoot(input.cwd);
 
@@ -947,7 +947,7 @@ export async function processSessionEnd(input: SessionEndInput): Promise<HookOut
   // not treat it as hard-terminated.
   cleanupSessionStartedMarker(directory, input.session_id);
 
-  const profileName = process.env.OMC_NOTIFY_PROFILE;
+  const profileName = process.env.OMAC_NOTIFY_PROFILE;
   const notificationConfig = getNotificationConfig(profileName);
   const shouldUseNewNotificationSystem = Boolean(
     notificationConfig && hasExplicitNotificationConfig(profileName)
@@ -1022,7 +1022,7 @@ export async function processSessionEnd(input: SessionEndInput): Promise<HookOut
   // optimization and risk hitting the hook timeout (#1700).
   void Promise.allSettled(fireAndForget);
 
-  // Return simple response - metrics are persisted to .omc/sessions/
+  // Return simple response - metrics are persisted to .omac/sessions/
   return { continue: true };
 }
 

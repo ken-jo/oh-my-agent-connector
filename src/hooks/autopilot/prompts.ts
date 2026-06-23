@@ -48,7 +48,7 @@ Your task: Expand this product idea into detailed requirements and technical spe
 
 \`\`\`
 Task(
-  subagent_type="oh-my-claudecode:analyst",
+  subagent_type="oh-my-agent-connector:analyst",
   model="opus",
   prompt="REQUIREMENTS ANALYSIS for: ${escapeForPrompt(idea)}
 
@@ -70,7 +70,7 @@ After Analyst completes, spawn Architect:
 
 \`\`\`
 Task(
-  subagent_type="oh-my-claudecode:architect",
+  subagent_type="oh-my-agent-connector:architect",
   model="opus",
   prompt="TECHNICAL SPECIFICATION for: ${escapeForPrompt(idea)}
 
@@ -99,7 +99,7 @@ The Analyst is read-only and cannot write files, so you must persist its open qu
 ### Step 3: Save Combined Spec
 
 Combine Analyst requirements + Architect technical spec into a single document.
-Save to: \`.omc/autopilot/spec.md\`
+Save to: \`.omac/autopilot/spec.md\`
 
 ### Step 4: Signal Completion
 
@@ -131,7 +131,7 @@ Spawn Architect to create the implementation plan:
 
 \`\`\`
 Task(
-  subagent_type="oh-my-claudecode:architect",
+  subagent_type="oh-my-agent-connector:architect",
   model="opus",
   prompt="CREATE IMPLEMENTATION PLAN
 
@@ -169,7 +169,7 @@ After Architect creates the plan:
 
 \`\`\`
 Task(
-  subagent_type="oh-my-claudecode:critic",
+  subagent_type="oh-my-agent-connector:critic",
   model="opus",
   prompt="REVIEW IMPLEMENTATION PLAN
 
@@ -220,13 +220,13 @@ Ralph and Ultrawork are now active. Execute tasks in parallel where possible.
 
 \`\`\`
 // For simple tasks (single file, straightforward logic)
-Task(subagent_type="oh-my-claudecode:executor-low", model="haiku", prompt="...")
+Task(subagent_type="oh-my-agent-connector:executor-low", model="haiku", prompt="...")
 
 // For standard implementation (feature, multiple methods)
-Task(subagent_type="oh-my-claudecode:executor", model="sonnet", prompt="...")
+Task(subagent_type="oh-my-agent-connector:executor", model="sonnet", prompt="...")
 
 // For complex work (architecture, debugging, refactoring)
-Task(subagent_type="oh-my-claudecode:executor-high", model="opus", prompt="...")
+Task(subagent_type="oh-my-agent-connector:executor-high", model="opus", prompt="...")
 \`\`\`
 
 ### Progress Tracking
@@ -277,7 +277,7 @@ For each failure:
 1. **Diagnose** - Understand the error
 \`\`\`
 Task(
-  subagent_type="oh-my-claudecode:architect-low",
+  subagent_type="oh-my-agent-connector:architect-low",
   model="haiku",
   prompt="Diagnose this error and suggest fix: [ERROR]"
 )
@@ -286,7 +286,7 @@ Task(
 2. **Fix** - Apply the fix
 \`\`\`
 Task(
-  subagent_type="oh-my-claudecode:debugger",
+  subagent_type="oh-my-agent-connector:debugger",
   model="sonnet",
   prompt="Fix this error with minimal changes: [ERROR]"
 )
@@ -322,7 +322,7 @@ Each reviewer must return ONLY a concise review summary under 100 words with ver
 \`\`\`
 // Functional Completeness Review
 Task(
-  subagent_type="oh-my-claudecode:architect",
+  subagent_type="oh-my-agent-connector:architect",
   model="opus",
   prompt="FUNCTIONAL COMPLETENESS REVIEW
 
@@ -339,7 +339,7 @@ Verdict: APPROVED (all requirements met) or REJECTED (with specific gaps)"
 
 // Security Review
 Task(
-  subagent_type="oh-my-claudecode:security-reviewer",
+  subagent_type="oh-my-agent-connector:security-reviewer",
   model="opus",
   prompt="SECURITY REVIEW
 
@@ -356,7 +356,7 @@ Verdict: APPROVED (no vulnerabilities) or REJECTED (with specific issues)"
 
 // Code Quality Review
 Task(
-  subagent_type="oh-my-claudecode:code-reviewer",
+  subagent_type="oh-my-agent-connector:code-reviewer",
   model="opus",
   prompt="CODE QUALITY REVIEW
 
@@ -419,7 +419,7 @@ export function getPhasePrompt(
       );
     case "planning":
       return getDirectPlanningPrompt(
-        context.specPath || ".omc/autopilot/spec.md",
+        context.specPath || ".omac/autopilot/spec.md",
         context.planPath || resolveAutopilotPlanPath(),
       );
     case "execution":
@@ -427,7 +427,7 @@ export function getPhasePrompt(
     case "qa":
       return getQAPrompt();
     case "validation":
-      return getValidationPrompt(context.specPath || ".omc/autopilot/spec.md");
+      return getValidationPrompt(context.specPath || ".omac/autopilot/spec.md");
     default:
       return "";
   }

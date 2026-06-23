@@ -15,7 +15,7 @@ function makeOld(path: string): void {
 
 describe('HUD cache wrapper stale render cleanup', () => {
   it('removes stale render locks and zero-byte temp files without deleting diagnostics', () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), 'omc-hud-cache-wrapper-'));
+    const tempRoot = mkdtempSync(join(tmpdir(), 'omac-hud-cache-wrapper-'));
     const cacheDir = join(tempRoot, 'cache');
     mkdirSync(cacheDir, { recursive: true });
 
@@ -46,8 +46,8 @@ describe('HUD cache wrapper stale render cleanup', () => {
       encoding: 'utf8',
       env: {
         ...process.env,
-        OMC_HUD_CACHE_DIR: cacheDir,
-        OMC_HUD_SYNC_REFRESH: '1',
+        OMAC_HUD_CACHE_DIR: cacheDir,
+        OMAC_HUD_SYNC_REFRESH: '1',
       },
     });
 

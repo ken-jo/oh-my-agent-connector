@@ -59,7 +59,7 @@ describe('plugin skill context budget gate (issues #2943, #2986)', () => {
   });
 
   it('compacts installed plugin SKILL.md files while archiving full on-demand skill bodies', () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), 'omc-plugin-skill-budget-'));
+    const tempRoot = mkdtempSync(join(tmpdir(), 'omac-plugin-skill-budget-'));
     try {
       cpSync(SKILLS_DIR, join(tempRoot, 'skills'), { recursive: true });
       const originalBytes = skillPayloadBytes(tempRoot);
@@ -83,9 +83,9 @@ describe('plugin skill context budget gate (issues #2943, #2986)', () => {
 
         expect(Buffer.byteLength(shim), `${skillDir} compact shim size`).toBeLessThan(COMPACT_PLUGIN_SKILL_PER_FILE_BUDGET_BYTES);
         expect(shim, `${skillDir} shim should point to archived body`).toContain(`../../skill-bodies/${skillDir}/SKILL.md`);
-        expect(shim, `${skillDir} shim should expose runtime body override`).toContain('omc-full-body:');
+        expect(shim, `${skillDir} shim should expose runtime body override`).toContain('omac-full-body:');
         expect(shim, `${skillDir} shim should prefer plugin root env vars`).toContain(
-          `\${CLAUDE_PLUGIN_ROOT:-\${OMC_PLUGIN_ROOT}}/skill-bodies/${skillDir}/SKILL.md`,
+          `\${CLAUDE_PLUGIN_ROOT:-\${OMAC_PLUGIN_ROOT}}/skill-bodies/${skillDir}/SKILL.md`,
         );
         expect(shim, `${skillDir} shim should define plugin root by containing directories`).toContain(
           'The plugin root is the directory containing both `skills/` and `skill-bodies/`.',
@@ -104,7 +104,7 @@ describe('plugin skill context budget gate (issues #2943, #2986)', () => {
   });
 
   it('uses platform-safe containment for archived full-body skill paths', () => {
-    const winRoot = 'C:\\Users\\me\\.claude\\plugins\\cache\\omc\\oh-my-claudecode\\4.13.7';
+    const winRoot = 'C:\\Users\\me\\.claude\\plugins\\cache\\omac\\oh-my-agent-connector\\4.13.7';
     const winArchivedBody = win32.join(winRoot, 'skill-bodies', 'plan', 'SKILL.md');
     const winEscapedBody = win32.join(winRoot, '..', 'other-plugin', 'SKILL.md');
 
@@ -132,10 +132,10 @@ describe('plugin skill context budget gate (issues #2943, #2986)', () => {
   });
 
   it('materializes declared plugin command wrappers into cache sync targets', () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), 'omc-plugin-commands-cache-'));
+    const tempRoot = mkdtempSync(join(tmpdir(), 'omac-plugin-commands-cache-'));
     try {
       const sourceRoot = join(tempRoot, 'source');
-      const targetRoot = join(tempRoot, 'cache', 'omc', 'oh-my-claudecode', '4.14.1');
+      const targetRoot = join(tempRoot, 'cache', 'omac', 'oh-my-agent-connector', '4.14.1');
       mkdirSync(join(sourceRoot, '.claude-plugin'), { recursive: true });
       mkdirSync(join(sourceRoot, 'commands'), { recursive: true });
       mkdirSync(join(sourceRoot, 'dist', 'hooks'), { recursive: true });
@@ -143,16 +143,16 @@ describe('plugin skill context budget gate (issues #2943, #2986)', () => {
       mkdirSync(join(sourceRoot, 'hooks'), { recursive: true });
       mkdirSync(join(sourceRoot, 'skills', 'plan'), { recursive: true });
       writeFileSync(join(sourceRoot, '.claude-plugin', 'plugin.json'), JSON.stringify({
-        name: 'oh-my-claudecode',
+        name: 'oh-my-agent-connector',
         commands: './commands/',
         skills: ['./skills/plan/'],
       }, null, 2));
-      writeFileSync(join(sourceRoot, 'commands', 'omc-setup.md'), 'Read skills/omc-setup/SKILL.md and pass $ARGUMENTS.\n');
+      writeFileSync(join(sourceRoot, 'commands', 'omac-setup.md'), 'Read skills/omac-setup/SKILL.md and pass $ARGUMENTS.\n');
       writeFileSync(join(sourceRoot, 'dist', 'hooks', 'skill-bridge.cjs'), 'console.log("skill bridge");\n');
       writeFileSync(join(sourceRoot, 'bridge', 'cli.cjs'), 'console.log("bridge");\n');
       writeFileSync(join(sourceRoot, 'hooks', 'hooks.json'), '{}\n');
       writeFileSync(join(sourceRoot, 'skills', 'plan', 'SKILL.md'), 'name: plan\n');
-      writeFileSync(join(sourceRoot, 'package.json'), JSON.stringify({ name: 'oh-my-claude-sisyphus', version: '4.14.1' }));
+      writeFileSync(join(sourceRoot, 'package.json'), JSON.stringify({ name: 'oh-my-agent-connector', version: '4.14.1' }));
 
       const result = copyPluginSyncPayload(sourceRoot, [targetRoot]);
 
@@ -165,7 +165,7 @@ describe('plugin skill context budget gate (issues #2943, #2986)', () => {
       expect(manifest.commands).toBe('./commands/');
       expect(manifest.skills).toEqual(['./skills/plan/']);
       expect(existsSync(join(targetRoot, 'commands'))).toBe(true);
-      expect(readFileSync(join(targetRoot, 'commands', 'omc-setup.md'), 'utf-8')).toContain('$ARGUMENTS');
+      expect(readFileSync(join(targetRoot, 'commands', 'omac-setup.md'), 'utf-8')).toContain('$ARGUMENTS');
     } finally {
       rmSync(tempRoot, { recursive: true, force: true });
     }

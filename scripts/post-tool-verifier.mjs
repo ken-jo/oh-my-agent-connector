@@ -14,58 +14,58 @@ import { basename, join, dirname, resolve } from 'path';
 import { homedir, tmpdir } from 'os';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { getClaudeConfigDir } from './lib/config-dir.mjs';
-import { resolveOmcStateRoot } from './lib/state-root.mjs';
+import { resolveOmacStateRoot } from './lib/state-root.mjs';
 import { readStdin } from './lib/stdin.mjs';
 
-const AGENT_OUTPUT_ANALYSIS_LIMIT = parseInt(process.env.OMC_AGENT_OUTPUT_ANALYSIS_LIMIT || '12000', 10);
-const AGENT_OUTPUT_SUMMARY_LIMIT = parseInt(process.env.OMC_AGENT_OUTPUT_SUMMARY_LIMIT || '360', 10);
-const PREEMPTIVE_WARNING_THRESHOLD_PERCENT = parseInt(process.env.OMC_PREEMPTIVE_COMPACTION_WARNING_PERCENT || '70', 10);
-const PREEMPTIVE_CRITICAL_THRESHOLD_PERCENT = parseInt(process.env.OMC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT || '90', 10);
-const PREEMPTIVE_COOLDOWN_MS = parseInt(process.env.OMC_PREEMPTIVE_COMPACTION_COOLDOWN_MS || '60000', 10);
+const AGENT_OUTPUT_ANALYSIS_LIMIT = parseInt(process.env.OMAC_AGENT_OUTPUT_ANALYSIS_LIMIT || '12000', 10);
+const AGENT_OUTPUT_SUMMARY_LIMIT = parseInt(process.env.OMAC_AGENT_OUTPUT_SUMMARY_LIMIT || '360', 10);
+const PREEMPTIVE_WARNING_THRESHOLD_PERCENT = parseInt(process.env.OMAC_PREEMPTIVE_COMPACTION_WARNING_PERCENT || '70', 10);
+const PREEMPTIVE_CRITICAL_THRESHOLD_PERCENT = parseInt(process.env.OMAC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT || '90', 10);
+const PREEMPTIVE_COOLDOWN_MS = parseInt(process.env.OMAC_PREEMPTIVE_COMPACTION_COOLDOWN_MS || '60000', 10);
 const PREEMPTIVE_TRANSCRIPT_TAIL_BYTES = 4096;
 const PREEMPTIVE_LARGE_OUTPUT_TOOLS = new Set(['read', 'grep', 'glob', 'bash', 'webfetch', 'task', 'taskcreate', 'taskupdate', 'taskoutput']);
 const QUIET_LEVEL = getQuietLevel();
 const SESSION_ID_ALLOWLIST = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,255}$/;
 
 function getQuietLevel() {
-  const parsed = Number.parseInt(process.env.OMC_QUIET || '0', 10);
+  const parsed = Number.parseInt(process.env.OMAC_QUIET || '0', 10);
   if (Number.isNaN(parsed)) return 0;
   return Math.max(0, parsed);
 }
 
 /**
- * Resolve the .omc root directory for a given starting directory.
+ * Resolve the .omac root directory for a given starting directory.
  *
- * Resolution order (mirrors src/lib/worktree-paths.ts getOmcRoot):
- *   1) OMC_STATE_DIR env — log a warning and fall through (full project-id
- *      derivation lives in the TS layer; .mjs scripts use resolveOmcStateRoot
- *      for the async TS-backed path when they need OMC_STATE_DIR honoring).
- *   2) Walk up from startDir looking for a .omc-workspace marker file.
+ * Resolution order (mirrors src/lib/worktree-paths.ts getOmacRoot):
+ *   1) OMAC_STATE_DIR env — log a warning and fall through (full project-id
+ *      derivation lives in the TS layer; .mjs scripts use resolveOmacStateRoot
+ *      for the async TS-backed path when they need OMAC_STATE_DIR honoring).
+ *   2) Walk up from startDir looking for a .omac-workspace marker file.
  *      The first directory containing that file is the workspace anchor.
  *   3) git rev-parse --show-toplevel from startDir.
  *   4) Fallback to startDir itself.
  *
  * @param {string} startDir - Directory to resolve from (usually cwd from hook payload)
- * @returns {string} Absolute path to the .omc root directory
+ * @returns {string} Absolute path to the .omac root directory
  */
-function resolveOmcRoot(startDir) {
+function resolveOmacRoot(startDir) {
   const dir = startDir || process.cwd();
 
-  // 1) OMC_STATE_DIR: full project-id derivation is TS-only; warn and fall through.
-  if (process.env.OMC_STATE_DIR) {
+  // 1) OMAC_STATE_DIR: full project-id derivation is TS-only; warn and fall through.
+  if (process.env.OMAC_STATE_DIR) {
     process.stderr.write(
-      '[omc] OMC_STATE_DIR is set; resolveOmcRoot() falling through to workspace-marker ' +
-      'resolution. Use resolveOmcStateRoot() for full OMC_STATE_DIR support.\n'
+      '[omac] OMAC_STATE_DIR is set; resolveOmacRoot() falling through to workspace-marker ' +
+      'resolution. Use resolveOmacStateRoot() for full OMAC_STATE_DIR support.\n'
     );
   }
 
-  // 2) Walk up looking for .omc-workspace marker
+  // 2) Walk up looking for .omac-workspace marker
   try {
     let cursor = resolve(dir);
     const home = (() => { try { return resolve(homedir()); } catch { return null; } })();
     while (true) {
-      if (existsSync(join(cursor, '.omc-workspace'))) {
-        return join(cursor, '.omc');
+      if (existsSync(join(cursor, '.omac-workspace'))) {
+        return join(cursor, '.omac');
       }
       const parent = dirname(cursor);
       if (parent === cursor) break;
@@ -84,13 +84,13 @@ function resolveOmcRoot(startDir) {
       stdio: ['pipe', 'pipe', 'pipe'],
       timeout: 5000,
     }).trim();
-    if (top) return join(top, '.omc');
+    if (top) return join(top, '.omac');
   } catch {
     // not in a git repo — fall through
   }
 
   // 4) Fallback to startDir
-  return join(dir, '.omc');
+  return join(dir, '.omac');
 }
 
 function clampPercent(percent, fallback) {
@@ -122,9 +122,9 @@ try {
   // Notepad module not available - remember tags will be silently ignored
 }
 
-// Debug logging helper - gated behind OMC_DEBUG env var
+// Debug logging helper - gated behind OMAC_DEBUG env var
 const debugLog = (...args) => {
-  if (process.env.OMC_DEBUG) console.error('[omc:debug:post-tool-verifier]', ...args);
+  if (process.env.OMAC_DEBUG) console.error('[omac:debug:post-tool-verifier]', ...args);
 };
 
 // State file for session tracking
@@ -189,7 +189,7 @@ function updateStats(toolName, sessionId) {
 // Read bash history config (default: enabled)
 function getBashHistoryConfig() {
   try {
-    const configPath = join(cfgDir, '.omc-config.json');
+    const configPath = join(cfgDir, '.omac-config.json');
     if (existsSync(configPath)) {
       const config = JSON.parse(readFileSync(configPath, 'utf-8'));
       if (config.bashHistory === false) return false;
@@ -488,7 +488,7 @@ function getPreemptiveCooldownFilePath(directory, sessionId) {
       ? `${directory || process.cwd()}::${sessionId}`
       : directory || process.cwd();
   const hash = createHash('sha1').update(cooldownScope).digest('hex');
-  const cooldownDir = join(tmpdir(), 'omc-preemptive-compaction');
+  const cooldownDir = join(tmpdir(), 'omac-preemptive-compaction');
   mkdirSync(cooldownDir, { recursive: true });
   return join(cooldownDir, `${hash}.json`);
 }
@@ -526,10 +526,10 @@ function shouldSuppressPreemptiveWarning(directory, sessionId, severity, now) {
 
 function buildPreemptiveContextMessage(percentUsed, severity) {
   if (severity === 'critical') {
-    return `[OMC CRITICAL] Context at ${percentUsed}% (critical threshold: ${getPreemptiveCriticalThreshold()}%). Run /compact now before continuing with more tools or agent fan-out.`;
+    return `[OMAC CRITICAL] Context at ${percentUsed}% (critical threshold: ${getPreemptiveCriticalThreshold()}%). Run /compact now before continuing with more tools or agent fan-out.`;
   }
 
-  return `[OMC WARNING] Context at ${percentUsed}% (warning threshold: ${getPreemptiveWarningThreshold()}%). Plan a /compact soon to preserve room for the next large tool output.`;
+  return `[OMAC WARNING] Context at ${percentUsed}% (warning threshold: ${getPreemptiveWarningThreshold()}%). Plan a /compact soon to preserve room for the next large tool output.`;
 }
 
 function maybeBuildPreemptiveCompactionMessage(toolName, data, directory) {
@@ -594,12 +594,12 @@ function getSkillInvocationArgs(toolInput) {
 function isConsensusPlanningSkillInvocation(skillName, toolInput) {
   if (!skillName) return false;
   if (skillName === 'ralplan') return true;
-  if (skillName !== 'plan' && skillName !== 'omc-plan') return false;
+  if (skillName !== 'plan' && skillName !== 'omac-plan') return false;
   return getSkillInvocationArgs(toolInput).toLowerCase().includes('--consensus');
 }
 
 function getSkillActiveStatePaths(directory, sessionId) {
-  const stateDir = join(resolveOmcRoot(directory), 'state');
+  const stateDir = join(resolveOmacRoot(directory), 'state');
   const safeSessionId = sessionId && SESSION_ID_ALLOWLIST.test(sessionId) ? sessionId : '';
   return [
     safeSessionId ? join(stateDir, 'sessions', safeSessionId, 'skill-active-state.json') : null,
@@ -631,7 +631,7 @@ function clearSkillActiveState(directory, sessionId) {
 }
 
 function getRalplanStatePaths(directory, sessionId) {
-  const stateDir = join(resolveOmcRoot(directory), 'state');
+  const stateDir = join(resolveOmacRoot(directory), 'state');
   const safeSessionId = sessionId && SESSION_ID_ALLOWLIST.test(sessionId) ? sessionId : '';
   return [
     safeSessionId ? join(stateDir, 'sessions', safeSessionId, 'ralplan-state.json') : null,
@@ -702,7 +702,7 @@ function clipToolOutputForAnalysis(toolName, output) {
   }
 
   return {
-    clipped: `${output.slice(0, AGENT_OUTPUT_ANALYSIS_LIMIT)}\n...[agent output truncated by OMC context guard]`,
+    clipped: `${output.slice(0, AGENT_OUTPUT_ANALYSIS_LIMIT)}\n...[agent output truncated by OMAC context guard]`,
     wasTruncated: true,
   };
 }
@@ -923,7 +923,7 @@ function hasStructuredWriteFailure(rawResponse) {
 // Checks session-scoped path first (Wave A migration), falls back to legacy path.
 // sessionId is extracted from the hook payload; when absent only the legacy path is tried.
 function getAgentCompletionSummary(directory, quietLevel = QUIET_LEVEL, sessionId = '') {
-  const stateDir = join(resolveOmcRoot(directory), 'state');
+  const stateDir = join(resolveOmacRoot(directory), 'state');
   const safeSessionId = sessionId && SESSION_ID_ALLOWLIST.test(sessionId) ? sessionId : '';
 
   // Build candidate paths: session-scoped first, then legacy fallback
@@ -945,7 +945,7 @@ function getAgentCompletionSummary(directory, quietLevel = QUIET_LEVEL, sessionI
 
       const parts = [];
       if (quietLevel < 2 && running.length > 0) {
-        parts.push(`Running: ${running.length} [${running.map(a => a.agent_type.replace('oh-my-claudecode:', '')).join(', ')}]`);
+        parts.push(`Running: ${running.length} [${running.map(a => a.agent_type.replace('oh-my-agent-connector:', '')).join(', ')}]`);
       }
       if (quietLevel < 2 && completed > 0) parts.push(`Completed: ${completed}`);
       if (failed > 0) parts.push(`Failed: ${failed}`);
@@ -1066,9 +1066,9 @@ function combineMessages(...messages) {
 }
 
 async function main() {
-  // Skip guard: check OMC_SKIP_HOOKS env var (see issue #838)
-  const _skipHooks = (process.env.OMC_SKIP_HOOKS || '').split(',').map(s => s.trim());
-  if (process.env.DISABLE_OMC === '1' || _skipHooks.includes('post-tool-use')) {
+  // Skip guard: check OMAC_SKIP_HOOKS env var (see issue #838)
+  const _skipHooks = (process.env.OMAC_SKIP_HOOKS || '').split(',').map(s => s.trim());
+  if (process.env.DISABLE_OMAC === '1' || _skipHooks.includes('post-tool-use')) {
     console.log(JSON.stringify({ continue: true }));
     return;
   }
@@ -1114,7 +1114,7 @@ async function main() {
       const currentState = readSkillActiveState(directory, sessionId);
       const completingSkill = (skillName ?? '')
         .toLowerCase()
-        .replace(/^oh-my-claudecode:/, '');
+        .replace(/^oh-my-agent-connector:/, '');
       if (!currentState || !currentState.active || currentState.skill_name === completingSkill) {
         clearSkillActiveState(directory, sessionId);
       }

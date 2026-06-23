@@ -30,8 +30,8 @@ describe("Ralphthon PRD", () => {
 
   beforeEach(() => {
     testDir = mkdtempSync(join(tmpdir(), "ralphthon-prd-test-"));
-    // Create .omc directory for PRD storage
-    mkdirSync(join(testDir, ".omc"), { recursive: true });
+    // Create .omac directory for PRD storage
+    mkdirSync(join(testDir, ".omac"), { recursive: true });
   });
 
   afterEach(() => {
@@ -47,7 +47,7 @@ describe("Ralphthon PRD", () => {
       expect(readRalphthonPrd(testDir)).toBeNull();
     });
 
-    it("should read a valid PRD from .omc directory", () => {
+    it("should read a valid PRD from .omac directory", () => {
       const prd = createTestPrd();
       writeRalphthonPrd(testDir, prd);
 
@@ -60,7 +60,7 @@ describe("Ralphthon PRD", () => {
     it("should return null for invalid JSON", () => {
       const { writeFileSync } = require("fs");
       writeFileSync(
-        join(testDir, ".omc", "ralphthon-prd.json"),
+        join(testDir, ".omac", "ralphthon-prd.json"),
         "invalid json",
       );
       expect(readRalphthonPrd(testDir)).toBeNull();
@@ -69,7 +69,7 @@ describe("Ralphthon PRD", () => {
     it("should return null for PRD without stories array", () => {
       const { writeFileSync } = require("fs");
       writeFileSync(
-        join(testDir, ".omc", "ralphthon-prd.json"),
+        join(testDir, ".omac", "ralphthon-prd.json"),
         JSON.stringify({ project: "x", config: {} }),
       );
       expect(readRalphthonPrd(testDir)).toBeNull();
@@ -82,7 +82,7 @@ describe("Ralphthon PRD", () => {
       const legacy = createTestPrd();
       delete legacy.planningContext;
       writeFileSync(
-        join(testDir, ".omc", "ralphthon-prd.json"),
+        join(testDir, ".omac", "ralphthon-prd.json"),
         JSON.stringify(legacy),
       );
 
@@ -92,7 +92,7 @@ describe("Ralphthon PRD", () => {
   });
 
   describe("writeRalphthonPrd", () => {
-    it("should write PRD to .omc directory", () => {
+    it("should write PRD to .omac directory", () => {
       const prd = createTestPrd();
       expect(writeRalphthonPrd(testDir, prd)).toBe(true);
 
@@ -101,8 +101,8 @@ describe("Ralphthon PRD", () => {
       expect(result!.project).toBe("test-project");
     });
 
-    it("should create .omc directory if missing", () => {
-      rmSync(join(testDir, ".omc"), { recursive: true, force: true });
+    it("should create .omac directory if missing", () => {
+      rmSync(join(testDir, ".omac"), { recursive: true, force: true });
       const prd = createTestPrd();
       expect(writeRalphthonPrd(testDir, prd)).toBe(true);
     });

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// OMC Post-Tool-Use-Failure Hook (Node.js)
+// OMAC Post-Tool-Use-Failure Hook (Node.js)
 // Tracks tool failures for retry guidance in Stop hook
 // Writes last-tool-error-state.json (session-scoped) or last-tool-error.json (legacy)
 // with tool name, input preview, error, and retry count
@@ -14,7 +14,7 @@ const __dirname = dirname(__filename);
 // Dynamic imports for shared modules
 const { readStdin } = await import(pathToFileURL(join(__dirname, 'lib', 'stdin.mjs')).href);
 const { atomicWriteFileSync, ensureDirSync } = await import(pathToFileURL(join(__dirname, 'lib', 'atomic-write.mjs')).href);
-const { resolveOmcStateRoot } = await import(pathToFileURL(join(__dirname, 'lib', 'state-root.mjs')).href);
+const { resolveOmacStateRoot } = await import(pathToFileURL(join(__dirname, 'lib', 'state-root.mjs')).href);
 
 // ============================================================================
 // Session ID resolution (mirrors src/lib/session-id.ts — inlined for .mjs)
@@ -23,7 +23,7 @@ const { resolveOmcStateRoot } = await import(pathToFileURL(join(__dirname, 'lib'
 
 /**
  * Resolve the session id for hook context.
- * Payload session_id takes priority; falls back to OMC_SESSION_ID env var.
+ * Payload session_id takes priority; falls back to OMAC_SESSION_ID env var.
  *
  * @param {object|null} hookPayload - Parsed stdin payload (may be null)
  * @returns {string|undefined}
@@ -38,8 +38,8 @@ function resolveHookSessionId(hookPayload) {
       : undefined;
 
   const envId =
-    process.env.OMC_SESSION_ID && process.env.OMC_SESSION_ID.trim()
-      ? process.env.OMC_SESSION_ID.trim()
+    process.env.OMAC_SESSION_ID && process.env.OMAC_SESSION_ID.trim()
+      ? process.env.OMAC_SESSION_ID.trim()
       : undefined;
 
   return payloadId ?? envId;
@@ -197,23 +197,23 @@ function withFileLockSync(lockPath, fn) {
 // ============================================================================
 
 /**
- * Resolve state file paths for a given omc root and optional session id.
- * Session-scoped: <omcRoot>/state/sessions/<sid>/last-tool-error-state.json
- * Legacy:         <omcRoot>/state/last-tool-error.json
+ * Resolve state file paths for a given omac root and optional session id.
+ * Session-scoped: <omacRoot>/state/sessions/<sid>/last-tool-error-state.json
+ * Legacy:         <omacRoot>/state/last-tool-error.json
  *
- * @param {string} omcRoot
+ * @param {string} omacRoot
  * @param {string|undefined} sessionId
  * @returns {{ statePath: string, stateDir: string }}
  */
-function resolveErrorStatePaths(omcRoot, sessionId) {
+function resolveErrorStatePaths(omacRoot, sessionId) {
   if (sessionId) {
-    const sessionDir = join(omcRoot, 'state', 'sessions', sessionId);
+    const sessionDir = join(omacRoot, 'state', 'sessions', sessionId);
     return {
       stateDir: sessionDir,
       statePath: join(sessionDir, 'last-tool-error-state.json'),
     };
   }
-  const stateDir = join(omcRoot, 'state');
+  const stateDir = join(omacRoot, 'state');
   return {
     stateDir,
     statePath: join(stateDir, 'last-tool-error.json'),
@@ -232,22 +232,22 @@ function isPathContained(targetPath, basePath) {
   return normalizedTarget.startsWith(normalizedBase + sep) || normalizedTarget === normalizedBase;
 }
 
-// Initialize .omc directory if needed; returns the omc root (not state subdir)
-async function initOmcDir(directory) {
+// Initialize .omac directory if needed; returns the omac root (not state subdir)
+async function initOmacDir(directory) {
   if (!directory || typeof directory !== 'string') {
     directory = process.cwd();
   }
-  const omcDir = await resolveOmcStateRoot(directory);
-  const stateDir = join(omcDir, 'state');
+  const omacDir = await resolveOmacStateRoot(directory);
+  const stateDir = join(omacDir, 'state');
 
-  if (!existsSync(omcDir)) {
-    try { mkdirSync(omcDir, { recursive: true }); } catch {}
+  if (!existsSync(omacDir)) {
+    try { mkdirSync(omacDir, { recursive: true }); } catch {}
   }
   if (!existsSync(stateDir)) {
     try { mkdirSync(stateDir, { recursive: true }); } catch {}
   }
 
-  return omcDir;
+  return omacDir;
 }
 
 // Truncate string to max length
@@ -347,11 +347,11 @@ async function main() {
     const rawSessionId = resolveHookSessionId(data);
     const sessionId = validateSessionId(rawSessionId);
 
-    // Initialize .omc root directory
-    const omcRoot = await initOmcDir(directory);
+    // Initialize .omac root directory
+    const omacRoot = await initOmacDir(directory);
 
     // Resolve state paths (session-scoped or legacy)
-    const { stateDir, statePath } = resolveErrorStatePaths(omcRoot, sessionId);
+    const { stateDir, statePath } = resolveErrorStatePaths(omacRoot, sessionId);
 
     // Ensure session state dir exists when session-scoped
     if (sessionId) {

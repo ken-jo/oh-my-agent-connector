@@ -6,7 +6,7 @@
  *
  * Mode modules import FROM this registry (unidirectional).
  *
- * All modes store state in `.omc/state/` subdirectory for consistency.
+ * All modes store state in `.omac/state/` subdirectory for consistency.
  */
 
 import {
@@ -31,7 +31,7 @@ import {
   listSessionIds,
   resolveSessionStatePath,
   getSessionStateDir,
-  getOmcRoot,
+  getOmacRoot,
 } from "../../lib/worktree-paths.js";
 import { MODE_STATE_FILE_MAP, MODE_NAMES } from "../../lib/mode-names.js";
 
@@ -46,7 +46,7 @@ export type {
  * Mode configuration registry
  *
  * Maps each mode to its state file location and detection method.
- * All paths are relative to .omc/state/ directory.
+ * All paths are relative to .omac/state/ directory.
  */
 const MODE_CONFIGS: Record<ExecutionMode, ModeConfig> = {
   [MODE_NAMES.AUTOPILOT]: {
@@ -108,7 +108,7 @@ const EXCLUSIVE_MODES: ExecutionMode[] = [MODE_NAMES.AUTOPILOT, MODE_NAMES.AUTOR
  * Get the state directory path
  */
 export function getStateDir(cwd: string): string {
-  return join(getOmcRoot(cwd), "state");
+  return join(getOmacRoot(cwd), "state");
 }
 
 /**
@@ -148,7 +148,7 @@ export function getMarkerFilePath(
 
 /**
  * Get the global state file path (in ~/.claude/) for modes that support it
- * @deprecated Global state is no longer supported. All modes use local-only state in .omc/state/
+ * @deprecated Global state is no longer supported. All modes use local-only state in .omac/state/
  * @returns Always returns null
  */
 export function getGlobalStateFilePath(_mode: ExecutionMode): string | null {
@@ -323,7 +323,7 @@ export function getActiveModes(
 }
 
 /**
- * Check if any OMC mode is currently active
+ * Check if any OMAC mode is currently active
  *
  * @param cwd - Working directory
  * @returns true if any mode is active
@@ -366,7 +366,7 @@ export function canStartMode(mode: ExecutionMode, cwd: string): CanStartResult {
         return {
           allowed: false,
           blockedBy: exclusiveMode,
-          message: `Cannot start ${MODE_CONFIGS[mode].name} while ${config.name} is active. Cancel ${config.name} first with /oh-my-claudecode:cancel.`,
+          message: `Cannot start ${MODE_CONFIGS[mode].name} while ${config.name} is active. Cancel ${config.name} first with /oh-my-agent-connector:cancel.`,
         };
       }
     }
@@ -397,7 +397,7 @@ export function getAllModeStatuses(
  * Clear all state files for a mode
  *
  * Deletes:
- * - Local state file (.omc/state/{mode}-state.json)
+ * - Local state file (.omac/state/{mode}-state.json)
  * - Session-scoped state file if sessionId provided
  * - Local marker file if applicable
  * - Global state file if applicable (~/.claude/{mode}-state.json)

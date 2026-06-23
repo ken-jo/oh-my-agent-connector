@@ -25,12 +25,12 @@ describe('session history search', () => {
   let tildeClaudeDir: string;
 
   beforeEach(() => {
-    tempRoot = mkdtempSync(join(tmpdir(), 'omc-session-search-'));
+    tempRoot = mkdtempSync(join(tmpdir(), 'omac-session-search-'));
     claudeDir = join(tempRoot, 'claude');
     otherProject = join(tempRoot, 'other-project');
-    tildeClaudeDir = join(homedir(), `.omc-session-search-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tildeClaudeDir = join(homedir(), `.omac-session-search-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     process.env.CLAUDE_CONFIG_DIR = claudeDir;
-    process.env.OMC_STATE_DIR = join(tempRoot, 'omc-state');
+    process.env.OMAC_STATE_DIR = join(tempRoot, 'omac-state');
 
     const currentProjectDir = join(claudeDir, 'projects', encodeProjectPath(repoRoot));
     const otherProjectDir = join(claudeDir, 'projects', encodeProjectPath(otherProject));
@@ -79,7 +79,7 @@ describe('session history search', () => {
     } else {
       process.env.CLAUDE_CONFIG_DIR = originalConfigDir;
     }
-    delete process.env.OMC_STATE_DIR;
+    delete process.env.OMAC_STATE_DIR;
     rmSync(tempRoot, { recursive: true, force: true });
     rmSync(tildeClaudeDir, { recursive: true, force: true });
   });

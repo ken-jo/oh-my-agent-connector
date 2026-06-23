@@ -11,15 +11,15 @@ const NODE = process.execPath;
  * Regression tests for run.cjs graceful fallback when CLAUDE_PLUGIN_ROOT
  * points to a stale/deleted/broken plugin cache directory.
  *
- * See: https://github.com/Yeachan-Heo/oh-my-claudecode/issues/1007
+ * See: https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/1007
  */
 describe('run.cjs — graceful fallback for stale plugin paths', () => {
   let tmpDir: string;
   let fakeCacheBase: string;
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), 'omc-run-cjs-test-'));
-    fakeCacheBase = join(tmpDir, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    tmpDir = mkdtempSync(join(tmpdir(), 'omac-run-cjs-test-'));
+    fakeCacheBase = join(tmpDir, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     mkdirSync(fakeCacheBase, { recursive: true });
   });
 

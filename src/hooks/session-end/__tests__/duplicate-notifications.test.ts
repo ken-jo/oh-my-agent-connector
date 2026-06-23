@@ -8,7 +8,7 @@ vi.mock('../callbacks.js', () => ({
 }));
 
 vi.mock('../../../features/auto-update.js', () => ({
-  getOMCConfig: vi.fn(() => ({
+  getOMACConfig: vi.fn(() => ({
     silentAutoUpdate: false,
     stopHookCallbacks: undefined,
     notifications: undefined,
@@ -43,7 +43,7 @@ vi.mock('../../../tools/python-repl/bridge-manager.js', () => ({
 
 import { processSessionEnd } from '../index.js';
 import { triggerStopCallbacks } from '../callbacks.js';
-import { getOMCConfig } from '../../../features/auto-update.js';
+import { getOMACConfig } from '../../../features/auto-update.js';
 import { buildConfigFromEnv, getEnabledPlatforms, getNotificationConfig } from '../../../notifications/config.js';
 import { notify } from '../../../notifications/index.js';
 
@@ -52,7 +52,7 @@ describe('processSessionEnd notification deduplication (issue #1440)', () => {
   let transcriptPath: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'omc-session-end-dedupe-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'omac-session-end-dedupe-'));
     transcriptPath = path.join(tmpDir, 'transcript.jsonl');
     fs.writeFileSync(
       transcriptPath,
@@ -71,7 +71,7 @@ describe('processSessionEnd notification deduplication (issue #1440)', () => {
   });
 
   it('does not re-dispatch session-end through notify() when config only comes from legacy stopHookCallbacks', async () => {
-    vi.mocked(getOMCConfig).mockReturnValue({
+    vi.mocked(getOMACConfig).mockReturnValue({
       silentAutoUpdate: false,
       stopHookCallbacks: {
         discord: {
@@ -113,7 +113,7 @@ describe('processSessionEnd notification deduplication (issue #1440)', () => {
   });
 
   it('skips the legacy Discord callback when explicit session-end notifications already cover Discord', async () => {
-    vi.mocked(getOMCConfig).mockReturnValue({
+    vi.mocked(getOMACConfig).mockReturnValue({
       silentAutoUpdate: false,
       stopHookCallbacks: {
         discord: {

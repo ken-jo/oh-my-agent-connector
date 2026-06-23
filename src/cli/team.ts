@@ -11,11 +11,11 @@ import { validateTeamName } from '../team/team-name.js';
 import { monitorTeam, resumeTeam, shutdownTeam } from '../team/runtime.js';
 import { readTeamConfig } from '../team/monitor.js';
 import { isProcessAlive } from '../platform/index.js';
-import { getGlobalOmcStatePath } from '../utils/paths.js';
+import { getGlobalOmacStatePath } from '../utils/paths.js';
 import { readApprovedExecutionLaunchHintOutcome } from '../planning/artifacts.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 
-const JOB_ID_PATTERN = /^omc-[a-z0-9]{1,16}$/;
+const JOB_ID_PATTERN = /^omac-[a-z0-9]{1,16}$/;
 const VALID_CLI_AGENT_TYPES = new Set(['claude', 'codex', 'gemini', 'cursor', 'grok']);
 const SUBCOMMANDS = new Set(['start', 'status', 'wait', 'cleanup', 'resume', 'shutdown', 'api', 'help', '--help', '-h']);
 
@@ -33,7 +33,7 @@ const SUPPORTED_API_OPERATIONS = new Set([
 ] as const);
 const TEAM_API_USAGE = `
 Usage:
-  omc team api <operation> --input '<json>' [--json] [--cwd DIR]
+  omac team api <operation> --input '<json>' [--json] [--cwd DIR]
 
 Supported operations:
   ${Array.from(SUPPORTED_API_OPERATIONS).join(', ')}
@@ -92,7 +92,7 @@ export interface TeamStartInput {
   /**
    * When true, the v2 runtime starts the merge orchestrator: per-commit
    * auto-merge to the leader branch and auto-rebase fanout to other workers.
-   * Equivalent to setting OMC_TEAMS_AUTO_MERGE=1. Requires OMC_RUNTIME_V2=1.
+   * Equivalent to setting OMAC_TEAMS_AUTO_MERGE=1. Requires OMAC_RUNTIME_V2=1.
    */
   autoMerge?: boolean;
 }
@@ -146,8 +146,8 @@ interface TeamPanesFile {
 }
 
 function getTeamWorkerIdentityFromEnv(env: NodeJS.ProcessEnv = process.env): string | null {
-  const omc = typeof env.OMC_TEAM_WORKER === 'string' ? env.OMC_TEAM_WORKER.trim() : '';
-  if (omc) return omc;
+  const omac = typeof env.OMAC_TEAM_WORKER === 'string' ? env.OMAC_TEAM_WORKER.trim() : '';
+  if (omac) return omac;
   const omx = typeof env.OMX_TEAM_WORKER === 'string' ? env.OMX_TEAM_WORKER.trim() : '';
   return omx || null;
 }
@@ -188,12 +188,12 @@ async function assertTeamSpawnAllowed(cwd: string, env: NodeJS.ProcessEnv = proc
 }
 
 function resolveJobsDir(env: NodeJS.ProcessEnv = process.env): string {
-  return env.OMC_JOBS_DIR || getGlobalOmcStatePath('team-jobs');
+  return env.OMAC_JOBS_DIR || getGlobalOmacStatePath('team-jobs');
 }
 
 function resolveRuntimeCliPath(env: NodeJS.ProcessEnv = process.env): string {
-  if (env.OMC_RUNTIME_CLI_PATH) {
-    return env.OMC_RUNTIME_CLI_PATH;
+  if (env.OMAC_RUNTIME_CLI_PATH) {
+    return env.OMAC_RUNTIME_CLI_PATH;
   }
 
   const moduleDir = dirname(fileURLToPath(import.meta.url));
@@ -219,7 +219,7 @@ function panesArtifactPath(jobsDir: string, jobId: string): string {
 }
 
 function teamStateRoot(cwd: string, teamName: string): string {
-  return join(getOmcRoot(cwd), 'state', 'team', teamName);
+  return join(getOmacRoot(cwd), 'state', 'team', teamName);
 }
 
 function validateJobId(jobId: string): void {
@@ -304,7 +304,7 @@ function buildStatus(jobId: string, job: TeamJobRecord): TeamJobStatus {
 }
 
 export function generateJobId(now = Date.now()): string {
-  return `omc-${now.toString(36)}${randomUUID().slice(0, 8)}`;
+  return `omac-${now.toString(36)}${randomUUID().slice(0, 8)}`;
 }
 
 function convergeWithResultArtifact(jobId: string, job: TeamJobRecord, jobsDir: string): TeamJobRecord {
@@ -364,7 +364,7 @@ function autoTeamName(task: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 24) || 'task';
-  return `omc-${slug}-${Date.now().toString(36).slice(-4)}`;
+  return `omac-${slug}-${Date.now().toString(36).slice(-4)}`;
 }
 
 function parseJsonInput(inputRaw: string | undefined): Record<string, unknown> {
@@ -400,8 +400,8 @@ export async function startTeamJob(input: TeamStartInput): Promise<TeamStartResu
   const child = spawn(process.execPath, [runtimeCliPath], {
     env: {
       ...process.env,
-      OMC_JOB_ID: jobId,
-      OMC_JOBS_DIR: jobsDir,
+      OMAC_JOB_ID: jobId,
+      OMAC_JOBS_DIR: jobsDir,
     },
     detached: true,
     stdio: ['pipe', 'ignore', 'ignore'],
@@ -729,7 +729,7 @@ export async function executeTeamApiOperation(
       operation,
       error: {
         code: 'UNSUPPORTED_OPERATION',
-        message: `Unsupported omc team api operation: ${operation}`,
+        message: `Unsupported omac team api operation: ${operation}`,
       },
     };
   }
@@ -794,34 +794,34 @@ export async function teamCleanupCommand(
 
 export const TEAM_USAGE = `
 Usage:
-  omc team start --agent <claude|codex|gemini|cursor|grok>[,<agent>...] --task "<task>" [--count N] [--name TEAM] [--cwd DIR] [--new-window] [--auto-merge] [--json]
-  omc team status <job_id|team_name> [--json] [--cwd DIR]
-  omc team wait <job_id> [--timeout-ms MS] [--json]
-  omc team cleanup <job_id> [--grace-ms MS] [--json]
-  omc team resume <team_name> [--json] [--cwd DIR]
-  omc team shutdown <team_name> [--force] [--json] [--cwd DIR]
-  omc team api <operation> [--input '<json>'] [--json] [--cwd DIR]
-  omc team [ralph] <N:agent-type[:role]> "task" [--json] [--cwd DIR] [--new-window]
+  omac team start --agent <claude|codex|gemini|cursor|grok>[,<agent>...] --task "<task>" [--count N] [--name TEAM] [--cwd DIR] [--new-window] [--auto-merge] [--json]
+  omac team status <job_id|team_name> [--json] [--cwd DIR]
+  omac team wait <job_id> [--timeout-ms MS] [--json]
+  omac team cleanup <job_id> [--grace-ms MS] [--json]
+  omac team resume <team_name> [--json] [--cwd DIR]
+  omac team shutdown <team_name> [--force] [--json] [--cwd DIR]
+  omac team api <operation> [--input '<json>'] [--json] [--cwd DIR]
+  omac team [ralph] <N:agent-type[:role]> "task" [--json] [--cwd DIR] [--new-window]
 
 Worktrees:
-  Native per-worker git worktree mode is opt-in/config-gated with team.ops.worktreeMode or OMC_TEAM_WORKTREE_MODE=detached|named.
+  Native per-worker git worktree mode is opt-in/config-gated with team.ops.worktreeMode or OMAC_TEAM_WORKTREE_MODE=detached|named.
   Status JSON includes workspace_mode, worktree_mode, team_state_root, and per-worker worktree metadata.
 
 Auto-merge (v2-only):
   --auto-merge          Enable per-commit auto-merge to leader and auto-rebase fanout.
-                        Each worker runs in a dedicated git worktree on omc-team/{team}/{worker}.
+                        Each worker runs in a dedicated git worktree on omac-team/{team}/{worker}.
                         Bursts of rapid worker commits coalesce to a single merge of HEAD.
-                        Requires OMC_RUNTIME_V2=1. Leader branch must not be 'main' or 'master'.
-                        Equivalent to OMC_TEAMS_AUTO_MERGE=1.
+                        Requires OMAC_RUNTIME_V2=1. Leader branch must not be 'main' or 'master'.
+                        Equivalent to OMAC_TEAMS_AUTO_MERGE=1.
 
 Examples:
-  omc team start --agent codex --count 2 --task "review auth flow" --new-window
-  omc team status omc-abc123
-  omc team status auth-review
-  omc team resume auth-review
-  omc team shutdown auth-review --force
-  omc team api list-tasks --input '{"teamName":"auth-review"}' --json
-  omc team 3:codex "refactor launch command"
+  omac team start --agent codex --count 2 --task "review auth flow" --new-window
+  omac team status omac-abc123
+  omac team status auth-review
+  omac team resume auth-review
+  omac team shutdown auth-review --force
+  omac team api list-tasks --input '{"teamName":"auth-review"}' --json
+  omac team 3:codex "refactor launch command"
 
 Worktree mode:
   Native worker worktrees are opt-in/config-gated for runtime-v2.
@@ -845,8 +845,8 @@ function parseStartArgs(args: string[]): StartArgsParsed {
   let pollIntervalMs: number | undefined;
   let sentinelGateTimeoutMs: number | undefined;
   let sentinelGatePollIntervalMs: number | undefined;
-  // --auto-merge / OMC_TEAMS_AUTO_MERGE=1 enables the merge orchestrator (v2-only).
-  let autoMerge: boolean = process.env.OMC_TEAMS_AUTO_MERGE === '1';
+  // --auto-merge / OMAC_TEAMS_AUTO_MERGE=1 enables the merge orchestrator (v2-only).
+  let autoMerge: boolean = process.env.OMAC_TEAMS_AUTO_MERGE === '1';
 
   for (let i = 0; i < args.length; i += 1) {
     const token = args[i];
@@ -964,7 +964,7 @@ function parseStartArgs(args: string[]): StartArgsParsed {
       continue;
     }
 
-    throw new Error(`Unknown argument for "omc team start": ${token}`);
+    throw new Error(`Unknown argument for "omac team start": ${token}`);
   }
 
   if (count < 1) throw new Error('--count must be >= 1');
@@ -1082,11 +1082,11 @@ function parseCommonJobArgs(args: string[], command: 'status' | 'wait' | 'cleanu
       }
     }
 
-    throw new Error(`Unknown argument for "omc team ${command}": ${token}`);
+    throw new Error(`Unknown argument for "omac team ${command}": ${token}`);
   }
 
   if (!target) {
-    throw new Error(`Missing required target for "omc team ${command}".`);
+    throw new Error(`Missing required target for "omac team ${command}".`);
   }
 
   return {
@@ -1136,11 +1136,11 @@ function parseTeamTargetArgs(args: string[], command: 'resume' | 'shutdown'): {
       continue;
     }
 
-    throw new Error(`Unknown argument for "omc team ${command}": ${token}`);
+    throw new Error(`Unknown argument for "omac team ${command}": ${token}`);
   }
 
   if (!teamName) {
-    throw new Error(`Missing required <team_name> for "omc team ${command}".`);
+    throw new Error(`Missing required <team_name> for "omac team ${command}".`);
   }
 
   return {
@@ -1195,11 +1195,11 @@ function parseApiArgs(args: string[]): {
       continue;
     }
 
-    throw new Error(`Unknown argument for "omc team api": ${token}`);
+    throw new Error(`Unknown argument for "omac team api": ${token}`);
   }
 
   if (!operation) {
-    throw new Error(`Missing required <operation> for "omc team api"\n\n${TEAM_API_USAGE}`);
+    throw new Error(`Missing required <operation> for "omac team api"\n\n${TEAM_API_USAGE}`);
   }
 
   return {
@@ -1235,7 +1235,7 @@ function parseLegacyStartAlias(args: string[]): TeamLegacyStartArgs | null {
   let json = false;
   let cwd = process.cwd();
   let newWindow = false;
-  let autoMerge: boolean = process.env.OMC_TEAMS_AUTO_MERGE === '1';
+  let autoMerge: boolean = process.env.OMAC_TEAMS_AUTO_MERGE === '1';
   const taskParts: string[] = [];
   for (let i = index; i < args.length; i += 1) {
     const token = args[i];
@@ -1290,7 +1290,7 @@ function parseLegacyStartAlias(args: string[]): TeamLegacyStartArgs | null {
       ralph = approvedHintOutcome.hint.linkedRalph === true ? true : ralph;
     }
   } else {
-    const command = `omc team ${ralph ? 'ralph ' : ''}${spec} ${JSON.stringify(task)}`;
+    const command = `omac team ${ralph ? 'ralph ' : ''}${spec} ${JSON.stringify(task)}`;
     const approvedHintOutcome = readApprovedExecutionLaunchHintOutcome(cwd, 'team', {
       task,
       command,

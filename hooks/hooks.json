@@ -1,5 +1,5 @@
 {
-  "description": "OMC orchestration hooks with async capabilities",
+  "description": "OMAC orchestration hooks with async capabilities",
   "hooks": {
     "UserPromptSubmit": [
       {

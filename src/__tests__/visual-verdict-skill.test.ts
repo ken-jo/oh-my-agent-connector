@@ -25,8 +25,8 @@ describe('visual-verdict skill contract', () => {
     expect(visualVerdictSkill).toMatch(/pixelmatch/i);
   });
 
-  it('uses OMC-native invocation guidance instead of OMX state-path wording', () => {
-    expect(visualVerdictSkill).toContain('/oh-my-claudecode:visual-verdict');
+  it('uses OMAC-native invocation guidance instead of OMX state-path wording', () => {
+    expect(visualVerdictSkill).toContain('/oh-my-agent-connector:visual-verdict');
     expect(visualVerdictSkill).not.toMatch(/\.omx\//i);
     expect(visualVerdictSkill).toContain('Task: {{ARGUMENTS}}');
   });

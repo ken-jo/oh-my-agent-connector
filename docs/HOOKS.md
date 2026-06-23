@@ -1,10 +1,10 @@
 # Hooks System
 
-> OMC's 20 hooks intercept Claude Code lifecycle events to enable magic keywords, context injection, and quality enforcement.
+> OMAC's 20 hooks intercept Claude Code lifecycle events to enable magic keywords, context injection, and quality enforcement.
 
 ## What Are Hooks?
 
-Hooks are scripts that execute automatically in response to Claude Code lifecycle events. oh-my-claudecode extends Claude Code's default behavior with 20 hooks.
+Hooks are scripts that execute automatically in response to Claude Code lifecycle events. oh-my-agent-connector extends Claude Code's default behavior with 20 hooks.
 
 When a user submits a prompt, a tool runs, or a session starts/ends, hooks fire automatically to inject additional context, activate modes, and manage state.
 
@@ -38,7 +38,7 @@ Hook output is injected into Claude via `<system-reminder>` tags. Additional con
 
 ## Hook Categories
 
-OMC hooks fall into four categories:
+OMAC hooks fall into four categories:
 
 ### Core Hooks
 
@@ -74,13 +74,13 @@ Handle code quality, permissions, and subagent tracking.
 ### Disable All Hooks
 
 ```bash
-export DISABLE_OMC=1
+export DISABLE_OMAC=1
 ```
 
 ### Disable Specific Hooks
 
 ```bash
-export OMC_SKIP_HOOKS="keyword-detector,notepad"
+export OMAC_SKIP_HOOKS="keyword-detector,notepad"
 ```
 
 Separate hook names with commas to skip only those hooks.
@@ -89,7 +89,7 @@ Separate hook names with commas to skip only those hooks.
 
 ## Lifecycle Events
 
-Claude Code emits events throughout a session. OMC attaches hooks to these events to extend behavior. There are 11 lifecycle events.
+Claude Code emits events throughout a session. OMAC attaches hooks to these events to extend behavior. There are 11 lifecycle events.
 
 ### UserPromptSubmit
 
@@ -204,7 +204,7 @@ Fires when a session ends.
 |--------|------|---------|
 | `session-end.mjs` | Saves session summary, sends callback notifications | 30s |
 
-Saves agent activity, token usage, and other session data to `.omc/sessions/`. If configured, sends completion notifications via Discord, Telegram, or Slack.
+Saves agent activity, token usage, and other session data to `.omac/sessions/`. If configured, sends completion notifications via Discord, Telegram, or Slack.
 
 ---
 
@@ -228,17 +228,17 @@ See the [Magic Keywords](#magic-keywords) section for the full keyword list.
 Enforces continuation when an execution mode is active. This is the hook that keeps skills like autopilot, ralph, and ultrawork running.
 
 - **Event**: Stop
-- **Behavior**: Checks `.omc/state/` for active mode state files. If any mode (ralph, ultragoal, autopilot, ultrawork, ultraqa, team, pipeline) is active, injects a reinforcement message to prevent Claude from stopping.
+- **Behavior**: Checks `.omac/state/` for active mode state files. If any mode (ralph, ultragoal, autopilot, ultrawork, ultraqa, team, pipeline) is active, injects a reinforcement message to prevent Claude from stopping.
 - **Reinforcement message**: "The boulder never stops" — prompts Claude to continue working
 - **Staleness check**: States older than 2 hours are treated as inactive to prevent stale state from blocking new sessions
 - **Notification**: Sends Discord/Telegram/Slack notification on first stop (if configured)
-- **Cancel**: Use `/oh-my-claudecode:cancel` to deactivate modes
+- **Cancel**: Use `/oh-my-agent-connector:cancel` to deactivate modes
 
 > **Note**: autopilot, ralph, ultrawork, and ultraqa are **skills** (invoked via keyword-detector), not hooks. The persistent-mode hook is what enforces their continuation by blocking the Stop event.
 
 ### Mode State Management
 
-Execution mode hooks manage state files in the `.omc/state/` directory.
+Execution mode hooks manage state files in the `.omac/state/` directory.
 
 ```json
 {
@@ -254,29 +254,29 @@ Execution mode hooks manage state files in the `.omc/state/` directory.
 }
 ```
 
-When a session ID is present, state is stored in session scope under `.omc/state/sessions/{sessionId}/`.
+When a session ID is present, state is stored in session scope under `.omac/state/sessions/{sessionId}/`.
 
 
 #### ultragoal-state.json lifecycle
 
-`ultragoal-state.json` is the session-scoped Stop/PreToolUse guard for `$ultragoal` runs. The durable plan and audit trail remain `.omc/ultragoal/goals.json` and `.omc/ultragoal/ledger.jsonl`; the state file only records the active runtime guard.
+`ultragoal-state.json` is the session-scoped Stop/PreToolUse guard for `$ultragoal` runs. The durable plan and audit trail remain `.omac/ultragoal/goals.json` and `.omac/ultragoal/ledger.jsonl`; the state file only records the active runtime guard.
 
-- **Location**: `.omc/state/sessions/{sessionId}/ultragoal-state.json` when a Claude session id is available; legacy fallback is `.omc/state/ultragoal-state.json`.
+- **Location**: `.omac/state/sessions/{sessionId}/ultragoal-state.json` when a Claude session id is available; legacy fallback is `.omac/state/ultragoal-state.json`.
 - **Active fields**: `active: true`, `session_id`, `project_path`, `started_at`, `last_checked_at`, `current_phase`, optional `claude_goal_objective`, and `reinforcement_count`.
-- **Stop hook**: reinforces only when the state is active, fresh (within the normal 2-hour mode-state freshness window), session-matching, and project-matching. Terminal phases (`complete`, `completed`, `done`, `all-done`, `failed`, `cancelled`) and all-done `.omc/ultragoal/goals.json` plans are ignored.
+- **Stop hook**: reinforces only when the state is active, fresh (within the normal 2-hour mode-state freshness window), session-matching, and project-matching. Terminal phases (`complete`, `completed`, `done`, `all-done`, `failed`, `cancelled`) and all-done `.omac/ultragoal/goals.json` plans are ignored.
 - **PreToolUse guard**: while active, tools are denied unless the hook can see a matching active Claude `/goal` snapshot. Use `ALLOW_ULTRAGOAL_WITHOUT_GOAL=1` only as an intentional local bypass.
-- **Completion**: after the final quality gate and ultragoal checkpoint, mark the state inactive or run `/oh-my-claudecode:cancel` so the state file is cleared with other workflow state.
+- **Completion**: after the final quality gate and ultragoal checkpoint, mark the state inactive or run `/oh-my-agent-connector:cancel` so the state file is cleared with other workflow state.
 
 #### Canceling a Mode
 
 ```
-cancelomc
+cancelomac
 ```
 
 or
 
 ```
-/oh-my-claudecode:cancel
+/oh-my-agent-connector:cancel
 ```
 
 `cancel` removes state files for all active modes: ralph, autopilot, ultrawork, and any others.
@@ -285,13 +285,13 @@ or
 
 ## Context Management Hooks
 
-Claude Code's context window is finite. During long sessions, compaction occurs and previous conversation content is summarized. OMC's context management hooks prepare for compaction, preserve important information, and maintain project-level memory.
+Claude Code's context window is finite. During long sessions, compaction occurs and previous conversation content is summarized. OMAC's context management hooks prepare for compaction, preserve important information, and maintain project-level memory.
 
 ### notepad
 
 A compaction-resistant memory system.
 
-- **Storage path**: `.omc/notepad.md`
+- **Storage path**: `.omac/notepad.md`
 - **MCP tools**: `notepad_read`, `notepad_write_priority`, `notepad_write_working`, `notepad_write_manual`
 - **Behavior**: Information written to the notepad persists after compaction
 
@@ -309,7 +309,7 @@ Use `notepad_prune` to clean up old entries and `notepad_stats` to check status.
 
 Manages permanent project-level memory.
 
-- **Storage path**: `.omc/project-memory.json`
+- **Storage path**: `.omac/project-memory.json`
 - **MCP tools**: `project_memory_read`, `project_memory_write`, `project_memory_add_note`, `project_memory_add_directive`
 - **Related hooks**:
   - `project-memory-session.mjs` (SessionStart): Loads project memory when session starts
@@ -332,7 +332,7 @@ Preserves important state immediately before compaction.
 
 ### Context Preservation Strategy
 
-OMC's context management hooks cooperate with the following strategy:
+OMAC's context management hooks cooperate with the following strategy:
 
 ```
 Session Start
@@ -351,7 +351,7 @@ Session Start
 
 ## Magic Keywords
 
-Magic keywords automatically activate OMC skills or execution modes when specific words or patterns are detected in the user's natural language prompt. No slash command is needed — include a keyword in your prompt and the feature activates automatically.
+Magic keywords automatically activate OMAC skills or execution modes when specific words or patterns are detected in the user's natural language prompt. No slash command is needed — include a keyword in your prompt and the feature activates automatically.
 
 ### How keyword-detector Works
 
@@ -365,8 +365,8 @@ Magic keywords automatically activate OMC skills or execution modes when specifi
 **Safety measures:**
 
 - **Sanitization**: Keywords inside code blocks, within URLs, or in file paths are ignored
-- **Team worker protection**: Disabled when the `OMC_TEAM_WORKER` environment variable is set (prevents infinite spawning)
-- **Disable**: Set `DISABLE_OMC=1` or `OMC_SKIP_HOOKS=keyword-detector`
+- **Team worker protection**: Disabled when the `OMAC_TEAM_WORKER` environment variable is set (prevents infinite spawning)
+- **Disable**: Set `DISABLE_OMAC=1` or `OMAC_SKIP_HOOKS=keyword-detector`
 
 ### Execution Mode Keywords
 
@@ -374,7 +374,7 @@ These keywords invoke a skill and create a state file.
 
 | Keyword | Skill | Description |
 |---------|-------|-------------|
-| `cancelomc`, `stopomc` | cancel | Cancels all active modes |
+| `cancelomac`, `stopomac` | cancel | Cancels all active modes |
 | `ralph`, `don't stop`, `must complete`, `until done` | ralph | Persistent execution until verification completes |
 | `autopilot`, `build me`, `I want a`, `handle it all`, `end to end`, `auto-pilot`, `full auto`, `fullsend`, `e2e this` | autopilot | Fully autonomous execution |
 | `ultrawork`, `ulw`, `uw` | ultrawork | Maximum parallel execution |
@@ -468,7 +468,7 @@ implement password validation with tdd
 code review the recent changes
 
 # Cancel
-stopomc
+stopomac
 ```
 
 ### Note on the `team` Keyword
@@ -476,5 +476,5 @@ stopomc
 `team` is not auto-detected. It must be invoked explicitly via the `/team` slash command to prevent infinite spawning.
 
 ```
-/oh-my-claudecode:team 3:executor "build a fullstack todo app"
+/oh-my-agent-connector:team 3:executor "build a fullstack todo app"
 ```

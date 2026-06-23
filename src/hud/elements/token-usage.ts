@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Token Usage Element
+ * OMAC HUD - Token Usage Element
  *
  * Renders last-request input/output token usage from transcript metadata.
  */

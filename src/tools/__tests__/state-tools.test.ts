@@ -25,7 +25,7 @@ vi.mock('../../lib/worktree-paths.js', async () => {
 
 describe('state-tools', () => {
   beforeEach(() => {
-    mkdirSync(join(TEST_DIR, '.omc', 'state'), { recursive: true });
+    mkdirSync(join(TEST_DIR, '.omac', 'state'), { recursive: true });
   });
 
   afterEach(() => {
@@ -35,7 +35,7 @@ describe('state-tools', () => {
   describe('state_read', () => {
     it('should return state when file exists at session-scoped path', async () => {
       const sessionId = 'session-read-test';
-      const sessionDir = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId);
+      const sessionDir = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId);
       mkdirSync(sessionDir, { recursive: true });
       writeFileSync(
         join(sessionDir, 'ralph-state.json'),
@@ -71,7 +71,7 @@ describe('state-tools', () => {
       });
 
       expect(result.content[0].text).toContain('Successfully wrote');
-      const legacyPath = join(TEST_DIR, '.omc', 'state', 'ralph-state.json');
+      const legacyPath = join(TEST_DIR, '.omac', 'state', 'ralph-state.json');
       expect(existsSync(legacyPath)).toBe(true);
     });
 
@@ -107,7 +107,7 @@ describe('state-tools', () => {
         workingDirectory: TEST_DIR,
       });
 
-      const legacyPath = join(TEST_DIR, '.omc', 'state', 'ralph-state.json');
+      const legacyPath = join(TEST_DIR, '.omac', 'state', 'ralph-state.json');
       expect(existsSync(legacyPath)).toBe(true);
 
       const result = await stateClearTool.handler({
@@ -121,7 +121,7 @@ describe('state-tools', () => {
 
     it('should clear ralplan state with explicit session_id', async () => {
       const sessionId = 'test-session-ralplan';
-      const sessionDir = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId);
+      const sessionDir = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId);
       mkdirSync(sessionDir, { recursive: true });
       writeFileSync(
         join(sessionDir, 'ralplan-state.json'),
@@ -140,14 +140,14 @@ describe('state-tools', () => {
 
     it('should also remove non-session legacy state files during session clear', async () => {
       const sessionId = 'legacy-cleanup-session';
-      const sessionDir = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId);
+      const sessionDir = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId);
       mkdirSync(sessionDir, { recursive: true });
       writeFileSync(
         join(sessionDir, 'ralph-state.json'),
         JSON.stringify({ active: true, session_id: sessionId }),
       );
 
-      const legacyRootPath = join(TEST_DIR, '.omc', 'ralph-state.json');
+      const legacyRootPath = join(TEST_DIR, '.omac', 'ralph-state.json');
       writeFileSync(
         legacyRootPath,
         JSON.stringify({ active: true, session_id: sessionId }),
@@ -191,8 +191,8 @@ describe('state-tools', () => {
 
         expect(clearResult.content[0].text).toMatch(/cleared|Successfully/i);
 
-        const sessionAPath = join(TEST_DIR, '.omc', 'state', 'sessions', sessionA, `${mode}-state.json`);
-        const sessionBPath = join(TEST_DIR, '.omc', 'state', 'sessions', sessionB, `${mode}-state.json`);
+        const sessionAPath = join(TEST_DIR, '.omac', 'state', 'sessions', sessionA, `${mode}-state.json`);
+        const sessionBPath = join(TEST_DIR, '.omac', 'state', 'sessions', sessionB, `${mode}-state.json`);
 
         expect(existsSync(sessionAPath)).toBe(false);
         expect(existsSync(sessionBPath)).toBe(true);
@@ -218,8 +218,8 @@ describe('state-tools', () => {
         workingDirectory: TEST_DIR,
       });
 
-      const legacyPath = join(TEST_DIR, '.omc', 'state', 'ultrawork-state.json');
-      const sessionPath = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId, 'ultrawork-state.json');
+      const legacyPath = join(TEST_DIR, '.omac', 'state', 'ultrawork-state.json');
+      const sessionPath = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId, 'ultrawork-state.json');
 
       expect(result.content[0].text).toContain('WARNING: No session_id provided');
       expect(existsSync(legacyPath)).toBe(false);
@@ -229,7 +229,7 @@ describe('state-tools', () => {
     it('should not report false errors for sessions with no state file during broad clear', async () => {
       // Create a session directory but no state file for ralph mode
       const sessionId = 'empty-session';
-      const sessionDir = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId);
+      const sessionDir = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId);
       mkdirSync(sessionDir, { recursive: true });
       // Note: no state file created - simulating a session with no ralph state
 
@@ -258,8 +258,8 @@ describe('state-tools', () => {
       const sessionWithoutState = 'no-state';
 
       // Create session directories
-      mkdirSync(join(TEST_DIR, '.omc', 'state', 'sessions', sessionWithState), { recursive: true });
-      mkdirSync(join(TEST_DIR, '.omc', 'state', 'sessions', sessionWithoutState), { recursive: true });
+      mkdirSync(join(TEST_DIR, '.omac', 'state', 'sessions', sessionWithState), { recursive: true });
+      mkdirSync(join(TEST_DIR, '.omac', 'state', 'sessions', sessionWithoutState), { recursive: true });
 
       // Only create state for one session
       await stateWriteTool.handler({
@@ -285,7 +285,7 @@ describe('state-tools', () => {
       await stateWriteTool.handler({
         mode: 'skill-active',
         active: true,
-        state: { skill_name: 'sciomc', reinforcement_count: 2 },
+        state: { skill_name: 'sciomac', reinforcement_count: 2 },
         session_id: sessionId,
         workingDirectory: TEST_DIR,
       });
@@ -320,21 +320,21 @@ describe('state-tools', () => {
       const orphanSessionIds = ['ended-session-one', 'ended-session-two'];
       const modes = ['ralph', 'ultrawork', 'team'] as const;
 
-      mkdirSync(join(TEST_DIR, '.omc', 'sessions'), { recursive: true });
+      mkdirSync(join(TEST_DIR, '.omac', 'sessions'), { recursive: true });
 
       for (const orphanSessionId of orphanSessionIds) {
-        mkdirSync(join(TEST_DIR, '.omc', 'state', 'sessions', orphanSessionId), { recursive: true });
+        mkdirSync(join(TEST_DIR, '.omac', 'state', 'sessions', orphanSessionId), { recursive: true });
         writeFileSync(
-          join(TEST_DIR, '.omc', 'sessions', `${orphanSessionId}.json`),
+          join(TEST_DIR, '.omac', 'sessions', `${orphanSessionId}.json`),
           JSON.stringify({ session_id: orphanSessionId, ended_at: '2026-05-04T00:00:00.000Z' }),
         );
       }
-      mkdirSync(join(TEST_DIR, '.omc', 'state', 'sessions', liveSessionId), { recursive: true });
+      mkdirSync(join(TEST_DIR, '.omac', 'state', 'sessions', liveSessionId), { recursive: true });
 
       for (const mode of modes) {
         for (const orphanSessionId of orphanSessionIds) {
           writeFileSync(
-            join(TEST_DIR, '.omc', 'state', 'sessions', orphanSessionId, `${mode}-state.json`),
+            join(TEST_DIR, '.omac', 'state', 'sessions', orphanSessionId, `${mode}-state.json`),
             JSON.stringify({
               active: true,
               session_id: orphanSessionId,
@@ -343,7 +343,7 @@ describe('state-tools', () => {
           );
         }
         writeFileSync(
-          join(TEST_DIR, '.omc', 'state', 'sessions', liveSessionId, `${mode}-state.json`),
+          join(TEST_DIR, '.omac', 'state', 'sessions', liveSessionId, `${mode}-state.json`),
           JSON.stringify({ active: true, session_id: liveSessionId }),
         );
 
@@ -355,23 +355,23 @@ describe('state-tools', () => {
 
         expect(result.content[0].text).toContain('completed-session orphan');
         for (const orphanSessionId of orphanSessionIds) {
-          expect(existsSync(join(TEST_DIR, '.omc', 'state', 'sessions', orphanSessionId, `${mode}-state.json`))).toBe(false);
+          expect(existsSync(join(TEST_DIR, '.omac', 'state', 'sessions', orphanSessionId, `${mode}-state.json`))).toBe(false);
         }
-        expect(existsSync(join(TEST_DIR, '.omc', 'state', 'sessions', liveSessionId, `${mode}-state.json`))).toBe(true);
+        expect(existsSync(join(TEST_DIR, '.omac', 'state', 'sessions', liveSessionId, `${mode}-state.json`))).toBe(true);
       }
     });
 
     it('reports completed-session orphan state on session-scoped read misses', async () => {
       const freshSessionId = 'fresh-read-session';
       const orphanSessionId = 'ended-read-session';
-      mkdirSync(join(TEST_DIR, '.omc', 'sessions'), { recursive: true });
-      mkdirSync(join(TEST_DIR, '.omc', 'state', 'sessions', orphanSessionId), { recursive: true });
+      mkdirSync(join(TEST_DIR, '.omac', 'sessions'), { recursive: true });
+      mkdirSync(join(TEST_DIR, '.omac', 'state', 'sessions', orphanSessionId), { recursive: true });
       writeFileSync(
-        join(TEST_DIR, '.omc', 'sessions', `${orphanSessionId}.json`),
+        join(TEST_DIR, '.omac', 'sessions', `${orphanSessionId}.json`),
         JSON.stringify({ session_id: orphanSessionId, ended_at: '2026-05-04T00:00:00.000Z' }),
       );
       writeFileSync(
-        join(TEST_DIR, '.omc', 'state', 'sessions', orphanSessionId, 'ralph-state.json'),
+        join(TEST_DIR, '.omac', 'state', 'sessions', orphanSessionId, 'ralph-state.json'),
         JSON.stringify({ active: true, session_id: orphanSessionId }),
       );
 
@@ -385,22 +385,22 @@ describe('state-tools', () => {
       expect(result.content[0].text).toContain(orphanSessionId);
     });
 
-    it('clears completed-session orphan state through a symlinked .omc directory', async () => {
+    it('clears completed-session orphan state through a symlinked .omac directory', async () => {
       const symlinkTestDir = mkdtempSync(join(tmpdir(), 'state-tools-symlink-'));
-      const realOmcDir = mkdtempSync(join(tmpdir(), 'state-tools-real-omc-'));
+      const realOmacDir = mkdtempSync(join(tmpdir(), 'state-tools-real-omac-'));
       try {
-        rmSync(join(symlinkTestDir, '.omc'), { recursive: true, force: true });
-        symlinkSync(realOmcDir, join(symlinkTestDir, '.omc'), 'dir');
+        rmSync(join(symlinkTestDir, '.omac'), { recursive: true, force: true });
+        symlinkSync(realOmacDir, join(symlinkTestDir, '.omac'), 'dir');
         const orphanSessionId = 'ended-symlink-session';
         const freshSessionId = 'fresh-symlink-session';
-        mkdirSync(join(realOmcDir, 'sessions'), { recursive: true });
-        mkdirSync(join(realOmcDir, 'state', 'sessions', orphanSessionId), { recursive: true });
+        mkdirSync(join(realOmacDir, 'sessions'), { recursive: true });
+        mkdirSync(join(realOmacDir, 'state', 'sessions', orphanSessionId), { recursive: true });
         writeFileSync(
-          join(realOmcDir, 'sessions', `${orphanSessionId}.json`),
+          join(realOmacDir, 'sessions', `${orphanSessionId}.json`),
           JSON.stringify({ session_id: orphanSessionId, ended_at: '2026-05-04T00:00:00.000Z' }),
         );
         writeFileSync(
-          join(realOmcDir, 'state', 'sessions', orphanSessionId, 'ultrawork-state.json'),
+          join(realOmacDir, 'state', 'sessions', orphanSessionId, 'ultrawork-state.json'),
           JSON.stringify({ active: true, session_id: orphanSessionId }),
         );
 
@@ -411,10 +411,10 @@ describe('state-tools', () => {
         });
 
         expect(result.content[0].text).toContain('completed-session orphan');
-        expect(existsSync(join(realOmcDir, 'state', 'sessions', orphanSessionId, 'ultrawork-state.json'))).toBe(false);
+        expect(existsSync(join(realOmacDir, 'state', 'sessions', orphanSessionId, 'ultrawork-state.json'))).toBe(false);
       } finally {
         rmSync(symlinkTestDir, { recursive: true, force: true });
-        rmSync(realOmcDir, { recursive: true, force: true });
+        rmSync(realOmacDir, { recursive: true, force: true });
       }
     });
 
@@ -574,7 +574,7 @@ describe('state-tools', () => {
         workingDirectory: TEST_DIR,
       });
 
-      const statePath = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId, 'deep-interview-state.json');
+      const statePath = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId, 'deep-interview-state.json');
       expect(existsSync(statePath)).toBe(true);
     });
 
@@ -588,7 +588,7 @@ describe('state-tools', () => {
         workingDirectory: TEST_DIR,
       });
 
-      const statePath = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId, 'self-improve-state.json');
+      const statePath = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId, 'self-improve-state.json');
       expect(existsSync(statePath)).toBe(true);
     });
 
@@ -649,7 +649,7 @@ describe('state-tools', () => {
       });
 
       expect(clearResult.content[0].text).toMatch(/cleared|Successfully/i);
-      const statePath = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId, 'deep-interview-state.json');
+      const statePath = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId, 'deep-interview-state.json');
       expect(existsSync(statePath)).toBe(false);
     });
 
@@ -670,7 +670,7 @@ describe('state-tools', () => {
       });
 
       expect(clearResult.content[0].text).toMatch(/cleared|Successfully/i);
-      const statePath = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId, 'self-improve-state.json');
+      const statePath = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId, 'self-improve-state.json');
       expect(existsSync(statePath)).toBe(false);
     });
 
@@ -785,13 +785,13 @@ describe('state-tools', () => {
       });
 
       expect(result.content[0].text).toContain('Successfully wrote');
-      const sessionPath = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId, 'ultrawork-state.json');
+      const sessionPath = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId, 'ultrawork-state.json');
       expect(existsSync(sessionPath)).toBe(true);
     });
 
     it('should read state with explicit session_id from session-scoped path', async () => {
       const sessionId = 'test-session-read';
-      const sessionDir = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId);
+      const sessionDir = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId);
       mkdirSync(sessionDir, { recursive: true });
       writeFileSync(
         join(sessionDir, 'ralph-state.json'),
@@ -813,10 +813,10 @@ describe('state-tools', () => {
 
       // Create legacy state owned by a different session
       writeFileSync(
-        join(TEST_DIR, '.omc', 'state', 'ralph-state.json'),
+        join(TEST_DIR, '.omac', 'state', 'ralph-state.json'),
         JSON.stringify({ active: true, source: 'legacy', _meta: { sessionId: otherSessionId } })
       );
-      const sessionDir = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId);
+      const sessionDir = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId);
       mkdirSync(sessionDir, { recursive: true });
       writeFileSync(
         join(sessionDir, 'ralph-state.json'),
@@ -833,12 +833,12 @@ describe('state-tools', () => {
       // Session-scoped file should be gone
       expect(existsSync(join(sessionDir, 'ralph-state.json'))).toBe(false);
       // Legacy file should remain (belongs to different session)
-      expect(existsSync(join(TEST_DIR, '.omc', 'state', 'ralph-state.json'))).toBe(true);
+      expect(existsSync(join(TEST_DIR, '.omac', 'state', 'ralph-state.json'))).toBe(true);
     });
 
     it('should clear recovered session-owned state stranded under another session directory', async () => {
       const sessionId = 'continued-session';
-      const strandedDir = join(TEST_DIR, '.omc', 'state', 'sessions', 'stale-session-dir');
+      const strandedDir = join(TEST_DIR, '.omac', 'state', 'sessions', 'stale-session-dir');
       mkdirSync(strandedDir, { recursive: true });
       writeFileSync(
         join(strandedDir, 'ralph-state.json'),
@@ -857,7 +857,7 @@ describe('state-tools', () => {
 
     it('should clear ralph stop-hook runtime artifacts with session-scoped cancel cleanup', async () => {
       const sessionId = 'ralph-stop-artifact-session';
-      const stateDir = join(TEST_DIR, '.omc', 'state');
+      const stateDir = join(TEST_DIR, '.omac', 'state');
       const sessionDir = join(stateDir, 'sessions', sessionId);
       mkdirSync(sessionDir, { recursive: true });
       writeFileSync(
@@ -886,7 +886,7 @@ describe('state-tools', () => {
     it('does not clear a singleton live autopilot owned by another active session', async () => {
       const currentSessionId = 'fresh-autopilot-cancel-session';
       const ownerSessionId = 'live-autopilot-owner-session';
-      const ownerDir = join(TEST_DIR, '.omc', 'state', 'sessions', ownerSessionId);
+      const ownerDir = join(TEST_DIR, '.omac', 'state', 'sessions', ownerSessionId);
       mkdirSync(ownerDir, { recursive: true });
       writeFileSync(
         join(ownerDir, 'autopilot-state.json'),
@@ -907,14 +907,14 @@ describe('state-tools', () => {
       expect(result.content[0].text).toContain('No state found to clear for mode: autopilot');
       expect(result.content[0].text).toContain('Checked paths');
       expect(existsSync(join(ownerDir, 'autopilot-state.json'))).toBe(true);
-      expect(existsSync(join(TEST_DIR, '.omc', 'state', 'sessions', currentSessionId, 'cancel-signal-state.json'))).toBe(true);
+      expect(existsSync(join(TEST_DIR, '.omac', 'state', 'sessions', currentSessionId, 'cancel-signal-state.json'))).toBe(true);
       expect(existsSync(join(ownerDir, 'cancel-signal-state.json'))).toBe(false);
     });
 
     it('should clear the owning session when the current session resumed ralph from a different conversation', async () => {
       const currentSessionId = 'resume-session-b';
       const ownerSessionId = 'resume-session-a';
-      const ownerDir = join(TEST_DIR, '.omc', 'state', 'sessions', ownerSessionId);
+      const ownerDir = join(TEST_DIR, '.omac', 'state', 'sessions', ownerSessionId);
       mkdirSync(ownerDir, { recursive: true });
       writeFileSync(
         join(ownerDir, 'ralph-state.json'),
@@ -934,13 +934,13 @@ describe('state-tools', () => {
 
       expect(result.content[0].text).toContain(`cleared owning session: ${ownerSessionId}`);
       expect(existsSync(join(ownerDir, 'ralph-state.json'))).toBe(false);
-      expect(existsSync(join(TEST_DIR, '.omc', 'state', 'sessions', currentSessionId, 'cancel-signal-state.json'))).toBe(true);
+      expect(existsSync(join(TEST_DIR, '.omac', 'state', 'sessions', currentSessionId, 'cancel-signal-state.json'))).toBe(true);
       expect(existsSync(join(ownerDir, 'cancel-signal-state.json'))).toBe(true);
     });
 
     it('should clear ralph runtime artifacts during broad cancel cleanup', async () => {
       const sessionId = 'ralph-broad-runtime-cleanup';
-      const stateDir = join(TEST_DIR, '.omc', 'state');
+      const stateDir = join(TEST_DIR, '.omac', 'state');
       const sessionDir = join(stateDir, 'sessions', sessionId);
       mkdirSync(sessionDir, { recursive: true });
       writeFileSync(join(sessionDir, 'ralph-stop-breaker.json'), JSON.stringify({ count: 1 }));
@@ -968,17 +968,17 @@ describe('state-tools', () => {
 
       expect(result.content[0].text).toContain('No state found to clear for mode: autopilot in session: missing-autopilot-state-session');
       expect(result.content[0].text).toContain('Checked paths');
-      expect(result.content[0].text).toContain(join(TEST_DIR, '.omc', 'state', 'sessions', sessionId, 'autopilot-state.json'));
+      expect(result.content[0].text).toContain(join(TEST_DIR, '.omac', 'state', 'sessions', sessionId, 'autopilot-state.json'));
     });
 
-    it('clears autopilot state from the centralized OMC_STATE_DIR root used by stop hooks', async () => {
-      const previous = process.env.OMC_STATE_DIR;
+    it('clears autopilot state from the centralized OMAC_STATE_DIR root used by stop hooks', async () => {
+      const previous = process.env.OMAC_STATE_DIR;
       const sessionId = 'centralized-autopilot-clear-session';
       const centralRoot = join(TEST_DIR, 'central-state-root');
-      process.env.OMC_STATE_DIR = centralRoot;
+      process.env.OMAC_STATE_DIR = centralRoot;
       try {
-        const { getOmcRoot } = await import('../../lib/worktree-paths.js');
-        const autopilotPath = join(getOmcRoot(TEST_DIR), 'state', 'sessions', sessionId, 'autopilot-state.json');
+        const { getOmacRoot } = await import('../../lib/worktree-paths.js');
+        const autopilotPath = join(getOmacRoot(TEST_DIR), 'state', 'sessions', sessionId, 'autopilot-state.json');
         mkdirSync(join(autopilotPath, '..'), { recursive: true });
         writeFileSync(
           autopilotPath,
@@ -999,19 +999,19 @@ describe('state-tools', () => {
         expect(existsSync(autopilotPath)).toBe(false);
       } finally {
         if (previous === undefined) {
-          delete process.env.OMC_STATE_DIR;
+          delete process.env.OMAC_STATE_DIR;
         } else {
-          process.env.OMC_STATE_DIR = previous;
+          process.env.OMAC_STATE_DIR = previous;
         }
       }
     });
 
-    it('clears workingDirectory-local ralph state when centralized OMC_STATE_DIR lookup misses', async () => {
-      const previous = process.env.OMC_STATE_DIR;
+    it('clears workingDirectory-local ralph state when centralized OMAC_STATE_DIR lookup misses', async () => {
+      const previous = process.env.OMAC_STATE_DIR;
       const sessionId = 'worktree-local-ralph-clear-session';
       const centralRoot = join(TEST_DIR, 'central-state-root');
-      const localStatePath = join(TEST_DIR, '.omc', 'state', 'sessions', sessionId, 'ralph-state.json');
-      process.env.OMC_STATE_DIR = centralRoot;
+      const localStatePath = join(TEST_DIR, '.omac', 'state', 'sessions', sessionId, 'ralph-state.json');
+      process.env.OMAC_STATE_DIR = centralRoot;
       try {
         mkdirSync(dirname(localStatePath), { recursive: true });
         writeFileSync(
@@ -1034,16 +1034,16 @@ describe('state-tools', () => {
         expect(existsSync(localStatePath)).toBe(false);
       } finally {
         if (previous === undefined) {
-          delete process.env.OMC_STATE_DIR;
+          delete process.env.OMAC_STATE_DIR;
         } else {
-          process.env.OMC_STATE_DIR = previous;
+          process.env.OMAC_STATE_DIR = previous;
         }
       }
     });
 
     it('should discover and clear session-scoped autopilot state when no session_id is provided', async () => {
       const sessionId = 'missing-env-autopilot-session';
-      const stateDir = join(TEST_DIR, '.omc', 'state');
+      const stateDir = join(TEST_DIR, '.omac', 'state');
       const sessionDir = join(stateDir, 'sessions', sessionId);
       const autopilotPath = join(sessionDir, 'autopilot-state.json');
       mkdirSync(sessionDir, { recursive: true });
@@ -1115,7 +1115,7 @@ describe('state-tools', () => {
         workingDirectory: TEST_DIR,
       });
 
-      const legacyPath = join(TEST_DIR, '.omc', 'state', 'ultrawork-state.json');
+      const legacyPath = join(TEST_DIR, '.omac', 'state', 'ultrawork-state.json');
       expect(existsSync(legacyPath)).toBe(true);
     });
   });

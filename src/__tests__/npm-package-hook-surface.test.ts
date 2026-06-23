@@ -140,7 +140,7 @@ describe('npm package hook surface regression', () => {
 
   it('packs the runtime-critical plugin cache payload surface', () => {
     const packedFiles = getPackedFiles();
-    expect(packedFiles.has('commands/omc-setup.md')).toBe(true);
+    expect(packedFiles.has('commands/omac-setup.md')).toBe(true);
     expect(packedFiles.has('dist/hooks/skill-bridge.cjs')).toBe(true);
     expect(packedFiles.has('bridge/cli.cjs')).toBe(true);
     expect(packedFiles.has('.claude-plugin/plugin.json')).toBe(true);

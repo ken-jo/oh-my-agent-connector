@@ -27,7 +27,7 @@ export function validateBranchName(branch: string): void {
 }
 
 /**
- * Harness overlay files that OMC writes into every worker worktree
+ * Harness overlay files that OMAC writes into every worker worktree
  * (AGENTS.md and the .claude/ settings overlay). They are infrastructure,
  * not task output, and differ per worker — so the auto-merge / auto-rebase
  * fan-out collides on them (`UU AGENTS.md`) even when the actual task files
@@ -172,7 +172,7 @@ export function mergeWorkerBranch(
 
   try {
     // Abort if working tree has uncommitted changes to tracked files to prevent clobbering.
-    // Uses diff-index which ignores untracked files (e.g. .omc/ worktree metadata).
+    // Uses diff-index which ignores untracked files (e.g. .omac/ worktree metadata).
     try {
       execFileSync('git', ['diff-index', '--quiet', 'HEAD', '--'], {
         cwd: repoRoot, stdio: 'pipe'

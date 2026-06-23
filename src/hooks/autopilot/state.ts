@@ -17,7 +17,7 @@ import {
 import {
   resolveStatePath,
   resolveSessionStatePath,
-  getOmcRoot,
+  getOmacRoot,
 } from "../../lib/worktree-paths.js";
 import type {
   AutopilotState,
@@ -50,7 +50,7 @@ const SPEC_DIR = "autopilot";
  * Ensure the autopilot directory exists
  */
 export function ensureAutopilotDir(directory: string): string {
-  const autopilotDir = join(getOmcRoot(directory), SPEC_DIR);
+  const autopilotDir = join(getOmacRoot(directory), SPEC_DIR);
   mkdirSync(autopilotDir, { recursive: true });
   return autopilotDir;
 }
@@ -365,7 +365,7 @@ export function updateValidation(
  * Get the spec file path
  */
 export function getSpecPath(directory: string): string {
-  return join(getOmcRoot(directory), SPEC_DIR, "spec.md");
+  return join(getOmacRoot(directory), SPEC_DIR, "spec.md");
 }
 
 /**
@@ -618,13 +618,13 @@ You are now in validation phase. Spawn parallel validation architects:
 
 \`\`\`
 // Spawn all three in parallel
-Task(subagent_type="oh-my-claudecode:architect", model="opus",
+Task(subagent_type="oh-my-agent-connector:architect", model="opus",
   prompt="FUNCTIONAL COMPLETENESS REVIEW: Verify all requirements from spec are implemented")
 
-Task(subagent_type="oh-my-claudecode:security-reviewer", model="opus",
+Task(subagent_type="oh-my-agent-connector:security-reviewer", model="opus",
   prompt="SECURITY REVIEW: Check for vulnerabilities, injection risks, auth issues")
 
-Task(subagent_type="oh-my-claudecode:code-reviewer", model="opus",
+Task(subagent_type="oh-my-agent-connector:code-reviewer", model="opus",
   prompt="CODE QUALITY REVIEW: Check patterns, maintainability, test coverage")
 \`\`\`
 

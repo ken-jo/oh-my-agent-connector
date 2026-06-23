@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 import type { TeamPipelinePhase } from './team-pipeline/types.js';
 
 export interface CanonicalTeamStateCandidate {
@@ -87,7 +87,7 @@ export function readCanonicalTeamStateCandidate(
   const currentSessionId = safeString(sessionId);
   if (!currentSessionId) return null;
 
-  const teamRoot = join(getOmcRoot(directory), 'state', 'team');
+  const teamRoot = join(getOmacRoot(directory), 'state', 'team');
   if (!existsSync(teamRoot)) return null;
 
   const entries = readdirSync(teamRoot, { withFileTypes: true })

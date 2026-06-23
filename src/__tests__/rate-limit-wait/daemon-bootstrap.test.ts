@@ -34,7 +34,7 @@ vi.mock('../../features/rate-limit-wait/tmux-detector.js', async () => {
 
 describe('daemon bootstrap', () => {
   const originalEnv = { ...process.env };
-  const testDir = join(tmpdir(), `omc-daemon-bootstrap-test-${Date.now()}`);
+  const testDir = join(tmpdir(), `omac-daemon-bootstrap-test-${Date.now()}`);
   let startDaemon: typeof import('../../features/rate-limit-wait/daemon.js').startDaemon;
 
   beforeEach(async () => {
@@ -96,7 +96,7 @@ describe('daemon bootstrap', () => {
     expect(childEnv.ANTHROPIC_API_KEY).toBeUndefined();
     expect(childEnv.GITHUB_TOKEN).toBeUndefined();
 
-    const configPath = childEnv.OMC_DAEMON_CONFIG_FILE;
+    const configPath = childEnv.OMAC_DAEMON_CONFIG_FILE;
     expect(configPath).toBeTruthy();
     expect(existsSync(configPath!)).toBe(true);
     const persistedConfig = JSON.parse(readFileSync(configPath!, 'utf-8')) as Record<string, unknown>;
@@ -107,7 +107,7 @@ describe('daemon bootstrap', () => {
   it('uses a file URL in daemon import script so Windows backslashes are not parsed as JS escapes', () => {
     const unref = vi.fn();
     mockSpawn.mockReturnValue({ pid: 4243, unref } as any);
-    mockResolveDaemonModulePath.mockReturnValue('C:\\Users\\soung\\AppData\\Roaming\\npm\\node_modules\\oh-my-claude-sisyphus\\dist\\features\\rate-limit-wait\\daemon.js');
+    mockResolveDaemonModulePath.mockReturnValue('C:\\Users\\soung\\AppData\\Roaming\\npm\\node_modules\\oh-my-agent-connector\\dist\\features\\rate-limit-wait\\daemon.js');
 
     const config: DaemonConfig = {
       stateFilePath: join(testDir, 'state.json'),

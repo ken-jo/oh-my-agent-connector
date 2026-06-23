@@ -48,11 +48,11 @@ vi.mock('../team/tmux-session.js', () => ({
 // re-exporting internals.
 // ---------------------------------------------------------------------------
 
-const VALID_JOB_ID_RE = /^omc-[a-z0-9]{1,16}$/;
+const VALID_JOB_ID_RE = /^omac-[a-z0-9]{1,16}$/;
 
 function validateJobId(job_id: string): void {
   if (!VALID_JOB_ID_RE.test(job_id)) {
-    throw new Error(`Invalid job_id: "${job_id}". Must match /^omc-[a-z0-9]{1,16}$/`);
+    throw new Error(`Invalid job_id: "${job_id}". Must match /^omac-[a-z0-9]{1,16}$/`);
   }
 }
 
@@ -61,18 +61,18 @@ describe('validateJobId', () => {
     const traversalPayloads = [
       '../etc/passwd',
       '../../etc/shadow',
-      'omc-../secret',
-      'omc-abc/../def',
+      'omac-../secret',
+      'omac-abc/../def',
       '/etc/passwd',
-      'omc-abc/def',
+      'omac-abc/def',
       '',
-      'omc-',
-      'omc-UPPERCASE',
-      'omc-has spaces',
-      'omc-' + 'a'.repeat(17), // 17 chars — exceeds 16-char limit
+      'omac-',
+      'omac-UPPERCASE',
+      'omac-has spaces',
+      'omac-' + 'a'.repeat(17), // 17 chars — exceeds 16-char limit
       'notprefixed',
-      'omc_underscore',
-      'omc-abc!@#',
+      'omac_underscore',
+      'omac-abc!@#',
     ];
 
     for (const payload of traversalPayloads) {
@@ -84,12 +84,12 @@ describe('validateJobId', () => {
 
   describe('accepts valid job IDs', () => {
     const validIds = [
-      'omc-abc123',
-      'omc-a',
-      'omc-123456789012', // 12 chars
-      'omc-1',
-      'omc-abcdefghijkl', // 12 lowercase letters
-      'omc-abcdefghijklmnop', // exactly 16 chars
+      'omac-abc123',
+      'omac-a',
+      'omac-123456789012', // 12 chars
+      'omac-1',
+      'omac-abcdefghijkl', // 12 lowercase letters
+      'omac-abcdefghijklmnop', // exactly 16 chars
     ];
 
     for (const id of validIds) {
@@ -112,7 +112,7 @@ describe('team-server handler validation integration', () => {
   it('production validateJobId regex matches test regex', async () => {
     const nodeFs = (await vi.importActual('fs')) as typeof import('fs');
     const src = nodeFs.readFileSync(SOURCE_PATH, 'utf-8');
-    expect(src).toContain('/^omc-[a-z0-9]{1,16}$/');
+    expect(src).toContain('/^omac-[a-z0-9]{1,16}$/');
   });
 
   it('handleStatus and handleWait both call validateJobId before disk access', async () => {

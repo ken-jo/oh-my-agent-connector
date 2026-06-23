@@ -196,7 +196,7 @@ describe('teleportCommand', () => {
 });
 
 describe('teleportRemoveCommand', () => {
-  const worktreeRoot = join(homedir(), 'Workspace', 'omc-worktrees');
+  const worktreeRoot = join(homedir(), 'Workspace', 'omac-worktrees');
   const targetPath = join(worktreeRoot, 'repo-3089');
 
   beforeEach(() => {

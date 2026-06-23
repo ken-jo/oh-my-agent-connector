@@ -14,14 +14,14 @@ describe.skip('delegation-enforcer integration', () => {
   let originalDebugEnv: string | undefined;
 
   beforeEach(() => {
-    originalDebugEnv = process.env.OMC_DEBUG;
+    originalDebugEnv = process.env.OMAC_DEBUG;
   });
 
   afterEach(() => {
     if (originalDebugEnv === undefined) {
-      delete process.env.OMC_DEBUG;
+      delete process.env.OMAC_DEBUG;
     } else {
-      process.env.OMC_DEBUG = originalDebugEnv;
+      process.env.OMAC_DEBUG = originalDebugEnv;
     }
   });
 
@@ -32,7 +32,7 @@ describe.skip('delegation-enforcer integration', () => {
         toolInput: {
           description: 'Test task',
           prompt: 'Do something',
-          subagent_type: 'oh-my-claudecode:executor'
+          subagent_type: 'oh-my-agent-connector:executor'
         }
       };
 
@@ -59,7 +59,7 @@ describe.skip('delegation-enforcer integration', () => {
         toolInput: {
           description: 'Test task',
           prompt: 'Do something',
-          subagent_type: 'oh-my-claudecode:executor',
+          subagent_type: 'oh-my-agent-connector:executor',
           model: 'haiku'
         }
       };
@@ -146,8 +146,8 @@ describe.skip('delegation-enforcer integration', () => {
       }
     });
 
-    it('does not log warning when OMC_DEBUG not set', async () => {
-      delete process.env.OMC_DEBUG;
+    it('does not log warning when OMAC_DEBUG not set', async () => {
+      delete process.env.OMAC_DEBUG;
 
       const consoleWarnSpy = vi.spyOn(console, 'warn');
 
@@ -167,8 +167,8 @@ describe.skip('delegation-enforcer integration', () => {
       consoleWarnSpy.mockRestore();
     });
 
-    it('logs warning when OMC_DEBUG=true', async () => {
-      process.env.OMC_DEBUG = 'true';
+    it('logs warning when OMAC_DEBUG=true', async () => {
+      process.env.OMAC_DEBUG = 'true';
 
       const consoleWarnSpy = vi.spyOn(console, 'warn');
 
@@ -184,7 +184,7 @@ describe.skip('delegation-enforcer integration', () => {
       await processHook('pre-tool-use', input);
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('[OMC] Auto-injecting model')
+        expect.stringContaining('[OMAC] Auto-injecting model')
       );
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining('sonnet')

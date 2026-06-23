@@ -20,7 +20,7 @@ function runHook(script: string, payload: Record<string, unknown>, env: Record<s
 
 function makeTempProject(prefix: string) {
   const cwd = mkdtempSync(join(tmpdir(), prefix));
-  mkdirSync(join(cwd, '.omc', 'state', 'sessions', 'session-a'), { recursive: true });
+  mkdirSync(join(cwd, '.omac', 'state', 'sessions', 'session-a'), { recursive: true });
   return cwd;
 }
 
@@ -37,7 +37,7 @@ function writeUltragoalState(cwd: string, overrides: Record<string, unknown> = {
     ...overrides,
   };
   writeFileSync(
-    join(cwd, '.omc', 'state', 'sessions', 'session-a', 'ultragoal-state.json'),
+    join(cwd, '.omac', 'state', 'sessions', 'session-a', 'ultragoal-state.json'),
     `${JSON.stringify(state, null, 2)}\n`,
   );
   return state;
@@ -45,7 +45,7 @@ function writeUltragoalState(cwd: string, overrides: Record<string, unknown> = {
 
 describe('ultragoal persistence and Claude /goal enforcement', () => {
   it('allows PreToolUse when active ultragoal has a matching active Claude /goal', () => {
-    const cwd = makeTempProject('omc-ultragoal-pass-');
+    const cwd = makeTempProject('omac-ultragoal-pass-');
     writeUltragoalState(cwd);
 
     const result = runHook(preToolScript, {
@@ -60,20 +60,20 @@ describe('ultragoal persistence and Claude /goal enforcement', () => {
   });
 
   it('allows ultragoal CLI bootstrap commands before Claude /goal is visible', () => {
-    const cwd = makeTempProject('omc-ultragoal-bootstrap-');
+    const cwd = makeTempProject('omac-ultragoal-bootstrap-');
     writeUltragoalState(cwd);
 
     const createGoals = runHook(preToolScript, {
       cwd,
       session_id: 'session-a',
       tool_name: 'Bash',
-      tool_input: { command: 'omc ultragoal create-goals --brief "fix issue"' },
+      tool_input: { command: 'omac ultragoal create-goals --brief "fix issue"' },
     });
     const completeGoals = runHook(preToolScript, {
       cwd,
       session_id: 'session-a',
       tool_name: 'Bash',
-      tool_input: { command: 'omc ultragoal complete-goals' },
+      tool_input: { command: 'omac ultragoal complete-goals' },
     });
 
     expect(createGoals.hookSpecificOutput?.permissionDecision).not.toBe('deny');
@@ -81,7 +81,7 @@ describe('ultragoal persistence and Claude /goal enforcement', () => {
   });
 
   it('denies PreToolUse when active ultragoal has no visible Claude /goal', () => {
-    const cwd = makeTempProject('omc-ultragoal-deny-');
+    const cwd = makeTempProject('omac-ultragoal-deny-');
     writeUltragoalState(cwd);
 
     const result = runHook(preToolScript, {
@@ -96,7 +96,7 @@ describe('ultragoal persistence and Claude /goal enforcement', () => {
   });
 
   it('ignores stale ultragoal state in PreToolUse and Stop enforcement', () => {
-    const cwd = makeTempProject('omc-ultragoal-stale-');
+    const cwd = makeTempProject('omac-ultragoal-stale-');
     writeUltragoalState(cwd, {
       started_at: '2000-01-01T00:00:00.000Z',
       last_checked_at: '2000-01-01T00:00:00.000Z',
@@ -110,8 +110,8 @@ describe('ultragoal persistence and Claude /goal enforcement', () => {
   });
 
   it('ignores ultragoal state for another worktree', () => {
-    const cwd = makeTempProject('omc-ultragoal-worktree-a-');
-    const other = makeTempProject('omc-ultragoal-worktree-b-');
+    const cwd = makeTempProject('omac-ultragoal-worktree-a-');
+    const other = makeTempProject('omac-ultragoal-worktree-b-');
     writeUltragoalState(cwd, { project_path: other });
 
     const preTool = runHook(preToolScript, { cwd, session_id: 'session-a', tool_name: 'Bash', tool_input: {} });
@@ -122,7 +122,7 @@ describe('ultragoal persistence and Claude /goal enforcement', () => {
   });
 
   it('does not reinject Stop continuation after ultragoal is all done', () => {
-    const cwd = makeTempProject('omc-ultragoal-done-');
+    const cwd = makeTempProject('omac-ultragoal-done-');
     writeUltragoalState(cwd, { current_phase: 'all-done', all_done: true });
 
     const stop = runHook(persistentModeScript, { cwd, session_id: 'session-a' });
@@ -132,7 +132,7 @@ describe('ultragoal persistence and Claude /goal enforcement', () => {
   });
 
   it('does not activate ultragoal state for unrelated prose mentions', () => {
-    const cwd = makeTempProject('omc-ultragoal-keyword-prose-');
+    const cwd = makeTempProject('omac-ultragoal-keyword-prose-');
 
     runHook(keywordScript, {
       cwd,
@@ -140,26 +140,26 @@ describe('ultragoal persistence and Claude /goal enforcement', () => {
       prompt: 'Review whether ultragoal keyword activation steals unrelated prompts',
     });
 
-    const statePath = join(cwd, '.omc', 'state', 'sessions', 'session-a', 'ultragoal-state.json');
+    const statePath = join(cwd, '.omac', 'state', 'sessions', 'session-a', 'ultragoal-state.json');
     expect(existsSync(statePath)).toBe(false);
   });
 
   it('activates ultragoal session state from explicit natural-language invocation', () => {
-    const cwd = makeTempProject('omc-ultragoal-keyword-natural-');
+    const cwd = makeTempProject('omac-ultragoal-keyword-natural-');
 
     runHook(keywordScript, { cwd, session_id: 'session-a', prompt: 'run ultragoal for issue #3098' });
 
-    const statePath = join(cwd, '.omc', 'state', 'sessions', 'session-a', 'ultragoal-state.json');
+    const statePath = join(cwd, '.omac', 'state', 'sessions', 'session-a', 'ultragoal-state.json');
     const state = JSON.parse(execFileSync('cat', [statePath], { encoding: 'utf-8' }));
     expect(state.active).toBe(true);
   });
 
   it('activates ultragoal session state from keyword-detector', () => {
-    const cwd = makeTempProject('omc-ultragoal-keyword-');
+    const cwd = makeTempProject('omac-ultragoal-keyword-');
 
     runHook(keywordScript, { cwd, session_id: 'session-a', prompt: '$ultragoal fix issue #3098' });
 
-    const statePath = join(cwd, '.omc', 'state', 'sessions', 'session-a', 'ultragoal-state.json');
+    const statePath = join(cwd, '.omac', 'state', 'sessions', 'session-a', 'ultragoal-state.json');
     const state = JSON.parse(execFileSync('cat', [statePath], { encoding: 'utf-8' }));
     expect(state.active).toBe(true);
     expect(state.session_id).toBe('session-a');

@@ -21,12 +21,12 @@ import {
 import { atomicWriteJson } from '../fs-utils.js';
 
 beforeAll(() => {
-  process.env.OMC_RUNTIME_V2 = '1';
+  process.env.OMAC_RUNTIME_V2 = '1';
 });
 
 afterEach(() => {
   // Ensure env is set for each test
-  process.env.OMC_RUNTIME_V2 = '1';
+  process.env.OMAC_RUNTIME_V2 = '1';
 });
 
 describe('M6: restart recovery', () => {
@@ -34,7 +34,7 @@ describe('M6: restart recovery', () => {
 
   beforeEach(async () => {
     fixture = await createGitFixture({ workerCount: 2 });
-    process.env.OMC_RUNTIME_V2 = '1';
+    process.env.OMAC_RUNTIME_V2 = '1';
   });
 
   afterEach(async () => {
@@ -65,7 +65,7 @@ describe('M6: restart recovery', () => {
     // Worker-1 should have received a recovery message
     const workerInboxPath = join(
       fixture.repoRoot,
-      '.omc', 'state', 'team', fixture.teamName,
+      '.omac', 'state', 'team', fixture.teamName,
       'workers', 'worker-1', 'inbox.md',
     );
     expect(existsSync(workerInboxPath)).toBe(true);
@@ -76,7 +76,7 @@ describe('M6: restart recovery', () => {
 
   it('recoverFromRestart loads persisted SHA state (no false fan-out on first poll after restart)', async () => {
     // Seed persisted state with SHAs for both workers
-    const stateDir = join(fixture.repoRoot, '.omc', 'state', 'team', fixture.teamName);
+    const stateDir = join(fixture.repoRoot, '.omac', 'state', 'team', fixture.teamName);
     mkdirSync(stateDir, { recursive: true });
     const persistedPath = join(stateDir, 'auto-merge-state.json');
 
@@ -133,7 +133,7 @@ describe('M6: restart recovery', () => {
     const sha = await fixture.commitFile('worker-1', 'worker-1/seed.ts', '// seeded\n');
 
     // Write persisted state that already has this SHA
-    const stateDir = join(fixture.repoRoot, '.omc', 'state', 'team', fixture.teamName);
+    const stateDir = join(fixture.repoRoot, '.omac', 'state', 'team', fixture.teamName);
     mkdirSync(stateDir, { recursive: true });
     const persistedPath = join(stateDir, 'auto-merge-state.json');
     atomicWriteJson(persistedPath, { lastShas: { 'worker-1': sha } });

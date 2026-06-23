@@ -1,6 +1,6 @@
-# Surface map — oh-my-claudecode → agent-connector
+# Surface map — oh-my-agent-connector → agent-connector
 
-Maps every deployment surface of upstream OMC (`/home/ubuntu/workspace/github/oh-my-agent-connector`,
+Maps every deployment surface of upstream OMAC (`/home/ubuntu/workspace/github/oh-my-agent-connector`,
 v4.14.6, MIT, runtime dependency **by path** — nothing copied) onto agent-connector's
 `defineConnector()` model (`/home/ubuntu/workspace/github/agent-connector`), following the proven
 context-mode playbook (`/home/ubuntu/workspace/github/context-mode-with-agent-connector`, P1a hook-bridge).
@@ -32,7 +32,7 @@ Script stdin/stdout contract (verified in the four representative scripts):
   - deny (PreToolUse): `{"continue":..,"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"..."}}`
   - block (Stop): `{"decision":"block","reason":"..."}` (persistent-mode ralph/ultrawork loop)
 - **env**: `CLAUDE_PLUGIN_ROOT` (root for `skills/`, `dist/`, `state` resolution), kill switches
-  `DISABLE_OMC=1` / `OMC_SKIP_HOOKS=<csv>` / `OMC_TEAM_WORKER`, optional `CLAUDE_CONFIG_DIR`.
+  `DISABLE_OMAC=1` / `OMAC_SKIP_HOOKS=<csv>` / `OMAC_TEAM_WORKER`, optional `CLAUDE_CONFIG_DIR`.
   Several scripts dynamically import `${CLAUDE_PLUGIN_ROOT}/dist/**` (prebuilt in upstream checkout).
 
 ## 1. Per-event mapping table
@@ -43,7 +43,7 @@ PostToolUseFailure, SubagentStart, SubagentStop`. One `HookDefinition` per event
 claude-code adapter writes one settings-hook entry per event whose command is the universal
 entrypoint `<home-bin> hook claude-code <Event> --connector <id>` (`buildHomeBinHookCommand`).
 
-| # | OMC event + matcher | OMC script(s), in order (timeout s) | AC event (+matcher) | Bridge / fate |
+| # | OMAC event + matcher | OMAC script(s), in order (timeout s) | AC event (+matcher) | Bridge / fate |
 |---|---|---|---|---|
 | 1 | `UserPromptSubmit` `*` | `keyword-detector.mjs` (5), `skill-injector.mjs` (3) | `UserPromptSubmit` (no matcher) | **BRIDGED** — run both, concat `additionalContext` → `{decision:"context"}` |
 | 2 | `SessionStart` `*` | `session-start.mjs` (5), `project-memory-session.mjs` (5), `wiki-session-start.mjs` (5) | `SessionStart` | **BRIDGED** — run all 3, concat `additionalContext`; `systemMessage` degraded (see residue 7) |
@@ -59,7 +59,7 @@ entrypoint `<home-bin> hook claude-code <Event> --connector <id>` (`buildHomeBin
 | 12 | `Stop` `*` | `context-guard-stop.mjs` (5), `persistent-mode.mjs` (10), `code-simplifier.mjs` (5) | `Stop` | **BRIDGED** — `{"decision":"block","reason"}` → `{decision:"deny",reason}`; AC adapter fix landed (risk R1, resolved) |
 | 13 | `SessionEnd` `*` | `session-end.mjs` (30), `wiki-session-end.mjs` (30) | `SessionEnd` | **BRIDGED** — fire-and-forget (host ignores SessionEnd output) |
 
-Coverage: **11/11 OMC event keys map** (13/13 matcher groups, **24/24 command entries**) since
+Coverage: **11/11 OMAC event keys map** (13/13 matcher groups, **24/24 command entries**) since
 agent-connector's E1 extension normalized `PermissionRequest` / `PostToolUseFailure` /
 `SubagentStart` / `SubagentStop` (8 → 12 canonical events). The formerly-residual 5 command
 entries (`permission-handler`, `post-tool-use-failure`, `subagent-tracker start/stop`,
@@ -76,10 +76,10 @@ Each AC `HookDefinition.handler(evt)`:
    plus the E1-event fields where present: `permission_suggestions` (PermissionRequest), `error`,
    `tool_use_id`, `is_interrupt`, `duration_ms` (PostToolUseFailure), `agent_id`, `agent_type`,
    `agent_transcript_path`, `last_assistant_message` (SubagentStart/Stop).
-2. **Spawn each OMC script in upstream `hooks.json` order**, unchanged from the checkout:
-   `node $OMC/scripts/run.cjs $OMC/scripts/<script>.mjs [args]`, env
-   `{ ...process.env, CLAUDE_PLUGIN_ROOT: $OMC }` where
-   `$OMC = /home/ubuntu/workspace/github/oh-my-agent-connector`. Going through `run.cjs`
+2. **Spawn each OMAC script in upstream `hooks.json` order**, unchanged from the checkout:
+   `node $OMAC/scripts/run.cjs $OMAC/scripts/<script>.mjs [args]`, env
+   `{ ...process.env, CLAUDE_PLUGIN_ROOT: $OMAC }` where
+   `$OMAC = /home/ubuntu/workspace/github/oh-my-agent-connector`. Going through `run.cjs`
    preserves the per-script `hooks.json` timeout enforcement for free; stdin pipes through
    (`stdio:'inherit'`), stdout is captured by the bridge.
 3. **Parse each script's stdout JSON → merge into one `HookResponse`:**
@@ -87,13 +87,13 @@ Each AC `HookDefinition.handler(evt)`:
    - `permissionDecision:"ask"` → `{decision:"ask", reason}`;
    - `hookSpecificOutput.additionalContext` values concatenated with `\n\n` → `{decision:"context", additionalContext}`;
    - `{"continue":true}` / `suppressOutput` / empty / unparseable → contributes nothing (fail-open,
-     mirroring both OMC's own catch-all `{continue:true}` and AC's fail-open runtime contract).
+     mirroring both OMAC's own catch-all `{continue:true}` and AC's fail-open runtime contract).
    **Exception — PermissionRequest** uses a dedicated merge (`permissionBridge`): the scripts'
    `hookSpecificOutput.decision.behavior` maps `"deny"` → `{decision:"deny",reason}` /
    `"allow"` → `{decision:"allow"}` (+`updatedInput` passthrough), and EVERYTHING else (incl. the
    fail-open error path) returns **no decision**, so the bridge can never silently auto-grant a
    permission — falling through to the native dialog is the safe default here, not allow.
-4. Kill switches honored for free: the scripts themselves check `DISABLE_OMC` / `OMC_SKIP_HOOKS`,
+4. Kill switches honored for free: the scripts themselves check `DISABLE_OMAC` / `OMAC_SKIP_HOOKS`,
    which pass through the bridge env untouched.
 
 This replaces: 24 settings-hook command lines, `run.cjs`'s reason for existing on the install side
@@ -113,11 +113,11 @@ node /home/ubuntu/workspace/github/oh-my-agent-connector/bridge/mcp-server.cjs
 
 - stdio MCP server; `serverInfo {"name":"t","version":"1.0.0"}`; **49 tools** in `tools/list`
   (lsp_*, ast_grep_*, notepad_*, project_memory_*, state_*, shared_memory_*, wiki_*, trace_*,
-  python_repl, session_search, deepinit_manifest, list/load_omc_skills…).
+  python_repl, session_search, deepinit_manifest, list/load_omac_skills…).
 - **Zero** references to `CLAUDE_PLUGIN_ROOT` inside the 28,786-line bundle — no env required.
   It self-bootstraps `NODE_PATH` from `npm root -g` (for optional native modules like
   `@ast-grep/napi`) and degrades gracefully when npm is absent.
-- State tools resolve `.omc/` under cwd/HOME at call time, so isolated-home testing fully contains it.
+- State tools resolve `.omac/` under cwd/HOME at call time, so isolated-home testing fully contains it.
 
 `defineConnector` server block:
 
@@ -125,7 +125,7 @@ node /home/ubuntu/workspace/github/oh-my-agent-connector/bridge/mcp-server.cjs
 server: {
   transport: "stdio",
   command: "node",
-  args: [OMC + "/bridge/mcp-server.cjs"],
+  args: [OMAC + "/bridge/mcp-server.cjs"],
   tools: { include: ["*"] },   // 49 tools
 }
 ```
@@ -138,12 +138,12 @@ registration on every AC target platform, telemetry wrapping (`serve`), and the 
 A small loader in `agent-connector.config.mjs` reads the upstream checkout at config load and
 compiles **128 files → 87 defs** (frontmatter shapes verified on samples):
 
-| OMC source | Count | Frontmatter observed | → AC def | Mapping |
+| OMAC source | Count | Frontmatter observed | → AC def | Mapping |
 |---|---|---|---|---|
 | `agents/*.md` | 19 | `name, description, model, level` | `SubagentDef` | `name`/`description`/`model` 1:1; body → `prompt`; `level` → `extra.level`. (Upstream plugin.json never lists agents — Claude auto-discovers `agents/`; AC writes `.claude/agents/<n>.md` and the native equivalent on 8 other platforms.) |
 | `commands/*.md` | 28 | `description` (often `""`); `compact.md` adds more keys; body uses `$ARGUMENTS` | `CommandDef` | filename stem → `name`; body → `prompt`; extra fm keys → `argumentHint`/`tools`/`model`/`extra` |
 | `skills/*/SKILL.md` | 40 | `name, description, argument-hint, level` | `SkillDef` | `name` (== dir, kebab ✓), `description` (≤1024 ✓), body; `argument-hint`+`level` → `extra` |
-| skill resource files | 40 (omc-setup 4, project-session-manager 18, self-improve 12, writer-memory 6) | — | `SkillDef.resources` | relpath → file contents, written beside SKILL.md |
+| skill resource files | 40 (omac-setup 4, project-session-manager 18, self-improve 12, writer-memory 6) | — | `SkillDef.resources` | relpath → file contents, written beside SKILL.md |
 | `.claude-plugin/plugin.json` + `marketplace.json` | — | — | connector metadata | `id`/`displayName`/`version` in `defineConnector`; manifests retired |
 
 Loader sketch: `readdir` + a 15-line frontmatter splitter (`---` fences, `key: value` pairs) — no
@@ -171,18 +171,18 @@ from one declaration — upstream's answer to this was entire sibling projects (
    treated as optional on stop — the tracker's own state compensates, exactly as upstream).
    Subagent lifecycle accounting + the deliverables-verification nudge restored — verified live
    (tracker context on start; advisory deliverables warning on stop with seeded team state).
-4. **RESOLVED — Statusline HUD.** OMC's `/hud` installs a `statusLine` command into settings.json.
+4. **RESOLVED — Statusline HUD.** OMAC's `/hud` installs a `statusLine` command into settings.json.
    Bridged via agent-connector's 0.3.x **`configPatch`** surface (set-if-absent, ownership-tracked,
    claude-code v1): `platforms["claude-code"].configPatch` declares `statusLine =
-   {type:"command", command:"node $OMC/dist/hud/index.js"}`, pointing at the upstream checkout's
+   {type:"command", command:"node $OMAC/dist/hud/index.js"}`, pointing at the upstream checkout's
    PREBUILT HUD (same run-from-checkout idiom as the hooks/MCP — nothing copied). Verified live
    (isolated home): `<absent> → set` with a recorded ownership-ledger entry, the HUD renders a real
    status line, and `doctor` reports `configPatch statusLine — ok`. On the real machine — where the
-   live OMC plugin already owns a `statusLine` — the patch correctly **skip-warns** (never clobbers a
+   live OMAC plugin already owns a `statusLine` — the patch correctly **skip-warns** (never clobbers a
    key it doesn't own) and prints the manual-edit fallback. See VERIFICATION.md §8.
-5. **RESOLVED — `CLAUDE.md` managed block.** OMC's installer maintains a marker-fenced orchestrator
+5. **RESOLVED — `CLAUDE.md` managed block.** OMAC's installer maintains a marker-fenced orchestrator
    block in `~/.claude/CLAUDE.md`. Bridged via agent-connector's 0.3.x **`memory`** surface: a
-   `MemoryDef` compiled at load from upstream `docs/CLAUDE.md` (the OMC:START/VERSION/END fence lines
+   `MemoryDef` compiled at load from upstream `docs/CLAUDE.md` (the OMAC:START/VERSION/END fence lines
    stripped — AC owns the boundary with its own hash-stamped markers). AC writes it to the file each
    host actually reads — **CLAUDE.md** (claude-code, which does NOT read AGENTS.md), **GEMINI.md**
    (gemini-cli), **AGENTS.md** (codex/opencode) — so this goes ONE BETTER than upstream, which
@@ -190,12 +190,12 @@ from one declaration — upstream's answer to this was entire sibling projects (
    memory file on cursor (user rules are app/UI-managed or undocumented)".) File-persistent now
    (not just per-session
    `additionalContext`). Verified live (isolated home): block created, content intact, `doctor`
-   reports `memory block oh-my-claudecode/orchestrator — intact`. See VERIFICATION.md §8.
+   reports `memory block oh-my-agent-connector/orchestrator — intact`. See VERIFICATION.md §8.
 6. **RESOLVED (driver) — Marketplace/plugin distribution UX.** Beyond the direct `install` path, the
    0.3.x **marketplace driver** (`install --method marketplace`) now redeploys the connector through
    the host's OWN plugin marketplace (claude-code/codex/gemini/antigravity), staging the bundle under
    `<dataRoot>/marketplace/<host>/` and running the host's native install command. Verified
-   (dry-run): OMC projects the full multi-host staging + registration plan; context-mode's run
+   (dry-run): OMAC projects the full multi-host staging + registration plan; context-mode's run
    **refuses with a double-install guard** on every host where it is already installed DIRECTLY
    (duplicate hooks + MCP would corrupt telemetry) and skip-warns the not-yet-drivable cursor flow.
    The legacy plugin-cache healing concepts (`repair-plugin-cache.mjs`, `run.cjs` stale-root scan)
@@ -221,8 +221,8 @@ from one declaration — upstream's answer to this was entire sibling projects (
 - **R2: MCP tool-name prefix.** `mcp__t__*` (plugin install) becomes `mcp__<connector-id>__*`.
   Grep over agents/skills/commands found zero hard-coded `mcp__t__` references (they use bare names
   like `lsp_diagnostics`), so exposure is low; re-grep `src/hooks/**` during P2.
-- **R3: cross-host hook fidelity.** OMC scripts read Claude-specific config
-  (`getClaudeConfigDir()`, settings.json) and write `.omc/` state; on non-Claude hosts these
+- **R3: cross-host hook fidelity.** OMAC scripts read Claude-specific config
+  (`getClaudeConfigDir()`, settings.json) and write `.omac/` state; on non-Claude hosts these
   branches no-op behind try/catch (fail-open by construction), but behavior on codex/gemini/etc. is
   "best effort" until verified — claim parity only for claude-code initially.
 - **R4: `$ARGUMENTS` portability.** All 28 commands use Claude's `$ARGUMENTS` token; non-Claude
@@ -230,8 +230,8 @@ from one declaration — upstream's answer to this was entire sibling projects (
   writers translate; otherwise scope commands to claude-code via `platforms` overrides.
 - **R5: skill resource fidelity.** `SkillDef.resources` carries string contents — the executable
   bit on `project-session-manager/psm.sh` is lost; any non-UTF-8 resource would need special-casing.
-- **R6: live-machine safety.** The OMC marketplace plugin is LIVE in this machine's `~/.claude`.
-  Installing the connector into the real home would double-fire every OMC hook. ALL install
+- **R6: live-machine safety.** The OMAC marketplace plugin is LIVE in this machine's `~/.claude`.
+  Installing the connector into the real home would double-fire every OMAC hook. ALL install
   verification must run in an isolated HOME (mkdtemp + `HOME`/`USERPROFILE`/
   `AGENT_CONNECTOR_DATA_DIR` overrides), as in `agent-connector/tests/cli/doctor-targets.test.ts`;
   multi-platform checks `--dry-run` only.

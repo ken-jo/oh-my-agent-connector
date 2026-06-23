@@ -8,7 +8,7 @@ const DEFAULT_HANDOFF_SUMMARY_MAX_CHARS = 160;
 export type ArtifactRetention = 'ephemeral' | 'session' | 'until-completion' | 'persistent';
 
 export interface ArtifactProducer {
-  system: 'omc' | 'omx';
+  system: 'omac' | 'omx';
   component: string;
   worker?: string;
 }

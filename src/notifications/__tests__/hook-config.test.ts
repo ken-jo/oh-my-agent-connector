@@ -1,5 +1,5 @@
 /**
- * Tests for hook notification config reader (omc_config.hook.json).
+ * Tests for hook notification config reader (omac_config.hook.json).
  *
  * Covers:
  * - File missing → null
@@ -8,7 +8,7 @@
  * - Cache reset
  * - Template cascade resolution
  * - Merge into NotificationConfig (event enabled/disabled overrides)
- * - OMC_HOOK_CONFIG env var override
+ * - OMAC_HOOK_CONFIG env var override
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
@@ -24,8 +24,8 @@ import {
 import type { HookNotificationConfig } from "../hook-config-types.js";
 import type { NotificationConfig } from "../types.js";
 
-const TEST_DIR = join(tmpdir(), `omc-hook-config-test-${process.pid}`);
-const TEST_CONFIG_PATH = join(TEST_DIR, "omc_config.hook.json");
+const TEST_DIR = join(tmpdir(), `omac-hook-config-test-${process.pid}`);
+const TEST_CONFIG_PATH = join(TEST_DIR, "omac_config.hook.json");
 
 function writeTestConfig(config: object): void {
   mkdirSync(TEST_DIR, { recursive: true });
@@ -35,7 +35,7 @@ function writeTestConfig(config: object): void {
 describe("hook-config reader", () => {
   beforeEach(() => {
     resetHookConfigCache();
-    vi.stubEnv("OMC_HOOK_CONFIG", TEST_CONFIG_PATH);
+    vi.stubEnv("OMAC_HOOK_CONFIG", TEST_CONFIG_PATH);
   });
 
   afterEach(() => {
@@ -51,7 +51,7 @@ describe("hook-config reader", () => {
   // -----------------------------------------------------------------------
 
   it("returns null when file does not exist", () => {
-    vi.stubEnv("OMC_HOOK_CONFIG", join(TEST_DIR, "nonexistent.json"));
+    vi.stubEnv("OMAC_HOOK_CONFIG", join(TEST_DIR, "nonexistent.json"));
     expect(getHookConfig()).toBeNull();
   });
 
@@ -108,7 +108,7 @@ describe("hook-config reader", () => {
     expect(getHookConfig()).toBeNull();
   });
 
-  it("OMC_HOOK_CONFIG env var overrides default path", () => {
+  it("OMAC_HOOK_CONFIG env var overrides default path", () => {
     const altDir = join(TEST_DIR, "alt");
     const altPath = join(altDir, "custom-hook.json");
     mkdirSync(altDir, { recursive: true });
@@ -116,7 +116,7 @@ describe("hook-config reader", () => {
       altPath,
       JSON.stringify({ version: 1, enabled: true, defaultTemplate: "custom" }),
     );
-    vi.stubEnv("OMC_HOOK_CONFIG", altPath);
+    vi.stubEnv("OMAC_HOOK_CONFIG", altPath);
     resetHookConfigCache();
     const config = getHookConfig();
     expect(config!.defaultTemplate).toBe("custom");

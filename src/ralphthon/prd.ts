@@ -7,7 +7,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
-import { getOmcRoot } from "../lib/worktree-paths.js";
+import { getOmacRoot } from "../lib/worktree-paths.js";
 import {
   type RalphthonPRD,
   type RalphthonStory,
@@ -48,21 +48,21 @@ export function normalizePlanningContext(
 }
 
 /**
- * Get the path to the ralphthon PRD file in .omc
+ * Get the path to the ralphthon PRD file in .omac
  */
 export function getRalphthonPrdPath(directory: string): string {
-  return join(getOmcRoot(directory), PRD_FILENAME);
+  return join(getOmacRoot(directory), PRD_FILENAME);
 }
 
 /**
- * Find ralphthon-prd.json (checks both root and .omc)
+ * Find ralphthon-prd.json (checks both root and .omac)
  */
 export function findRalphthonPrdPath(directory: string): string | null {
   const rootPath = join(directory, PRD_FILENAME);
   if (existsSync(rootPath)) return rootPath;
 
-  const omcPath = getRalphthonPrdPath(directory);
-  if (existsSync(omcPath)) return omcPath;
+  const omacPath = getRalphthonPrdPath(directory);
+  if (existsSync(omacPath)) return omacPath;
 
   return null;
 }
@@ -99,10 +99,10 @@ export function writeRalphthonPrd(
   let prdPath = findRalphthonPrdPath(directory);
 
   if (!prdPath) {
-    const omcDir = getOmcRoot(directory);
-    if (!existsSync(omcDir)) {
+    const omacDir = getOmacRoot(directory);
+    if (!existsSync(omacDir)) {
       try {
-        mkdirSync(omcDir, { recursive: true });
+        mkdirSync(omacDir, { recursive: true });
       } catch {
         return false;
       }

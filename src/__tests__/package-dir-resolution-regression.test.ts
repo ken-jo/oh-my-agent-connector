@@ -102,7 +102,7 @@ describe('package dir resolution regression (#1322, #1324)', () => {
   });
 
   it('loadAgentPrompt resolves prompts even when cwd is unrelated', () => {
-    const sandboxDir = mkdtempSync(join(tmpdir(), 'omc-agents-path-resolution-'));
+    const sandboxDir = mkdtempSync(join(tmpdir(), 'omac-agents-path-resolution-'));
     process.chdir(sandboxDir);
 
     const prompt = loadAgentPrompt('architect');
@@ -112,7 +112,7 @@ describe('package dir resolution regression (#1322, #1324)', () => {
 
 
   it('builtin skills resolve skills directory and load skills even when cwd is unrelated', () => {
-    const sandboxDir = mkdtempSync(join(tmpdir(), 'omc-builtin-skills-path-resolution-'));
+    const sandboxDir = mkdtempSync(join(tmpdir(), 'omac-builtin-skills-path-resolution-'));
     process.chdir(sandboxDir);
 
     const skillsDir = getSkillsDir();
@@ -125,7 +125,7 @@ describe('package dir resolution regression (#1322, #1324)', () => {
   });
 
   it('getValidAgentRoles resolves agents directory even when cwd is unrelated', async () => {
-    const sandboxDir = mkdtempSync(join(tmpdir(), 'omc-agent-roles-path-resolution-'));
+    const sandboxDir = mkdtempSync(join(tmpdir(), 'omac-agent-roles-path-resolution-'));
     process.chdir(sandboxDir);
 
     const { getValidAgentRoles } = await import('../agents/prompt-helpers.js');
@@ -137,7 +137,7 @@ describe('package dir resolution regression (#1322, #1324)', () => {
   });
 
   it('bridge/team.js imports cleanly from an unrelated cwd without agents ENOENT', () => {
-    const sandboxDir = mkdtempSync(join(tmpdir(), 'omc-bridge-team-import-'));
+    const sandboxDir = mkdtempSync(join(tmpdir(), 'omac-bridge-team-import-'));
     const command = `import(${JSON.stringify(`file://${join(REPO_ROOT, 'bridge', 'team.js')}`)})`;
     const result = spawnSync(process.execPath, ['--input-type=module', '-e', command], {
       cwd: sandboxDir,

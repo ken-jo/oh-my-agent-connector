@@ -6,7 +6,7 @@ level: 7
 
 # Learner Skill
 
-> Deprecated compatibility alias: use `/oh-my-claudecode:skillify` for new skill extraction workflows. This file remains for internal implementation/history and compatibility.
+> Deprecated compatibility alias: use `/oh-my-agent-connector:skillify` for new skill extraction workflows. This file remains for internal implementation/history and compatibility.
 
 This is a Level 7 (self-improving) skill. It has two distinct sections:
 - **Expertise**: Domain knowledge about what makes a good skill. Updated automatically as patterns are discovered.
@@ -111,8 +111,8 @@ This classification ensures expertise can be updated independently without desta
 
 ### Step 4: Save Location
 
-- **User-level**: `${CLAUDE_CONFIG_DIR:-~/.claude}/skills/omc-learned/<skill-name>.md` - Rare. Only for truly portable insights.
-- **Project-level**: `.omc/skills/<skill-name>.md` - Default. Intended to be committed with the repo when you want the team to keep the skill. In linked worktrees, uncommitted skills are still worktree-local and disappear if that worktree is deleted.
+- **User-level**: `${CLAUDE_CONFIG_DIR:-~/.claude}/skills/omac-learned/<skill-name>.md` - Rare. Only for truly portable insights.
+- **Project-level**: `.omac/skills/<skill-name>.md` - Default. Intended to be committed with the repo when you want the team to keep the skill. In linked worktrees, uncommitted skills are still worktree-local and disappear if that worktree is deleted.
 
 ### Required File Format
 
@@ -164,5 +164,5 @@ If code helps, show it - but as illustration of the principle, not copy-paste ma
 
 ## Related Commands
 
-- /oh-my-claudecode:note - Save quick notes that survive compaction (less formal than skills)
-- /oh-my-claudecode:ralph - Start a development loop with learning capture
+- /oh-my-agent-connector:note - Save quick notes that survive compaction (less formal than skills)
+- /oh-my-agent-connector:ralph - Start a development loop with learning capture

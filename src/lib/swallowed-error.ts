@@ -10,7 +10,7 @@ export function formatSwallowedError(error: unknown): string {
 
 export function logSwallowedError(context: string, error: unknown): void {
   try {
-    console.warn(`[omc] ${context}: ${formatSwallowedError(error)}`);
+    console.warn(`[omac] ${context}: ${formatSwallowedError(error)}`);
   } catch {
     // Never let logging a swallowed error throw.
   }

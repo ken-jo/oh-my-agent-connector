@@ -186,7 +186,7 @@ describe('permission-handler', () => {
   });
 
   describe('repo-scoped inspection commands', () => {
-    const testDir = '/tmp/omc-permission-safe-inspection';
+    const testDir = '/tmp/omac-permission-safe-inspection';
 
     beforeEach(() => {
       fs.rmSync(testDir, { recursive: true, force: true });
@@ -218,7 +218,7 @@ describe('permission-handler', () => {
     });
 
     it('rejects repo inspection commands when cwd is not inside a git worktree', () => {
-      const nonGitDir = fs.mkdtempSync('/tmp/omc-permission-safe-inspection-non-git-');
+      const nonGitDir = fs.mkdtempSync('/tmp/omac-permission-safe-inspection-non-git-');
 
       try {
         fs.mkdirSync(path.join(nonGitDir, 'src'), { recursive: true });
@@ -233,7 +233,7 @@ describe('permission-handler', () => {
   });
 
   describe('targeted local test commands', () => {
-    const testDir = '/tmp/omc-permission-safe-tests';
+    const testDir = '/tmp/omac-permission-safe-tests';
 
     beforeEach(() => {
       fs.rmSync(testDir, { recursive: true, force: true });
@@ -261,7 +261,7 @@ describe('permission-handler', () => {
     });
 
     it('rejects targeted test commands when cwd is not inside a git worktree', () => {
-      const nonGitDir = fs.mkdtempSync('/tmp/omc-permission-safe-tests-non-git-');
+      const nonGitDir = fs.mkdtempSync('/tmp/omac-permission-safe-tests-non-git-');
 
       try {
         fs.mkdirSync(path.join(nonGitDir, 'src', '__tests__'), { recursive: true });
@@ -368,8 +368,8 @@ describe('permission-handler', () => {
   });
 
   describe('isActiveModeRunning', () => {
-    const testDir = '/tmp/omc-permission-test';
-    const stateDir = path.join(testDir, '.omc', 'state');
+    const testDir = '/tmp/omac-permission-test';
+    const stateDir = path.join(testDir, '.omac', 'state');
 
     beforeEach(() => {
       // Clean up any existing test directory
@@ -464,8 +464,8 @@ describe('permission-handler', () => {
   });
 
   describe('processPermissionRequest', () => {
-    const testDir = '/tmp/omc-permission-test';
-    const stateDir = path.join(testDir, '.omc', 'state');
+    const testDir = '/tmp/omac-permission-test';
+    const stateDir = path.join(testDir, '.omac', 'state');
 
     beforeEach(() => {
       clearWorktreeCache();

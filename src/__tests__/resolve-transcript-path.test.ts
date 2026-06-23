@@ -20,7 +20,7 @@ describe('resolveTranscriptPath', () => {
   let tempDir: string;
 
   beforeEach(() => {
-    tempDir = join(tmpdir(), `omc-test-transcript-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tempDir = join(tmpdir(), `omac-test-transcript-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(tempDir, { recursive: true });
   });
 
@@ -69,11 +69,11 @@ describe('resolveTranscriptPath', () => {
     const realTranscript = join(projectDir, 'session-uuid.jsonl');
     writeFileSync(realTranscript, '{}');
 
-    // Worktree with a path-like name (e.g., from OMC project-session-manager)
+    // Worktree with a path-like name (e.g., from OMAC project-session-manager)
     const worktreePath = join(
       tempDir,
       'projects',
-      '-home-bellman-Workspace-myproject--claude-worktrees-home-bellman-Workspace-omc-worktrees-fix-issue-1094',
+      '-home-bellman-Workspace-myproject--claude-worktrees-home-bellman-Workspace-omac-worktrees-fix-issue-1094',
       'session-uuid.jsonl',
     );
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# OMC HUD cached statusLine launcher.
+# OMAC HUD cached statusLine launcher.
 #
 # Claude Code invokes statusLine commands for every render. Starting Node and
 # importing the HUD bundle each time can take hundreds of milliseconds, which
@@ -14,17 +14,17 @@ case "$0" in
 esac
 SCRIPT_DIR=$(cd "$SCRIPT_DIR" 2>/dev/null && pwd -P) || SCRIPT_DIR=.
 CONFIG_DIR=${CLAUDE_CONFIG_DIR:-$(cd "$SCRIPT_DIR/.." 2>/dev/null && pwd -P)}
-CACHE_DIR=${OMC_HUD_CACHE_DIR:-"$CONFIG_DIR/hud/cache"}
-HUD_SCRIPT=${1:-"$SCRIPT_DIR/omc-hud.mjs"}
+CACHE_DIR=${OMAC_HUD_CACHE_DIR:-"$CONFIG_DIR/hud/cache"}
+HUD_SCRIPT=${1:-"$SCRIPT_DIR/omac-hud.mjs"}
 INPUT_TMP="$CACHE_DIR/stdin.$$.tmp"
-LOCK_STALE_SECONDS=${OMC_HUD_LOCK_STALE_SECONDS:-10}
+LOCK_STALE_SECONDS=${OMAC_HUD_LOCK_STALE_SECONDS:-10}
 
 mkdir -p "$CACHE_DIR" 2>/dev/null || {
-  printf '[OMC] Starting...\n'
+  printf '[OMAC] Starting...\n'
   exit 0
 }
 CACHE_DIR=$(cd "$CACHE_DIR" 2>/dev/null && pwd -P) || {
-  printf '[OMC] Starting...\n'
+  printf '[OMAC] Starting...\n'
   exit 0
 }
 INPUT_TMP="$CACHE_DIR/stdin.$$.tmp"
@@ -154,10 +154,10 @@ refresh_cache() {
 
 # Hot path: return immediately from the last successful render for this session.
 if [ -s "$OUTPUT_FILE" ]; then
-  cat "$OUTPUT_FILE" 2>/dev/null || printf '[OMC] Starting...\n'
+  cat "$OUTPUT_FILE" 2>/dev/null || printf '[OMAC] Starting...\n'
   # Refresh in background for the next frame.
   if try_acquire_lock; then
-    if [ "${OMC_HUD_SYNC_REFRESH:-0}" = "1" ]; then
+    if [ "${OMAC_HUD_SYNC_REFRESH:-0}" = "1" ]; then
       refresh_cache
     else
       ( refresh_cache ) >/dev/null 2>&1 &
@@ -169,7 +169,7 @@ fi
 # First render for this session: do a synchronous refresh so the user
 # sees the real HUD from the first frame. Claude Code v2.1.x does not
 # re-poll the statusLine until user interaction, so an async background
-# refresh leaves the pane stuck on "[OMC] Starting..." until they type.
+# refresh leaves the pane stuck on "[OMAC] Starting..." until they type.
 if [ -s "$INPUT_FILE" ] && try_acquire_lock; then
   refresh_cache
   if [ -s "$OUTPUT_FILE" ]; then
@@ -177,5 +177,5 @@ if [ -s "$INPUT_FILE" ] && try_acquire_lock; then
   fi
 fi
 
-printf '[OMC] Starting...\n'
+printf '[OMAC] Starting...\n'
 exit 0

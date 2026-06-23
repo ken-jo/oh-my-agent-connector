@@ -2,7 +2,7 @@
 
 ## Summary
 
-When `/oh-my-claudecode:cancel` is invoked, it clears mode state files for
+When `/oh-my-agent-connector:cancel` is invoked, it clears mode state files for
 ralph, ultrawork, autopilot, team, etc. — but it does **not** clear
 `skill-active-state.json`. This causes the stop hook to keep firing
 reinforcements after cancel until either the reinforcement limit or the stale
@@ -10,9 +10,9 @@ TTL expires.
 
 ## Reproduction
 
-1. Invoke a `medium`-protected skill (e.g. `sciomc`, `skillify`, `release`)
-2. Before the skill completes, invoke `/oh-my-claudecode:cancel`
-3. Observe: stop hook continues to block with `[SKILL ACTIVE: sciomc]`
+1. Invoke a `medium`-protected skill (e.g. `sciomac`, `skillify`, `release`)
+2. Before the skill completes, invoke `/oh-my-agent-connector:cancel`
+3. Observe: stop hook continues to block with `[SKILL ACTIVE: sciomac]`
    reinforcements 1/5 → 2/5 → ... until limit or 15-min TTL
 
 ## Root Cause
@@ -20,7 +20,7 @@ TTL expires.
 `skill-active-state.json` lives at:
 
 ```
-.omc/state/sessions/{sessionId}/skill-active-state.json
+.omac/state/sessions/{sessionId}/skill-active-state.json
 ```
 
 The cancel skill calls `state_clear(mode=...)` for known modes, but the
@@ -28,17 +28,17 @@ The cancel skill calls `state_clear(mode=...)` for known modes, but the
 
 ```
 "autopilot" | "team" | "ralph" | "ultrawork" | "ultraqa"
-| "ralplan" | "omc-teams" | "deep-interview"
+| "ralplan" | "omac-teams" | "deep-interview"
 ```
 
 No entry for `skill-active` → file is not deleted → stop hook reads stale
 `active: true` and keeps blocking.
 
 The skill protection registry (`src/hooks/skill-state/index.ts`) defines
-`sciomc` as `medium`:
+`sciomac` as `medium`:
 
 ```typescript
-sciomc: 'medium',  // 5 reinforcements, 15-min stale TTL
+sciomac: 'medium',  // 5 reinforcements, 15-min stale TTL
 ```
 
 So the user is blocked for up to 15 minutes (or 5 hook fires) after cancel.
@@ -48,7 +48,7 @@ So the user is blocked for up to 15 minutes (or 5 hook fires) after cancel.
 Delete the file manually:
 
 ```bash
-rm .omc/state/sessions/<sessionId>/skill-active-state.json
+rm .omac/state/sessions/<sessionId>/skill-active-state.json
 ```
 
 Or wait for the 15-min TTL / 5-reinforcement limit to auto-clear it.

@@ -2,7 +2,7 @@ import { execFileSync, spawnSync } from 'child_process';
 import { existsSync } from 'fs';
 import { mkdir, readFile, symlink, writeFile } from 'fs/promises';
 import { dirname, join, resolve } from 'path';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 import {
   readModeState,
   writeModeState,
@@ -145,7 +145,7 @@ interface AutoresearchInstructionLedgerSummary {
 }
 
 const AUTORESEARCH_RESULTS_HEADER = 'iteration\tcommit\tpass\tscore\tstatus\tdescription\n';
-const AUTORESEARCH_WORKTREE_EXCLUDES = ['results.tsv', 'run.log', 'node_modules', '.omc/'];
+const AUTORESEARCH_WORKTREE_EXCLUDES = ['results.tsv', 'run.log', 'node_modules', '.omac/'];
 
 // Exclusive modes that cannot run concurrently with autoresearch
 const EXCLUSIVE_MODES: ExecutionMode[] = ['ralph', 'ultrawork', 'autopilot', 'autoresearch'];
@@ -159,7 +159,7 @@ export function getAutoresearchMissionArtifactLayout(
   missionSlug: string,
   runId: string,
 ): AutoresearchMissionArtifactLayout {
-  const missionRoot = join(getOmcRoot(projectRoot), 'autoresearch', missionSlug);
+  const missionRoot = join(getOmacRoot(projectRoot), 'autoresearch', missionSlug);
   const runDir = join(missionRoot, 'runs', runId);
   return {
     missionRoot,
@@ -185,7 +185,7 @@ function buildRunId(missionSlug: string, runTag: string): string {
 }
 
 function activeRunStateFile(projectRoot: string): string {
-  return join(getOmcRoot(projectRoot), 'state', 'autoresearch-state.json');
+  return join(getOmacRoot(projectRoot), 'state', 'autoresearch-state.json');
 }
 
 function trimContent(value: string, max = 4000): string {
@@ -400,7 +400,7 @@ async function assertAutoresearchLockAvailable(projectRoot: string): Promise<voi
 
 /**
  * Assert no exclusive mode is already active (ralph, ultrawork, autopilot).
- * Mirrors OMX assertModeStartAllowed semantics using OMC mode-state-io.
+ * Mirrors OMX assertModeStartAllowed semantics using OMAC mode-state-io.
  */
 export async function assertModeStartAllowed(mode: ExecutionMode, projectRoot: string): Promise<void> {
   for (const other of EXCLUSIVE_MODES) {
@@ -440,7 +440,7 @@ async function deactivateAutoresearchRun(manifest: AutoresearchRunManifest): Pro
 }
 
 /**
- * Start autoresearch mode state using OMC's writeModeState.
+ * Start autoresearch mode state using OMAC's writeModeState.
  */
 function startAutoresearchMode(taskDescription: string, projectRoot: string): void {
   writeModeState('autoresearch', {
@@ -779,7 +779,7 @@ export function buildAutoresearchInstructions(
   },
 ): string {
   return [
-    '# OMC Autoresearch Supervisor Instructions',
+    '# OMAC Autoresearch Supervisor Instructions',
     '',
     `Run ID: ${context.runId}`,
     `Mission directory: ${contract.missionDir}`,
@@ -866,7 +866,7 @@ export async function materializeAutoresearchMissionToWorktree(
 }
 
 export async function loadAutoresearchRunManifest(projectRoot: string, runId: string): Promise<AutoresearchRunManifest> {
-  const manifestFile = join(getOmcRoot(projectRoot), 'logs', 'autoresearch', runId, 'manifest.json');
+  const manifestFile = join(getOmacRoot(projectRoot), 'logs', 'autoresearch', runId, 'manifest.json');
   if (!existsSync(manifestFile)) {
     throw new Error(`autoresearch_resume_manifest_missing:${runId}`);
   }
@@ -958,7 +958,7 @@ export async function prepareAutoresearchRuntime(
   const runId = buildRunId(contract.missionSlug, runTag);
   const baselineCommit = readGitShortHead(worktreePath);
   const branchName = readGit(worktreePath, ['symbolic-ref', '--quiet', '--short', 'HEAD']);
-  const runDir = join(getOmcRoot(projectRoot), 'logs', 'autoresearch', runId);
+  const runDir = join(getOmacRoot(projectRoot), 'logs', 'autoresearch', runId);
   const stateFile = activeRunStateFile(projectRoot);
   const instructionsFile = join(runDir, 'bootstrap-instructions.md');
   const manifestFile = join(runDir, 'manifest.json');

@@ -58,27 +58,27 @@ Claude Code `/goal`, Ralph, Team, UltraQA, and artifact-only Ultragoal all help 
 | Workflow                | Primary authority                      | Best fit                                                                                | Evidence and completion rule                                                                 | Avoid when                                                                                 |
 | ----------------------- | -------------------------------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Claude Code `/goal`     | Claude Code native goal loop           | One active session needs a measurable completion condition and cross-turn persistence   | Surface proof in the conversation, then let the `/goal` evaluator judge the stated condition | Ralph, Team, UltraQA, autopilot, or another Stop-hook loop is already driving continuation |
-| Ralph                   | OMC persistence loop                   | Single-owner implementation that must finish all PRD stories with reviewer verification | Fresh tests/build/lint plus reviewer approval against PRD criteria                           | Work should be split across several owners first                                           |
-| Team                    | OMC coordinated team pipeline          | Parallel work with explicit task ownership and staged verification                      | Task results, worker commits, team verification/fix loop evidence                            | One person can finish faster than coordination overhead                                    |
-| UltraQA                 | OMC QA cycling loop                    | Repeated test/build/lint/typecheck failures until a quality gate passes                 | Command output for the chosen QA goal on every cycle                                         | Requirements or implementation scope are still undefined                                   |
+| Ralph                   | OMAC persistence loop                   | Single-owner implementation that must finish all PRD stories with reviewer verification | Fresh tests/build/lint plus reviewer approval against PRD criteria                           | Work should be split across several owners first                                           |
+| Team                    | OMAC coordinated team pipeline          | Parallel work with explicit task ownership and staged verification                      | Task results, worker commits, team verification/fix loop evidence                            | One person can finish faster than coordination overhead                                    |
+| UltraQA                 | OMAC QA cycling loop                    | Repeated test/build/lint/typecheck failures until a quality gate passes                 | Command output for the chosen QA goal on every cycle                                         | Requirements or implementation scope are still undefined                                   |
 | Artifact-only Ultragoal | Durable goal artifacts, no active loop | Planning, handoff, or audit trail when a runtime loop is unavailable or unsafe          | Goal ledger, checkpoints, handoff prompts, and attached evidence                             | The user expects automatic execution without selecting Ralph/Team/`/goal`                  |
 
 ### Claude Code `/goal` source boundary
 
-OMC docs treat `/goal` facts as Claude Code facts. Cite Claude Code or Anthropic sources only when documenting its behavior: the [Claude Code `/goal` docs](https://code.claude.com/docs/en/goal) and [Anthropic Claude Code changelog](https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md). Do not use OpenAI/Codex documentation as authority for `/goal`.
+OMAC docs treat `/goal` facts as Claude Code facts. Cite Claude Code or Anthropic sources only when documenting its behavior: the [Claude Code `/goal` docs](https://code.claude.com/docs/en/goal) and [Anthropic Claude Code changelog](https://raw.githubusercontent.com/anthropics/claude-code/main/CHANGELOG.md). Do not use OpenAI/Codex documentation as authority for `/goal`.
 
-Important limitation: the `/goal` evaluator judges from evidence surfaced in the Claude Code conversation. OMC docs and handoffs must not claim that the evaluator independently runs shell commands, reads files, or inspects hidden repository state. If tests, diffs, or logs matter, run them through the normal OMC/Claude Code tools and include the result in the visible evidence before relying on `/goal` status.
+Important limitation: the `/goal` evaluator judges from evidence surfaced in the Claude Code conversation. OMAC docs and handoffs must not claim that the evaluator independently runs shell commands, reads files, or inspects hidden repository state. If tests, diffs, or logs matter, run them through the normal OMAC/Claude Code tools and include the result in the visible evidence before relying on `/goal` status.
 
 ### Conflict policy
 
 Use the deterministic policy names `refuse`, `adopt_existing`, and `artifact_only` when documenting or implementing loop-conflict handling.
 
-When a goal-like request enters an OMC session:
+When a goal-like request enters an OMAC session:
 
-1. If Ralph, Team, UltraQA, autopilot, or a Stop-hook loop is active, keep that OMC loop as the authority and use `/goal` only as a documented handoff option.
-2. If Claude Code `/goal` is already active, either adopt that existing goal explicitly, refuse to start a competing OMC loop, or degrade to artifact-only Ultragoal documentation.
+1. If Ralph, Team, UltraQA, autopilot, or a Stop-hook loop is active, keep that OMAC loop as the authority and use `/goal` only as a documented handoff option.
+2. If Claude Code `/goal` is already active, either adopt that existing goal explicitly, refuse to start a competing OMAC loop, or degrade to artifact-only Ultragoal documentation.
 3. If hooks, workspace trust, or managed settings make `/goal` unavailable, use Ralph/Team/UltraQA or artifact-only Ultragoal instead of pretending `/goal` is active.
-4. Always attach command/test/review evidence before declaring durable OMC completion. `/goal` evaluator success alone is not the OMC final-review gate.
+4. Always attach command/test/review evidence before declaring durable OMAC completion. `/goal` evaluator success alone is not the OMAC final-review gate.
 
 ## Examples
 

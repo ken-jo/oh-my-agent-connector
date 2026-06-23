@@ -235,7 +235,7 @@ describe("notify() -> session-registry integration", () => {
     });
 
     expect(result).not.toBeNull();
-    expect(mockGetNewPaneTail).toHaveBeenCalledWith("%42", "/test/project/.omc/state", 23);
+    expect(mockGetNewPaneTail).toHaveBeenCalledWith("%42", "/test/project/.omac/state", 23);
     expect(mockCapturePaneContent).not.toHaveBeenCalled();
   });
 

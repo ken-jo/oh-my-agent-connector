@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Transcript Parser
+ * OMAC HUD - Transcript Parser
  *
  * Parse JSONL transcript from Claude Code to extract agents and todos.
  * Based on claude-hud reference implementation.

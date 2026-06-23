@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync, statSync, renameSync, writeFileSync, lstatSync, unlinkSync } from 'node:fs';
 import { appendFileWithMode, ensureDirWithMode, validateResolvedPath } from './fs-utils.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 
 export type AuditEventType =
   | 'bridge_start'
@@ -46,7 +46,7 @@ export interface AuditEvent {
 const DEFAULT_MAX_LOG_SIZE = 5 * 1024 * 1024; // 5MB
 
 function getLogPath(workingDirectory: string, teamName: string): string {
-  return join(getOmcRoot(workingDirectory), 'logs', `team-bridge-${teamName}.jsonl`);
+  return join(getOmacRoot(workingDirectory), 'logs', `team-bridge-${teamName}.jsonl`);
 }
 
 /**
@@ -58,8 +58,8 @@ export function logAuditEvent(
   event: AuditEvent
 ): void {
   const logPath = getLogPath(workingDirectory, event.teamName);
-  const dir = join(getOmcRoot(workingDirectory), 'logs');
-  // logPath lives under getOmcRoot(...)/logs, which in a .omc-workspace layout
+  const dir = join(getOmacRoot(workingDirectory), 'logs');
+  // logPath lives under getOmacRoot(...)/logs, which in a .omac-workspace layout
   // is ABOVE workingDirectory. Validate against the shared logs dir (still
   // catches teamName traversal) instead of the sub-repo.
   validateResolvedPath(logPath, dir);
@@ -136,7 +136,7 @@ export function rotateAuditLog(
 
   // Atomic write: write to a process-unique temp file, then rename
   const tmpPath = logPath + '.' + randomUUID() + '.tmp';
-  const logsDir = join(getOmcRoot(workingDirectory), 'logs');
+  const logsDir = join(getOmacRoot(workingDirectory), 'logs');
   validateResolvedPath(tmpPath, logsDir);
 
   // Prevent symlink attacks: if tmp path exists as symlink, remove it

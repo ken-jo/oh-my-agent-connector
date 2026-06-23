@@ -14,7 +14,7 @@ vi.mock('child_process', async (importOriginal) => {
     mockedCalls.execFileArgs.push(args);
 
     if (args[0] === 'new-session') {
-      return { stdout: 'omc-team-race-team-detached:0 %91\n', stderr: '' };
+      return { stdout: 'omac-team-race-team-detached:0 %91\n', stderr: '' };
     }
 
     if (args[0] === 'new-window') {
@@ -153,10 +153,10 @@ describe('createTeamSession context resolution', () => {
       args[0] === 'new-session' && args.includes('-d') && args.includes('-P'),
     );
     expect(detachedCreateCall).toBeDefined();
-    expect(mockedCalls.execFileArgs).toContainEqual(['set-option', '-t', 'omc-team-race-team-detached', 'set-clipboard', 'on']);
-    expect(mockedCalls.execFileArgs).toContainEqual(['set-option', '-at', 'omc-team-race-team-detached', 'terminal-features', ',*:clipboard']);
+    expect(mockedCalls.execFileArgs).toContainEqual(['set-option', '-t', 'omac-team-race-team-detached', 'set-clipboard', 'on']);
+    expect(mockedCalls.execFileArgs).toContainEqual(['set-option', '-at', 'omac-team-race-team-detached', 'terminal-features', ',*:clipboard']);
     expect(session.leaderPaneId).toBe('%91');
-    expect(session.sessionName).toBe('omc-team-race-team-detached:0');
+    expect(session.sessionName).toBe('omac-team-race-team-detached:0');
     expect(session.workerPaneIds).toEqual([]);
     expect(session.sessionMode).toBe('detached-session');
   });
@@ -237,7 +237,7 @@ describe('createTeamSession context resolution', () => {
     const session = await createTeamSession('race-team', 1, '/tmp', { newWindow: true });
 
     const newWindowCall = mockedCalls.execFileArgs.find((args) => args[0] === 'new-window');
-    expect(newWindowCall).toEqual(expect.arrayContaining(['new-window', '-d', '-P', '-t', 'omx', '-n', 'omc-race-team']));
+    expect(newWindowCall).toEqual(expect.arrayContaining(['new-window', '-d', '-P', '-t', 'omx', '-n', 'omac-race-team']));
 
     const firstSplitCall = mockedCalls.execFileArgs.find((args) => args[0] === 'split-window');
     expect(firstSplitCall).toEqual(expect.arrayContaining(['split-window', '-h', '-t', '%99']));

@@ -28,7 +28,7 @@ afterEach(() => {
 
 describe('setup-progress.sh', () => {
   it('writes setup completion metadata to CLAUDE_CONFIG_DIR', () => {
-    const root = mkdtempSync(join(tmpdir(), 'omc-setup-progress-'));
+    const root = mkdtempSync(join(tmpdir(), 'omac-setup-progress-'));
     tempRoots.push(root);
 
     const projectRoot = join(root, 'project');
@@ -49,7 +49,7 @@ describe('setup-progress.sh', () => {
 
     expect(result.status).toBe(0);
 
-    const configPath = join(configDir, '.omc-config.json');
+    const configPath = join(configDir, '.omac-config.json');
     expect(existsSync(configPath)).toBe(true);
 
     const config = JSON.parse(readFileSync(configPath, 'utf-8')) as {
@@ -62,7 +62,7 @@ describe('setup-progress.sh', () => {
   });
 
   it('fails without jq and preserves existing setup config', () => {
-    const root = mkdtempSync(join(tmpdir(), 'omc-setup-progress-no-jq-'));
+    const root = mkdtempSync(join(tmpdir(), 'omac-setup-progress-no-jq-'));
     tempRoots.push(root);
 
     const projectRoot = join(root, 'project');
@@ -78,7 +78,7 @@ describe('setup-progress.sh', () => {
       symlinkSync(`/usr/bin/${command}`, join(binDir, command));
     }
 
-    const configPath = join(configDir, '.omc-config.json');
+    const configPath = join(configDir, '.omac-config.json');
     const originalConfig = '{\n  "existing": true\n}\n';
     writeFileSync(configPath, originalConfig);
 

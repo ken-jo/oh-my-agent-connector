@@ -1,5 +1,5 @@
 /**
- * OMC HUD - PRD Element
+ * OMAC HUD - PRD Element
  *
  * Renders current PRD story display.
  */

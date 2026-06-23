@@ -14,12 +14,12 @@ function git(cwd: string, command: string): void {
 describe('wiki tools workingDirectory', () => {
   let tempDir: string;
   let originalCwd: string;
-  let originalOmcStateDir: string | undefined;
+  let originalOmacStateDir: string | undefined;
 
   beforeEach(() => {
     originalCwd = process.cwd();
-    originalOmcStateDir = process.env.OMC_STATE_DIR;
-    delete process.env.OMC_STATE_DIR;
+    originalOmacStateDir = process.env.OMAC_STATE_DIR;
+    delete process.env.OMAC_STATE_DIR;
     tempDir = mkdtempSync(join(tmpdir(), 'wiki-tools-wd-'));
     clearWorktreeCache();
   });
@@ -27,10 +27,10 @@ describe('wiki tools workingDirectory', () => {
   afterEach(() => {
     process.chdir(originalCwd);
     clearWorktreeCache();
-    if (originalOmcStateDir === undefined) {
-      delete process.env.OMC_STATE_DIR;
+    if (originalOmacStateDir === undefined) {
+      delete process.env.OMAC_STATE_DIR;
     } else {
-      process.env.OMC_STATE_DIR = originalOmcStateDir;
+      process.env.OMAC_STATE_DIR = originalOmacStateDir;
     }
     rmSync(tempDir, { recursive: true, force: true });
   });
@@ -59,8 +59,8 @@ describe('wiki tools workingDirectory', () => {
     });
 
     expect(addResult.isError).toBeUndefined();
-    expect(existsSync(join(linked, '.omc', 'wiki', 'linked-worktree-page.md'))).toBe(true);
-    expect(existsSync(join(primary, '.omc', 'wiki'))).toBe(false);
+    expect(existsSync(join(linked, '.omac', 'wiki', 'linked-worktree-page.md'))).toBe(true);
+    expect(existsSync(join(primary, '.omac', 'wiki'))).toBe(false);
 
     const readResult = await wikiReadTool.handler({
       page: 'linked-worktree-page',
@@ -70,6 +70,6 @@ describe('wiki tools workingDirectory', () => {
     expect(readResult.isError).toBeUndefined();
     expect(readResult.content[0].text).toContain('Linked Worktree Page');
     expect(readResult.content[0].text).toContain('This belongs to the linked worktree wiki.');
-    expect(existsSync(join(primary, '.omc', 'wiki'))).toBe(false);
+    expect(existsSync(join(primary, '.omac', 'wiki'))).toBe(false);
   });
 });

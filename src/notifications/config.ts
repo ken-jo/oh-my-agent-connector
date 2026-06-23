@@ -1,7 +1,7 @@
 /**
  * Notification Configuration Reader
  *
- * Reads notification config from .omc-config.json and provides
+ * Reads notification config from .omac-config.json and provides
  * backward compatibility with the old stopHookCallbacks format.
  */
 
@@ -24,12 +24,12 @@ import {
   mergeHookConfigIntoNotificationConfig,
 } from "./hook-config.js";
 
-const CONFIG_FILE = join(getClaudeConfigDir(), ".omc-config.json");
+const CONFIG_FILE = join(getClaudeConfigDir(), ".omac-config.json");
 const DEFAULT_TMUX_TAIL_LINES = 15;
 
 
 /**
- * Read raw config from .omc-config.json
+ * Read raw config from .omac-config.json
  */
 function readRawConfig(): Record<string, unknown> | null {
   if (!existsSync(CONFIG_FILE)) return null;
@@ -177,11 +177,11 @@ export function buildConfigFromEnv(): NotificationConfig | null {
   const config: NotificationConfig = { enabled: false };
   let hasAnyPlatform = false;
 
-  const discordMention = validateMention(process.env.OMC_DISCORD_MENTION);
+  const discordMention = validateMention(process.env.OMAC_DISCORD_MENTION);
 
   // Discord Bot (token + channel)
-  const discordBotToken = process.env.OMC_DISCORD_NOTIFIER_BOT_TOKEN;
-  const discordChannel = process.env.OMC_DISCORD_NOTIFIER_CHANNEL;
+  const discordBotToken = process.env.OMAC_DISCORD_NOTIFIER_BOT_TOKEN;
+  const discordChannel = process.env.OMAC_DISCORD_NOTIFIER_CHANNEL;
   if (discordBotToken && discordChannel) {
     config["discord-bot"] = {
       enabled: true,
@@ -193,7 +193,7 @@ export function buildConfigFromEnv(): NotificationConfig | null {
   }
 
   // Discord Webhook
-  const discordWebhook = process.env.OMC_DISCORD_WEBHOOK_URL;
+  const discordWebhook = process.env.OMAC_DISCORD_WEBHOOK_URL;
   if (discordWebhook) {
     config.discord = {
       enabled: true,
@@ -203,14 +203,14 @@ export function buildConfigFromEnv(): NotificationConfig | null {
     hasAnyPlatform = true;
   }
 
-  // Telegram (support both OMC_TELEGRAM_BOT_TOKEN and OMC_TELEGRAM_NOTIFIER_BOT_TOKEN)
+  // Telegram (support both OMAC_TELEGRAM_BOT_TOKEN and OMAC_TELEGRAM_NOTIFIER_BOT_TOKEN)
   const telegramToken =
-    process.env.OMC_TELEGRAM_BOT_TOKEN ||
-    process.env.OMC_TELEGRAM_NOTIFIER_BOT_TOKEN;
+    process.env.OMAC_TELEGRAM_BOT_TOKEN ||
+    process.env.OMAC_TELEGRAM_NOTIFIER_BOT_TOKEN;
   const telegramChatId =
-    process.env.OMC_TELEGRAM_CHAT_ID ||
-    process.env.OMC_TELEGRAM_NOTIFIER_CHAT_ID ||
-    process.env.OMC_TELEGRAM_NOTIFIER_UID;
+    process.env.OMAC_TELEGRAM_CHAT_ID ||
+    process.env.OMAC_TELEGRAM_NOTIFIER_CHAT_ID ||
+    process.env.OMAC_TELEGRAM_NOTIFIER_UID;
   if (telegramToken && telegramChatId) {
     config.telegram = {
       enabled: true,
@@ -221,26 +221,26 @@ export function buildConfigFromEnv(): NotificationConfig | null {
   }
 
   // Slack Webhook
-  const slackWebhook = process.env.OMC_SLACK_WEBHOOK_URL;
+  const slackWebhook = process.env.OMAC_SLACK_WEBHOOK_URL;
   if (slackWebhook) {
     config.slack = {
       enabled: true,
       webhookUrl: slackWebhook,
-      mention: validateSlackMention(process.env.OMC_SLACK_MENTION),
+      mention: validateSlackMention(process.env.OMAC_SLACK_MENTION),
     };
     hasAnyPlatform = true;
   }
 
   // Slack Bot (app token + bot token + channel)
-  const slackBotToken = process.env.OMC_SLACK_BOT_TOKEN;
-  const slackBotChannel = process.env.OMC_SLACK_BOT_CHANNEL;
+  const slackBotToken = process.env.OMAC_SLACK_BOT_TOKEN;
+  const slackBotChannel = process.env.OMAC_SLACK_BOT_CHANNEL;
   if (slackBotToken && slackBotChannel) {
     config["slack-bot"] = {
       enabled: true,
-      appToken: process.env.OMC_SLACK_APP_TOKEN,
+      appToken: process.env.OMAC_SLACK_APP_TOKEN,
       botToken: slackBotToken,
       channelId: slackBotChannel,
-      mention: validateSlackMention(process.env.OMC_SLACK_MENTION),
+      mention: validateSlackMention(process.env.OMAC_SLACK_MENTION),
     };
     hasAnyPlatform = true;
   }
@@ -379,7 +379,7 @@ function applyEnvMerge(config: NotificationConfig): NotificationConfig {
   // Apply env mention to any Discord config that still lacks one.
   // This must run after mergeEnvIntoFileConfig so that file-only discord
   // platforms (not present in env) also receive the env mention.
-  const envMention = validateMention(process.env.OMC_DISCORD_MENTION);
+  const envMention = validateMention(process.env.OMAC_DISCORD_MENTION);
   if (envMention) {
     if (merged["discord-bot"] && merged["discord-bot"].mention == null) {
       merged = { ...merged, "discord-bot": { ...merged["discord-bot"], mention: envMention } };
@@ -390,7 +390,7 @@ function applyEnvMerge(config: NotificationConfig): NotificationConfig {
   }
 
   // Apply env mention to any Slack config that still lacks one.
-  const envSlackMention = validateSlackMention(process.env.OMC_SLACK_MENTION);
+  const envSlackMention = validateSlackMention(process.env.OMAC_SLACK_MENTION);
   if (envSlackMention) {
     if (merged.slack && merged.slack.mention == null) {
       merged = { ...merged, slack: { ...merged.slack, mention: envSlackMention } };
@@ -422,11 +422,11 @@ const SESSION_EVENTS: ReadonlySet<NotificationEvent> = new Set([
 /**
  * Get the effective verbosity level.
  *
- * Priority: OMC_NOTIFY_VERBOSITY env var > config.verbosity > "session" default.
+ * Priority: OMAC_NOTIFY_VERBOSITY env var > config.verbosity > "session" default.
  * Invalid env var values are ignored (fall back to config or default).
  */
 export function getVerbosity(config: NotificationConfig): VerbosityLevel {
-  const envValue = process.env.OMC_NOTIFY_VERBOSITY;
+  const envValue = process.env.OMAC_NOTIFY_VERBOSITY;
   if (envValue && VALID_VERBOSITY_LEVELS.has(envValue)) {
     return envValue as VerbosityLevel;
   }
@@ -439,11 +439,11 @@ export function getVerbosity(config: NotificationConfig): VerbosityLevel {
 /**
  * Get the effective tmux tail line count.
  *
- * Priority: OMC_NOTIFY_TMUX_TAIL_LINES env var > config.tmuxTailLines > 15 default.
+ * Priority: OMAC_NOTIFY_TMUX_TAIL_LINES env var > config.tmuxTailLines > 15 default.
  * Invalid values are ignored (fall back to config or default).
  */
 export function getTmuxTailLines(config: NotificationConfig): number {
-  const envValue = Number.parseInt(process.env.OMC_NOTIFY_TMUX_TAIL_LINES ?? "", 10);
+  const envValue = Number.parseInt(process.env.OMAC_NOTIFY_TMUX_TAIL_LINES ?? "", 10);
   if (Number.isInteger(envValue) && envValue >= 1) {
     return envValue;
   }
@@ -494,21 +494,21 @@ export function shouldIncludeTmuxTail(verbosity: VerbosityLevel): boolean {
 /**
  * Get the notification configuration.
  *
- * When a profile name is provided (or set via OMC_NOTIFY_PROFILE env var),
+ * When a profile name is provided (or set via OMAC_NOTIFY_PROFILE env var),
  * the corresponding named profile from `notificationProfiles` is used.
  * Falls back to the default `notifications` config if the profile is not found.
  *
- * Reads from .omc-config.json, looking for the `notifications` key.
+ * Reads from .omac-config.json, looking for the `notifications` key.
  * When file config exists, env-derived platforms are merged in to fill
  * missing platform blocks (file fields take precedence).
  * Falls back to migrating old `stopHookCallbacks` if present.
  * Returns null if no notification config is found.
  *
- * @param profileName - Optional profile name (overrides OMC_NOTIFY_PROFILE env var)
+ * @param profileName - Optional profile name (overrides OMAC_NOTIFY_PROFILE env var)
  */
 export function getNotificationConfig(profileName?: string): NotificationConfig | null {
   const raw = readRawConfig();
-  const effectiveProfile = profileName || process.env.OMC_NOTIFY_PROFILE;
+  const effectiveProfile = profileName || process.env.OMAC_NOTIFY_PROFILE;
 
   // Priority 0: Named profile from notificationProfiles
   if (effectiveProfile && raw) {
@@ -526,7 +526,7 @@ export function getNotificationConfig(profileName?: string): NotificationConfig 
     );
   }
 
-  // Priority 2: Explicit notifications config in .omc-config.json
+  // Priority 2: Explicit notifications config in .omac-config.json
   if (raw) {
     const notifications = raw.notifications as NotificationConfig | undefined;
     if (notifications) {
@@ -552,18 +552,18 @@ export function getNotificationConfig(profileName?: string): NotificationConfig 
 /**
  * Check if a platform is activated for this session.
  * Each platform requires its corresponding CLI flag:
- *   --telegram  -> OMC_TELEGRAM=1
- *   --discord   -> OMC_DISCORD=1
- *   --slack     -> OMC_SLACK=1
- *   --webhook   -> OMC_WEBHOOK=1
+ *   --telegram  -> OMAC_TELEGRAM=1
+ *   --discord   -> OMAC_DISCORD=1
+ *   --slack     -> OMAC_SLACK=1
+ *   --webhook   -> OMAC_WEBHOOK=1
  */
 function isPlatformActivated(platform: NotificationPlatform): boolean {
-  if (platform === "telegram") return process.env.OMC_TELEGRAM === "1";
+  if (platform === "telegram") return process.env.OMAC_TELEGRAM === "1";
   if (platform === "discord" || platform === "discord-bot")
-    return process.env.OMC_DISCORD === "1";
+    return process.env.OMAC_DISCORD === "1";
   if (platform === "slack" || platform === "slack-bot")
-    return process.env.OMC_SLACK === "1";
-  if (platform === "webhook") return process.env.OMC_WEBHOOK === "1";
+    return process.env.OMAC_SLACK === "1";
+  if (platform === "webhook") return process.env.OMAC_WEBHOOK === "1";
   return false;
 }
 
@@ -837,13 +837,13 @@ function parseIntSafe(value: string | undefined): number | undefined {
  * - No reply-capable bot platform (discord-bot or telegram) is configured
  * - Notifications are globally disabled
  *
- * Reads from .omc-config.json notifications.reply section.
+ * Reads from .omac-config.json notifications.reply section.
  * Environment variables override config file values:
- * - OMC_REPLY_ENABLED: enable reply listening (default: false)
- * - OMC_REPLY_POLL_INTERVAL_MS: polling interval in ms (default: 3000)
- * - OMC_REPLY_RATE_LIMIT: max messages per minute (default: 10)
- * - OMC_REPLY_DISCORD_USER_IDS: comma-separated authorized Discord user IDs
- * - OMC_REPLY_INCLUDE_PREFIX: include visual prefix (default: true)
+ * - OMAC_REPLY_ENABLED: enable reply listening (default: false)
+ * - OMAC_REPLY_POLL_INTERVAL_MS: polling interval in ms (default: 3000)
+ * - OMAC_REPLY_RATE_LIMIT: max messages per minute (default: 10)
+ * - OMAC_REPLY_DISCORD_USER_IDS: comma-separated authorized Discord user IDs
+ * - OMAC_REPLY_INCLUDE_PREFIX: include visual prefix (default: true)
  *
  * SECURITY: Logs warning when Discord bot is enabled but authorizedDiscordUserIds is empty.
  */
@@ -871,11 +871,11 @@ export function getReplyConfig(): import("./types.js").ReplyConfig | null {
   const raw = readRawConfig();
   const replyRaw = (raw?.notifications as any)?.reply;
 
-  const enabled = process.env.OMC_REPLY_ENABLED === "true" || replyRaw?.enabled === true;
+  const enabled = process.env.OMAC_REPLY_ENABLED === "true" || replyRaw?.enabled === true;
   if (!enabled) return null;
 
   const authorizedDiscordUserIds = parseDiscordUserIds(
-    process.env.OMC_REPLY_DISCORD_USER_IDS,
+    process.env.OMAC_REPLY_DISCORD_USER_IDS,
     replyRaw?.authorizedDiscordUserIds,
   );
 
@@ -883,21 +883,21 @@ export function getReplyConfig(): import("./types.js").ReplyConfig | null {
   if (hasDiscordBot && authorizedDiscordUserIds.length === 0) {
     console.warn(
       "[notifications] Discord reply listening disabled: authorizedDiscordUserIds is empty. " +
-      "Set OMC_REPLY_DISCORD_USER_IDS or add to .omc-config.json notifications.reply.authorizedDiscordUserIds"
+      "Set OMAC_REPLY_DISCORD_USER_IDS or add to .omac-config.json notifications.reply.authorizedDiscordUserIds"
     );
   }
 
   const authorizedSlackUserIds = parseSlackUserIds(
-    process.env.OMC_REPLY_SLACK_USER_IDS,
+    process.env.OMAC_REPLY_SLACK_USER_IDS,
     replyRaw?.authorizedSlackUserIds,
   );
 
   return {
     enabled: true,
-    pollIntervalMs: parseIntSafe(process.env.OMC_REPLY_POLL_INTERVAL_MS) ?? replyRaw?.pollIntervalMs ?? 3000,
+    pollIntervalMs: parseIntSafe(process.env.OMAC_REPLY_POLL_INTERVAL_MS) ?? replyRaw?.pollIntervalMs ?? 3000,
     maxMessageLength: replyRaw?.maxMessageLength ?? 500,
-    rateLimitPerMinute: parseIntSafe(process.env.OMC_REPLY_RATE_LIMIT) ?? replyRaw?.rateLimitPerMinute ?? 10,
-    includePrefix: process.env.OMC_REPLY_INCLUDE_PREFIX !== "false" && (replyRaw?.includePrefix !== false),
+    rateLimitPerMinute: parseIntSafe(process.env.OMAC_REPLY_RATE_LIMIT) ?? replyRaw?.rateLimitPerMinute ?? 10,
+    includePrefix: process.env.OMAC_REPLY_INCLUDE_PREFIX !== "false" && (replyRaw?.includePrefix !== false),
     authorizedDiscordUserIds,
     authorizedSlackUserIds,
   };
@@ -913,7 +913,7 @@ import type {
 } from "./types.js";
 import { validateCustomIntegration, checkDuplicateIds } from "./validation.js";
 
-const LEGACY_OPENCLAW_CONFIG = join(getClaudeConfigDir(), "omc_config.openclaw.json");
+const LEGACY_OPENCLAW_CONFIG = join(getClaudeConfigDir(), "omac_config.openclaw.json");
 
 /**
  * Detect if legacy OpenClaw configuration exists.
@@ -982,7 +982,7 @@ export function migrateLegacyOpenClawConfig(): CustomIntegration | null {
 }
 
 /**
- * Read custom integrations configuration from .omc-config.json.
+ * Read custom integrations configuration from .omac-config.json.
  */
 export function getCustomIntegrationsConfig(): CustomIntegrationsConfig | null {
   const raw = readRawConfig();

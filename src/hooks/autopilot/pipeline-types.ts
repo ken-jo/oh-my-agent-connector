@@ -5,7 +5,7 @@
  * The pipeline unifies autopilot/ultrawork/ultrapilot into a single
  * configurable sequence: RALPLAN -> EXECUTION -> RALPH -> QA.
  *
- * @see https://github.com/Yeachan-Heo/oh-my-claudecode/issues/1130
+ * @see https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/1130
  */
 
 // ============================================================================
@@ -57,7 +57,7 @@ export interface VerificationConfig {
 
 /**
  * User-facing pipeline configuration.
- * Stored in `.omc-config.json` under the `autopilot` key.
+ * Stored in `.omac-config.json` under the `autopilot` key.
  *
  * Example:
  * ```json

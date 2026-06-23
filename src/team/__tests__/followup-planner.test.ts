@@ -129,7 +129,7 @@ describe("team/followup-planner", () => {
 
     beforeEach(() => {
       testDir = mkdtempSync(join(tmpdir(), "followup-planner-test-"));
-      plansDir = join(testDir, ".omc", "plans");
+      plansDir = join(testDir, ".omac", "plans");
       mkdirSync(plansDir, { recursive: true });
     });
 
@@ -154,7 +154,7 @@ describe("team/followup-planner", () => {
           "## Requirement coverage map",
           "- req -> impl",
           "",
-          'omc team 3:claude "implement auth"',
+          'omac team 3:claude "implement auth"',
           "",
         ].join("\n"),
       );
@@ -207,7 +207,7 @@ describe("team/followup-planner", () => {
           "## Requirement coverage map",
           "- req -> impl",
           "",
-          'omc team 3:claude "implement auth"',
+          'omac team 3:claude "implement auth"',
           "",
         ].join("\n"),
       );
@@ -258,7 +258,7 @@ describe("team/followup-planner", () => {
           "## Requirement coverage map",
           "- req -> impl",
           "",
-          'omc team 3:claude "implement auth"',
+          'omac team 3:claude "implement auth"',
           "",
         ].join("\n"),
       );
@@ -280,7 +280,7 @@ describe("team/followup-planner", () => {
       expect(result!.hint.mode).toBe("team");
       expect(result!.hint.task).toBe("implement auth");
       expect(result!.hint.workerCount).toBe(3);
-      expect(result!.launchCommand).toContain("omc team");
+      expect(result!.launchCommand).toContain("omac team");
     });
 
     it("resolves follow-up context from OMX planning artifacts written after a deep-interview/ralplan cycle", () => {

@@ -246,7 +246,7 @@ export const wikiAddTool: ToolDefinition<{
       return {
         content: [{
           type: 'text' as const,
-          text: `Wiki page created: ${result.created[0]}\nPath: .omc/wiki/${result.created[0]}`,
+          text: `Wiki page created: ${result.created[0]}\nPath: .omac/wiki/${result.created[0]}`,
         }],
       };
     } catch (error) {

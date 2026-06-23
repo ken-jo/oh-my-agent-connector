@@ -1,5 +1,5 @@
 /**
- * OMC HUD - ANSI Color Utilities
+ * OMAC HUD - ANSI Color Utilities
  *
  * Terminal color codes for statusline rendering.
  * Based on claude-hud reference implementation.

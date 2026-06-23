@@ -22,7 +22,7 @@ node examples/vendor-mcp-server/server.mjs
 claude mcp add company-context -- node examples/vendor-mcp-server/server.mjs
 ```
 
-Then configure OMC:
+Then configure OMAC:
 
 ```jsonc
 {
@@ -35,8 +35,8 @@ Then configure OMC:
 
 Use one of:
 
-- `.claude/omc.jsonc`
-- `~/.config/claude-omc/config.jsonc`
+- `.claude/omac.jsonc`
+- `~/.config/claude-omac/config.jsonc`
 
 ## Contract Notes
 

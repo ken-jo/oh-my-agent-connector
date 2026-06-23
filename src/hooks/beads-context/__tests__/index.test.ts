@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock dependencies
 vi.mock('../../../features/auto-update.js', () => ({
-  getOMCConfig: vi.fn(() => ({ silentAutoUpdate: false })),
+  getOMACConfig: vi.fn(() => ({ silentAutoUpdate: false })),
 }));
 
 vi.mock('../../../features/context-injector/index.js', () => ({
@@ -20,17 +20,17 @@ import {
   BEADS_INSTRUCTIONS,
   BEADS_RUST_INSTRUCTIONS,
 } from '../index.js';
-import { getOMCConfig } from '../../../features/auto-update.js';
+import { getOMACConfig } from '../../../features/auto-update.js';
 import { contextCollector } from '../../../features/context-injector/index.js';
 
-const mockGetOMCConfig = vi.mocked(getOMCConfig);
+const mockGetOMACConfig = vi.mocked(getOMACConfig);
 const mockRegister = vi.mocked(contextCollector.register);
 const mockRemoveEntry = vi.mocked(contextCollector.removeEntry);
 
 describe('beads-context', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetOMCConfig.mockReturnValue({ silentAutoUpdate: false });
+    mockGetOMACConfig.mockReturnValue({ silentAutoUpdate: false });
   });
 
   describe('getBeadsInstructions', () => {
@@ -51,7 +51,7 @@ describe('beads-context', () => {
 
   describe('getBeadsContextConfig', () => {
     it('should return defaults when no config', () => {
-      mockGetOMCConfig.mockReturnValue({ silentAutoUpdate: false });
+      mockGetOMACConfig.mockReturnValue({ silentAutoUpdate: false });
       const config = getBeadsContextConfig();
       expect(config).toEqual({
         taskTool: 'builtin',
@@ -61,7 +61,7 @@ describe('beads-context', () => {
     });
 
     it('should read taskTool from config', () => {
-      mockGetOMCConfig.mockReturnValue({
+      mockGetOMACConfig.mockReturnValue({
         silentAutoUpdate: false,
         taskTool: 'beads',
       });
@@ -70,7 +70,7 @@ describe('beads-context', () => {
     });
 
     it('should read taskToolConfig from config', () => {
-      mockGetOMCConfig.mockReturnValue({
+      mockGetOMACConfig.mockReturnValue({
         silentAutoUpdate: false,
         taskTool: 'beads-rust',
         taskToolConfig: {
@@ -89,14 +89,14 @@ describe('beads-context', () => {
 
   describe('registerBeadsContext', () => {
     it('should return false when taskTool is builtin', () => {
-      mockGetOMCConfig.mockReturnValue({ silentAutoUpdate: false });
+      mockGetOMACConfig.mockReturnValue({ silentAutoUpdate: false });
       const result = registerBeadsContext('session-1');
       expect(result).toBe(false);
       expect(mockRegister).not.toHaveBeenCalled();
     });
 
     it('should return false when injectInstructions is false', () => {
-      mockGetOMCConfig.mockReturnValue({
+      mockGetOMACConfig.mockReturnValue({
         silentAutoUpdate: false,
         taskTool: 'beads',
         taskToolConfig: { injectInstructions: false },
@@ -107,7 +107,7 @@ describe('beads-context', () => {
     });
 
     it('should register context for beads tool', () => {
-      mockGetOMCConfig.mockReturnValue({
+      mockGetOMACConfig.mockReturnValue({
         silentAutoUpdate: false,
         taskTool: 'beads',
       });
@@ -122,7 +122,7 @@ describe('beads-context', () => {
     });
 
     it('should register context for beads-rust tool', () => {
-      mockGetOMCConfig.mockReturnValue({
+      mockGetOMACConfig.mockReturnValue({
         silentAutoUpdate: false,
         taskTool: 'beads-rust',
       });
@@ -137,7 +137,7 @@ describe('beads-context', () => {
     });
 
     it('should return false for invalid taskTool value', () => {
-      mockGetOMCConfig.mockReturnValue({
+      mockGetOMACConfig.mockReturnValue({
         silentAutoUpdate: false,
         taskTool: 'invalid-tool' as any,
       });

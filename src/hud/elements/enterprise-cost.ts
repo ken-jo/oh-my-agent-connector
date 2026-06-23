@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Enterprise Cost Element
+ * OMAC HUD - Enterprise Cost Element
  *
  * Renders billing-period cumulative spend for Claude Enterprise subscribers.
  * Shows spent:$X,XXX.XX when unlimited, or spent:$X.XX/$Y.YY (Z%) when capped.

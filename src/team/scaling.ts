@@ -2,7 +2,7 @@
  * Dynamic worker scaling for team mode — Phase 1: Manual Scaling.
  *
  * Provides scale_up (add workers mid-session) and scale_down (drain + remove idle workers).
- * Gated behind the OMC_TEAM_SCALING_ENABLED environment variable.
+ * Gated behind the OMAC_TEAM_SCALING_ENABLED environment variable.
  *
  * Key design decisions:
  * - Monotonic worker index counter (next_worker_index in config) ensures unique names
@@ -53,11 +53,11 @@ import {
 
 // ── Environment gate ──────────────────────────────────────────────────────────
 
-const OMC_TEAM_SCALING_ENABLED_ENV = 'OMC_TEAM_SCALING_ENABLED';
+const OMAC_TEAM_SCALING_ENABLED_ENV = 'OMAC_TEAM_SCALING_ENABLED';
 const CLI_AGENT_TYPES = new Set<CliAgentType>(['claude', 'codex', 'gemini', 'grok']);
 
 export function isScalingEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  const raw = env[OMC_TEAM_SCALING_ENABLED_ENV];
+  const raw = env[OMAC_TEAM_SCALING_ENABLED_ENV];
   if (!raw) return false;
   const normalized = raw.trim().toLowerCase();
   return ['1', 'true', 'yes', 'on', 'enabled'].includes(normalized);
@@ -66,7 +66,7 @@ export function isScalingEnabled(env: NodeJS.ProcessEnv = process.env): boolean 
 function assertScalingEnabled(env: NodeJS.ProcessEnv = process.env): void {
   if (!isScalingEnabled(env)) {
     throw new Error(
-      `Dynamic scaling is disabled. Set ${OMC_TEAM_SCALING_ENABLED_ENV}=1 to enable.`,
+      `Dynamic scaling is disabled. Set ${OMAC_TEAM_SCALING_ENABLED_ENV}=1 to enable.`,
     );
   }
 }
@@ -175,7 +175,7 @@ export async function scaleUp(
       };
     }
 
-    const teamStateRoot = config.team_state_root ?? `${leaderCwd}/.omc/state/team/${sanitized}`;
+    const teamStateRoot = config.team_state_root ?? `${leaderCwd}/.omac/state/team/${sanitized}`;
     const worktreeMode: TeamWorktreeMode = config.worktree_mode ?? 'disabled';
 
     // Resolve the monotonic worker index counter
@@ -381,9 +381,9 @@ export async function scaleUp(
       // Rebuild env using the final agentType (fallback may have swapped it).
       const extraEnv: Record<string, string> = {
         ...getModelWorkerEnv(sanitized, workerName, workerAgentType, env),
-        OMC_TEAM_STATE_ROOT: teamStateRoot,
-        OMC_TEAM_LEADER_CWD: leaderCwd,
-        ...(worktree ? { OMC_TEAM_WORKTREE_PATH: worktree.path, OMC_TEAM_WORKER_CWD: workerCwd } : {}),
+        OMAC_TEAM_STATE_ROOT: teamStateRoot,
+        OMAC_TEAM_LEADER_CWD: leaderCwd,
+        ...(worktree ? { OMAC_TEAM_WORKTREE_PATH: worktree.path, OMAC_TEAM_WORKER_CWD: workerCwd } : {}),
       };
 
       if (worktree) {
@@ -398,7 +398,7 @@ export async function scaleUp(
               description: t.description,
             })),
             cwd: leaderCwd,
-            instructionStateRoot: '$OMC_TEAM_STATE_ROOT',
+            instructionStateRoot: '$OMAC_TEAM_STATE_ROOT',
           };
           const overlayPath = await writeWorkerOverlay(workerOverlayParams);
           const overlayContent = await readFile(overlayPath, 'utf-8');
@@ -478,7 +478,7 @@ export async function scaleUp(
 
       // Wait for worker readiness
       const readyTimeoutMs = resolveWorkerReadyTimeoutMs(env);
-      const skipReadyWait = env.OMC_TEAM_SKIP_READY_WAIT === '1';
+      const skipReadyWait = env.OMAC_TEAM_SKIP_READY_WAIT === '1';
       if (!skipReadyWait) {
         try {
           await waitForPaneReady(paneId, { timeoutMs: readyTimeoutMs });
@@ -691,7 +691,7 @@ export async function scaleDown(
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function resolveWorkerReadyTimeoutMs(env: NodeJS.ProcessEnv): number {
-  const raw = env.OMC_TEAM_READY_TIMEOUT_MS;
+  const raw = env.OMAC_TEAM_READY_TIMEOUT_MS;
   const parsed = Number.parseInt(String(raw ?? ''), 10);
   if (Number.isFinite(parsed) && parsed >= 5_000) return parsed;
   return 45_000;

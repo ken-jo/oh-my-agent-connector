@@ -43,7 +43,7 @@ from typing import Any, Dict, List, Optional, Callable, Tuple
 
 JSON_RPC_VERSION = "2.0"
 PARENT_WATCH_INTERVAL_S = max(
-    float(os.environ.get("OMC_PARENT_POLL_INTERVAL_MS", "1000")) / 1000.0, 0.25
+    float(os.environ.get("OMAC_PARENT_POLL_INTERVAL_MS", "1000")) / 1000.0, 0.25
 )
 
 # JSON-RPC 2.0 Error Codes
@@ -542,7 +542,7 @@ class ExecutionState:
             "clean_memory": _SafeBridgeHelper(clean_memory),
             "get_memory": _SafeBridgeHelper(get_memory_usage),
         }
-        # Always restrict JSON-RPC supplied execution; OMC_PYTHON_SANDBOX no
+        # Always restrict JSON-RPC supplied execution; OMAC_PYTHON_SANDBOX no
         # longer gates builtin safety.
         self._namespace.update(get_sandbox_namespace())
 
@@ -966,7 +966,7 @@ def _get_port_file(socket_path: str) -> str:
 
 def _get_expected_parent_pid() -> Optional[int]:
     """Return the expected parent PID provided by the spawning Node process."""
-    raw_value = os.environ.get("OMC_PARENT_PID")
+    raw_value = os.environ.get("OMAC_PARENT_PID")
     if not raw_value:
         return None
 

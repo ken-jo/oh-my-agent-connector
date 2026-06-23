@@ -14,11 +14,11 @@ afterEach(() => {
 });
 
 describe('update-check cache path', () => {
-  it('uses the active Claude config dir as the canonical OMC cache root', () => {
-    process.env.CLAUDE_CONFIG_DIR = join('/tmp', 'omc-custom-claude');
+  it('uses the active Claude config dir as the canonical OMAC cache root', () => {
+    process.env.CLAUDE_CONFIG_DIR = join('/tmp', 'omac-custom-claude');
 
     expect(getUpdateCheckCachePath()).toBe(
-      join('/tmp', 'omc-custom-claude', '.omc', 'update-check.json'),
+      join('/tmp', 'omac-custom-claude', '.omac', 'update-check.json'),
     );
   });
 
@@ -34,7 +34,7 @@ describe('update-check cache path', () => {
     expect(templateHelperSource).toContain('function getUpdateCheckCachePath()');
 
     for (const source of [hudSource, hookSource, templateSource]) {
-      expect(source).not.toMatch(/join\(homedir\(\),\s*['"]\.omc['"],\s*['"]update-check\.json['"]\)/);
+      expect(source).not.toMatch(/join\(homedir\(\),\s*['"]\.omac['"],\s*['"]update-check\.json['"]\)/);
     }
   });
 });

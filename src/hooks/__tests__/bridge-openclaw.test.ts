@@ -7,21 +7,21 @@ describe("_openclaw.wake", () => {
     vi.restoreAllMocks();
   });
 
-  it("is a no-op when OMC_OPENCLAW is not set", () => {
-    vi.stubEnv("OMC_OPENCLAW", "");
+  it("is a no-op when OMAC_OPENCLAW is not set", () => {
+    vi.stubEnv("OMAC_OPENCLAW", "");
     // Should return undefined without doing anything
     const result = _openclaw.wake("session-start", { sessionId: "sid-1" });
     expect(result).toBeUndefined();
   });
 
-  it("is a no-op when OMC_OPENCLAW is not '1'", () => {
-    vi.stubEnv("OMC_OPENCLAW", "true");
+  it("is a no-op when OMAC_OPENCLAW is not '1'", () => {
+    vi.stubEnv("OMAC_OPENCLAW", "true");
     const result = _openclaw.wake("session-start", { sessionId: "sid-1" });
     expect(result).toBeUndefined();
   });
 
-  it("triggers the dynamic import when OMC_OPENCLAW === '1'", async () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+  it("triggers the dynamic import when OMAC_OPENCLAW === '1'", async () => {
+    vi.stubEnv("OMAC_OPENCLAW", "1");
 
     // Mock the dynamic import of openclaw/index.js
     const mockWakeOpenClaw = vi.fn().mockResolvedValue({ gateway: "test", success: true });
@@ -38,7 +38,7 @@ describe("_openclaw.wake", () => {
   });
 
   it("logs when wakeOpenClaw rejects but does not throw", async () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+    vi.stubEnv("OMAC_OPENCLAW", "1");
     vi.resetModules();
 
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -57,14 +57,14 @@ describe("_openclaw.wake", () => {
     }
 
     expect(warnSpy).toHaveBeenCalledWith(
-      '[omc] hooks.bridge openclaw wake failed for session-start: gateway down',
+      '[omac] hooks.bridge openclaw wake failed for session-start: gateway down',
     );
 
     vi.doUnmock("../../openclaw/index.js");
   });
 
-  it("does not throw when OMC_OPENCLAW === '1' and import fails", async () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+  it("does not throw when OMAC_OPENCLAW === '1' and import fails", async () => {
+    vi.stubEnv("OMAC_OPENCLAW", "1");
 
     // Even if the dynamic import fails, _openclaw.wake should not throw
     expect(() => {
@@ -76,8 +76,8 @@ describe("_openclaw.wake", () => {
   });
 
   it("accepts all supported hook event types", () => {
-    vi.stubEnv("OMC_OPENCLAW", "");
-    // These should all be callable without type errors (no-op since OMC_OPENCLAW not set)
+    vi.stubEnv("OMAC_OPENCLAW", "");
+    // These should all be callable without type errors (no-op since OMAC_OPENCLAW not set)
     expect(() => _openclaw.wake("session-start", {})).not.toThrow();
     expect(() => _openclaw.wake("session-end", {})).not.toThrow();
     expect(() => _openclaw.wake("pre-tool-use", { toolName: "Bash" })).not.toThrow();
@@ -88,7 +88,7 @@ describe("_openclaw.wake", () => {
   });
 
   it("passes context fields through to wakeOpenClaw", async () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+    vi.stubEnv("OMAC_OPENCLAW", "1");
 
     const mockWakeOpenClaw = vi.fn().mockResolvedValue(null);
     vi.doMock("../../openclaw/index.js", () => ({
@@ -110,10 +110,10 @@ describe("bridge-level regression tests", () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    delete process.env.DISABLE_OMC;
-    delete process.env.OMC_SKIP_HOOKS;
-    delete process.env.OMC_OPENCLAW;
-    delete process.env.OMC_NOTIFY;
+    delete process.env.DISABLE_OMAC;
+    delete process.env.OMAC_SKIP_HOOKS;
+    delete process.env.OMAC_OPENCLAW;
+    delete process.env.OMAC_NOTIFY;
     resetSkipHooksCache();
   });
 
@@ -152,8 +152,8 @@ describe("bridge-level regression tests", () => {
   });
 
   it("pre-tool-use emits only the dedicated ask-user-question OpenClaw signal", async () => {
-    process.env.OMC_OPENCLAW = "1";
-    process.env.OMC_NOTIFY = "0"; // suppress real notifications
+    process.env.OMAC_OPENCLAW = "1";
+    process.env.OMAC_NOTIFY = "0"; // suppress real notifications
 
     const wakeSpy = vi.spyOn(_openclaw, "wake");
 
@@ -181,7 +181,7 @@ describe("bridge-level regression tests", () => {
   });
 
   it("post-tool-use skips generic OpenClaw emission for AskUserQuestion", async () => {
-    process.env.OMC_OPENCLAW = "1";
+    process.env.OMAC_OPENCLAW = "1";
     const wakeSpy = vi.spyOn(_openclaw, "wake");
 
     await processHook("post-tool-use", {

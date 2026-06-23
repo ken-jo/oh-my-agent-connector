@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * OMC Keyword Detector Hook (Node.js)
+ * OMAC Keyword Detector Hook (Node.js)
  * Detects magic keywords and invokes skill tools
  * Cross-platform: Windows, macOS, Linux
  *
  * Supported keywords (in priority order):
- * 1. cancelomc/stopomc: Stop active modes
+ * 1. cancelomac/stopomac: Stop active modes
  * 2. ralph: Persistence mode until task completion
  * 3. autopilot: Full autonomous execution
  * 4. team: Explicit-only via /team (not auto-triggered)
@@ -38,7 +38,7 @@ const { getClaudeConfigDir } = await import(pathToFileURL(join(__dirname, 'lib',
 const { resolveSessionStatePathsForHook } = await import(pathToFileURL(join(__dirname, 'lib', 'state-root.mjs')).href);
 
 
-const _omcRoot = process.env.CLAUDE_PLUGIN_ROOT || join(__dirname, '..');
+const _omacRoot = process.env.CLAUDE_PLUGIN_ROOT || join(__dirname, '..');
 const SKILL_INVOCATION_USER_REQUEST_MAX = 1200;
 
 function compactHookText(text, maxChars = SKILL_INVOCATION_USER_REQUEST_MAX) {
@@ -51,7 +51,7 @@ function compactHookText(text, maxChars = SKILL_INVOCATION_USER_REQUEST_MAX) {
 function getSkillPathCandidates(skillName) {
   const roots = [
     process.env.CLAUDE_PLUGIN_ROOT,
-    _omcRoot,
+    _omacRoot,
     process.cwd(),
   ].filter(Boolean);
   return [...new Set(roots.map(root => join(root, 'skills', skillName, 'SKILL.md')))];
@@ -146,7 +146,7 @@ function extractPrompt(input) {
 }
 
 function isExplicitAskSlashInvocation(prompt) {
-  return /^\s*\/(?:oh-my-claudecode:)?ask\s+(?:claude|codex|gemini|grok)\b/i.test(prompt);
+  return /^\s*\/(?:oh-my-agent-connector:)?ask\s+(?:claude|codex|gemini|grok)\b/i.test(prompt);
 }
 
 // Sanitize text to prevent false positives from code blocks, XML tags, URLs, and file paths
@@ -368,7 +368,7 @@ const QUESTION_FOLLOWUP_PATTERNS = [
 // recognized block header. They must be stripped only in that context —
 // never standalone — because a user might legitimately start a prompt with
 // "Task: …" or similar (Codex automated review P1/P2 on #2795).
-const ECHO_CONTINUATION = '(?:\\r?\\n[ \\t]*(?:Task:\\s|When FULLY complete \\(after Architect verification\\)|run\\s+\\/oh-my-claudecode:cancel).*)*';
+const ECHO_CONTINUATION = '(?:\\r?\\n[ \\t]*(?:Task:\\s|When FULLY complete \\(after Architect verification\\)|run\\s+\\/oh-my-agent-connector:cancel).*)*';
 
 // Each pattern is a single logical block: the block header line + zero or
 // more continuation lines emitted right after it. The whole match is
@@ -397,7 +397,7 @@ const SYSTEM_ECHO_BLOCK_PATTERNS = [
 
 const SYSTEM_ECHO_SIGNATURES = [
   /\bWhen FULLY complete \(after Architect verification\)\b/i,
-  /\brun\s+\/oh-my-claudecode:cancel\b/i,
+  /\brun\s+\/oh-my-agent-connector:cancel\b/i,
   /\[RALPH LOOP\s*-\s*ITERATION\b/i,
 ];
 
@@ -726,7 +726,7 @@ async function activateState(directory, prompt, stateName, sessionId) {
   } catch {}
 
   // Also write to global fallback
-  const globalDir = join(homedir(), '.omc', 'state');
+  const globalDir = join(homedir(), '.omac', 'state');
   try {
     if (!existsSync(globalDir)) mkdirSync(globalDir, { recursive: true });
     atomicWriteFileSync(join(globalDir, `${stateName}-state.json`), JSON.stringify(state, null, 2));
@@ -739,7 +739,7 @@ async function activateState(directory, prompt, stateName, sessionId) {
 async function clearStateFiles(directory, modeNames) {
   for (const name of modeNames) {
     const { writePath: localPath } = await resolveSessionStatePathsForHook(directory, name, undefined);
-    const globalPath = join(homedir(), '.omc', 'state', `${name}-state.json`);
+    const globalPath = join(homedir(), '.omac', 'state', `${name}-state.json`);
     try { if (existsSync(localPath)) unlinkSync(localPath); } catch {}
     try { if (existsSync(globalPath)) unlinkSync(globalPath); } catch {}
   }
@@ -787,12 +787,12 @@ Arguments: ${args}` : '';
   const skillPath = resolveSkillPath(skillName);
   const pathStatus = existsSync(skillPath)
     ? `Read fallback: open ${skillPath} and follow its SKILL.md instructions.`
-    : `Read fallback: locate skills/${skillName}/SKILL.md in the active oh-my-claudecode plugin/install and follow it.`;
+    : `Read fallback: locate skills/${skillName}/SKILL.md in the active oh-my-agent-connector plugin/install and follow it.`;
 
   return `[MAGIC KEYWORD: ${skillName.toUpperCase()}]
 
 Skill routing detected: ${skillName}
-Preferred invocation: /oh-my-claudecode:${skillName}${args ? ` ${args}` : ''}
+Preferred invocation: /oh-my-agent-connector:${skillName}${args ? ` ${args}` : ''}
 ${pathStatus}${argsSection}
 
 User request (compact echo; original prompt remains authoritative):
@@ -815,9 +815,9 @@ function createMultiSkillInvocation(skills, originalPrompt) {
     const argsText = s.args ? ` ${s.args}` : '';
     const pathStatus = existsSync(skillPath)
       ? `Read fallback: ${skillPath}`
-      : `Read fallback: locate skills/${s.name}/SKILL.md in the active oh-my-claudecode plugin/install`;
+      : `Read fallback: locate skills/${s.name}/SKILL.md in the active oh-my-agent-connector plugin/install`;
     return `### Skill ${i + 1}: ${s.name.toUpperCase()}
-Preferred invocation: /oh-my-claudecode:${s.name}${argsText}
+Preferred invocation: /oh-my-agent-connector:${s.name}${argsText}
 ${pathStatus}`;
   }).join('\n\n');
 
@@ -911,16 +911,16 @@ function isTeamEnabled() {
 
 // Main
 async function main() {
-  // Skip guard: check OMC_SKIP_HOOKS env var (see issue #838)
-  const _skipHooks = (process.env.OMC_SKIP_HOOKS || '').split(',').map(s => s.trim());
-  if (process.env.DISABLE_OMC === '1' || _skipHooks.includes('keyword-detector')) {
+  // Skip guard: check OMAC_SKIP_HOOKS env var (see issue #838)
+  const _skipHooks = (process.env.OMAC_SKIP_HOOKS || '').split(',').map(s => s.trim());
+  if (process.env.DISABLE_OMAC === '1' || _skipHooks.includes('keyword-detector')) {
     console.log(JSON.stringify({ continue: true }));
     return;
   }
 
   // Team worker guard: prevent keyword detection inside team workers to avoid
   // infinite spawning loops (worker detects "team" -> invokes team skill -> spawns more workers)
-  if (process.env.OMC_TEAM_WORKER) {
+  if (process.env.OMAC_TEAM_WORKER) {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
     return;
   }
@@ -956,7 +956,7 @@ async function main() {
     const matches = [];
 
     // Cancel keywords
-    if (hasActionableKeyword(cleanPrompt, /\b(cancelomc|stopomc)\b/i)) {
+    if (hasActionableKeyword(cleanPrompt, /\b(cancelomac|stopomac)\b/i)) {
       matches.push({ name: 'cancel', args: '' });
     }
 

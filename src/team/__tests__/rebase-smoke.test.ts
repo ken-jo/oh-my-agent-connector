@@ -21,11 +21,11 @@ import {
 } from '../merge-orchestrator.js';
 
 beforeAll(() => {
-  process.env.OMC_RUNTIME_V2 = '1';
+  process.env.OMAC_RUNTIME_V2 = '1';
 });
 
 afterEach(() => {
-  process.env.OMC_RUNTIME_V2 = '1';
+  process.env.OMAC_RUNTIME_V2 = '1';
 });
 
 function makeConfig(fixture: GitFixture, overrides: Partial<OrchestratorConfig> = {}): OrchestratorConfig {
@@ -59,7 +59,7 @@ describe('rebase fan-out after clean merge', () => {
 
   beforeEach(async () => {
     fixture = await createGitFixture({ workerCount: 3 });
-    process.env.OMC_RUNTIME_V2 = '1';
+    process.env.OMAC_RUNTIME_V2 = '1';
     handle = await startMergeOrchestrator(makeConfig(fixture));
     await handle.registerWorker('worker-1');
     await handle.registerWorker('worker-2');
@@ -121,7 +121,7 @@ describe('merger worktree startup', () => {
       keepLeaderBranchCheckedOut: true,
       teamName: 'checked-out-leader-team',
     });
-    process.env.OMC_RUNTIME_V2 = '1';
+    process.env.OMAC_RUNTIME_V2 = '1';
 
     handle = await startMergeOrchestrator(makeConfig(fixture));
 
@@ -139,7 +139,7 @@ describe('rebase conflict mailbox delivery', () => {
 
   beforeEach(async () => {
     fixture = await createGitFixture({ workerCount: 2 });
-    process.env.OMC_RUNTIME_V2 = '1';
+    process.env.OMAC_RUNTIME_V2 = '1';
   });
 
   afterEach(async () => {
@@ -192,7 +192,7 @@ describe('rebase conflict mailbox delivery', () => {
       // Check rebasing worker inbox has conflict message
       const rebasingWorkerInboxPath = join(
         fixture.repoRoot,
-        '.omc', 'state', 'team', fixture.teamName,
+        '.omac', 'state', 'team', fixture.teamName,
         'workers', rebasingWorkerName, 'inbox.md',
       );
       expect(existsSync(rebasingWorkerInboxPath)).toBe(true);
@@ -215,7 +215,7 @@ describe('M1: existing rebase short-circuit', () => {
 
   beforeEach(async () => {
     fixture = await createGitFixture({ workerCount: 3 });
-    process.env.OMC_RUNTIME_V2 = '1';
+    process.env.OMAC_RUNTIME_V2 = '1';
   });
 
   afterEach(async () => {
@@ -266,7 +266,7 @@ describe('M4: dirty-tree audit on rebase resolution', () => {
 
   beforeEach(async () => {
     fixture = await createGitFixture({ workerCount: 2 });
-    process.env.OMC_RUNTIME_V2 = '1';
+    process.env.OMAC_RUNTIME_V2 = '1';
   });
 
   afterEach(async () => {
@@ -339,7 +339,7 @@ describe('M4: dirty-tree audit on rebase resolution', () => {
       // Check inbox for audit message
       const rebasingWorkerInboxPath = join(
         fixture.repoRoot,
-        '.omc', 'state', 'team', fixture.teamName,
+        '.omac', 'state', 'team', fixture.teamName,
         'workers', rebasingWorkerName, 'inbox.md',
       );
 

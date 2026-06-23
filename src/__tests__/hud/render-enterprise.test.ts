@@ -40,7 +40,7 @@ function createContext(overrides: Partial<HudRenderContext> = {}): HudRenderCont
     pendingPermission: null,
     thinkingState: null,
     sessionHealth: null,
-    omcVersion: null,
+    omacVersion: null,
     updateAvailable: null,
     toolCallCount: 0,
     agentCallCount: 0,
@@ -58,7 +58,7 @@ function createConfig(overrides: Partial<HudConfig['elements']> = {}): HudConfig
     ...DEFAULT_HUD_CONFIG,
     elements: {
       ...DEFAULT_HUD_CONFIG.elements,
-      omcLabel: false,
+      omacLabel: false,
       rateLimits: false,
       ralph: false,
       autopilot: false,

@@ -1,11 +1,11 @@
 /**
- * omc team CLI subcommand
+ * omac team CLI subcommand
  *
- * Full team lifecycle for `omc team`:
- *   omc team [N:agent-type] "task"          Start team (spawns tmux worker panes)
- *   omc team status <team-name>             Monitor team status
- *   omc team shutdown <team-name> [--force] Shutdown team
- *   omc team api <operation> --input '...'  Worker CLI API
+ * Full team lifecycle for `omac team`:
+ *   omac team [N:agent-type] "task"          Start team (spawns tmux worker panes)
+ *   omac team status <team-name>             Monitor team status
+ *   omac team shutdown <team-name> [--force] Shutdown team
+ *   omac team api <operation> --input '...'  Worker CLI API
  */
 
 import {
@@ -21,7 +21,7 @@ import { loadConfig } from '../../config/loader.js';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmuxExec } from '../tmux-utils.js';
-import { getOmcRoot } from '../../lib/worktree-paths.js';
+import { getOmacRoot } from '../../lib/worktree-paths.js';
 
 const HELP_TOKENS = new Set(['--help', '-h', 'help']);
 const MIN_WORKER_COUNT = 1;
@@ -30,46 +30,46 @@ const VALID_TEAM_CLI_AGENT_TYPES = new Set(['claude', 'codex', 'gemini', 'grok']
 const DEFAULT_TEAM_CLI_AGENT_TYPE: CliAgentType = 'claude';
 
 const TEAM_HELP = `
-Usage: omc team [N:agent-type[:role]] [--new-window] [--auto-merge] [--no-decompose] "<task description>"
-       omc team status <team-name>
-       omc team shutdown <team-name> [--force]
-       omc team api <operation> [--input <json>] [--json]
-       omc team api --help
+Usage: omac team [N:agent-type[:role]] [--new-window] [--auto-merge] [--no-decompose] "<task description>"
+       omac team status <team-name>
+       omac team shutdown <team-name> [--force]
+       omac team api <operation> [--input <json>] [--json]
+       omac team api --help
 
 Examples:
-  omc team 3:claude "fix failing tests"
-  omc team 2:codex:architect "design auth system"
-  omc team 1:gemini:executor "implement feature"
-  omc team 1:codex,1:gemini "compare approaches"
-  omc team 2:codex "review auth flow" --new-window
-  omc team status fix-failing-tests
-  omc team shutdown fix-failing-tests
-  omc team api send-message --input '{"team_name":"my-team","from_worker":"worker-1","to_worker":"leader-fixed","body":"ACK"}' --json
+  omac team 3:claude "fix failing tests"
+  omac team 2:codex:architect "design auth system"
+  omac team 1:gemini:executor "implement feature"
+  omac team 1:codex,1:gemini "compare approaches"
+  omac team 2:codex "review auth flow" --new-window
+  omac team status fix-failing-tests
+  omac team shutdown fix-failing-tests
+  omac team api send-message --input '{"team_name":"my-team","from_worker":"worker-1","to_worker":"leader-fixed","body":"ACK"}' --json
 
-Worktrees (opt-in): set team.ops.worktreeMode or OMC_TEAM_WORKTREE_MODE=detached|branch to launch workers from .omc/team/<team>/worktrees/<worker>. Status includes workspace/worktree metadata.
+Worktrees (opt-in): set team.ops.worktreeMode or OMAC_TEAM_WORKTREE_MODE=detached|branch to launch workers from .omac/team/<team>/worktrees/<worker>. Status includes workspace/worktree metadata.
 
 Auto-merge (v2-only):
   --no-decompose       Treat the launch text as pre-authored/fixed worker scope; do not split by commas/lists.
   --auto-merge          Enable per-commit auto-merge to leader and auto-rebase fanout.
-                        Each worker runs in a dedicated git worktree on omc-team/{team}/{worker}.
+                        Each worker runs in a dedicated git worktree on omac-team/{team}/{worker}.
                         Bursts of rapid worker commits coalesce to a single merge of HEAD.
-                        Requires OMC_RUNTIME_V2=1. Leader branch must not be 'main' or 'master'.
-                        Equivalent to OMC_TEAMS_AUTO_MERGE=1.
+                        Requires OMAC_RUNTIME_V2=1. Leader branch must not be 'main' or 'master'.
+                        Equivalent to OMAC_TEAMS_AUTO_MERGE=1.
 
 Roles (optional): architect, executor, planner, analyst, critic, debugger, verifier,
   code-reviewer, security-reviewer, test-engineer, designer, writer, scientist
 `;
 
 const TEAM_API_HELP = `
-Usage: omc team api <operation> [--input <json>] [--json]
-       omc team api <operation> --help
+Usage: omac team api <operation> [--input <json>] [--json]
+       omac team api <operation> --help
 
 Supported operations:
   ${TEAM_API_OPERATIONS.join('\n  ')}
 
 Examples:
-  omc team api list-tasks --input '{"team_name":"my-team"}' --json
-  omc team api claim-task --input '{"team_name":"my-team","task_id":"1","worker":"worker-1","expected_version":1}' --json
+  omac team api list-tasks --input '{"team_name":"my-team"}' --json
+  omac team api claim-task --input '{"team_name":"my-team","task_id":"1","worker":"worker-1","expected_version":1}' --json
 `;
 
 const TEAM_API_OPERATION_REQUIRED_FIELDS: Record<TeamApiOperation, string[]> = {
@@ -246,7 +246,7 @@ function slugifyTask(task: string): string {
 
 export function resolveAvailableTeamName(baseName: string, cwd: string): string {
   const sanitizedBase = slugifyTask(baseName);
-  const stateRoot = join(getOmcRoot(cwd), 'state', 'team');
+  const stateRoot = join(getOmacRoot(cwd), 'state', 'team');
   const teamDir = (name: string) => join(stateRoot, name);
   if (!existsSync(teamDir(sanitizedBase))) return sanitizedBase;
 
@@ -256,7 +256,7 @@ export function resolveAvailableTeamName(baseName: string, cwd: string): string 
     if (!existsSync(teamDir(candidate))) return candidate;
   }
 
-  throw new Error(`Unable to allocate a fresh team name for ${sanitizedBase}; remove stale .omc/state/team entries or choose a more specific launch task.`);
+  throw new Error(`Unable to allocate a fresh team name for ${sanitizedBase}; remove stale .omac/state/team entries or choose a more specific launch task.`);
 }
 
 export interface ParsedWorkerSpec {
@@ -296,8 +296,8 @@ function isTeamStateLive(config: { tmux_session?: string } | null): boolean {
 }
 
 function getTeamWorkerIdentityFromEnv(env: NodeJS.ProcessEnv = process.env): string | null {
-  const omc = typeof env.OMC_TEAM_WORKER === 'string' ? env.OMC_TEAM_WORKER.trim() : '';
-  if (omc) return omc;
+  const omac = typeof env.OMAC_TEAM_WORKER === 'string' ? env.OMAC_TEAM_WORKER.trim() : '';
+  if (omac) return omac;
   const omx = typeof env.OMX_TEAM_WORKER === 'string' ? env.OMX_TEAM_WORKER.trim() : '';
   return omx || null;
 }
@@ -380,7 +380,7 @@ export function parseTeamArgs(tokens: string[], defaultAgentType: string = 'clau
   let workerSpecs: ParsedWorkerSpec[] = [];
   let json = false;
   let newWindow = false;
-  let autoMerge: boolean = process.env.OMC_TEAMS_AUTO_MERGE === '1';
+  let autoMerge: boolean = process.env.OMAC_TEAMS_AUTO_MERGE === '1';
   let noDecompose = false;
   const normalizedDefaultAgentType = VALID_TEAM_CLI_AGENT_TYPES.has(defaultAgentType as CliAgentType)
     ? defaultAgentType
@@ -478,7 +478,7 @@ export function parseTeamArgs(tokens: string[], defaultAgentType: string = 'clau
 
   const task = filteredArgs.join(' ').trim();
   if (!task) {
-    throw new Error('Usage: omc team [N:agent-type] "<task description>"');
+    throw new Error('Usage: omac team [N:agent-type] "<task description>"');
   }
 
   const teamName = slugifyTask(task);
@@ -618,11 +618,11 @@ function buildOperationHelp(operation: TeamApiOperation): string {
     : '';
 
   return `
-Usage: omc team api ${operation} --input <json> [--json]
+Usage: omac team api ${operation} --input <json> [--json]
 
 Required input fields:
 ${required}${optional}${note}Example:
-  omc team api ${operation} --input '${sampleInputJson}' --json
+  omac team api ${operation} --input '${sampleInputJson}' --json
 `.trim();
 }
 
@@ -633,7 +633,7 @@ function parseTeamApiArgs(args: string[]): {
 } {
   const operation = resolveTeamApiOperation(args[0] || '');
   if (!operation) {
-    throw new Error(`Usage: omc team api <operation> [--input <json>] [--json]\nSupported operations: ${TEAM_API_OPERATIONS.join(', ')}`);
+    throw new Error(`Usage: omac team api <operation> [--input <json>] [--json]\nSupported operations: ${TEAM_API_OPERATIONS.join(', ')}`);
   }
   let input: Record<string, unknown> = {};
   let json = false;
@@ -671,7 +671,7 @@ function parseTeamApiArgs(args: string[]): {
       }
       continue;
     }
-    throw new Error(`Unknown argument for "omc team api": ${token}`);
+    throw new Error(`Unknown argument for "omac team api": ${token}`);
   }
   return { operation, input, json };
 }
@@ -703,7 +703,7 @@ async function handleTeamStart(parsed: ParsedTeamArgs, cwd: string): Promise<voi
     rolePrompt = loadAgentPrompt(parsed.role);
   }
 
-  // Use v2 runtime by default (OMC_RUNTIME_V2 opt-out), otherwise fall back to v1
+  // Use v2 runtime by default (OMAC_RUNTIME_V2 opt-out), otherwise fall back to v1
   const { isRuntimeV2Enabled } = await import('../../team/runtime-v2.js');
   if (isRuntimeV2Enabled()) {
     const { startTeamV2, monitorTeamV2 } = await import('../../team/runtime-v2.js');
@@ -863,7 +863,7 @@ async function handleTeamShutdown(teamName: string, cwd: string, force: boolean)
 
   // v1 fallback
   const { shutdownTeam } = await import('../../team/runtime.js');
-  await shutdownTeam(teamName, `omc-team-${teamName}`, cwd);
+  await shutdownTeam(teamName, `omac-team-${teamName}`, cwd);
   console.log(`Team shutdown complete: ${teamName}`);
 }
 
@@ -874,7 +874,7 @@ async function handleTeamShutdown(teamName: string, cwd: string, force: boolean)
 async function handleTeamApi(args: string[], cwd: string): Promise<void> {
   const apiSubcommand = (args[0] || '').toLowerCase();
 
-  // omc team api --help
+  // omac team api --help
   if (HELP_TOKENS.has(apiSubcommand)) {
     const operationFromHelpAlias = resolveTeamApiOperation((args[1] || '').toLowerCase());
     if (operationFromHelpAlias) {
@@ -885,7 +885,7 @@ async function handleTeamApi(args: string[], cwd: string): Promise<void> {
     return;
   }
 
-  // omc team api <operation> --help
+  // omac team api <operation> --help
   const operation = resolveTeamApiOperation(apiSubcommand);
   if (operation) {
     const trailing = args.slice(1).map((token) => token.toLowerCase());
@@ -909,7 +909,7 @@ async function handleTeamApi(args: string[], cwd: string): Promise<void> {
       console.log(JSON.stringify({
         ...jsonBase,
         ok: false,
-        command: 'omc team api',
+        command: 'omac team api',
         operation: 'unknown',
         error: {
           code: 'invalid_input',
@@ -926,7 +926,7 @@ async function handleTeamApi(args: string[], cwd: string): Promise<void> {
   if (parsedApi.json) {
     console.log(JSON.stringify({
       ...jsonBase,
-      command: `omc team api ${parsedApi.operation}`,
+      command: `omac team api ${parsedApi.operation}`,
       ...envelope,
     }));
     if (!envelope.ok) process.exitCode = 1;
@@ -948,10 +948,10 @@ async function handleTeamApi(args: string[], cwd: string): Promise<void> {
 /**
  * Main team subcommand handler.
  * Routes:
- *   omc team [N:agent-type] "task"          -> Start team
- *   omc team status <team-name>             -> Monitor
- *   omc team shutdown <team-name> [--force] -> Shutdown
- *   omc team api <operation> [--input] ...  -> Worker CLI API
+ *   omac team [N:agent-type] "task"          -> Start team
+ *   omac team status <team-name>             -> Monitor
+ *   omac team shutdown <team-name> [--force] -> Shutdown
+ *   omac team api <operation> [--input] ...  -> Worker CLI API
  */
 export async function teamCommand(args: string[]): Promise<void> {
   const cwd = process.cwd();
@@ -963,31 +963,31 @@ export async function teamCommand(args: string[]): Promise<void> {
     return;
   }
 
-  // omc team api <operation> ...
+  // omac team api <operation> ...
   if (subcommand === 'api') {
     await handleTeamApi(args.slice(1), cwd);
     return;
   }
 
-  // omc team status <team-name>
+  // omac team status <team-name>
   if (subcommand === 'status') {
     const name = args[1];
-    if (!name) throw new Error('Usage: omc team status <team-name>');
+    if (!name) throw new Error('Usage: omac team status <team-name>');
     await handleTeamStatus(name, cwd);
     return;
   }
 
-  // omc team shutdown <team-name> [--force]
+  // omac team shutdown <team-name> [--force]
   if (subcommand === 'shutdown') {
     const nameOrFlag = args.filter(a => !a.startsWith('--'));
     const name = nameOrFlag[1]; // skip 'shutdown' itself
-    if (!name) throw new Error('Usage: omc team shutdown <team-name> [--force]');
+    if (!name) throw new Error('Usage: omac team shutdown <team-name> [--force]');
     const force = args.includes('--force');
     await handleTeamShutdown(name, cwd, force);
     return;
   }
 
-  // Default: omc team [N:agent-type] "task" -> Start team
+  // Default: omac team [N:agent-type] "task" -> Start team
   try {
     // Honor team.ops.defaultAgentType when user hasn't supplied N:agent-type.
     const cfg = loadConfig();

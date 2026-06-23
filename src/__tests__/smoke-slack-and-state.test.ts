@@ -19,23 +19,23 @@ import { tmpdir } from 'os';
 // Module-level mock for worktree-paths (required before any state-tool imports)
 // ============================================================================
 
-const mockGetOmcRoot = vi.fn<(worktreeRoot?: string) => string>();
+const mockGetOmacRoot = vi.fn<(worktreeRoot?: string) => string>();
 vi.mock('../lib/worktree-paths.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../lib/worktree-paths.js')>();
   return {
     ...actual,
-    getOmcRoot: (...args: [string?]) => mockGetOmcRoot(...args),
+    getOmacRoot: (...args: [string?]) => mockGetOmacRoot(...args),
     validateWorkingDirectory: (dir?: string) => dir || '/tmp',
   };
 });
 
-// Mock mode-registry — clearModeState/isModeActive use getOmcRoot internally,
-// and we need them to honour the same mockGetOmcRoot as worktree-paths.
+// Mock mode-registry — clearModeState/isModeActive use getOmacRoot internally,
+// and we need them to honour the same mockGetOmacRoot as worktree-paths.
 vi.mock('../hooks/mode-registry/index.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../hooks/mode-registry/index.js')>();
   return {
     ...actual,
-    // Passthrough but ensure the mock getOmcRoot from worktree-paths is used
+    // Passthrough but ensure the mock getOmacRoot from worktree-paths is used
     canStartMode: () => ({ allowed: true }),
     registerActiveMode: vi.fn(),
     deregisterActiveMode: vi.fn(),
@@ -514,16 +514,16 @@ import {
 
 describe('SMOKE: State Cancel Cleanup — session-scoped I/O (issue #1143)', () => {
   let testDir: string;
-  let omcDir: string;
+  let omacDir: string;
 
   beforeEach(() => {
     testDir = join(
       tmpdir(),
       `smoke-state-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     );
-    omcDir = join(testDir, '.omc');
-    mkdirSync(omcDir, { recursive: true });
-    mockGetOmcRoot.mockReturnValue(omcDir);
+    omacDir = join(testDir, '.omac');
+    mkdirSync(omacDir, { recursive: true });
+    mockGetOmacRoot.mockReturnValue(omacDir);
   });
 
   afterEach(() => {
@@ -597,9 +597,9 @@ describe('SMOKE: State Cancel Cleanup — session-scoped I/O (issue #1143)', () 
     const after = Date.now();
 
     // Compute path directly — avoids mock boundary issues with resolveSessionStatePath internals.
-    // State tools write to: {omcRoot}/state/sessions/{sessionId}/cancel-signal-state.json
-    // omcRoot = getOmcRoot(root) = mockGetOmcRoot(testDir) = omcDir
-    const cancelSignalPath = join(omcDir, 'state', 'sessions', sessionId, 'cancel-signal-state.json');
+    // State tools write to: {omacRoot}/state/sessions/{sessionId}/cancel-signal-state.json
+    // omacRoot = getOmacRoot(root) = mockGetOmacRoot(testDir) = omacDir
+    const cancelSignalPath = join(omacDir, 'state', 'sessions', sessionId, 'cancel-signal-state.json');
     expect(existsSync(cancelSignalPath)).toBe(true);
 
     const signal = JSON.parse(readFileSync(cancelSignalPath, 'utf-8'));
@@ -626,7 +626,7 @@ describe('SMOKE: State Cancel Cleanup — session-scoped I/O (issue #1143)', () 
     });
 
     // Plant a legacy ghost file with matching sessionId in _meta
-    const legacyDir = join(omcDir, 'state');
+    const legacyDir = join(omacDir, 'state');
     mkdirSync(legacyDir, { recursive: true });
     const legacyPath = join(legacyDir, 'ultrawork-state.json');
     writeFileSync(
@@ -657,7 +657,7 @@ describe('SMOKE: State Cancel Cleanup — session-scoped I/O (issue #1143)', () 
     });
 
     // Plant a legacy ghost file belonging to another session
-    const legacyDir = join(omcDir, 'state');
+    const legacyDir = join(omacDir, 'state');
     mkdirSync(legacyDir, { recursive: true });
     const legacyPath = join(legacyDir, 'ultrawork-state.json');
     writeFileSync(
@@ -691,7 +691,7 @@ describe('SMOKE: State Cancel Cleanup — session-scoped I/O (issue #1143)', () 
     });
 
     // Write a legacy path directly
-    const legacyDir = join(omcDir, 'state');
+    const legacyDir = join(omacDir, 'state');
     mkdirSync(legacyDir, { recursive: true });
     const legacyPath = join(legacyDir, 'team-state.json');
     writeFileSync(legacyPath, JSON.stringify({ active: true }));
@@ -702,8 +702,8 @@ describe('SMOKE: State Cancel Cleanup — session-scoped I/O (issue #1143)', () 
     expect(clearResult).toContain('WARNING');
 
     // Both session paths should be gone
-    const sessAPath = resolveSessionStatePath('team', 'broadcast-sess-a', omcDir);
-    const sessBPath = resolveSessionStatePath('team', 'broadcast-sess-b', omcDir);
+    const sessAPath = resolveSessionStatePath('team', 'broadcast-sess-a', omacDir);
+    const sessBPath = resolveSessionStatePath('team', 'broadcast-sess-b', omacDir);
     expect(existsSync(sessAPath)).toBe(false);
     expect(existsSync(sessBPath)).toBe(false);
     expect(existsSync(legacyPath)).toBe(false);

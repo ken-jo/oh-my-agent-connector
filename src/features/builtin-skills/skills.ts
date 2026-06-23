@@ -14,7 +14,7 @@ import { join, dirname, basename, resolve, relative, isAbsolute, win32 } from 'p
 import { fileURLToPath } from 'url';
 import type { BuiltinSkill } from './types.js';
 import { parseFrontmatter, parseFrontmatterAliases } from '../../utils/frontmatter.js';
-import { rewriteOmcCliInvocations } from '../../utils/omc-cli-rendering.js';
+import { rewriteOmacCliInvocations } from '../../utils/omac-cli-rendering.js';
 import { parseSkillPipelineMetadata, renderSkillPipelineGuidance } from '../../utils/skill-pipeline.js';
 import { renderSkillResourcesGuidance } from '../../utils/skill-resources.js';
 import { renderSkillRuntimeGuidance } from './runtime-guidance.js';
@@ -52,8 +52,8 @@ function getPackageDir(): string {
 const SKILLS_DIR = join(getPackageDir(), 'skills');
 
 /**
- * Claude Code native commands that must not be shadowed by OMC skill short names.
- * Skills with these names will still load but their name will be prefixed with 'omc-'
+ * Claude Code native commands that must not be shadowed by OMAC skill short names.
+ * Skills with these names will still load but their name will be prefixed with 'omac-'
  * to avoid overriding built-in /review, /plan, /security-review etc.
  */
 const CC_NATIVE_COMMANDS = new Set([
@@ -80,7 +80,7 @@ const DEFAULT_DEEP_INTERVIEW_AMBIGUITY_THRESHOLD = 0.2;
 function toSafeSkillName(name: string): string {
   const normalized = name.trim();
   return CC_NATIVE_COMMANDS.has(normalized.toLowerCase())
-    ? `omc-${normalized}`
+    ? `omac-${normalized}`
     : normalized;
 }
 
@@ -101,12 +101,12 @@ function readJsonObject(path: string): Record<string, unknown> | null {
 
 function readDeepInterviewThresholdFromSettings(path: string): number | null {
   const settings = readJsonObject(path);
-  const omc = settings?.omc;
-  if (!omc || typeof omc !== 'object' || Array.isArray(omc)) {
+  const omac = settings?.omac;
+  if (!omac || typeof omac !== 'object' || Array.isArray(omac)) {
     return null;
   }
 
-  const deepInterview = (omc as Record<string, unknown>).deepInterview;
+  const deepInterview = (omac as Record<string, unknown>).deepInterview;
   if (!deepInterview || typeof deepInterview !== 'object' || Array.isArray(deepInterview)) {
     return null;
   }
@@ -159,7 +159,7 @@ function getFrontmatterString(metadata: Record<string, unknown>, key: string): s
 }
 
 function readSkillBodyOverride(skillPath: string, metadata: Record<string, unknown>, fallbackBody: string): string {
-  const bodyPath = getFrontmatterString(metadata, 'omc-full-body');
+  const bodyPath = getFrontmatterString(metadata, 'omac-full-body');
   if (!bodyPath) {
     return fallbackBody;
   }
@@ -217,12 +217,12 @@ function applyDeepInterviewRuntimeSettings(template: string): string {
 }
 
 function normalizeSkillNameForRuntimeRendering(skillName: string): string {
-  return skillName.trim().toLowerCase().replace(/^oh-my-claudecode:/, '').replace(/^omc:/, '');
+  return skillName.trim().toLowerCase().replace(/^oh-my-agent-connector:/, '').replace(/^omac:/, '');
 }
 
 export function renderBundledSkillBody(skillName: string, body: string): string {
   const normalizedSkillName = normalizeSkillNameForRuntimeRendering(skillName);
-  const rewrittenBody = rewriteOmcCliInvocations(body.trim());
+  const rewrittenBody = rewriteOmacCliInvocations(body.trim());
   return normalizedSkillName === 'deep-interview' || normalizedSkillName === 'deep-dive'
     ? applyDeepInterviewRuntimeSettings(rewrittenBody)
     : rewrittenBody;

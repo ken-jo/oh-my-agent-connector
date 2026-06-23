@@ -19,7 +19,7 @@ describe('team leader nudge hook logging', () => {
   let cwd: string;
 
   beforeEach(async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-team-leader-nudge-logging-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-team-leader-nudge-logging-'));
     appendTeamEventMock.mockClear();
   });
 
@@ -35,19 +35,19 @@ describe('team leader nudge hook logging', () => {
   }
 
   it('logs appendTeamEvent persistence failures without failing the nudge', async () => {
-    await writeJson('.omc/state/team/demo-team/config.json', {
+    await writeJson('.omac/state/team/demo-team/config.json', {
       workers: [{ name: 'worker-1' }],
       leader_pane_id: '%1',
     });
-    await writeJson('.omc/state/team/demo-team/workers/worker-1/status.json', {
+    await writeJson('.omac/state/team/demo-team/workers/worker-1/status.json', {
       state: 'idle',
       updated_at: new Date().toISOString(),
     });
-    await writeJson('.omc/state/team/demo-team/workers/worker-1/heartbeat.json', {
+    await writeJson('.omac/state/team/demo-team/workers/worker-1/heartbeat.json', {
       alive: true,
       last_turn_at: new Date().toISOString(),
     });
-    await writeJson('.omc/state/team/demo-team/tasks/task-1.json', {
+    await writeJson('.omac/state/team/demo-team/tasks/task-1.json', {
       status: 'pending',
     });
 
@@ -56,7 +56,7 @@ describe('team leader nudge hook logging', () => {
 
     const result = await maybeNudgeLeader({
       cwd,
-      stateDir: join(cwd, '.omc', 'state'),
+      stateDir: join(cwd, '.omac', 'state'),
       teamName: 'demo-team',
       tmux: {
         async sendKeys(_target, text) {
@@ -69,7 +69,7 @@ describe('team leader nudge hook logging', () => {
     expect(sent[0]).toContain('Leader nudge');
     expect(appendTeamEventMock).toHaveBeenCalled();
     expect(warnSpy).toHaveBeenCalledWith(
-      '[omc] hooks.team-leader-nudge maybeNudgeLeader persistence failed: event write failed',
+      '[omac] hooks.team-leader-nudge maybeNudgeLeader persistence failed: event write failed',
     );
   });
 });

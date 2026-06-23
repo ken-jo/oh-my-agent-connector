@@ -6,7 +6,7 @@ level: 4
 
 # Self-Improvement Orchestrator
 
-You are the **loop controller** for the self-improvement system. You manage the full lifecycle: setup, research, planning, execution, tournament selection, history recording, visualization, and stop-condition evaluation. You delegate to specialized OMC agents and coordinate their inputs and outputs.
+You are the **loop controller** for the self-improvement system. You manage the full lifecycle: setup, research, planning, execution, tournament selection, history recording, visualization, and stop-condition evaluation. You delegate to specialized OMAC agents and coordinate their inputs and outputs.
 
 ---
 
@@ -30,9 +30,9 @@ You are the **loop controller** for the self-improvement system. You manage the 
 
 Self-improve artifacts live under a resolved root returned by `scripts/resolve-paths.mjs`.
 
-- New runs default to `.omc/self-improve/topics/default/`.
-- When the user provides a topic or slug, use `.omc/self-improve/topics/{topic_slug}/`.
-- Legacy single-track state at `.omc/self-improve/` remains valid only as a compatibility fallback when no explicit topic/slug is supplied and that flat layout already exists.
+- New runs default to `.omac/self-improve/topics/default/`.
+- When the user provides a topic or slug, use `.omac/self-improve/topics/{topic_slug}/`.
+- Legacy single-track state at `.omac/self-improve/` remains valid only as a compatibility fallback when no explicit topic/slug is supplied and that flat layout already exists.
 
 Treat `<self-improve-root>/` below as that resolved root:
 
@@ -58,7 +58,7 @@ Treat `<self-improve-root>/` below as that resolved root:
     └── progress.png           # Generated chart
 ```
 
-OMC mode lifecycle: `.omc/state/sessions/{sessionId}/self-improve-state.json`
+OMAC mode lifecycle: `.omac/state/sessions/{sessionId}/self-improve-state.json`
 
 ---
 
@@ -66,14 +66,14 @@ OMC mode lifecycle: `.omc/state/sessions/{sessionId}/self-improve-state.json`
 
 All augmentations delivered via Task description context at spawn time. No modifications to existing agent .md files.
 
-| Step | Role | OMC Agent | Model |
+| Step | Role | OMAC Agent | Model |
 |------|------|-----------|-------|
 | Research | Codebase analysis + hypothesis generation | general-purpose Agent | opus |
-| Planning | Hypothesis → structured plan | oh-my-claudecode:planner | opus |
-| Architecture Review | 6-point plan review | oh-my-claudecode:architect | opus |
-| Critic Review | Harness rule enforcement | oh-my-claudecode:critic | opus |
-| Execution | Implement plan + run benchmark | oh-my-claudecode:executor | opus |
-| Git Operations | Atomic merge/tag/PR | oh-my-claudecode:git-master | sonnet |
+| Planning | Hypothesis → structured plan | oh-my-agent-connector:planner | opus |
+| Architecture Review | 6-point plan review | oh-my-agent-connector:architect | opus |
+| Critic Review | Harness rule enforcement | oh-my-agent-connector:critic | opus |
+| Execution | Implement plan + run benchmark | oh-my-agent-connector:executor | opus |
+| Git Operations | Atomic merge/tag/PR | oh-my-agent-connector:git-master | sonnet |
 | Goal Setup | Interactive interview | (directly in this skill) | N/A |
 | Benchmark Setup | Create + validate benchmark | custom agent | opus |
 
@@ -132,7 +132,7 @@ Read these files at startup and at the beginning of each iteration:
 
 ## Git Strategy
 
-All git operations happen inside the target repo, NOT in the OMC project root.
+All git operations happen inside the target repo, NOT in the OMAC project root.
 
 - **Improvement branch**: `improve/{goal_slug}` — accumulates winning changes only.
 - **Experiment branches**: `experiment/round_{n}_executor_{id}` — short-lived, per executor.
@@ -141,7 +141,7 @@ All git operations happen inside the target repo, NOT in the OMC project root.
   ```
   git -C {repo_path} worktree add worktrees/round_{n}_executor_{id} -b experiment/round_{n}_executor_{id} improve/{goal_slug}
   ```
-- **Winner merges** via `oh-my-claudecode:git-master`:
+- **Winner merges** via `oh-my-agent-connector:git-master`:
   ```
   Merge experiment/round_{n}_executor_{winner_id} into improve/{goal_slug} with --no-ff
   Message: "Iteration {n}: {hypothesis} (score: {before} → {after})"
@@ -203,7 +203,7 @@ If researcher fails, proceed with history only.
 
 ### Step 5 — Plan
 
-Spawn N `oh-my-claudecode:planner`(model=opus) agents in parallel (N = `number_of_agents` from settings).
+Spawn N `oh-my-agent-connector:planner`(model=opus) agents in parallel (N = `number_of_agents` from settings).
 
 Pass in each planner's prompt:
 - Planner identity (planner_a, planner_b, planner_c...)
@@ -220,7 +220,7 @@ Expected output: Plan Document JSON → `<self-improve-root>/plans/round_{n}/pla
 
 For each plan, **sequentially** (architect before critic):
 
-**6a. Architecture Review**: Spawn `oh-my-claudecode:architect` with the plan + 6-point checklist:
+**6a. Architecture Review**: Spawn `oh-my-agent-connector:architect` with the plan + 6-point checklist:
 1. Testability — is the hypothesis testable?
 2. Novelty — different from prior attempts?
 3. Scope — right-sized?
@@ -230,7 +230,7 @@ For each plan, **sequentially** (architect before critic):
 
 Architect verdict is **advisory only**.
 
-**6b. Critic Review**: Spawn `oh-my-claudecode:critic` with the plan + harness rules:
+**6b. Critic Review**: Spawn `oh-my-agent-connector:critic` with the plan + harness rules:
 - H001: Exactly one hypothesis (reject if zero or multiple)
 - H002: No approach_family repetition streak >= 3
 - H003: Intra-round diversity (no two plans same family in same round)
@@ -243,7 +243,7 @@ If ALL plans rejected, log and skip to Step 9.
 
 ### Step 7 — Execute
 
-For each approved plan, spawn `oh-my-claudecode:executor`(model=opus) in parallel.
+For each approved plan, spawn `oh-my-agent-connector:executor`(model=opus) in parallel.
 
 **Before spawning**, create worktree:
 ```
@@ -270,7 +270,7 @@ SKILL.md does this directly (not delegated):
 3. **Rank** by `benchmark_score` (respecting `benchmark_direction`)
 4. **Ranked-candidate loop** — for each candidate in rank order (best first):
    a. **No-regression check**: candidate score must improve or hold even vs `best_score`, respecting `benchmark_direction` (`higher_is_better`: score >= best_score; `lower_is_better`: score <= best_score)
-   b. **Merge** via `oh-my-claudecode:git-master`: `git merge experiment/round_{n}_executor_{id} --no-ff -m "Iteration {n}: {hypothesis} (score: {before} → {after})"`
+   b. **Merge** via `oh-my-agent-connector:git-master`: `git merge experiment/round_{n}_executor_{id} --no-ff -m "Iteration {n}: {hypothesis} (score: {before} → {after})"`
    c. **Re-benchmark** on merged state to confirm improvement
    d. If re-benchmark **confirms** improvement: **accept winner**, break loop
    e. If re-benchmark shows **regression**: **revert merge** via `git -C {repo_path} reset --hard HEAD~1`, continue to next candidate
@@ -355,7 +355,7 @@ When the loop exits:
    Best Score: {best_score} (baseline: {baseline})
    Improvement: {delta} ({delta_pct}%)
    ```
-5. Run `/oh-my-claudecode:cancel` for clean state cleanup
+5. Run `/oh-my-agent-connector:cancel` for clean state cleanup
 
 ---
 
@@ -377,8 +377,8 @@ When the loop exits:
 
 ## Parallel session caveats
 
-- **Multi-repo workspace anchor:** drop a `.omc-workspace` marker at the parent directory so multiple sessions across sub-repos share one `.omc/`. Resolution order: `OMC_STATE_DIR > .omc-workspace > git > cwd`. See `docs/REFERENCE.md`.
-- **Session id source:** OMC_SESSION_ID env var wins in CLI contexts; hook payload data.session_id wins in hook contexts.
+- **Multi-repo workspace anchor:** drop a `.omac-workspace` marker at the parent directory so multiple sessions across sub-repos share one `.omac/`. Resolution order: `OMAC_STATE_DIR > .omac-workspace > git > cwd`. See `docs/REFERENCE.md`.
+- **Session id source:** OMAC_SESSION_ID env var wins in CLI contexts; hook payload data.session_id wins in hook contexts.
 - **Plan id (when applicable):** Self-improve artifact dirs are topic-slug-scoped; for parallel runs with the same topic in the same workspace, expect Wave B2's session-id suffix to land.
 - **Parallel verdict:** supported-with-caveats (topic-slug collision possible; see Wave B2)
 

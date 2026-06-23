@@ -19,7 +19,7 @@ async function loadCommandsModule() {
 
 describe('manual compact command', () => {
   beforeEach(() => {
-    tempConfigDir = join(tmpdir(), `omc-manual-compact-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tempConfigDir = join(tmpdir(), `omac-manual-compact-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(join(tempConfigDir, 'commands'), { recursive: true });
     process.env.CLAUDE_CONFIG_DIR = tempConfigDir;
   });
@@ -40,15 +40,16 @@ describe('manual compact command', () => {
     expect(manifest.commands).toBe('./commands/');
 
     const command = readFileSync(COMMAND_PATH, 'utf-8');
-    expect(command).toContain('/oh-my-claudecode:compact');
-    expect(command).toContain('Bare `/compact` is reserved for Claude Code');
+    expect(command).toContain('/oh-my-agent-connector:compact');
+    expect(command).toContain('Bare `/compact` is reserved for the host CLI native compaction command');
+    expect(command).not.toContain('Claude Code');
     expect(command).not.toContain('Skill("compact")');
     expect(command).toContain('instruction-only');
-    expect(command).toContain('Run this as a bare Claude Code command now');
+    expect(command).toContain('Run this as a bare host command now');
     expect(command).toContain('$ARGUMENTS');
     expect(command).toContain('PreCompact');
 
-    // OMC's auto slash expansion must continue to ignore bare /compact so the
+    // OMAC's auto slash expansion must continue to ignore bare /compact so the
     // host/native command keeps its semantics.
     expect(detectSlashCommand('/compact')).toBeNull();
   });
@@ -64,11 +65,12 @@ describe('manual compact command', () => {
     const expanded = expandCommand('compact', 'preserve current issue and PR state');
 
     expect(expanded).not.toBeNull();
-    expect(expanded?.description).toContain('Prepare OMC context for a manual Claude Code /compact handoff');
+    expect(expanded?.description).toContain('Prepare OMAC context for a manual host /compact handoff');
     expect(expanded?.prompt).not.toContain('Skill("compact")');
     expect(expanded?.prompt).toContain('/compact preserve current issue and PR state');
-    expect(expanded?.prompt).toContain('plugin commands cannot trigger Claude Code');
+    expect(expanded?.prompt).toContain('plugin commands cannot trigger the host CLI');
     expect(expanded?.prompt).toContain('preserve current issue and PR state');
-    expect(expanded?.prompt).toContain('Do not create a separate OMC summarizer');
+    expect(expanded?.prompt).toContain('Do not create a separate OMAC summarizer');
+    expect(expanded?.prompt).not.toContain('Claude Code');
   });
 });

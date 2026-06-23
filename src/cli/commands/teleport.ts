@@ -2,7 +2,7 @@
  * Teleport Command - Quick worktree creation for development
  *
  * Creates a git worktree for working on issues/PRs/features in isolation.
- * Default worktree location: ~/Workspace/omc-worktrees/
+ * Default worktree location: ~/Workspace/omac-worktrees/
  */
 
 import chalk from 'chalk';
@@ -31,7 +31,7 @@ export interface TeleportResult {
 }
 
 // Default worktree root directory
-const DEFAULT_WORKTREE_ROOT = join(homedir(), 'Workspace', 'omc-worktrees');
+const DEFAULT_WORKTREE_ROOT = join(homedir(), 'Workspace', 'omac-worktrees');
 const PACKAGE_JSON_NAME = 'package.json';
 const PACKAGE_MANAGER_LOCKFILES = {
   pnpm: 'pnpm-lock.yaml',
@@ -150,7 +150,7 @@ function bootstrapTeleportDependencies(
 
 /**
  * Parse a reference string into components
- * Supports: omc#123, owner/repo#123, #123, URLs, feature names
+ * Supports: omac#123, owner/repo#123, #123, URLs, feature names
  */
 function parseRef(ref: string): {
   type: 'issue' | 'pr' | 'feature';
@@ -287,7 +287,7 @@ function parseRef(ref: string): {
     };
   }
 
-  // alias#123 format (e.g., omc#123)
+  // alias#123 format (e.g., omac#123)
   const aliasMatch = ref.match(/^([a-zA-Z][a-zA-Z0-9_-]*)#(\d+)$/);
   if (aliasMatch) {
     return {
@@ -668,7 +668,7 @@ export async function teleportListCommand(options: { json?: boolean }): Promise<
       return;
     }
 
-    console.log(chalk.bold('\nOMC Worktrees:\n'));
+    console.log(chalk.bold('\nOMAC Worktrees:\n'));
     console.log(chalk.gray('─'.repeat(60)));
 
     for (const wt of worktrees) {

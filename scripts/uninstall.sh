@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Oh-My-ClaudeCode Uninstaller
-# Completely removes all OMC-installed files and configurations
+# Completely removes all OMAC-installed files and configurations
 
 set -e
 
@@ -19,12 +19,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Claude Code config directory (defaults to ~/.claude)
 CLAUDE_CONFIG_DIR="$(resolve_claude_config_dir)"
 
-echo "This will remove ALL OMC components from:"
+echo "This will remove ALL OMAC components from:"
 echo "  $CLAUDE_CONFIG_DIR"
 echo ""
 echo "Components to be removed:"
 echo "  - Agents (architect, document-specialist, explore, etc. + legacy aliases)"
-echo "  - Commands (omc, ultrawork, plan, etc.)"
+echo "  - Commands (omac, ultrawork, plan, etc.)"
 echo "  - Skills (ultrawork, git-master, frontend-ui-ux)"
 echo "  - Hooks (keyword-detector, silent-auto-update, stop-continuation)"
 echo "  - Version and state files"
@@ -66,7 +66,7 @@ rm -f "$CLAUDE_CONFIG_DIR/agents/planner.md"
 # Remove commands
 echo -e "${BLUE}Removing commands...${NC}"
 rm -f "$CLAUDE_CONFIG_DIR/commands/coordinator.md"
-rm -f "$CLAUDE_CONFIG_DIR/commands/omc.md"
+rm -f "$CLAUDE_CONFIG_DIR/commands/omac.md"
 rm -f "$CLAUDE_CONFIG_DIR/commands/ultrawork.md"
 rm -f "$CLAUDE_CONFIG_DIR/commands/deepsearch.md"
 rm -f "$CLAUDE_CONFIG_DIR/commands/analyze.md"
@@ -90,10 +90,10 @@ rm -f "$CLAUDE_CONFIG_DIR/hooks/silent-auto-update.sh"
 
 # Remove version, state, and config files
 echo -e "${BLUE}Removing state and config files...${NC}"
-rm -f "$CLAUDE_CONFIG_DIR/.omc-version.json"
-rm -f "$CLAUDE_CONFIG_DIR/.omc-silent-update.json"
-rm -f "$CLAUDE_CONFIG_DIR/.omc-update.log"
-rm -f "$CLAUDE_CONFIG_DIR/.omc-config.json"
+rm -f "$CLAUDE_CONFIG_DIR/.omac-version.json"
+rm -f "$CLAUDE_CONFIG_DIR/.omac-silent-update.json"
+rm -f "$CLAUDE_CONFIG_DIR/.omac-update.log"
+rm -f "$CLAUDE_CONFIG_DIR/.omac-config.json"
 
 # Remove hook configurations from settings.json
 SETTINGS_FILE="$CLAUDE_CONFIG_DIR/settings.json"
@@ -103,13 +103,13 @@ if [ -f "$SETTINGS_FILE" ] && command -v jq &> /dev/null; then
     # Create a backup
     cp "$SETTINGS_FILE" "$SETTINGS_FILE.bak"
 
-    # Remove OMC-specific hooks from settings.json
-    # This removes hooks that reference omc hook scripts
+    # Remove OMAC-specific hooks from settings.json
+    # This removes hooks that reference omac hook scripts
     TEMP_SETTINGS=$(mktemp)
 
-    # Use jq to filter out OMC hooks
+    # Use jq to filter out OMAC hooks
     jq '
-      # Remove OMC hooks from UserPromptSubmit
+      # Remove OMAC hooks from UserPromptSubmit
       if .hooks.UserPromptSubmit then
         .hooks.UserPromptSubmit |= map(
           if .hooks then
@@ -119,7 +119,7 @@ if [ -f "$SETTINGS_FILE" ] && command -v jq &> /dev/null; then
         ) | .hooks.UserPromptSubmit |= map(select(.hooks | length > 0))
       else . end |
 
-      # Remove OMC hooks from Stop
+      # Remove OMAC hooks from Stop
       if .hooks.Stop then
         .hooks.Stop |= map(
           if .hooks then
@@ -137,12 +137,12 @@ if [ -f "$SETTINGS_FILE" ] && command -v jq &> /dev/null; then
 
     if [ $? -eq 0 ] && [ -s "$TEMP_SETTINGS" ]; then
         mv "$TEMP_SETTINGS" "$SETTINGS_FILE"
-        echo -e "${GREEN}✓ Removed OMC hooks from settings.json${NC}"
+        echo -e "${GREEN}✓ Removed OMAC hooks from settings.json${NC}"
         echo -e "${YELLOW}  Backup saved to: $SETTINGS_FILE.bak${NC}"
     else
         rm -f "$TEMP_SETTINGS"
         echo -e "${YELLOW}⚠ Could not modify settings.json automatically${NC}"
-        echo "  Please manually remove OMC hooks from the 'hooks' section"
+        echo "  Please manually remove OMAC hooks from the 'hooks' section"
     fi
 else
     if [ -f "$SETTINGS_FILE" ]; then
@@ -154,11 +154,11 @@ else
     fi
 fi
 
-# Remove .omc directory if it exists (plans, notepads, drafts)
-if [ -d "$CLAUDE_CONFIG_DIR/../.omc" ] || [ -d ".omc" ]; then
-    echo -e "${YELLOW}Note: .omc directory (plans/notepads) was not removed.${NC}"
+# Remove .omac directory if it exists (plans, notepads, drafts)
+if [ -d "$CLAUDE_CONFIG_DIR/../.omac" ] || [ -d ".omac" ]; then
+    echo -e "${YELLOW}Note: .omac directory (plans/notepads) was not removed.${NC}"
     echo "  To remove project plans and notepads, run:"
-    echo "    rm -rf .omc"
+    echo "    rm -rf .omac"
 fi
 
 echo ""

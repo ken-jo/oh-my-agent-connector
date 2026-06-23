@@ -18,7 +18,7 @@ import {
 import { readModeState, writeModeState } from '../../lib/mode-state-io.js';
 
 async function initRepo(): Promise<string> {
-  const cwd = await mkdtemp(join(tmpdir(), 'omc-autoresearch-runtime-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'omac-autoresearch-runtime-'));
   execFileSync('git', ['init'], { cwd, stdio: 'ignore' });
   execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd, stdio: 'ignore' });
   execFileSync('git', ['config', 'user.name', 'Test User'], { cwd, stdio: 'ignore' });
@@ -64,7 +64,7 @@ describe('autoresearch runtime', () => {
     const repo = await initRepo();
     try {
       const contract = await makeContract(repo);
-      const instructions = buildAutoresearchInstructions(contract, { runId: 'missions-demo-20260314t000000z', iteration: 1, baselineCommit: 'abc1234', lastKeptCommit: 'abc1234', resultsFile: 'results.tsv', candidateFile: '.omc/logs/autoresearch/missions-demo-20260314t000000z/candidate.json', keepPolicy: 'score_improvement' });
+      const instructions = buildAutoresearchInstructions(contract, { runId: 'missions-demo-20260314t000000z', iteration: 1, baselineCommit: 'abc1234', lastKeptCommit: 'abc1234', resultsFile: 'results.tsv', candidateFile: '.omac/logs/autoresearch/missions-demo-20260314t000000z/candidate.json', keepPolicy: 'score_improvement' });
       expect(instructions).toMatch(/exactly one experiment cycle/i);
       expect(instructions).toMatch(/required output field: pass/i);
       expect(instructions).toMatch(/optional output field: score/i);
@@ -76,14 +76,14 @@ describe('autoresearch runtime', () => {
     }
   });
 
-  it('allows untracked .omc runtime files when checking reset safety', async () => {
+  it('allows untracked .omac runtime files when checking reset safety', async () => {
     const repo = await initRepo();
     try {
-      await mkdir(join(repo, '.omc', 'logs'), { recursive: true });
-      await mkdir(join(repo, '.omc', 'state'), { recursive: true });
-      await writeFile(join(repo, '.omc', 'logs', 'hooks-2026-03-15.jsonl'), '{}\n', 'utf-8');
-      await writeFile(join(repo, '.omc', 'metrics.json'), '{}\n', 'utf-8');
-      await writeFile(join(repo, '.omc', 'state', 'hud-state.json'), '{}\n', 'utf-8');
+      await mkdir(join(repo, '.omac', 'logs'), { recursive: true });
+      await mkdir(join(repo, '.omac', 'state'), { recursive: true });
+      await writeFile(join(repo, '.omac', 'logs', 'hooks-2026-03-15.jsonl'), '{}\n', 'utf-8');
+      await writeFile(join(repo, '.omac', 'metrics.json'), '{}\n', 'utf-8');
+      await writeFile(join(repo, '.omac', 'state', 'hud-state.json'), '{}\n', 'utf-8');
 
       expect(() => assertResetSafeWorktree(repo)).not.toThrow();
     } finally {
@@ -97,7 +97,7 @@ describe('autoresearch runtime', () => {
       const contract = await makeContract(repo);
       await mkdir(join(repo, 'node_modules', 'fixture-dep'), { recursive: true });
       await writeFile(join(repo, 'node_modules', 'fixture-dep', 'index.js'), 'export default 1;\n', 'utf-8');
-      const worktreePath = join(repo, '..', `${repo.split('/').pop()}.omc-worktrees`, 'autoresearch-missions-demo-20260314t000000z');
+      const worktreePath = join(repo, '..', `${repo.split('/').pop()}.omac-worktrees`, 'autoresearch-missions-demo-20260314t000000z');
       execFileSync('git', ['worktree', 'add', '-b', 'autoresearch/missions-demo/20260314t000000z', worktreePath, 'HEAD'], {
         cwd: repo,
         stdio: 'ignore',
@@ -150,8 +150,8 @@ describe('autoresearch runtime', () => {
       expect(state?.latest_evaluator_status).toBe('pass');
       expect(state?.results_file).toBe(runtime.resultsFile);
       expect(state?.baseline_commit).toBe(manifest.baseline_commit);
-      expect(state?.mission_spec_file).toBe(join(repo, '.omc', 'autoresearch', 'missions-demo', 'mission.md'));
-      expect(state?.evaluator_reference_file).toBe(join(repo, '.omc', 'autoresearch', 'missions-demo', 'evaluator.json'));
+      expect(state?.mission_spec_file).toBe(join(repo, '.omac', 'autoresearch', 'missions-demo', 'mission.md'));
+      expect(state?.evaluator_reference_file).toBe(join(repo, '.omac', 'autoresearch', 'missions-demo', 'evaluator.json'));
 
       const instructions = await readFile(runtime.instructionsFile, 'utf-8');
       expect(instructions).toMatch(/Last kept score:\s+1/i);
@@ -166,7 +166,7 @@ describe('autoresearch runtime', () => {
     const repo = await initRepo();
     try {
       const contract = await makeContract(repo);
-      const worktreePath = join(repo, '..', `${repo.split('/').pop()}.omc-worktrees`, 'autoresearch-missions-demo-20260314t000500z');
+      const worktreePath = join(repo, '..', `${repo.split('/').pop()}.omac-worktrees`, 'autoresearch-missions-demo-20260314t000500z');
       execFileSync('git', ['worktree', 'add', '-b', 'autoresearch/missions-demo/20260314t000500z', worktreePath, 'HEAD'], {
         cwd: repo,
         stdio: 'ignore',
@@ -203,7 +203,7 @@ describe('autoresearch parity decisions', () => {
     const repo = await initRepo();
     try {
       const contract = await makeContract(repo);
-      const worktreePath = join(repo, '..', `${repo.split('/').pop()}.omc-worktrees`, 'autoresearch-missions-demo-20260314t010000z');
+      const worktreePath = join(repo, '..', `${repo.split('/').pop()}.omac-worktrees`, 'autoresearch-missions-demo-20260314t010000z');
       execFileSync('git', ['worktree', 'add', '-b', 'autoresearch/missions-demo/20260314t010000z', worktreePath, 'HEAD'], {
         cwd: repo,
         stdio: 'ignore',
@@ -271,14 +271,14 @@ describe('autoresearch parity decisions', () => {
       expect(finalManifest.last_kept_commit).toBe(improvedCommit);
 
       const decisionLog = await readFile(
-        join(repo, '.omc', 'autoresearch', 'missions-demo', 'runs', runtime.runId, 'decision-log.md'),
+        join(repo, '.omac', 'autoresearch', 'missions-demo', 'runs', runtime.runId, 'decision-log.md'),
         'utf-8',
       );
       expect(decisionLog).toContain('## Iteration 1 — keep');
       expect(decisionLog).toContain('## Iteration 2 — discard');
 
       const evaluationOne = JSON.parse(await readFile(
-        join(repo, '.omc', 'autoresearch', 'missions-demo', 'runs', runtime.runId, 'evaluations', 'iteration-0001.json'),
+        join(repo, '.omac', 'autoresearch', 'missions-demo', 'runs', runtime.runId, 'evaluations', 'iteration-0001.json'),
         'utf-8',
       )) as Record<string, unknown>;
       expect(evaluationOne.pass).toBe(true);

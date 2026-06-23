@@ -2,7 +2,7 @@
 /**
  * Audit B — End-to-end multi-repo fixture
  *
- * Creates a fresh workspace in os.tmpdir() with .omc-workspace + sibling sub-repos.
+ * Creates a fresh workspace in os.tmpdir() with .omac-workspace + sibling sub-repos.
  * Exercises 15 assertions across 11 subsystems + retrofit + rollback scenarios.
  *
  * Usage (from repo root):
@@ -52,7 +52,7 @@ const PROBE_PREAMBLE = `
 import { pathToFileURL } from 'url';
 import { join as _pjoin } from 'path';
 const _wp = await import(pathToFileURL(${JSON.stringify(DIST_WP)}).href);
-const { clearWorktreeCache, clearSiblingRetrofitWarnings, getOmcRoot,
+const { clearWorktreeCache, clearSiblingRetrofitWarnings, getOmacRoot,
         resolveSessionStatePaths, getWorktreeNotepadPath,
         getWorktreeProjectMemoryPath, findWorkspaceRoot, warnSiblingRetrofit } = _wp;
 clearWorktreeCache();
@@ -66,9 +66,9 @@ function getProbeDir() {
     // by the homedir guard that stops at C:\Users\<user>.
     try {
       mkdirSync('C:\\Temp', { recursive: true });
-      _probeDir = mkdtempSync('C:\\Temp\\omc-probe-');
+      _probeDir = mkdtempSync('C:\\Temp\\omac-probe-');
     } catch {
-      _probeDir = mkdtempSync(join(tmpdir(), 'omc-probe-'));
+      _probeDir = mkdtempSync(join(tmpdir(), 'omac-probe-'));
     }
   }
   return _probeDir;
@@ -120,12 +120,12 @@ function buildFixture() {
   let base;
   try {
     mkdirSync('C:\\Temp', { recursive: true });
-    base = mkdtempSync('C:\\Temp\\omc-audit-');
+    base = mkdtempSync('C:\\Temp\\omac-audit-');
   } catch {
-    base = mkdtempSync(join(tmpdir(), 'omc-audit-'));
+    base = mkdtempSync(join(tmpdir(), 'omac-audit-'));
   }
   console.log(`\n  Fixture root: ${base}\n`);
-  writeFileSync(join(base, '.omc-workspace'), JSON.stringify({ id: 'audit' }));
+  writeFileSync(join(base, '.omac-workspace'), JSON.stringify({ id: 'audit' }));
   for (const name of ['api', 'web', 'worker']) {
     gitInit(join(base, name));
   }
@@ -144,7 +144,7 @@ async function main() {
 
   const results = [];
   const base = buildFixture();
-  const ws_omc = join(base, '.omc');
+  const ws_omac = join(base, '.omac');
   const sid = 'audit-session-1';
 
   // ── 1. ultragoal — ultragoalDir(cwd, planId) ──────────────────────────────
@@ -157,10 +157,10 @@ process.stdout.write(JSON.stringify({ dir }) + '\\n');
     if (!r.ok) {
       results.push(fail(1, `ultragoal probe error: ${r.error}`));
     } else {
-      const expected = join(ws_omc, 'ultragoal');
+      const expected = join(ws_omac, 'ultragoal');
       results.push(r.data.dir === expected
-        ? pass(1, `ultragoal dir → workspace .omc/ultragoal`)
-        : fail(1, 'ultragoalDir should resolve under workspace .omc', expected, r.data.dir));
+        ? pass(1, `ultragoal dir → workspace .omac/ultragoal`)
+        : fail(1, 'ultragoalDir should resolve under workspace .omac', expected, r.data.dir));
     }
   }
 
@@ -171,9 +171,9 @@ const p = resolveSessionStatePaths('ralph', ${JSON.stringify(sid)}, ${JSON.strin
 process.stdout.write(JSON.stringify({ write: p.effectiveWrite }) + '\\n');
 `);
     if (!r.ok) results.push(fail(2, `ralph probe error: ${r.error}`));
-    else results.push(r.data.write.startsWith(ws_omc)
-      ? pass(2, `ralph effectiveWrite → workspace .omc`)
-      : fail(2, 'ralph path should be under workspace .omc', ws_omc + '/...', r.data.write));
+    else results.push(r.data.write.startsWith(ws_omac)
+      ? pass(2, `ralph effectiveWrite → workspace .omac`)
+      : fail(2, 'ralph path should be under workspace .omac', ws_omac + '/...', r.data.write));
   }
 
   // ── 3. ultrawork ─────────────────────────────────────────────────────────
@@ -183,9 +183,9 @@ const p = resolveSessionStatePaths('ultrawork', ${JSON.stringify(sid)}, ${JSON.s
 process.stdout.write(JSON.stringify({ write: p.effectiveWrite }) + '\\n');
 `);
     if (!r.ok) results.push(fail(3, `ultrawork probe error: ${r.error}`));
-    else results.push(r.data.write.startsWith(ws_omc)
-      ? pass(3, `ultrawork effectiveWrite → workspace .omc`)
-      : fail(3, 'ultrawork path should be under workspace .omc', ws_omc + '/...', r.data.write));
+    else results.push(r.data.write.startsWith(ws_omac)
+      ? pass(3, `ultrawork effectiveWrite → workspace .omac`)
+      : fail(3, 'ultrawork path should be under workspace .omac', ws_omac + '/...', r.data.write));
   }
 
   // ── 4. autopilot ─────────────────────────────────────────────────────────
@@ -195,24 +195,24 @@ const p = resolveSessionStatePaths('autopilot', ${JSON.stringify(sid)}, ${JSON.s
 process.stdout.write(JSON.stringify({ write: p.effectiveWrite }) + '\\n');
 `);
     if (!r.ok) results.push(fail(4, `autopilot probe error: ${r.error}`));
-    else results.push(r.data.write.startsWith(ws_omc)
-      ? pass(4, `autopilot effectiveWrite → workspace .omc`)
-      : fail(4, 'autopilot path should be under workspace .omc', ws_omc + '/...', r.data.write));
+    else results.push(r.data.write.startsWith(ws_omac)
+      ? pass(4, `autopilot effectiveWrite → workspace .omac`)
+      : fail(4, 'autopilot path should be under workspace .omac', ws_omac + '/...', r.data.write));
   }
 
-  // ── 5. team (resolveSessionStatePaths + getOmcRoot) ──────────────────────
+  // ── 5. team (resolveSessionStatePaths + getOmacRoot) ──────────────────────
   {
     const r = probeJSON(`
 const p    = resolveSessionStatePaths('team', ${JSON.stringify(sid)}, ${JSON.stringify(join(base, 'api'))});
-const root = getOmcRoot(${JSON.stringify(join(base, 'api'))});
+const root = getOmacRoot(${JSON.stringify(join(base, 'api'))});
 process.stdout.write(JSON.stringify({ write: p.effectiveWrite, root }) + '\\n');
 `);
     if (!r.ok) results.push(fail(5, `team probe error: ${r.error}`));
     else {
       const { write, root } = r.data;
-      results.push(write.startsWith(ws_omc) && root === ws_omc
-        ? pass(5, `team effectiveWrite + getOmcRoot → workspace .omc`)
-        : fail(5, 'team path or getOmcRoot should be workspace .omc', ws_omc,
+      results.push(write.startsWith(ws_omac) && root === ws_omac
+        ? pass(5, `team effectiveWrite + getOmacRoot → workspace .omac`)
+        : fail(5, 'team path or getOmacRoot should be workspace .omac', ws_omac,
             `write=${write}  root=${root}`));
     }
   }
@@ -224,9 +224,9 @@ const p = resolveSessionStatePaths('ralplan', ${JSON.stringify(sid)}, ${JSON.str
 process.stdout.write(JSON.stringify({ write: p.effectiveWrite }) + '\\n');
 `);
     if (!r.ok) results.push(fail(6, `ralplan probe error: ${r.error}`));
-    else results.push(r.data.write.startsWith(ws_omc)
-      ? pass(6, `ralplan effectiveWrite → workspace .omc`)
-      : fail(6, 'ralplan path should be under workspace .omc', ws_omc + '/...', r.data.write));
+    else results.push(r.data.write.startsWith(ws_omac)
+      ? pass(6, `ralplan effectiveWrite → workspace .omac`)
+      : fail(6, 'ralplan path should be under workspace .omac', ws_omac + '/...', r.data.write));
   }
 
   // ── 7. self-improve (resolve-paths.mjs subprocess) ───────────────────────
@@ -251,15 +251,15 @@ process.stdout.write(JSON.stringify({ write: p.effectiveWrite }) + '\\n');
           'self-improve resolve-paths.mjs produces no output on Windows — entrypoint guard ' +
           '`import.meta.url === \\`file://${process.argv[1]}\\`` never matches because ' +
           'import.meta.url uses file:///C:/... but argv[1] uses C:\\... (backslash, no triple-slash)',
-          join(ws_omc, 'self-improve') + ' in base_root',
+          join(ws_omac, 'self-improve') + ' in base_root',
           'empty stdout (exit 0) — main() not called'));
       } else {
         try {
           const parsed = JSON.parse(stdout);
-          results.push(parsed.base_root?.startsWith(ws_omc)
-            ? pass(7, `self-improve base_root → workspace .omc/self-improve`)
-            : fail(7, 'self-improve base_root should be under workspace .omc',
-                join(ws_omc, 'self-improve'), parsed.base_root));
+          results.push(parsed.base_root?.startsWith(ws_omac)
+            ? pass(7, `self-improve base_root → workspace .omac/self-improve`)
+            : fail(7, 'self-improve base_root should be under workspace .omac',
+                join(ws_omac, 'self-improve'), parsed.base_root));
         } catch (e) {
           results.push(fail(7, `self-improve JSON parse error: ${e.message}`, '', stdout.slice(0, 200)));
         }
@@ -276,25 +276,25 @@ process.stdout.write(JSON.stringify({ dir }) + '\\n');
 `);
     if (!r.ok) results.push(fail(8, `interop probe error: ${r.error}`));
     else {
-      const expected = join(ws_omc, 'state', 'interop');
+      const expected = join(ws_omac, 'state', 'interop');
       results.push(r.data.dir === expected
-        ? pass(8, `interop dir → workspace .omc/state/interop`)
-        : fail(8, 'interop dir should be workspace .omc/state/interop', expected, r.data.dir));
+        ? pass(8, `interop dir → workspace .omac/state/interop`)
+        : fail(8, 'interop dir should be workspace .omac/state/interop', expected, r.data.dir));
     }
   }
 
-  // ── 9. autoresearch (getOmcRoot → specs path) ────────────────────────────
+  // ── 9. autoresearch (getOmacRoot → specs path) ────────────────────────────
   {
     const r = probeJSON(`
-const root = getOmcRoot(${JSON.stringify(join(base, 'worker'))});
+const root = getOmacRoot(${JSON.stringify(join(base, 'worker'))});
 const specsPath = _pjoin(root, 'specs');
 process.stdout.write(JSON.stringify({ root, specsPath }) + '\\n');
 `);
     if (!r.ok) results.push(fail(9, `autoresearch probe error: ${r.error}`));
-    else results.push(r.data.root.startsWith(ws_omc)
-      ? pass(9, `autoresearch specs path → workspace .omc/specs`)
-      : fail(9, 'autoresearch specs should be under workspace .omc',
-          join(ws_omc, 'specs'), r.data.specsPath));
+    else results.push(r.data.root.startsWith(ws_omac)
+      ? pass(9, `autoresearch specs path → workspace .omac/specs`)
+      : fail(9, 'autoresearch specs should be under workspace .omac',
+          join(ws_omac, 'specs'), r.data.specsPath));
   }
 
   // ── 10. notepad + project-memory ─────────────────────────────────────────
@@ -307,11 +307,11 @@ process.stdout.write(JSON.stringify({ notepadPath, memoryPath }) + '\\n');
     if (!r.ok) results.push(fail(10, `notepad/memory probe error: ${r.error}`));
     else {
       const { notepadPath, memoryPath } = r.data;
-      const expN = join(ws_omc, 'notepad.md');
-      const expM = join(ws_omc, 'project-memory.json');
+      const expN = join(ws_omac, 'notepad.md');
+      const expM = join(ws_omac, 'project-memory.json');
       results.push(notepadPath === expN && memoryPath === expM
-        ? pass(10, `notepad + project-memory → workspace .omc`)
-        : fail(10, 'notepad/memory paths should be workspace .omc',
+        ? pass(10, `notepad + project-memory → workspace .omac`)
+        : fail(10, 'notepad/memory paths should be workspace .omac',
             `${expN}  |  ${expM}`, `${notepadPath}  |  ${memoryPath}`));
     }
   }
@@ -321,44 +321,44 @@ process.stdout.write(JSON.stringify({ notepadPath, memoryPath }) + '\\n');
   let retrofitBase;
   try {
     mkdirSync('C:\\Temp', { recursive: true });
-    retrofitBase = mkdtempSync('C:\\Temp\\omc-audit-retrofit-');
+    retrofitBase = mkdtempSync('C:\\Temp\\omac-audit-retrofit-');
   } catch {
-    retrofitBase = mkdtempSync(join(tmpdir(), 'omc-audit-retrofit-'));
+    retrofitBase = mkdtempSync(join(tmpdir(), 'omac-audit-retrofit-'));
   }
   gitInit(join(retrofitBase, 'api'));
-  const legacyStateDir  = join(retrofitBase, 'api', '.omc', 'state');
+  const legacyStateDir  = join(retrofitBase, 'api', '.omac', 'state');
   const legacyStateFile = join(legacyStateDir, 'ralph-state.json');
   mkdirSync(legacyStateDir, { recursive: true });
   writeFileSync(legacyStateFile, JSON.stringify({ iteration: 3 }));
 
   // 11. legacy state exists BEFORE marker drop
   results.push(existsSync(legacyStateFile)
-    ? pass(11, `legacy api/.omc/state/ralph-state.json created before .omc-workspace drop`)
+    ? pass(11, `legacy api/.omac/state/ralph-state.json created before .omac-workspace drop`)
     : fail(11, 'legacy state file should exist before workspace marker drop', legacyStateFile, 'missing'));
 
-  // 12. drop .omc-workspace marker
-  writeFileSync(join(retrofitBase, '.omc-workspace'), JSON.stringify({ id: 'retrofit-test' }));
-  results.push(existsSync(join(retrofitBase, '.omc-workspace'))
-    ? pass(12, `.omc-workspace marker dropped at parent after legacy state exists`)
-    : fail(12, '.omc-workspace marker should exist after write'));
+  // 12. drop .omac-workspace marker
+  writeFileSync(join(retrofitBase, '.omac-workspace'), JSON.stringify({ id: 'retrofit-test' }));
+  results.push(existsSync(join(retrofitBase, '.omac-workspace'))
+    ? pass(12, `.omac-workspace marker dropped at parent after legacy state exists`)
+    : fail(12, '.omac-workspace marker should exist after write'));
 
-  // 13. warnSiblingRetrofit fires once with path + OMC_MIGRATE_LEGACY_STATE hint
+  // 13. warnSiblingRetrofit fires once with path + OMAC_MIGRATE_LEGACY_STATE hint
   {
     const r = probe(`
-const root = getOmcRoot(${JSON.stringify(join(retrofitBase, 'api'))});
+const root = getOmacRoot(${JSON.stringify(join(retrofitBase, 'api'))});
 const anchor = findWorkspaceRoot(${JSON.stringify(join(retrofitBase, 'api'))});
 if (anchor) warnSiblingRetrofit(anchor, 'test-session-13');
 process.stdout.write(JSON.stringify({ root }) + '\\n');
 `);
     const stderr = r.stderr ?? '';
     const hasWarning     = stderr.includes('workspace-retrofit warning');
-    const hasLegacyPath  = stderr.includes(join(retrofitBase, 'api', '.omc'));
-    const hasMigrateHint = stderr.includes('OMC_MIGRATE_LEGACY_STATE');
+    const hasLegacyPath  = stderr.includes(join(retrofitBase, 'api', '.omac'));
+    const hasMigrateHint = stderr.includes('OMAC_MIGRATE_LEGACY_STATE');
     results.push(hasWarning && hasLegacyPath && hasMigrateHint
-      ? pass(13, `warnSiblingRetrofit fires with legacy path + OMC_MIGRATE_LEGACY_STATE hint`)
+      ? pass(13, `warnSiblingRetrofit fires with legacy path + OMAC_MIGRATE_LEGACY_STATE hint`)
       : fail(13,
-          'warnSiblingRetrofit should emit warning with legacy .omc path and OMC_MIGRATE_LEGACY_STATE=1 hint',
-          'stderr: workspace-retrofit warning + api/.omc path + OMC_MIGRATE_LEGACY_STATE',
+          'warnSiblingRetrofit should emit warning with legacy .omac path and OMAC_MIGRATE_LEGACY_STATE=1 hint',
+          'stderr: workspace-retrofit warning + api/.omac path + OMAC_MIGRATE_LEGACY_STATE',
           `hasWarning=${hasWarning} hasPath=${hasLegacyPath} hasHint=${hasMigrateHint}\n` +
           `stderr=${stderr.slice(0, 600)}`));
   }
@@ -370,34 +370,34 @@ process.stdout.write(JSON.stringify({ root }) + '\\n');
     } else {
       const content = JSON.parse(readFileSync(legacyStateFile, 'utf-8'));
       results.push(content.iteration === 3
-        ? pass(14, `legacy api/.omc/state/ralph-state.json unchanged after retrofit (no auto-migration)`)
+        ? pass(14, `legacy api/.omac/state/ralph-state.json unchanged after retrofit (no auto-migration)`)
         : fail(14, 'legacy file content changed unexpectedly',
             JSON.stringify({ iteration: 3 }), JSON.stringify(content)));
     }
   }
 
-  // ── 15. rollback — OMC_DISABLE_MULTIREPO=1 ───────────────────────────────
+  // ── 15. rollback — OMAC_DISABLE_MULTIREPO=1 ───────────────────────────────
   {
     // Documented in docs/REFERENCE.md: skips workspace marker, falls back to git-root.
     // FAIL here means the env var is documented but not yet implemented.
     const r = probeJSON(`
-const root = getOmcRoot(${JSON.stringify(join(base, 'api'))});
+const root = getOmacRoot(${JSON.stringify(join(base, 'api'))});
 process.stdout.write(JSON.stringify({ root }) + '\\n');
-`, { OMC_DISABLE_MULTIREPO: '1' });
+`, { OMAC_DISABLE_MULTIREPO: '1' });
 
     if (!r.ok) {
       results.push(fail(15, `rollback probe error: ${r.error}`));
     } else {
       const { root } = r.data;
-      const expectedFallback = join(base, 'api', '.omc');
-      if (root !== ws_omc && root.startsWith(join(base, 'api'))) {
-        results.push(pass(15, `OMC_DISABLE_MULTIREPO=1 bypasses workspace anchor → api/.omc`));
-      } else if (root === ws_omc) {
+      const expectedFallback = join(base, 'api', '.omac');
+      if (root !== ws_omac && root.startsWith(join(base, 'api'))) {
+        results.push(pass(15, `OMAC_DISABLE_MULTIREPO=1 bypasses workspace anchor → api/.omac`));
+      } else if (root === ws_omac) {
         results.push(fail(15,
-          'OMC_DISABLE_MULTIREPO=1 NOT implemented — documented in REFERENCE.md but not yet honoured in getOmcRoot()',
+          'OMAC_DISABLE_MULTIREPO=1 NOT implemented — documented in REFERENCE.md but not yet honoured in getOmacRoot()',
           expectedFallback, root));
       } else {
-        results.push(fail(15, 'OMC_DISABLE_MULTIREPO=1 returned unexpected path', expectedFallback, root));
+        results.push(fail(15, 'OMAC_DISABLE_MULTIREPO=1 returned unexpected path', expectedFallback, root));
       }
     }
   }

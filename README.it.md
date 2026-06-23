@@ -1,19 +1,19 @@
 [English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Tiếng Việt](README.vi.md) | [Português](README.pt.md) | [Русский](README.ru.md) | [Türkçe](README.tr.md) | [Deutsch](README.de.md) | [Français](README.fr.md) | Italiano
 
-# oh-my-claudecode
+# oh-my-agent-connector
 
-[![npm version](https://img.shields.io/npm/v/oh-my-claude-sisyphus?color=cb3837)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
-[![npm downloads](https://img.shields.io/npm/dm/oh-my-claude-sisyphus?color=blue)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
-[![GitHub stars](https://img.shields.io/github/stars/Yeachan-Heo/oh-my-claudecode?style=flat&color=yellow)](https://github.com/Yeachan-Heo/oh-my-claudecode/stargazers)
+[![npm version](https://img.shields.io/npm/v/oh-my-agent-connector?color=cb3837)](https://www.npmjs.com/package/oh-my-agent-connector)
+[![npm downloads](https://img.shields.io/npm/dm/oh-my-agent-connector?color=blue)](https://www.npmjs.com/package/oh-my-agent-connector)
+[![GitHub stars](https://img.shields.io/github/stars/Yeachan-Heo/oh-my-agent-connector?style=flat&color=yellow)](https://github.com/Yeachan-Heo/oh-my-agent-connector/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/Yeachan-Heo)
 [![Discord](https://img.shields.io/discord/1452487457085063218?color=5865F2&logo=discord&logoColor=white&label=Discord)](https://discord.gg/sj4exxQ9v)
 
 **Orchestrazione multi-agente per Claude Code. Zero curva di apprendimento.**
 
-_Non imparare Claude Code. Usa semplicemente OMC._
+_Non imparare Claude Code. Usa semplicemente OMAC._
 
-[Inizia](#avvio-rapido) • [Documentazione](https://yeachan-heo.github.io/oh-my-claudecode-website) • [Guida alla migrazione](docs/MIGRATION.md) • [Discord](https://discord.gg/sj4exxQ9v)
+[Inizia](#avvio-rapido) • [Documentazione](https://yeachan-heo.github.io/oh-my-agent-connector-website) • [Guida alla migrazione](docs/MIGRATION.md) • [Discord](https://discord.gg/sj4exxQ9v)
 
 ---
 
@@ -22,17 +22,17 @@ _Non imparare Claude Code. Usa semplicemente OMC._
 **Passo 1: Installazione**
 
 ```bash
-/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
-/plugin install oh-my-claudecode
+/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-agent-connector
+/plugin install oh-my-agent-connector
 ```
 
 **Passo 2: Configurazione**
 
 ```bash
-/oh-my-claudecode:omc-setup
+/oh-my-agent-connector:omac-setup
 ```
 
-Se esegui OMC tramite `omc --plugin-dir <path>` o `claude --plugin-dir <path>`, aggiungi `--plugin-dir-mode` a `omc setup` (o esporta `OMC_PLUGIN_ROOT` prima) per evitare di duplicare abilità/agenti che il plugin fornisce già in fase di esecuzione. Consulta la [sezione Plugin directory flags in REFERENCE.md](./docs/REFERENCE.md#plugin-directory-flags) per una matrice decisionale completa e tutti i flag disponibili.
+Se esegui OMAC tramite `omac --plugin-dir <path>` o `claude --plugin-dir <path>`, aggiungi `--plugin-dir-mode` a `omac setup` (o esporta `OMAC_PLUGIN_ROOT` prima) per evitare di duplicare abilità/agenti che il plugin fornisce già in fase di esecuzione. Consulta la [sezione Plugin directory flags in REFERENCE.md](./docs/REFERENCE.md#plugin-directory-flags) per una matrice decisionale completa e tutti i flag disponibili.
 
 <!-- TODO(i18n): verify translation -->
 
@@ -46,10 +46,10 @@ Tutto qui. Il resto è automatico.
 
 ## Team Mode (Consigliato)
 
-A partire dalla **v4.1.7**, **Team** è la superficie di orchestrazione canonica in OMC. I punti di ingresso legacy come **swarm** e **ultrapilot** sono ancora supportati, ma ora **vengono instradati a Team dietro le quinte**.
+A partire dalla **v4.1.7**, **Team** è la superficie di orchestrazione canonica in OMAC. I punti di ingresso legacy come **swarm** e **ultrapilot** sono ancora supportati, ma ora **vengono instradati a Team dietro le quinte**.
 
 ```bash
-/oh-my-claudecode:team 3:executor "fix all TypeScript errors"
+/oh-my-agent-connector:team 3:executor "fix all TypeScript errors"
 ```
 
 Team funziona come una pipeline a stadi:
@@ -66,35 +66,35 @@ Abilita i team nativi di Claude Code in `~/.claude/settings.json`:
 }
 ```
 
-> Se i team sono disabilitati, OMC ti avviserà e passerà all'esecuzione senza Team quando possibile.
+> Se i team sono disabilitati, OMAC ti avviserà e passerà all'esecuzione senza Team quando possibile.
 
-> **Nota: Nome del pacchetto** — Il progetto utilizza il brand **oh-my-claudecode** (repo, plugin, comandi), ma il pacchetto npm è pubblicato come [`oh-my-claude-sisyphus`](https://www.npmjs.com/package/oh-my-claude-sisyphus). Se installi gli strumenti CLI tramite npm/bun, usa `npm install -g oh-my-claude-sisyphus`.
+> **Nota: Nome del pacchetto** — Il progetto utilizza il brand **oh-my-agent-connector** (repo, plugin, comandi), ma il pacchetto npm è pubblicato come [`oh-my-agent-connector`](https://www.npmjs.com/package/oh-my-agent-connector). Se installi gli strumenti CLI tramite npm/bun, usa `npm install -g oh-my-agent-connector`.
 
 ### Aggiornamento
 
 ```bash
 # 1. Aggiorna il plugin
-/plugin install oh-my-claudecode
+/plugin install oh-my-agent-connector
 
 # 2. Riesegui il setup per aggiornare la configurazione
-/oh-my-claudecode:omc-setup
+/oh-my-agent-connector:omac-setup
 ```
 
 Se riscontri problemi dopo l'aggiornamento, svuota la vecchia cache del plugin:
 
 ```bash
-/oh-my-claudecode:omc-doctor
+/oh-my-agent-connector:omac-doctor
 ```
 
 <h1 align="center">Il tuo Claude ha appena ricevuto dei superpoteri.</h1>
 
 <p align="center">
-  <img src="assets/omc-character.jpg" alt="oh-my-claudecode" width="400" />
+  <img src="assets/omac-character.jpg" alt="oh-my-agent-connector" width="400" />
 </p>
 
 ---
 
-## Perché oh-my-claudecode?
+## Perché oh-my-agent-connector?
 
 - **Nessuna configurazione richiesta** — Funziona immediatamente con impostazioni predefinite intelligenti
 - **Orchestrazione team-first** — Team è la superficie multi-agente canonica (swarm/ultrapilot sono facciate di compatibilità)
@@ -111,7 +111,7 @@ Se riscontri problemi dopo l'aggiornamento, svuota la vecchia cache del plugin:
 
 ### Modalità di orchestrazione
 
-Strategie multiple per diversi casi d'uso — dall'orchestrazione basata su Team al refactoring efficiente in termini di token. [Scopri di più →](https://yeachan-heo.github.io/oh-my-claudecode-website/docs/#execution-modes)
+Strategie multiple per diversi casi d'uso — dall'orchestrazione basata su Team al refactoring efficiente in termini di token. [Scopri di più →](https://yeachan-heo.github.io/oh-my-agent-connector-website/docs/#execution-modes)
 
 | Modalità                        | Descrizione                                                                             | Utilizzo                                                                                 |
 | ------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
@@ -138,16 +138,16 @@ Strategie multiple per diversi casi d'uso — dall'orchestrazione basata su Team
 
 ### Competenze Personalizzate
 
-Impara una volta, riutilizza per sempre. OMC estrae le conoscenze di debug duramente acquisite in file di competenze portabili che si iniettano automaticamente quando pertinenti.
+Impara una volta, riutilizza per sempre. OMAC estrae le conoscenze di debug duramente acquisite in file di competenze portabili che si iniettano automaticamente quando pertinenti.
 
 | | Ambito Progetto | Ambito Utente |
 |---|---|---|
-| **Percorso** | `.omc/skills/` | `~/.omc/skills/` |
+| **Percorso** | `.omac/skills/` | `~/.omac/skills/` |
 | **Condiviso con** | Team (versionato) | Tutti i tuoi progetti |
 | **Priorità** | Più alta (sovrascrive l'ambito utente) | Più bassa (fallback) |
 
 ```yaml
-# .omc/skills/fix-proxy-crash.md
+# .omac/skills/fix-proxy-crash.md
 ---
 name: Fix Proxy Crash
 description: aiohttp proxy crashes on ClientDisconnectedError
@@ -171,7 +171,7 @@ Scorciatoie opzionali per utenti avanzati. Il linguaggio naturale funziona bene 
 
 | Parola chiave | Effetto                                   | Esempio                                                         |
 | ------------- | ----------------------------------------- | --------------------------------------------------------------- |
-| `team`        | Orchestrazione Team canonica              | `/oh-my-claudecode:team 3:executor "fix all TypeScript errors"` |
+| `team`        | Orchestrazione Team canonica              | `/oh-my-agent-connector:team 3:executor "fix all TypeScript errors"` |
 | `autopilot`   | Esecuzione completamente autonoma         | `autopilot: build a todo app`                                   |
 | `ralph`       | Modalità persistente                      | `ralph: refactor auth`                                          |
 | `ulw`         | Parallelismo massimo                      | `ulw fix all errors`                                            |
@@ -193,9 +193,9 @@ Scorciatoie opzionali per utenti avanzati. Il linguaggio naturale funziona bene 
 Riprendi automaticamente le sessioni Claude Code quando i rate limit vengono ripristinati.
 
 ```bash
-omc wait          # Controlla lo stato, ottieni indicazioni
-omc wait --start  # Abilita il daemon di ripristino automatico
-omc wait --stop   # Disabilita il daemon
+omac wait          # Controlla lo stato, ottieni indicazioni
+omac wait --start  # Abilita il daemon di ripristino automatico
+omac wait --stop   # Disabilita il daemon
 ```
 
 **Requisiti:** tmux (per il rilevamento della sessione)
@@ -206,13 +206,13 @@ Puoi configurare chi viene taggato quando i callback di stop inviano i riepilogh
 
 ```bash
 # Imposta/sostituisci la lista dei tag
-omc config-stop-callback telegram --enable --token <bot_token> --chat <chat_id> --tag-list "@alice,bob"
-omc config-stop-callback discord --enable --webhook <url> --tag-list "@here,123456789012345678,role:987654321098765432"
+omac config-stop-callback telegram --enable --token <bot_token> --chat <chat_id> --tag-list "@alice,bob"
+omac config-stop-callback discord --enable --webhook <url> --tag-list "@here,123456789012345678,role:987654321098765432"
 
 # Aggiornamenti incrementali
-omc config-stop-callback telegram --add-tag charlie
-omc config-stop-callback discord --remove-tag @here
-omc config-stop-callback discord --clear-tags
+omac config-stop-callback telegram --add-tag charlie
+omac config-stop-callback discord --remove-tag @here
+omac config-stop-callback discord --clear-tags
 ```
 
 Comportamento dei tag:
@@ -228,11 +228,11 @@ Inoltra gli eventi di sessione di Claude Code a un gateway [OpenClaw](https://op
 **Configurazione rapida (consigliato):**
 
 ```bash
-/oh-my-claudecode:configure-notifications
+/oh-my-agent-connector:configure-notifications
 # → Digita "openclaw" quando richiesto → scegli "OpenClaw Gateway"
 ```
 
-**Configurazione manuale:** crea `~/.claude/omc_config.openclaw.json`:
+**Configurazione manuale:** crea `~/.claude/omac_config.openclaw.json`:
 
 ```json
 {
@@ -256,9 +256,9 @@ Inoltra gli eventi di sessione di Claude Code a un gateway [OpenClaw](https://op
 
 | Variabile | Descrizione |
 |-----------|-------------|
-| `OMC_OPENCLAW=1` | Abilita OpenClaw |
-| `OMC_OPENCLAW_DEBUG=1` | Abilita il logging di debug |
-| `OMC_OPENCLAW_CONFIG=/path/to/config.json` | Percorso alternativo del file di configurazione |
+| `OMAC_OPENCLAW=1` | Abilita OpenClaw |
+| `OMAC_OPENCLAW_DEBUG=1` | Abilita il logging di debug |
+| `OMAC_OPENCLAW_CONFIG=/path/to/config.json` | Percorso alternativo del file di configurazione |
 
 **Eventi hook supportati (6 attivi in bridge.ts):**
 
@@ -287,7 +287,7 @@ Vedi `scripts/openclaw-gateway-demo.mjs` per un gateway di riferimento che inolt
 
 - **[Riferimento completo](docs/REFERENCE.md)** — Documentazione completa delle funzionalità
 - **[Monitoraggio delle prestazioni](docs/PERFORMANCE-MONITORING.md)** — Tracciamento degli agenti, debugging e ottimizzazione
-- **[Sito web](https://yeachan-heo.github.io/oh-my-claudecode-website)** — Guide interattive ed esempi
+- **[Sito web](https://yeachan-heo.github.io/oh-my-agent-connector-website)** — Guide interattive ed esempi
 - **[Guida alla migrazione](docs/MIGRATION.md)** — Aggiornamento dalla v2.x
 - **[Architettura](docs/ARCHITECTURE.md)** — Come funziona dietro le quinte
 
@@ -300,7 +300,7 @@ Vedi `scripts/openclaw-gateway-demo.mjs` per un gateway di riferimento che inolt
 
 ### Opzionale: Orchestrazione Multi-AI
 
-OMC può opzionalmente orchestrare provider AI esterni per la validazione incrociata e la coerenza del design. Non sono **richiesti** — OMC funziona completamente senza di essi.
+OMAC può opzionalmente orchestrare provider AI esterni per la validazione incrociata e la coerenza del design. Non sono **richiesti** — OMAC funziona completamente senza di essi.
 
 | Provider                                                  | Installazione                       | Cosa abilita                                                         |
 | --------------------------------------------------------- | ----------------------------------- | -------------------------------------------------------------------- |
@@ -327,7 +327,7 @@ MIT
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)](https://www.star-history.com/#Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=Yeachan-Heo/oh-my-agent-connector&type=date&legend=top-left)](https://www.star-history.com/#Yeachan-Heo/oh-my-agent-connector&type=date&legend=top-left)
 
 ## 💖 Supporta questo progetto
 

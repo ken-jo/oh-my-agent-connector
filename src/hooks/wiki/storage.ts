@@ -6,7 +6,7 @@
  * to prevent concurrent corruption.
  *
  * Storage layout:
- *   .omc/wiki/
+ *   .omac/wiki/
  *   ├── index.md      (auto-maintained catalog)
  *   ├── log.md         (append-only operation chronicle)
  *   ├── page-slug.md   (knowledge pages)
@@ -15,7 +15,7 @@
 
 import { existsSync, readFileSync, readdirSync, unlinkSync, mkdirSync } from 'fs';
 import { join, resolve, sep } from 'path';
-import { getOmcRoot } from '../../lib/worktree-paths.js';
+import { getOmacRoot } from '../../lib/worktree-paths.js';
 import { atomicWriteFileSync } from '../../lib/atomic-write.js';
 import { lockPathFor, withFileLockSync } from '../../lib/file-lock.js';
 import {
@@ -41,7 +41,7 @@ const RESERVED_FILES = new Set([INDEX_FILE, LOG_FILE, ENVIRONMENT_FILE]);
 
 /** Get the wiki directory path. */
 export function getWikiDir(root: string): string {
-  return join(getOmcRoot(root), WIKI_DIR);
+  return join(getOmacRoot(root), WIKI_DIR);
 }
 
 /** Ensure wiki directory exists and is git-ignored. */
@@ -51,9 +51,9 @@ export function ensureWikiDir(root: string): string {
     mkdirSync(wikiDir, { recursive: true });
   }
 
-  // Ensure .omc/.gitignore includes wiki/
-  const omcRoot = getOmcRoot(root);
-  const gitignorePath = join(omcRoot, '.gitignore');
+  // Ensure .omac/.gitignore includes wiki/
+  const omacRoot = getOmacRoot(root);
+  const gitignorePath = join(omacRoot, '.gitignore');
   if (existsSync(gitignorePath)) {
     const content = readFileSync(gitignorePath, 'utf-8');
     if (!content.includes('wiki/')) {

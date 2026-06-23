@@ -1,6 +1,6 @@
-// oh-my-claudecode (OMC, MIT, ★36k), redeployed through agent-connector.
+// oh-my-agent-connector (OMAC, MIT, ★36k), redeployed through agent-connector.
 //
-// OMC functionality runs UNCHANGED — every hook script, the MCP server bundle,
+// OMAC functionality runs UNCHANGED — every hook script, the MCP server bundle,
 // and all 128 content files execute/compile from this fork
 // (the upstream runtime is vendored at the repo root). Only the
 // deployment plumbing is replaced by this one defineConnector():
@@ -30,24 +30,24 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { defineConnector } from "@ken-jo/agent-connector";
 
-/** Root of this fork; it carries the upstream OMC runtime files in-repo. */
-const OMC = dirname(fileURLToPath(import.meta.url));
+/** Root of this fork; it carries the upstream OMAC runtime files in-repo. */
+const OMAC = dirname(fileURLToPath(import.meta.url));
 
-/** OMC's own cross-platform hook runner — kept because going through it
+/** OMAC's own cross-platform hook runner — kept because going through it
  *  preserves upstream's per-script hooks.json timeout enforcement for free. */
-const RUN_CJS = join(OMC, "scripts", "run.cjs");
+const RUN_CJS = join(OMAC, "scripts", "run.cjs");
 
 // ───────────────────────────────────────────────────────────────────────────
 // P1a hook bridge — one thin handler per agent-connector event that
 // re-serializes the normalized event into the Claude-shaped stdin JSON the
-// unchanged OMC scripts expect, spawns them in upstream hooks.json order, and
+// unchanged OMAC scripts expect, spawns them in upstream hooks.json order, and
 // folds their stdout JSON back into one normalized HookResponse. Fail-open
-// everywhere (OMC's own catch-all is {"continue":true}; AC's runtime contract
+// everywhere (OMAC's own catch-all is {"continue":true}; AC's runtime contract
 // is fail-open too).
 // ───────────────────────────────────────────────────────────────────────────
 
 /**
- * Build the Claude-shaped stdin payload for the OMC scripts.
+ * Build the Claude-shaped stdin payload for the OMAC scripts.
  * On claude-code, evt.raw IS the original Claude payload — pass it verbatim.
  * On other hosts, synthesize the minimal shape from normalized fields.
  */
@@ -96,22 +96,22 @@ function claudeStdin(evt, hookEventName) {
 }
 
 /**
- * Spawn ONE unchanged OMC hook script through upstream run.cjs:
- *   node $OMC/scripts/run.cjs $OMC/scripts/<script> [args]
+ * Spawn ONE unchanged OMAC hook script through upstream run.cjs:
+ *   node $OMAC/scripts/run.cjs $OMAC/scripts/<script> [args]
  * stdin = the Claude-shaped JSON; stdout = the script's one JSON reply.
  * run.cjs re-reads hooks.json and enforces the per-entry timeout itself; the
  * outer timeout here (+5 s) is belt-and-braces so the bridge can never wedge.
- * Kill switches (DISABLE_OMC / OMC_SKIP_HOOKS / OMC_TEAM_WORKER) pass through
+ * Kill switches (DISABLE_OMAC / OMAC_SKIP_HOOKS / OMAC_TEAM_WORKER) pass through
  * env untouched — the scripts check them, exactly as upstream.
  */
-function runOmcScript(script, args, stdinJson, timeoutSec) {
+function runOmacScript(script, args, stdinJson, timeoutSec) {
   const r = spawnSync(
     process.execPath,
-    [RUN_CJS, join(OMC, "scripts", script), ...args],
+    [RUN_CJS, join(OMAC, "scripts", script), ...args],
     {
       input: stdinJson,
       encoding: "utf8",
-      env: { ...process.env, CLAUDE_PLUGIN_ROOT: OMC },
+      env: { ...process.env, CLAUDE_PLUGIN_ROOT: OMAC },
       timeout: (timeoutSec + 5) * 1000,
       windowsHide: true,
       maxBuffer: 16 * 1024 * 1024,
@@ -142,7 +142,7 @@ function runOmcScript(script, args, stdinJson, timeoutSec) {
  *               (top-level systemMessage folded in — surface-map residue 7)
  *   else allow: {"continue":true} / suppressOutput / empty / unparseable
  */
-function mergeOmcOutputs(outs) {
+function mergeOmacOutputs(outs) {
   let deny = null;
   let ask = null;
   const ctx = [];
@@ -153,7 +153,7 @@ function mergeOmcOutputs(outs) {
         reason:
           typeof o.reason === "string" && o.reason !== ""
             ? o.reason
-            : "Blocked by oh-my-claudecode hook",
+            : "Blocked by oh-my-agent-connector hook",
       };
     }
     const hso = o.hookSpecificOutput;
@@ -164,7 +164,7 @@ function mergeOmcOutputs(outs) {
             typeof hso.permissionDecisionReason === "string" &&
             hso.permissionDecisionReason !== ""
               ? hso.permissionDecisionReason
-              : "Blocked by oh-my-claudecode hook",
+              : "Blocked by oh-my-agent-connector hook",
         };
       } else if (hso.permissionDecision === "ask") {
         ask ??= {
@@ -172,7 +172,7 @@ function mergeOmcOutputs(outs) {
             typeof hso.permissionDecisionReason === "string" &&
             hso.permissionDecisionReason !== ""
               ? hso.permissionDecisionReason
-              : "Confirmation required by oh-my-claudecode hook",
+              : "Confirmation required by oh-my-agent-connector hook",
         };
       }
       if (
@@ -194,7 +194,7 @@ function mergeOmcOutputs(outs) {
 }
 
 /**
- * One HookDefinition that runs a fixed chain of OMC scripts (in upstream
+ * One HookDefinition that runs a fixed chain of OMAC scripts (in upstream
  * hooks.json order, sequentially) and merges their replies.
  * Each chain entry: [scriptFile, hooksJsonTimeoutSec, extraArgs?].
  */
@@ -204,9 +204,9 @@ function bridge(hookEventName, chain) {
       try {
         const stdin = claudeStdin(evt, hookEventName);
         const outs = chain.map(([script, timeoutSec, args]) =>
-          runOmcScript(script, args ?? [], stdin, timeoutSec),
+          runOmacScript(script, args ?? [], stdin, timeoutSec),
         );
-        return mergeOmcOutputs(outs);
+        return mergeOmacOutputs(outs);
       } catch {
         return { decision: "allow" }; // fail-open, never wedge the host
       }
@@ -215,7 +215,7 @@ function bridge(hookEventName, chain) {
 }
 
 /**
- * PermissionRequest needs its OWN merge — the generic mergeOmcOutputs defaults
+ * PermissionRequest needs its OWN merge — the generic mergeOmacOutputs defaults
  * to {decision:"allow"}, but on PermissionRequest an explicit "allow" is an
  * ACTIVE GRANT that suppresses the host's permission dialog. The scripts'
  * vocabulary is hookSpecificOutput.decision.behavior:
@@ -236,7 +236,7 @@ function permissionBridge(matcher, chain) {
         const stdin = claudeStdin(evt, "PermissionRequest");
         let allow = null;
         for (const [script, timeoutSec, args] of chain) {
-          const o = runOmcScript(script, args ?? [], stdin, timeoutSec);
+          const o = runOmacScript(script, args ?? [], stdin, timeoutSec);
           const d =
             o && typeof o === "object" && o.hookSpecificOutput &&
             typeof o.hookSpecificOutput === "object"
@@ -249,7 +249,7 @@ function permissionBridge(matcher, chain) {
               reason:
                 typeof d.message === "string" && d.message !== ""
                   ? d.message
-                  : "Blocked by oh-my-claudecode permission handler",
+                  : "Blocked by oh-my-agent-connector permission handler",
             };
           }
           if (d.behavior === "allow") {
@@ -271,7 +271,7 @@ function permissionBridge(matcher, chain) {
 
 // ───────────────────────────────────────────────────────────────────────────
 // Content compilation — 128 upstream files → 87 defs at config-load time.
-// A dependency-free frontmatter splitter is enough: every OMC frontmatter key
+// A dependency-free frontmatter splitter is enough: every OMAC frontmatter key
 // is a flat `key: value` scalar or a flow list like `[a, b]` (verified across
 // all 87 files — see surface-map §3). Validation (kebab names, non-empty
 // prompts/descriptions, ≤1024 descriptions, resource-path safety) is then
@@ -319,7 +319,7 @@ function parseFrontmatter(text) {
 
 /** agents/*.md (19) → SubagentDef[]. */
 function loadSubagents() {
-  const dir = join(OMC, "agents");
+  const dir = join(OMAC, "agents");
   return readdirSync(dir)
     .filter((f) => f.endsWith(".md"))
     .sort()
@@ -353,7 +353,7 @@ function loadSubagents() {
 
 /** commands/*.md (28) → CommandDef[]; filename stem is the slash name. */
 function loadCommands() {
-  const dir = join(OMC, "commands");
+  const dir = join(OMAC, "commands");
   return readdirSync(dir)
     .filter((f) => f.endsWith(".md"))
     .sort()
@@ -391,14 +391,14 @@ function collectResources(dir, prefix, out) {
 
 /**
  * skills/<dir>/SKILL.md (40) → SkillDef[] (+40 resource files across
- * omc-setup / project-session-manager / self-improve / writer-memory).
+ * omac-setup / project-session-manager / self-improve / writer-memory).
  * The frontmatter `name` is the source of truth (what the model invokes);
- * upstream has exactly one dir/name mismatch (dir `plan` → name `omc-plan`)
+ * upstream has exactly one dir/name mismatch (dir `plan` → name `omac-plan`)
  * which we preserve as-declared. Note R5: resources are utf-8 strings, so
  * psm.sh's executable bit is not carried.
  */
 function loadSkills() {
-  const root = join(OMC, "skills");
+  const root = join(OMAC, "skills");
   return readdirSync(root, { withFileTypes: true })
     .filter((e) => e.isDirectory())
     .map((e) => e.name)
@@ -426,31 +426,31 @@ function loadSkills() {
 }
 
 /**
- * docs/CLAUDE.md → one MemoryDef. Upstream OMC's installer maintains a
- * marker-fenced orchestrator block in ~/.claude/CLAUDE.md (its OMC:START/END
+ * docs/CLAUDE.md → one MemoryDef. Upstream OMAC's installer maintains a
+ * marker-fenced orchestrator block in ~/.claude/CLAUDE.md (its OMAC:START/END
  * fence); the body is the package's docs/CLAUDE.md. agent-connector's memory
  * surface (0.3.x) re-homes that body as a managed block written to the file
  * EACH host actually reads — CLAUDE.md (claude-code, which does NOT read
  * AGENTS.md), GEMINI.md (gemini-cli), AGENTS.md (codex/cursor/opencode) —
  * closing surface-map residue §4-5 AND going one better than upstream, which
- * could only ever write claude-code's CLAUDE.md. The upstream OMC:START /
- * OMC:VERSION / OMC:END marker lines are stripped (agent-connector owns the
+ * could only ever write claude-code's CLAUDE.md. The upstream OMAC:START /
+ * OMAC:VERSION / OMAC:END marker lines are stripped (agent-connector owns the
  * block boundary now via its own hash-stamped markers); the guidance body is
  * inlined verbatim. At 4.14.6 the body is ~3.4 KiB — under the 4 KiB
  * per-prompt warn budget.
  */
 function loadMemory() {
-  const raw = readFileSync(join(OMC, "docs", "CLAUDE.md"), "utf8");
+  const raw = readFileSync(join(OMAC, "docs", "CLAUDE.md"), "utf8");
   const content = raw
     .split(/\r?\n/)
-    .filter((l) => !/^\s*<!--\s*OMC:(START|END|VERSION[^>]*)\s*-->\s*$/.test(l))
+    .filter((l) => !/^\s*<!--\s*OMAC:(START|END|VERSION[^>]*)\s*-->\s*$/.test(l))
     .join("\n")
     .trim();
   return [
     {
       name: "orchestrator",
       description:
-        "OMC multi-agent orchestration standing guidance (upstream docs/CLAUDE.md)",
+        "OMAC multi-agent orchestration standing guidance (upstream docs/CLAUDE.md)",
       content,
     },
   ];
@@ -462,22 +462,22 @@ function loadMemory() {
 
 export default defineConnector({
   id: "oh-my-agent-connector",
-  displayName: "oh-my-claudecode",
-  version: "4.14.6", // upstream .claude-plugin/plugin.json
+  displayName: "oh-my-agent-connector",
+  version: "0.0.1",
 
-  // OMC's MCP server `t`: a self-contained 28,786-line CJS bundle, verified to
+  // OMAC's MCP server `t`: a self-contained 28,786-line CJS bundle, verified to
   // launch standalone (49 tools) with zero CLAUDE_PLUGIN_ROOT references — env
   // set anyway for defensive parity with the plugin launch context.
   server: {
     transport: "stdio",
     command: "node",
-    args: [join(OMC, "bridge", "mcp-server.cjs")],
-    env: { CLAUDE_PLUGIN_ROOT: OMC },
+    args: [join(OMAC, "bridge", "mcp-server.cjs")],
+    env: { CLAUDE_PLUGIN_ROOT: OMAC },
     tools: { include: ["*"] },
     timeoutMs: 30_000,
   },
 
-  // ALL 11 of OMC's hooks.json event keys map onto agent-connector's
+  // ALL 11 of OMAC's hooks.json event keys map onto agent-connector's
   // normalized events (24 of 24 command entries) since AC's E1 extension
   // added PermissionRequest / PostToolUseFailure / SubagentStart /
   // SubagentStop (8 → 12 canonical events). Chains run in upstream order with
@@ -504,8 +504,8 @@ export default defineConnector({
           if (src === "init") chain.push(["setup-init.mjs", 30]);
           if (src === "maintenance") chain.push(["setup-maintenance.mjs", 60]);
           const stdin = claudeStdin(evt, "SessionStart");
-          return mergeOmcOutputs(
-            chain.map(([s, t, a]) => runOmcScript(s, a ?? [], stdin, t)),
+          return mergeOmacOutputs(
+            chain.map(([s, t, a]) => runOmacScript(s, a ?? [], stdin, t)),
           );
         } catch {
           return { decision: "allow" };
@@ -536,7 +536,7 @@ export default defineConnector({
       ["post-tool-use-failure.mjs", 3],
     ]),
 
-    // subagent-tracker start/stop maintain OMC's own subagent state (the
+    // subagent-tracker start/stop maintain OMAC's own subagent state (the
     // upstream workaround for hosts not populating agent_type on stop);
     // verify-deliverables is ADVISORY on SubagentStop — additionalContext
     // warnings only, {continue:true, suppressOutput:true} when clean.

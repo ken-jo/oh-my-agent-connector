@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * OMC Session Start Hook (Node.js)
+ * OMAC Session Start Hook (Node.js)
  * Restores persistent mode states when session starts
  * Cross-platform: Windows, macOS, Linux
  */
@@ -12,7 +12,7 @@ import { join, dirname, basename, resolve, relative, isAbsolute } from 'path';
 import { homedir } from 'os';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { getClaudeConfigDir, getUpdateCheckCachePath } from './lib/config-dir.mjs';
-import { resolveOmcStateRoot } from './lib/state-root.mjs';
+import { resolveOmacStateRoot } from './lib/state-root.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -52,11 +52,11 @@ function readJsonFile(path) {
 
 const WORKFLOW_SLOT_TOMBSTONE_TTL_MS = 24 * 60 * 60 * 1000;
 
-function isWorkflowSlotTombstonedForMode(omcRoot, mode, sessionId) {
+function isWorkflowSlotTombstonedForMode(omacRoot, mode, sessionId) {
   const safeSessionId = typeof sessionId === 'string' && SAFE_SESSION_ID_PATTERN.test(sessionId) ? sessionId : '';
   const ledgerPath = safeSessionId
-    ? join(omcRoot, 'state', 'sessions', safeSessionId, 'skill-active-state.json')
-    : join(omcRoot, 'state', 'skill-active-state.json');
+    ? join(omacRoot, 'state', 'sessions', safeSessionId, 'skill-active-state.json')
+    : join(omacRoot, 'state', 'skill-active-state.json');
   const ledger = readJsonFile(ledgerPath);
   const slot = ledger?.active_skills?.[mode];
   if (!slot || typeof slot !== 'object') return false;
@@ -66,9 +66,9 @@ function isWorkflowSlotTombstonedForMode(omcRoot, mode, sessionId) {
   return Date.now() - completedAt < WORKFLOW_SLOT_TOMBSTONE_TTL_MS;
 }
 
-function shouldRestoreModeState(omcRoot, mode, state, sessionId) {
+function shouldRestoreModeState(omacRoot, mode, state, sessionId) {
   if (!state?.active) return false;
-  if (isWorkflowSlotTombstonedForMode(omcRoot, mode, sessionId)) return false;
+  if (isWorkflowSlotTombstonedForMode(omacRoot, mode, sessionId)) return false;
   return true;
 }
 
@@ -82,21 +82,21 @@ function readLinuxBootId() {
   }
 }
 
-function sessionStateDir(omcRoot, sessionId) {
-  return join(omcRoot, 'state', 'sessions', sessionId);
+function sessionStateDir(omacRoot, sessionId) {
+  return join(omacRoot, 'state', 'sessions', sessionId);
 }
 
-function sessionStartedMarkerPath(omcRoot, sessionId) {
-  return join(sessionStateDir(omcRoot, sessionId), SESSION_STARTED_MARKER_FILE);
+function sessionStartedMarkerPath(omacRoot, sessionId) {
+  return join(sessionStateDir(omacRoot, sessionId), SESSION_STARTED_MARKER_FILE);
 }
 
-function writeSessionStartedMarker(omcRoot, directory, sessionId) {
+function writeSessionStartedMarker(omacRoot, directory, sessionId) {
   if (!sessionId || !SAFE_SESSION_ID_PATTERN.test(sessionId)) return;
   try {
-    const dir = sessionStateDir(omcRoot, sessionId);
+    const dir = sessionStateDir(omacRoot, sessionId);
     mkdirSync(dir, { recursive: true });
     writeFileSync(
-      sessionStartedMarkerPath(omcRoot, sessionId),
+      sessionStartedMarkerPath(omacRoot, sessionId),
       JSON.stringify({
         session_id: sessionId,
         started_at: new Date().toISOString(),
@@ -115,10 +115,10 @@ function writeSessionStartedMarker(omcRoot, directory, sessionId) {
   }
 }
 
-function removeSessionStartedMarker(omcRoot, sessionId) {
+function removeSessionStartedMarker(omacRoot, sessionId) {
   if (!sessionId || !SAFE_SESSION_ID_PATTERN.test(sessionId)) return;
   try {
-    const markerPath = sessionStartedMarkerPath(omcRoot, sessionId);
+    const markerPath = sessionStartedMarkerPath(omacRoot, sessionId);
     if (existsSync(markerPath)) unlinkSync(markerPath);
   } catch {
     // Best-effort only.
@@ -130,7 +130,7 @@ function removeSessionStartedMarker(omcRoot, sessionId) {
  *
  * Claude Code SessionStart input currently provides session metadata such as
  * session_id, transcript_path, cwd, source, model, and agent_type, but no
- * stable owner process for the interactive session. In installed OMC hooks the
+ * stable owner process for the interactive session. In installed OMAC hooks the
  * immediate hook parent belongs to scripts/run.cjs and is intentionally
  * short-lived, so same-boot PID liveness checks are not reliable here. SessionEnd
  * remains the primary same-boot cleanup path; SessionStart only reconciles
@@ -149,8 +149,8 @@ function hasDurableAbandonmentEvidence(marker) {
   return false;
 }
 
-function cleanupSessionModeState(omcRoot, sessionId) {
-  const sessionDir = sessionStateDir(omcRoot, sessionId);
+function cleanupSessionModeState(omacRoot, sessionId) {
+  const sessionDir = sessionStateDir(omacRoot, sessionId);
   for (const file of SESSION_END_MODE_STATE_FILES) {
     try {
       const filePath = join(sessionDir, file);
@@ -164,8 +164,8 @@ function cleanupSessionModeState(omcRoot, sessionId) {
   }
 }
 
-function cleanupMissionStateForSession(omcRoot, sessionId) {
-  const missionStatePath = join(omcRoot, 'state', 'mission-state.json');
+function cleanupMissionStateForSession(omacRoot, sessionId) {
+  const missionStatePath = join(omacRoot, 'state', 'mission-state.json');
   const parsed = readJsonFile(missionStatePath);
   if (!Array.isArray(parsed?.missions)) return;
 
@@ -185,8 +185,8 @@ function cleanupMissionStateForSession(omcRoot, sessionId) {
   }
 }
 
-function reconcileAbandonedSessionStarts(omcRoot, currentSessionId) {
-  const sessionsDir = join(omcRoot, 'state', 'sessions');
+function reconcileAbandonedSessionStarts(omacRoot, currentSessionId) {
+  const sessionsDir = join(omacRoot, 'state', 'sessions');
   if (!existsSync(sessionsDir)) return;
 
   let entries = [];
@@ -199,22 +199,22 @@ function reconcileAbandonedSessionStarts(omcRoot, currentSessionId) {
   for (const sessionId of entries) {
     if (!SAFE_SESSION_ID_PATTERN.test(sessionId) || sessionId === currentSessionId) continue;
 
-    const marker = readJsonFile(sessionStartedMarkerPath(omcRoot, sessionId));
+    const marker = readJsonFile(sessionStartedMarkerPath(omacRoot, sessionId));
     if (!marker || marker.session_id !== sessionId) continue;
 
-    if (existsSync(join(omcRoot, 'sessions', `${sessionId}.json`))) {
-      removeSessionStartedMarker(omcRoot, sessionId);
+    if (existsSync(join(omacRoot, 'sessions', `${sessionId}.json`))) {
+      removeSessionStartedMarker(omacRoot, sessionId);
       continue;
     }
 
     if (!hasDurableAbandonmentEvidence(marker)) continue;
 
-    cleanupSessionModeState(omcRoot, sessionId);
-    cleanupMissionStateForSession(omcRoot, sessionId);
-    removeSessionStartedMarker(omcRoot, sessionId);
+    cleanupSessionModeState(omacRoot, sessionId);
+    cleanupMissionStateForSession(omacRoot, sessionId);
+    removeSessionStartedMarker(omacRoot, sessionId);
 
     try {
-      const sessionDir = sessionStateDir(omcRoot, sessionId);
+      const sessionDir = sessionStateDir(omacRoot, sessionId);
       if (readdirSync(sessionDir).length === 0) {
         rmSync(sessionDir, { recursive: false, force: true });
       }
@@ -258,7 +258,7 @@ async function loadProjectMemoryModules() {
 
 
 function dispatchSessionStartNotificationInBackground(pluginRoot, payload) {
-  if (!pluginRoot || process.env.OMC_NOTIFY === '0') return;
+  if (!pluginRoot || process.env.OMAC_NOTIFY === '0') return;
 
   let serializedPayload;
   try {
@@ -279,7 +279,7 @@ function dispatchSessionStartNotificationInBackground(pluginRoot, payload) {
       windowsHide: true,
       env: {
         ...process.env,
-        OMC_HOOK_BACKGROUND_CHILD: '1',
+        OMAC_HOOK_BACKGROUND_CHILD: '1',
       },
     });
     child.unref();
@@ -373,30 +373,30 @@ import { MODEL_ROUTING_OVERRIDE_MESSAGE } from './lib/model-routing-override-mes
 export { MODEL_ROUTING_OVERRIDE_MESSAGE };
 
 /**
- * Validate that a candidate cwd is a real OMC workspace anchor.
+ * Validate that a candidate cwd is a real OMAC workspace anchor.
  * Returns the candidate unchanged if it is non-empty AND contains a
- * `.omc-workspace` marker OR a `.git` directory.
+ * `.omac-workspace` marker OR a `.git` directory.
  * Otherwise emits a one-line warning to stderr and returns null,
  * signalling the caller to skip all state mutations.
  */
 function validateCwd(candidate) {
   if (!candidate || typeof candidate !== 'string') {
     process.stderr.write(
-      `[OMC] session-start: refusing to use cwd '${candidate}' as workspace anchor (no .omc-workspace or .git marker)\n`
+      `[OMAC] session-start: refusing to use cwd '${candidate}' as workspace anchor (no .omac-workspace or .git marker)\n`
     );
     return null;
   }
   // cwd is commonly a subdirectory of the repo/workspace root, so walk up
-  // looking for a `.omc-workspace` marker or `.git` dir. Stop before scanning
+  // looking for a `.omac-workspace` marker or `.git` dir. Stop before scanning
   // $HOME (or above) so a stray marker/repo in $HOME cannot validate an
   // unrelated directory. Returns the original candidate so downstream root
-  // resolution (getOmcRoot/resolveOmcStateRoot) can anchor it.
+  // resolution (getOmacRoot/resolveOmacStateRoot) can anchor it.
   let home = null;
   try { home = homedir(); } catch { home = null; }
   let cursor = candidate;
   while (true) {
     if (home && cursor === home) break;
-    if (existsSync(join(cursor, '.omc-workspace')) || existsSync(join(cursor, '.git'))) {
+    if (existsSync(join(cursor, '.omac-workspace')) || existsSync(join(cursor, '.git'))) {
       return candidate;
     }
     const parent = dirname(cursor);
@@ -404,7 +404,7 @@ function validateCwd(candidate) {
     cursor = parent;
   }
   process.stderr.write(
-    `[OMC] session-start: refusing to use cwd '${candidate}' as workspace anchor (no .omc-workspace or .git marker)\n`
+    `[OMAC] session-start: refusing to use cwd '${candidate}' as workspace anchor (no .omac-workspace or .git marker)\n`
   );
   return null;
 }
@@ -440,8 +440,8 @@ function isVertexSession() {
 
 function readRoutingForceInheritFromConfig(directory) {
   const configPaths = [
-    join(configDir, '.omc-config.json'),
-    join(directory, '.omc', 'config.json'),
+    join(configDir, '.omac-config.json'),
+    join(directory, '.omac', 'config.json'),
   ];
 
   for (const configPath of configPaths) {
@@ -453,8 +453,8 @@ function readRoutingForceInheritFromConfig(directory) {
 }
 
 function shouldEmitModelRoutingOverride(directory) {
-  if (process.env.OMC_ROUTING_FORCE_INHERIT === 'true') return true;
-  if (process.env.OMC_ROUTING_FORCE_INHERIT === 'false') return false;
+  if (process.env.OMAC_ROUTING_FORCE_INHERIT === 'true') return true;
+  if (process.env.OMAC_ROUTING_FORCE_INHERIT === 'false') return false;
   if (readRoutingForceInheritFromConfig(directory)) return true;
 
   if (isBedrockSession() || isVertexSession()) return true;
@@ -480,9 +480,9 @@ function formatUpdateNoticeForUser(updateInfo, options = {}) {
   const latestVersion = updateInfo?.latestVersion || 'latest';
   const currentVersion = updateInfo?.currentVersion || 'unknown';
   const action = options.autoUpgradePrompt === false
-    ? 'To update later, run: omc update'
-    : 'Run /update to upgrade now, or use /plugin install oh-my-claudecode';
-  return `[OMC UPDATE AVAILABLE] oh-my-claudecode v${latestVersion} is available (current: v${currentVersion}). ${action}`;
+    ? 'To update later, run: omac update'
+    : 'Run /update to upgrade now, or use /plugin install oh-my-agent-connector';
+  return `[OMAC UPDATE AVAILABLE] oh-my-agent-connector v${latestVersion} is available (current: v${currentVersion}). ${action}`;
 }
 
 function buildSessionStartAdditionalContext(messages) {
@@ -530,14 +530,14 @@ function buildSessionStartAdditionalContext(messages) {
   return selected.join('\n');
 }
 
-// Extract OMC version from CLAUDE.md content
-function extractOmcVersion(content) {
-  const match = content.match(/<!-- OMC:VERSION:(\d+\.\d+\.\d+[^\s]*?) -->/);
+// Extract OMAC version from CLAUDE.md content
+function extractOmacVersion(content) {
+  const match = content.match(/<!-- OMAC:VERSION:(\d+\.\d+\.\d+[^\s]*?) -->/);
   return match ? match[1] : null;
 }
 
 function getPluginCacheBase() {
-  return join(configDir, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+  return join(configDir, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
 }
 
 function isPathInsideOrEqual(parent, child) {
@@ -551,9 +551,9 @@ function isManagedPluginCacheRoot(pluginRoot) {
   if (isPathInsideOrEqual(cacheBase, normalizedRoot)) return true;
 
   // A stale root can come from an older config-dir location; the canonical
-  // cache path shape still proves it is an OMC managed cache version.
+  // cache path shape still proves it is an OMAC managed cache version.
   const unixRoot = normalizedRoot.replace(/\\/g, '/');
-  return /\/plugins\/cache\/omc\/oh-my-claudecode\/\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/.test(unixRoot);
+  return /\/plugins\/cache\/omac\/oh-my-agent-connector\/\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/.test(unixRoot);
 }
 
 function getLatestPluginCacheVersion() {
@@ -586,7 +586,7 @@ function getPluginVersion() {
 // Get npm global package version
 function getNpmVersion() {
   try {
-    const versionFile = join(configDir, '.omc-version.json');
+    const versionFile = join(configDir, '.omac-version.json');
     const data = readJsonFile(versionFile);
     return data?.version || null;
   } catch { return null; }
@@ -598,7 +598,7 @@ function getClaudeMdVersion() {
     const claudeMdPath = join(configDir, 'CLAUDE.md');
     if (!existsSync(claudeMdPath)) return null;  // File doesn't exist
     const content = readFileSync(claudeMdPath, 'utf-8');
-    const version = extractOmcVersion(content);
+    const version = extractOmacVersion(content);
     return version || 'unknown';  // File exists but no marker = 'unknown'
   } catch { return null; }
 }
@@ -615,7 +615,7 @@ function detectVersionDrift() {
   const drift = [];
 
   if (npmVersion && npmVersion !== pluginVersion) {
-    drift.push({ component: 'npm package (omc CLI)', current: npmVersion, expected: pluginVersion });
+    drift.push({ component: 'npm package (omac CLI)', current: npmVersion, expected: pluginVersion });
   }
 
   if (claudeMdVersion === 'unknown') {
@@ -639,7 +639,7 @@ function detectVersionDrift() {
 
 // Check if we should notify (once per unique drift combination)
 function shouldNotifyDrift(driftInfo) {
-  const stateFile = join(configDir, '.omc', 'update-state.json');
+  const stateFile = join(configDir, '.omac', 'update-state.json');
   const driftKey = `plugin:${driftInfo.pluginVersion}-npm:${driftInfo.npmVersion}-claude:${driftInfo.claudeMdVersion}`;
 
   try {
@@ -651,7 +651,7 @@ function shouldNotifyDrift(driftInfo) {
 
   // Save new drift state
   try {
-    const dir = join(configDir, '.omc');
+    const dir = join(configDir, '.omac');
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     writeFileSync(stateFile, JSON.stringify({
       lastNotifiedDrift: driftKey,
@@ -684,7 +684,7 @@ async function checkNpmUpdate(currentVersion) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 2000);
   try {
-    const response = await fetch('https://registry.npmjs.org/oh-my-claude-sisyphus/latest', {
+    const response = await fetch('https://registry.npmjs.org/oh-my-agent-connector/latest', {
       signal: controller.signal
     });
     if (!response.ok) return null;
@@ -695,7 +695,7 @@ async function checkNpmUpdate(currentVersion) {
 
     // Update cache
     try {
-      const dir = join(configDir, '.omc');
+      const dir = join(configDir, '.omac');
       if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
       writeFileSync(cacheFile, JSON.stringify({ timestamp: now, latestVersion, currentVersion, updateAvailable }));
     } catch {}
@@ -708,15 +708,15 @@ async function checkNpmUpdate(currentVersion) {
 async function checkHudInstallation(retryCount = 0) {
   const hudDir = join(configDir, 'hud');
   // Support current and legacy script names
-  const hudScriptOmc = join(hudDir, 'omc-hud.mjs');
-  const hudScriptLegacy = join(hudDir, 'omc-hud.js');
+  const hudScriptOmac = join(hudDir, 'omac-hud.mjs');
+  const hudScriptLegacy = join(hudDir, 'omac-hud.js');
   const settingsFile = join(configDir, 'settings.json');
 
   const MAX_RETRIES = 2;
   const RETRY_DELAY_MS = 100;
 
   // Check if HUD script exists (either naming convention)
-  const hudScriptExists = existsSync(hudScriptOmc) || existsSync(hudScriptLegacy);
+  const hudScriptExists = existsSync(hudScriptOmac) || existsSync(hudScriptLegacy);
   if (!hudScriptExists) {
     return { installed: false, reason: 'HUD script missing' };
   }
@@ -750,9 +750,9 @@ async function checkHudInstallation(retryCount = 0) {
           ? settings.statusLine.command
           : null);
 
-      // If OMC HUD wrapper is configured, ensure at least one plugin cache version is built.
-      if (statusLineCommand?.includes('omc-hud')) {
-        const pluginCacheBase = join(configDir, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+      // If OMAC HUD wrapper is configured, ensure at least one plugin cache version is built.
+      if (statusLineCommand?.includes('omac-hud')) {
+        const pluginCacheBase = join(configDir, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
         if (existsSync(pluginCacheBase)) {
           const versions = readdirSync(pluginCacheBase)
             .filter(version => !version.startsWith('.'))
@@ -802,11 +802,11 @@ async function main() {
       return;
     }
     const sessionId = data.session_id || data.sessionId || '';
-    const omcRoot = await resolveOmcStateRoot(directory);
+    const omacRoot = await resolveOmacStateRoot(directory);
     const messages = [];
     const userMessages = [];
 
-    // Fire sibling-retrofit warning once per session (lifted off getOmcRoot hot path)
+    // Fire sibling-retrofit warning once per session (lifted off getOmacRoot hot path)
     try {
       const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT;
       if (pluginRoot) {
@@ -819,17 +819,17 @@ async function main() {
     } catch { /* non-fatal — dist unavailable or no workspace anchor */ }
     const projectMemoryModules = await loadProjectMemoryModules();
 
-    writeSessionStartedMarker(omcRoot, directory, sessionId);
-    reconcileAbandonedSessionStarts(omcRoot, sessionId);
+    writeSessionStartedMarker(omacRoot, directory, sessionId);
+    reconcileAbandonedSessionStarts(omacRoot, sessionId);
 
     // Check for version drift between components
     const driftInfo = detectVersionDrift();
     if (driftInfo && shouldNotifyDrift(driftInfo)) {
-      let driftMsg = `[OMC VERSION DRIFT DETECTED]\n\nPlugin version: ${driftInfo.pluginVersion}\n`;
+      let driftMsg = `[OMAC VERSION DRIFT DETECTED]\n\nPlugin version: ${driftInfo.pluginVersion}\n`;
       for (const d of driftInfo.drift) {
         driftMsg += `${d.component}: ${d.current} (expected ${d.expected})\n`;
       }
-      driftMsg += `\nRun 'omc update' to sync all components.`;
+      driftMsg += `\nRun 'omac update' to sync all components.`;
 
       messages.push(`<session-restore>\n\n${driftMsg}\n\n</session-restore>\n\n---\n`);
     }
@@ -840,8 +840,8 @@ async function main() {
       if (pluginVersion) {
         const updateInfo = await checkNpmUpdate(pluginVersion);
         if (updateInfo) {
-          const omcConfig = readJsonFile(join(configDir, '.omc-config.json')) || {};
-          userMessages.push(formatUpdateNoticeForUser(updateInfo, { autoUpgradePrompt: omcConfig.autoUpgradePrompt !== false }));
+          const omacConfig = readJsonFile(join(configDir, '.omac-config.json')) || {};
+          userMessages.push(formatUpdateNoticeForUser(updateInfo, { autoUpgradePrompt: omacConfig.autoUpgradePrompt !== false }));
         }
       }
     } catch {}
@@ -849,10 +849,10 @@ async function main() {
     // Warn if silentAutoUpdate is enabled but running in plugin mode (#1773)
     if (process.env.CLAUDE_PLUGIN_ROOT) {
       try {
-        const omcConfigPath = join(configDir, '.omc-config.json');
-        const omcConfig = readJsonFile(omcConfigPath);
-        if (omcConfig?.silentAutoUpdate) {
-          messages.push(`<session-restore>\n\n[OMC] silentAutoUpdate is enabled in .omc-config.json but has no effect in plugin mode.\nTo update, use: /plugin marketplace update omc && /omc-setup\nOr run manually: omc update\n\n</session-restore>\n\n---\n`);
+        const omacConfigPath = join(configDir, '.omac-config.json');
+        const omacConfig = readJsonFile(omacConfigPath);
+        if (omacConfig?.silentAutoUpdate) {
+          messages.push(`<session-restore>\n\n[OMAC] silentAutoUpdate is enabled in .omac-config.json but has no effect in plugin mode.\nTo update, use: /plugin marketplace update omac && /omac-setup\nOr run manually: omac update\n\n</session-restore>\n\n---\n`);
         }
       } catch {}
     }
@@ -861,7 +861,7 @@ async function main() {
     const hudCheck = await checkHudInstallation();
     if (!hudCheck.installed) {
       messages.push(`<system-reminder>
-[OMC] HUD not configured (${hudCheck.reason}). Run /hud setup then restart Claude Code.
+[OMAC] HUD not configured (${hudCheck.reason}). Run /hud setup then restart Claude Code.
 </system-reminder>`);
     }
 
@@ -874,17 +874,17 @@ async function main() {
     let ultraworkState = null;
     if (sessionId && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,255}$/.test(sessionId)) {
       // Session-scoped ONLY — no legacy fallback
-      ultraworkState = readJsonFile(join(omcRoot, 'state', 'sessions', sessionId, 'ultrawork-state.json'));
+      ultraworkState = readJsonFile(join(omacRoot, 'state', 'sessions', sessionId, 'ultrawork-state.json'));
       // Validate session identity
       if (ultraworkState && ultraworkState.session_id && ultraworkState.session_id !== sessionId) {
         ultraworkState = null;
       }
     } else {
       // No session_id — legacy behavior for backward compat
-      ultraworkState = readJsonFile(join(omcRoot, 'state', 'ultrawork-state.json'));
+      ultraworkState = readJsonFile(join(omacRoot, 'state', 'ultrawork-state.json'));
     }
 
-    if (shouldRestoreModeState(omcRoot, 'ultrawork', ultraworkState, sessionId)) {
+    if (shouldRestoreModeState(omacRoot, 'ultrawork', ultraworkState, sessionId)) {
       messages.push(`<session-restore>
 
 [ULTRAWORK MODE RESTORED]
@@ -905,19 +905,19 @@ Treat this as prior-session context only. Prioritize the user's newest request, 
     let ralphState = null;
     if (sessionId && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,255}$/.test(sessionId)) {
       // Session-scoped ONLY — no legacy fallback
-      ralphState = readJsonFile(join(omcRoot, 'state', 'sessions', sessionId, 'ralph-state.json'));
+      ralphState = readJsonFile(join(omacRoot, 'state', 'sessions', sessionId, 'ralph-state.json'));
       // Validate session identity
       if (ralphState && ralphState.session_id && ralphState.session_id !== sessionId) {
         ralphState = null;
       }
     } else {
       // No session_id — legacy behavior for backward compat
-      ralphState = readJsonFile(join(omcRoot, 'state', 'ralph-state.json'));
+      ralphState = readJsonFile(join(omacRoot, 'state', 'ralph-state.json'));
       if (!ralphState) {
-        ralphState = readJsonFile(join(omcRoot, 'ralph-state.json'));
+        ralphState = readJsonFile(join(omacRoot, 'ralph-state.json'));
       }
     }
-    if (shouldRestoreModeState(omcRoot, 'ralph', ralphState, sessionId)) {
+    if (shouldRestoreModeState(omacRoot, 'ralph', ralphState, sessionId)) {
       messages.push(`<session-restore>
 
 [RALPH LOOP RESTORED]
@@ -941,7 +941,7 @@ Treat this as prior-session context only. Prioritize the user's newest request, 
     // That directory accumulates todo files from ALL past sessions across all
     // projects, causing phantom task counts in fresh sessions (see issue #354).
     const localTodoPaths = [
-      join(omcRoot, 'todos.json'),
+      join(omacRoot, 'todos.json'),
       join(directory, '.claude', 'todos.json')
     ];
     let incompleteCount = 0;
@@ -990,7 +990,7 @@ ${summary}
     }
 
     // Check for notepad Priority Context
-    const notepadPath = join(omcRoot, 'notepad.md');
+    const notepadPath = join(omacRoot, 'notepad.md');
     if (existsSync(notepadPath)) {
       try {
         const notepadContent = readFileSync(notepadPath, 'utf-8');
@@ -1016,7 +1016,7 @@ ${cleanContent}
     // This prevents "Cannot find module" errors for sessions started before a
     // plugin update whose CLAUDE_PLUGIN_ROOT still points to the old version.
     try {
-      const cacheBase = join(configDir, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+      const cacheBase = join(configDir, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
       let versions = [];
       if (existsSync(cacheBase)) {
         versions = readdirSync(cacheBase)

@@ -10,7 +10,7 @@ const NODE = process.execPath;
 /**
  * Integration tests for the plugin cache cleanup logic in session-start.mjs.
  *
- * The script's cleanup block scans ~/.claude/plugins/cache/omc/oh-my-claudecode/
+ * The script's cleanup block scans ~/.claude/plugins/cache/omac/oh-my-agent-connector/
  * for version directories, keeps the latest 2 real directories, and replaces
  * older versions with symlinks pointing to the latest version. This prevents
  * "Cannot find module" errors when a running session's CLAUDE_PLUGIN_ROOT
@@ -23,14 +23,14 @@ describe('session-start.mjs — plugin cache cleanup uses symlinks', () => {
   let fakeProject: string;
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(join(tmpdir(), 'omc-cache-test-'));
+    tmpDir = mkdtempSync(join(tmpdir(), 'omac-cache-test-'));
     fakeHome = join(tmpDir, 'home');
-    fakeCacheBase = join(fakeHome, '.claude', 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    fakeCacheBase = join(fakeHome, '.claude', 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     fakeProject = join(tmpDir, 'project');
 
-    // Create fake project directory with .omc
-    mkdirSync(join(fakeProject, '.omc', 'state'), { recursive: true });
-    // session-start validateCwd requires a real workspace anchor (.git / .omc-workspace)
+    // Create fake project directory with .omac
+    mkdirSync(join(fakeProject, '.omac', 'state'), { recursive: true });
+    // session-start validateCwd requires a real workspace anchor (.git / .omac-workspace)
     mkdirSync(join(fakeProject, '.git'), { recursive: true });
 
     // Create fake cache base
@@ -91,8 +91,8 @@ describe('session-start.mjs — plugin cache cleanup uses symlinks', () => {
   it('keeps explicit external plugin roots authoritative for update checks', () => {
     createFakeVersion('4.14.5');
     const externalRoot = createExternalPluginRoot('4.14.4');
-    const updateCache = join(fakeHome, '.claude', '.omc', 'update-check.json');
-    mkdirSync(join(fakeHome, '.claude', '.omc'), { recursive: true });
+    const updateCache = join(fakeHome, '.claude', '.omac', 'update-check.json');
+    mkdirSync(join(fakeHome, '.claude', '.omac'), { recursive: true });
     writeFileSync(updateCache, JSON.stringify({
       timestamp: Date.now(),
       latestVersion: '4.14.5',
@@ -103,15 +103,15 @@ describe('session-start.mjs — plugin cache cleanup uses symlinks', () => {
     const output = runSessionStart({ CLAUDE_PLUGIN_ROOT: externalRoot });
     const parsed = JSON.parse(output);
 
-    expect(parsed.systemMessage).toContain('[OMC UPDATE AVAILABLE]');
+    expect(parsed.systemMessage).toContain('[OMAC UPDATE AVAILABLE]');
     expect(parsed.systemMessage).toContain('current: v4.14.4');
   });
 
   it('uses latest managed cache version for stale managed cache roots', () => {
     createFakeVersion('4.14.4');
     createFakeVersion('4.14.5');
-    const updateCache = join(fakeHome, '.claude', '.omc', 'update-check.json');
-    mkdirSync(join(fakeHome, '.claude', '.omc'), { recursive: true });
+    const updateCache = join(fakeHome, '.claude', '.omac', 'update-check.json');
+    mkdirSync(join(fakeHome, '.claude', '.omac'), { recursive: true });
     writeFileSync(updateCache, JSON.stringify({
       timestamp: Date.now(),
       latestVersion: '4.14.5',

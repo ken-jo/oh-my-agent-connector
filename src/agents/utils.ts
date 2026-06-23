@@ -164,7 +164,7 @@ export function mergeAgentConfig(
 }
 
 /**
- * Build delegation table section for OMC prompt
+ * Build delegation table section for OMAC prompt
  */
 export function buildDelegationTable(availableAgents: AvailableAgent[]): string {
   if (availableAgents.length === 0) {
@@ -249,7 +249,7 @@ export function getAvailableAgents(
 }
 
 /**
- * Build key triggers section for OMC prompt
+ * Build key triggers section for OMAC prompt
  */
 export function buildKeyTriggersSection(
   availableAgents: AvailableAgent[]
@@ -335,7 +335,7 @@ export function parseDisallowedTools(agentName: string): string[] | undefined {
 /**
  * Standard path for open questions file
  */
-export const OPEN_QUESTIONS_PATH = '.omc/plans/open-questions.md';
+export const OPEN_QUESTIONS_PATH = '.omac/plans/open-questions.md';
 
 /**
  * Format open questions for appending to the standard open-questions.md file.

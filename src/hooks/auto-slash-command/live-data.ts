@@ -12,14 +12,14 @@
  * - Once per session: `!only-once npm install`
  * - Output formats: `!json docker inspect ...`, `!table ...`, `!diff git diff`
  * - Multi-line: `!begin-script bash` ... `!end-script`
- * - Security allowlist via .omc/config/live-data-policy.json
+ * - Security allowlist via .omac/config/live-data-policy.json
  */
 
 import { execSync } from "child_process";
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import safe from "safe-regex";
-import { getWorktreeRoot, getOmcRoot } from "../../lib/worktree-paths.js";
+import { getWorktreeRoot, getOmacRoot } from "../../lib/worktree-paths.js";
 
 const TIMEOUT_MS = 10_000;
 const MAX_OUTPUT_BYTES = 50 * 1024;
@@ -137,7 +137,7 @@ let policyLoadedFrom: string | null = null;
 function loadSecurityPolicy(): SecurityPolicy {
   const root = getWorktreeRoot() || process.cwd();
   const policyPaths = [
-    join(getOmcRoot(root), "config", "live-data-policy.json"),
+    join(getOmacRoot(root), "config", "live-data-policy.json"),
     join(root, ".claude", "live-data-policy.json"),
   ];
 

@@ -41,7 +41,7 @@ describe('emitMonitorDerivedEvents swallowed error logging', () => {
     )).resolves.toBeUndefined();
 
     expect(warnSpy).toHaveBeenCalledWith(
-      '[omc] team.events.emitMonitorDerivedEvents appendTeamEvent failed: disk full',
+      '[omac] team.events.emitMonitorDerivedEvents appendTeamEvent failed: disk full',
     );
   });
 });

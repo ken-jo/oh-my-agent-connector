@@ -4,12 +4,12 @@
  * Records agent lifecycle events as JSONL for timeline visualization
  * and post-session bottleneck analysis.
  *
- * Events are appended to: .omc/state/agent-replay-{sessionId}.jsonl
+ * Events are appended to: .omac/state/agent-replay-{sessionId}.jsonl
  */
 
 import { existsSync, appendFileSync, readFileSync, mkdirSync, readdirSync, unlinkSync, statSync } from 'fs';
 import { join } from 'path';
-import { getOmcRoot } from '../../lib/worktree-paths.js';
+import { getOmacRoot } from '../../lib/worktree-paths.js';
 
 // ============================================================================
 // Types
@@ -108,7 +108,7 @@ const sessionStartTimes = new Map<string, number>();
  * Get the replay file path for a session
  */
 export function getReplayFilePath(directory: string, sessionId: string): string {
-  const stateDir = join(getOmcRoot(directory), 'state');
+  const stateDir = join(getOmacRoot(directory), 'state');
   if (!existsSync(stateDir)) {
     mkdirSync(stateDir, { recursive: true });
   }
@@ -183,7 +183,7 @@ export function recordAgentStart(
 ): void {
   appendReplayEvent(directory, sessionId, {
     agent: agentId.substring(0, 7),
-    agent_type: agentType.replace('oh-my-claudecode:', ''),
+    agent_type: agentType.replace('oh-my-agent-connector:', ''),
     event: 'agent_start',
     task: task?.substring(0, 100),
     parent_mode: parentMode,
@@ -204,7 +204,7 @@ export function recordAgentStop(
 ): void {
   appendReplayEvent(directory, sessionId, {
     agent: agentId.substring(0, 7),
-    agent_type: agentType.replace('oh-my-claudecode:', ''),
+    agent_type: agentType.replace('oh-my-agent-connector:', ''),
     event: 'agent_stop',
     success,
     duration_ms: durationMs,
@@ -488,7 +488,7 @@ export function getReplaySummary(directory: string, sessionId: string): ReplaySu
  * Clean up old replay files, keeping only the most recent ones
  */
 export function cleanupReplayFiles(directory: string): number {
-  const stateDir = join(getOmcRoot(directory), 'state');
+  const stateDir = join(getOmacRoot(directory), 'state');
   if (!existsSync(stateDir)) return 0;
 
   try {

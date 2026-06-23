@@ -17,8 +17,8 @@ export type ComplexityTier = 'LOW' | 'MEDIUM' | 'HIGH';
 /**
  * Model tier mapping to actual Claude models.
  *
- * Reads from environment variables (OMC_MODEL_HIGH, OMC_MODEL_MEDIUM,
- * OMC_MODEL_LOW) with built-in fallbacks. User/project config overrides
+ * Reads from environment variables (OMAC_MODEL_HIGH, OMAC_MODEL_MEDIUM,
+ * OMAC_MODEL_LOW) with built-in fallbacks. User/project config overrides
  * are applied later by the config loader.
  */
 export const TIER_MODELS: Record<ComplexityTier, string> = getDefaultTierModels();

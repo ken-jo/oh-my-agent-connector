@@ -4,7 +4,7 @@ describe('DEFAULT_LSP_REQUEST_TIMEOUT_MS', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.resetModules();
-    delete process.env.OMC_LSP_TIMEOUT_MS;
+    delete process.env.OMAC_LSP_TIMEOUT_MS;
   });
 
   async function importClientModule() {
@@ -18,31 +18,31 @@ describe('DEFAULT_LSP_REQUEST_TIMEOUT_MS', () => {
   }
 
   it('should default to 15000 when env var is not set', async () => {
-    delete process.env.OMC_LSP_TIMEOUT_MS;
+    delete process.env.OMAC_LSP_TIMEOUT_MS;
     const timeout = await importTimeout();
     expect(timeout).toBe(15_000);
   });
 
   it('should use env var value when set to a valid number', async () => {
-    process.env.OMC_LSP_TIMEOUT_MS = '30000';
+    process.env.OMAC_LSP_TIMEOUT_MS = '30000';
     const timeout = await importTimeout();
     expect(timeout).toBe(30_000);
   });
 
   it('should fall back to 15000 for non-numeric env var', async () => {
-    process.env.OMC_LSP_TIMEOUT_MS = 'not-a-number';
+    process.env.OMAC_LSP_TIMEOUT_MS = 'not-a-number';
     const timeout = await importTimeout();
     expect(timeout).toBe(15_000);
   });
 
   it('should fall back to 15000 for zero', async () => {
-    process.env.OMC_LSP_TIMEOUT_MS = '0';
+    process.env.OMAC_LSP_TIMEOUT_MS = '0';
     const timeout = await importTimeout();
     expect(timeout).toBe(15_000);
   });
 
   it('should fall back to 15000 for negative values', async () => {
-    process.env.OMC_LSP_TIMEOUT_MS = '-5000';
+    process.env.OMAC_LSP_TIMEOUT_MS = '-5000';
     const timeout = await importTimeout();
     expect(timeout).toBe(15_000);
   });
@@ -58,7 +58,7 @@ describe('DEFAULT_LSP_REQUEST_TIMEOUT_MS', () => {
   });
 
   it('should preserve larger env-based timeouts over kotlin minimum', async () => {
-    process.env.OMC_LSP_TIMEOUT_MS = '600000';
+    process.env.OMAC_LSP_TIMEOUT_MS = '600000';
     const mod = await importClientModule();
     expect(mod.getLspRequestTimeout({ initializeTimeoutMs: 5 * 60 * 1000 }, 'initialize')).toBe(600000);
   });

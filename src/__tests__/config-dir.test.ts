@@ -86,11 +86,11 @@ describe('getClaudeConfigDir', () => {
     expect(output).toBe(normalize(join(homedir(), '.claude-alt')));
   });
 
-  it('find-node.sh resolves a ~-prefixed CLAUDE_CONFIG_DIR before reading .omc-config.json', () => {
-    const homeDir = mkdtempSync(join(tmpdir(), 'omc-find-node-home-'));
+  it('find-node.sh resolves a ~-prefixed CLAUDE_CONFIG_DIR before reading .omac-config.json', () => {
+    const homeDir = mkdtempSync(join(tmpdir(), 'omac-find-node-home-'));
     const configDir = join(homeDir, '.claude-alt');
     mkdirSync(configDir, { recursive: true });
-    writeFileSync(join(configDir, '.omc-config.json'), JSON.stringify({ nodeBinary: process.execPath }));
+    writeFileSync(join(configDir, '.omac-config.json'), JSON.stringify({ nodeBinary: process.execPath }));
 
     const output = execFileSync(
       '/bin/sh',
@@ -111,7 +111,7 @@ describe('getClaudeConfigDir', () => {
   });
 
   it('shared shell helper expands a ~-prefixed CLAUDE_CONFIG_DIR', () => {
-    const homeDir = mkdtempSync(join(tmpdir(), 'omc-uninstall-home-'));
+    const homeDir = mkdtempSync(join(tmpdir(), 'omac-uninstall-home-'));
     const output = execFileSync('bash', ['-lc', `. "${join(process.cwd(), 'scripts', 'lib', 'config-dir.sh')}"; resolve_claude_config_dir`], {
       cwd: process.cwd(),
       env: {
@@ -148,8 +148,8 @@ describe('CLAUDE_CONFIG_DIR downstream integration', () => {
 
   beforeEach(() => {
     origConfigDir = process.env.CLAUDE_CONFIG_DIR;
-    tempDir = join(tmpdir(), `omc-test-configdir-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    tildeConfigDir = join(homedir(), `.omc-test-configdir-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tempDir = join(tmpdir(), `omac-test-configdir-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tildeConfigDir = join(homedir(), `.omac-test-configdir-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(tempDir, { recursive: true });
   });
 

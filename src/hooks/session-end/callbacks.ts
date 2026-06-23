@@ -10,7 +10,7 @@ import { dirname, normalize } from 'path';
 import { homedir } from 'os';
 import type { SessionMetrics } from './index.js';
 import {
-  getOMCConfig,
+  getOMACConfig,
   type StopCallbackFileConfig,
   type StopCallbackTelegramConfig,
   type StopCallbackDiscordConfig,
@@ -236,7 +236,7 @@ export async function triggerStopCallbacks(
   _input: { session_id: string; cwd: string },
   options: TriggerStopCallbacksOptions = {}
 ): Promise<void> {
-  const config = getOMCConfig();
+  const config = getOMACConfig();
   const callbacks = config.stopHookCallbacks;
   const skipPlatforms = new Set(options.skipPlatforms ?? []);
 

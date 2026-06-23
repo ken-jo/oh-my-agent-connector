@@ -60,13 +60,13 @@ function writeCompletePluginPayload(root: string): void {
   writePluginFile(join(root, 'bridge', 'cli.cjs'), 'console.log("bridge");\n');
   writePluginFile(join(root, 'hooks', 'hooks.json'), '{}\n');
   writePluginFile(join(root, 'skills', 'plan', 'SKILL.md'), '# plan\n');
-  writePluginFile(join(root, 'commands', 'omc-setup.md'), 'Read skills/omc-setup/SKILL.md and pass $ARGUMENTS.\n');
+  writePluginFile(join(root, 'commands', 'omac-setup.md'), 'Read skills/omac-setup/SKILL.md and pass $ARGUMENTS.\n');
   writePluginFile(join(root, '.claude-plugin', 'plugin.json'), JSON.stringify({
-    name: 'oh-my-claudecode',
+    name: 'oh-my-agent-connector',
     commands: './commands/',
     skills: ['./skills/plan/'],
   }, null, 2));
-  writePluginFile(join(root, 'package.json'), JSON.stringify({ name: 'oh-my-claude-sisyphus', version: '9.9.9' }, null, 2));
+  writePluginFile(join(root, 'package.json'), JSON.stringify({ name: 'oh-my-agent-connector', version: '9.9.9' }, null, 2));
 }
 
 describe('installer legacy agent sync gating (issue #1502)', () => {
@@ -77,7 +77,7 @@ describe('installer legacy agent sync gating (issue #1502)', () => {
   let originalHome: string | undefined;
 
   beforeEach(() => {
-    tempRoot = mkdtempSync(join(tmpdir(), 'omc-installer-plugin-agents-'));
+    tempRoot = mkdtempSync(join(tmpdir(), 'omac-installer-plugin-agents-'));
     homeDir = join(tempRoot, 'home');
     claudeConfigDir = join(homeDir, '.claude');
     mkdirSync(homeDir, { recursive: true });
@@ -109,8 +109,8 @@ describe('installer legacy agent sync gating (issue #1502)', () => {
       claudeConfigDir,
       'plugins',
       'cache',
-      'omc',
-      'oh-my-claudecode',
+      'omac',
+      'oh-my-agent-connector',
       '9.9.9'
     );
     const pluginAgentsDir = join(pluginInstallPath, 'agents');
@@ -122,7 +122,7 @@ describe('installer legacy agent sync gating (issue #1502)', () => {
     mkdirSync(join(claudeConfigDir, 'plugins'), { recursive: true });
     writeFileSync(installedPluginsPath, JSON.stringify({
       plugins: {
-        'oh-my-claudecode@omc': [
+        'oh-my-agent-connector@omac': [
           { installPath: pluginInstallPath }
         ]
       }

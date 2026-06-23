@@ -7,7 +7,7 @@
 import { z } from 'zod';
 import {
   getWorktreeProjectMemoryPath,
-  ensureOmcDir,
+  ensureOmacDir,
   validateWorkingDirectory,
 } from '../lib/worktree-paths.js';
 import {
@@ -115,8 +115,8 @@ export const projectMemoryWriteTool: ToolDefinition<{
     try {
       const root = validateWorkingDirectory(workingDirectory);
 
-      // Ensure .omc directory exists
-      ensureOmcDir('', root);
+      // Ensure .omac directory exists
+      ensureOmacDir('', root);
 
       let finalMemory: ProjectMemory;
 

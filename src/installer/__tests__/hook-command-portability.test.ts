@@ -172,7 +172,7 @@ describe('Contract 7: hook command portability (#2084, #2348)', () => {
   });
 });
 
-// ── Contract 8: Hook config commands reference known OMC hook filenames ───────
+// ── Contract 8: Hook config commands reference known OMAC hook filenames ───────
 
 describe('Contract 8: hook commands reference existing template files', () => {
   it('all hook commands reference files that exist in templates/hooks/', async () => {

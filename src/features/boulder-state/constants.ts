@@ -4,10 +4,10 @@
  * Ported from oh-my-opencode's boulder-state.
  */
 
-import { OmcPaths } from '../../lib/worktree-paths.js';
+import { OmacPaths } from '../../lib/worktree-paths.js';
 
-/** OMC state directory */
-export const BOULDER_DIR = OmcPaths.ROOT;
+/** OMAC state directory */
+export const BOULDER_DIR = OmacPaths.ROOT;
 
 /** Boulder state file name */
 export const BOULDER_FILE = 'boulder.json';
@@ -22,7 +22,7 @@ export const NOTEPAD_DIR = 'notepads';
 export const NOTEPAD_BASE_PATH = `${BOULDER_DIR}/${NOTEPAD_DIR}`;
 
 /** Planner plan directory */
-export const PLANNER_PLANS_DIR = OmcPaths.PLANS;
+export const PLANNER_PLANS_DIR = OmacPaths.PLANS;
 
 /** Plan file extension */
 export const PLAN_EXTENSION = '.md';

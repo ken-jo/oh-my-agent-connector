@@ -46,7 +46,7 @@ function collapse(
 let projectDir: string;
 
 beforeEach(() => {
-  projectDir = mkdtempSync(join(tmpdir(), "omc-openclaw-dedupe-test-"));
+  projectDir = mkdtempSync(join(tmpdir(), "omac-openclaw-dedupe-test-"));
 });
 
 afterEach(() => {
@@ -137,7 +137,7 @@ describe("isObsoleteAfterTerminalState", () => {
   });
 
   it("uses scope isolation — terminal record for a different projectPath does not suppress", () => {
-    const otherDir = mkdtempSync(join(tmpdir(), "omc-openclaw-other-"));
+    const otherDir = mkdtempSync(join(tmpdir(), "omac-openclaw-other-"));
     try {
       const state = makeState("session-end", 100);
       const nowMs = Date.now();

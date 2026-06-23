@@ -18,7 +18,7 @@ async function loadInstaller() {
 
 describe('install() CLAUDE.md target resolution', () => {
   beforeEach(() => {
-    tempRoot = mkdtempSync(join(tmpdir(), 'omc-claude-target-'));
+    tempRoot = mkdtempSync(join(tmpdir(), 'omac-claude-target-'));
     testClaudeDir = join(tempRoot, 'global-claude');
     testHomeDir = join(tempRoot, 'home');
 
@@ -59,7 +59,7 @@ describe('install() CLAUDE.md target resolution', () => {
     writeFileSync(homeClaudePath, '# Home CLAUDE\nkeep me\n');
     writeFileSync(
       configClaudePath,
-      '<!-- OMC:START -->\n<!-- OMC:VERSION:0.0.1 -->\n# Old OMC\nstale installer content\n<!-- OMC:END -->\n',
+      '<!-- OMAC:START -->\n<!-- OMAC:VERSION:0.0.0 -->\n# Old OMAC\nstale installer content\n<!-- OMAC:END -->\n',
     );
 
     const { install, VERSION } = await loadInstaller();
@@ -72,7 +72,7 @@ describe('install() CLAUDE.md target resolution', () => {
     const updatedConfig = readFileSync(configClaudePath, 'utf-8');
 
     expect(result.success).toBe(true);
-    expect(updatedConfig).toContain(`<!-- OMC:VERSION:${VERSION} -->`);
+    expect(updatedConfig).toContain(`<!-- OMAC:VERSION:${VERSION} -->`);
     expect(updatedConfig).not.toContain('stale installer content');
     expect(readFileSync(homeClaudePath, 'utf-8')).toBe('# Home CLAUDE\nkeep me\n');
 
@@ -81,7 +81,7 @@ describe('install() CLAUDE.md target resolution', () => {
   });
 
   it('preserves project-scoped behavior by skipping global CLAUDE.md writes', async () => {
-    process.env.CLAUDE_PLUGIN_ROOT = join(tempRoot, 'project', '.claude', 'plugins', 'oh-my-claudecode');
+    process.env.CLAUDE_PLUGIN_ROOT = join(tempRoot, 'project', '.claude', 'plugins', 'oh-my-agent-connector');
     writeFileSync(join(testHomeDir, 'CLAUDE.md'), '# Home CLAUDE\nkeep me\n');
 
     const { install } = await loadInstaller();

@@ -2,10 +2,10 @@
  * Tests for platform activation gating in getEnabledPlatforms.
  *
  * Covers:
- * - Telegram requires OMC_TELEGRAM=1 to be included
- * - Discord and discord-bot require OMC_DISCORD=1 to be included
- * - Slack requires OMC_SLACK=1 to be included
- * - Webhook requires OMC_WEBHOOK=1 to be included
+ * - Telegram requires OMAC_TELEGRAM=1 to be included
+ * - Discord and discord-bot require OMAC_DISCORD=1 to be included
+ * - Slack requires OMAC_SLACK=1 to be included
+ * - Webhook requires OMAC_WEBHOOK=1 to be included
  * - Combined env vars enable all platforms
  */
 
@@ -48,10 +48,10 @@ function makeFullConfig(): NotificationConfig {
 describe('platform gating via getEnabledPlatforms', () => {
   beforeEach(() => {
     // Clear all platform gate env vars before each test
-    vi.stubEnv('OMC_TELEGRAM', '');
-    vi.stubEnv('OMC_DISCORD', '');
-    vi.stubEnv('OMC_SLACK', '');
-    vi.stubEnv('OMC_WEBHOOK', '');
+    vi.stubEnv('OMAC_TELEGRAM', '');
+    vi.stubEnv('OMAC_DISCORD', '');
+    vi.stubEnv('OMAC_SLACK', '');
+    vi.stubEnv('OMAC_WEBHOOK', '');
   });
 
   afterEach(() => {
@@ -62,14 +62,14 @@ describe('platform gating via getEnabledPlatforms', () => {
   // Telegram gating
   // ---------------------------------------------------------------------------
 
-  it('excludes telegram when OMC_TELEGRAM is not set', () => {
-    vi.stubEnv('OMC_TELEGRAM', '');
+  it('excludes telegram when OMAC_TELEGRAM is not set', () => {
+    vi.stubEnv('OMAC_TELEGRAM', '');
     const platforms = getEnabledPlatforms(makeFullConfig(), 'session-end');
     expect(platforms).not.toContain('telegram');
   });
 
-  it('includes telegram when OMC_TELEGRAM=1', () => {
-    vi.stubEnv('OMC_TELEGRAM', '1');
+  it('includes telegram when OMAC_TELEGRAM=1', () => {
+    vi.stubEnv('OMAC_TELEGRAM', '1');
     const platforms = getEnabledPlatforms(makeFullConfig(), 'session-end');
     expect(platforms).toContain('telegram');
   });
@@ -78,26 +78,26 @@ describe('platform gating via getEnabledPlatforms', () => {
   // Discord gating
   // ---------------------------------------------------------------------------
 
-  it('excludes discord when OMC_DISCORD is not set', () => {
-    vi.stubEnv('OMC_DISCORD', '');
+  it('excludes discord when OMAC_DISCORD is not set', () => {
+    vi.stubEnv('OMAC_DISCORD', '');
     const platforms = getEnabledPlatforms(makeFullConfig(), 'session-end');
     expect(platforms).not.toContain('discord');
   });
 
-  it('excludes discord-bot when OMC_DISCORD is not set', () => {
-    vi.stubEnv('OMC_DISCORD', '');
+  it('excludes discord-bot when OMAC_DISCORD is not set', () => {
+    vi.stubEnv('OMAC_DISCORD', '');
     const platforms = getEnabledPlatforms(makeFullConfig(), 'session-end');
     expect(platforms).not.toContain('discord-bot');
   });
 
-  it('includes discord when OMC_DISCORD=1', () => {
-    vi.stubEnv('OMC_DISCORD', '1');
+  it('includes discord when OMAC_DISCORD=1', () => {
+    vi.stubEnv('OMAC_DISCORD', '1');
     const platforms = getEnabledPlatforms(makeFullConfig(), 'session-end');
     expect(platforms).toContain('discord');
   });
 
-  it('includes discord-bot when OMC_DISCORD=1', () => {
-    vi.stubEnv('OMC_DISCORD', '1');
+  it('includes discord-bot when OMAC_DISCORD=1', () => {
+    vi.stubEnv('OMAC_DISCORD', '1');
     const platforms = getEnabledPlatforms(makeFullConfig(), 'session-end');
     expect(platforms).toContain('discord-bot');
   });
@@ -106,14 +106,14 @@ describe('platform gating via getEnabledPlatforms', () => {
   // Slack gating
   // ---------------------------------------------------------------------------
 
-  it('excludes slack when OMC_SLACK is not set', () => {
-    vi.stubEnv('OMC_SLACK', '');
+  it('excludes slack when OMAC_SLACK is not set', () => {
+    vi.stubEnv('OMAC_SLACK', '');
     const platforms = getEnabledPlatforms(makeFullConfig(), 'session-end');
     expect(platforms).not.toContain('slack');
   });
 
-  it('includes slack when OMC_SLACK=1', () => {
-    vi.stubEnv('OMC_SLACK', '1');
+  it('includes slack when OMAC_SLACK=1', () => {
+    vi.stubEnv('OMAC_SLACK', '1');
     const platforms = getEnabledPlatforms(makeFullConfig(), 'session-end');
     expect(platforms).toContain('slack');
   });
@@ -122,14 +122,14 @@ describe('platform gating via getEnabledPlatforms', () => {
   // Webhook gating
   // ---------------------------------------------------------------------------
 
-  it('excludes webhook when OMC_WEBHOOK is not set', () => {
-    vi.stubEnv('OMC_WEBHOOK', '');
+  it('excludes webhook when OMAC_WEBHOOK is not set', () => {
+    vi.stubEnv('OMAC_WEBHOOK', '');
     const platforms = getEnabledPlatforms(makeFullConfig(), 'session-end');
     expect(platforms).not.toContain('webhook');
   });
 
-  it('includes webhook when OMC_WEBHOOK=1', () => {
-    vi.stubEnv('OMC_WEBHOOK', '1');
+  it('includes webhook when OMAC_WEBHOOK=1', () => {
+    vi.stubEnv('OMAC_WEBHOOK', '1');
     const platforms = getEnabledPlatforms(makeFullConfig(), 'session-end');
     expect(platforms).toContain('webhook');
   });
@@ -148,10 +148,10 @@ describe('platform gating via getEnabledPlatforms', () => {
   // ---------------------------------------------------------------------------
 
   it('includes all platforms when all env vars are set', () => {
-    vi.stubEnv('OMC_TELEGRAM', '1');
-    vi.stubEnv('OMC_DISCORD', '1');
-    vi.stubEnv('OMC_SLACK', '1');
-    vi.stubEnv('OMC_WEBHOOK', '1');
+    vi.stubEnv('OMAC_TELEGRAM', '1');
+    vi.stubEnv('OMAC_DISCORD', '1');
+    vi.stubEnv('OMAC_SLACK', '1');
+    vi.stubEnv('OMAC_WEBHOOK', '1');
     const platforms = getEnabledPlatforms(makeFullConfig(), 'session-end');
     expect(platforms).toContain('telegram');
     expect(platforms).toContain('discord');

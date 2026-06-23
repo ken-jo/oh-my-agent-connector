@@ -1,5 +1,5 @@
 /**
- * OMC HUD - API Key Source Element
+ * OMAC HUD - API Key Source Element
  *
  * Detects and renders where the active ANTHROPIC_API_KEY comes from:
  * - 'project': set in .claude/settings.local.json (project-level)

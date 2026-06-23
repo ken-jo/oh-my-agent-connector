@@ -51,22 +51,22 @@ describe('Ralph PRD Module', () => {
       expect(findPrdPath(testDir)).toBe(prdPath);
     });
 
-    it('should find prd.json in .omc directory', () => {
-      const omcDir = join(testDir, '.omc');
-      mkdirSync(omcDir, { recursive: true });
-      const prdPath = join(omcDir, PRD_FILENAME);
+    it('should find prd.json in .omac directory', () => {
+      const omacDir = join(testDir, '.omac');
+      mkdirSync(omacDir, { recursive: true });
+      const prdPath = join(omacDir, PRD_FILENAME);
       writeFileSync(prdPath, '{}');
       expect(findPrdPath(testDir)).toBe(prdPath);
     });
 
-    it('should prefer root over .omc', () => {
+    it('should prefer root over .omac', () => {
       const rootPath = join(testDir, PRD_FILENAME);
-      const omcDir = join(testDir, '.omc');
-      mkdirSync(omcDir, { recursive: true });
-      const omcPath = join(omcDir, PRD_FILENAME);
+      const omacDir = join(testDir, '.omac');
+      mkdirSync(omacDir, { recursive: true });
+      const omacPath = join(omacDir, PRD_FILENAME);
 
       writeFileSync(rootPath, '{"source": "root"}');
-      writeFileSync(omcPath, '{"source": "omc"}');
+      writeFileSync(omacPath, '{"source": "omac"}');
 
       expect(findPrdPath(testDir)).toBe(rootPath);
     });
@@ -109,9 +109,9 @@ describe('Ralph PRD Module', () => {
       expect(read).toEqual(samplePrd);
     });
 
-    it('should create .omc directory when writing', () => {
+    it('should create .omac directory when writing', () => {
       writePrd(testDir, samplePrd);
-      expect(existsSync(join(testDir, '.omc'))).toBe(true);
+      expect(existsSync(join(testDir, '.omac'))).toBe(true);
     });
 
     it('isolates transient PRDs for concurrent sessions in the same project', () => {
@@ -141,13 +141,13 @@ describe('Ralph PRD Module', () => {
       expect(readPrd(testDir, sessionB)?.userStories[0].id).toBe('US-B');
       expect(findPrdPath(testDir, sessionA)).toBe(getSessionPrdPath(testDir, sessionA));
       expect(findPrdPath(testDir, sessionB)).toBe(getSessionPrdPath(testDir, sessionB));
-      expect(existsSync(join(testDir, '.omc', 'prd.json'))).toBe(false);
+      expect(existsSync(join(testDir, '.omac', 'prd.json'))).toBe(false);
     });
 
     it('migrates an existing project PRD into the requesting session without mutating the legacy file', () => {
       const legacyPrd: PRD = { ...samplePrd, project: 'Legacy Project' };
-      const legacyPath = join(testDir, '.omc', 'prd.json');
-      mkdirSync(join(testDir, '.omc'), { recursive: true });
+      const legacyPath = join(testDir, '.omac', 'prd.json');
+      mkdirSync(join(testDir, '.omac'), { recursive: true });
       writeFileSync(legacyPath, JSON.stringify(legacyPrd, null, 2));
 
       const result = ensurePrdForStartup(testDir, 'New Project', 'branch', 'New task', undefined, 'session-a');
@@ -285,7 +285,7 @@ describe('Ralph PRD Module', () => {
     });
 
     it('should return false when no prd exists', () => {
-      rmSync(join(testDir, '.omc'), { recursive: true, force: true });
+      rmSync(join(testDir, '.omac'), { recursive: true, force: true });
       expect(markStoryComplete(testDir, 'US-001')).toBe(false);
     });
   });

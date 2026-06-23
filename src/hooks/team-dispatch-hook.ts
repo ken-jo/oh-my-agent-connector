@@ -3,7 +3,7 @@
  *
  * Mirrors OMX scripts/notify-hook/team-dispatch.js behavior exactly.
  *
- * Called on every leader hook tick. Workers skip (OMC_TEAM_WORKER set).
+ * Called on every leader hook tick. Workers skip (OMAC_TEAM_WORKER set).
  * Processes pending dispatch requests with:
  * - Hook-preferred transport only (skips transport_direct, prompt_stdin)
  * - Post-injection verification (3 rounds x 250ms)
@@ -18,7 +18,7 @@ import { existsSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { createSwallowedErrorLogger } from '../lib/swallowed-error.js';
 import { tmuxExecAsync } from '../cli/tmux-utils.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -48,9 +48,9 @@ async function writeJsonAtomic(path: string, value: unknown): Promise<void> {
 
 const DISPATCH_LOCK_STALE_MS = 5 * 60 * 1000;
 const DEFAULT_ISSUE_DISPATCH_COOLDOWN_MS = 15 * 60 * 1000;
-const ISSUE_DISPATCH_COOLDOWN_ENV = 'OMC_TEAM_DISPATCH_ISSUE_COOLDOWN_MS';
+const ISSUE_DISPATCH_COOLDOWN_ENV = 'OMAC_TEAM_DISPATCH_ISSUE_COOLDOWN_MS';
 const DEFAULT_DISPATCH_TRIGGER_COOLDOWN_MS = 30 * 1000;
-const DISPATCH_TRIGGER_COOLDOWN_ENV = 'OMC_TEAM_DISPATCH_TRIGGER_COOLDOWN_MS';
+const DISPATCH_TRIGGER_COOLDOWN_ENV = 'OMAC_TEAM_DISPATCH_TRIGGER_COOLDOWN_MS';
 const LEADER_PANE_MISSING_DEFERRED_REASON = 'leader_pane_missing_deferred';
 const LEADER_NOTIFICATION_DEFERRED_TYPE = 'leader_notification_deferred';
 const INJECT_VERIFY_DELAY_MS = 250;
@@ -548,13 +548,13 @@ export async function drainPendingTeamDispatch(options: {
   injector?: Injector;
 } = { cwd: '' }): Promise<DrainResult> {
   const { cwd } = options;
-  const omcRoot = getOmcRoot(cwd);
-  const stateDir = options.stateDir ?? join(omcRoot, 'state');
-  const logsDir = options.logsDir ?? join(omcRoot, 'logs');
+  const omacRoot = getOmacRoot(cwd);
+  const stateDir = options.stateDir ?? join(omacRoot, 'state');
+  const logsDir = options.logsDir ?? join(omacRoot, 'logs');
   const maxPerTick = options.maxPerTick ?? 5;
   const injector = options.injector ?? defaultInjector;
 
-  if (safeString(process.env.OMC_TEAM_WORKER)) {
+  if (safeString(process.env.OMAC_TEAM_WORKER)) {
     return { processed: 0, skipped: 0, failed: 0, reason: 'worker_context' };
   }
   const teamRoot = join(stateDir, 'team');

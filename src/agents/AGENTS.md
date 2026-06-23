@@ -7,7 +7,7 @@
 
 ## Purpose
 
-This directory defines all agents available in oh-my-claudecode:
+This directory defines all agents available in oh-my-agent-connector:
 
 - **18 base agents** with default model assignments
 - **Tiered variants** (LOW/MEDIUM/HIGH) for smart routing
@@ -18,7 +18,7 @@ This directory defines all agents available in oh-my-claudecode:
 
 | File | Description |
 |------|-------------|
-| `definitions.ts` | **Main registry** - `getAgentDefinitions()`, `omcSystemPrompt` |
+| `definitions.ts` | **Main registry** - `getAgentDefinitions()`, `omacSystemPrompt` |
 | `architect.ts` | Architecture & debugging expert (Opus) |
 | `executor.ts` | Focused task implementation (Sonnet) |
 | `explore.ts` | Fast codebase search (Haiku) |

@@ -25,17 +25,17 @@ import { getNotificationConfig, getTmuxTailLines } from "../config.js";
 describe("getNotificationConfig - file + env deep merge", () => {
   beforeEach(() => {
     // Clear all env vars
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "");
-    vi.stubEnv("OMC_DISCORD_WEBHOOK_URL", "");
-    vi.stubEnv("OMC_DISCORD_MENTION", "");
-    vi.stubEnv("OMC_TELEGRAM_BOT_TOKEN", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_BOT_TOKEN", "");
-    vi.stubEnv("OMC_TELEGRAM_CHAT_ID", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_CHAT_ID", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_UID", "");
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "");
-    vi.stubEnv("OMC_SLACK_MENTION", "");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "");
+    vi.stubEnv("OMAC_DISCORD_WEBHOOK_URL", "");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "");
+    vi.stubEnv("OMAC_TELEGRAM_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_TELEGRAM_CHAT_ID", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_CHAT_ID", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_UID", "");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "");
+    vi.stubEnv("OMAC_SLACK_MENTION", "");
     // Default: no config file
     vi.mocked(existsSync).mockReturnValue(false);
   });
@@ -51,8 +51,8 @@ describe("getNotificationConfig - file + env deep merge", () => {
   });
 
   it("returns env-only config when no file exists", () => {
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "env-token");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "env-channel");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "env-token");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "env-channel");
     const config = getNotificationConfig();
     expect(config).not.toBeNull();
     expect(config!["discord-bot"]!.botToken).toBe("env-token");
@@ -92,8 +92,8 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "env-bot-token");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "env-channel-id");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "env-bot-token");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "env-channel-id");
 
     const config = getNotificationConfig();
     expect(config).not.toBeNull();
@@ -120,8 +120,8 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_TELEGRAM_BOT_TOKEN", "123:tg-env");
-    vi.stubEnv("OMC_TELEGRAM_CHAT_ID", "tg-chat-env");
+    vi.stubEnv("OMAC_TELEGRAM_BOT_TOKEN", "123:tg-env");
+    vi.stubEnv("OMAC_TELEGRAM_CHAT_ID", "tg-chat-env");
 
     const config = getNotificationConfig();
     expect(config).not.toBeNull();
@@ -156,7 +156,7 @@ describe("getNotificationConfig - file + env deep merge", () => {
     expect(getTmuxTailLines(config!)).toBe(21);
   });
 
-  it("allows OMC_NOTIFY_TMUX_TAIL_LINES to override file config", () => {
+  it("allows OMAC_NOTIFY_TMUX_TAIL_LINES to override file config", () => {
     vi.mocked(existsSync).mockReturnValue(true);
     vi.mocked(readFileSync).mockReturnValue(
       JSON.stringify({
@@ -170,7 +170,7 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_NOTIFY_TMUX_TAIL_LINES", "34");
+    vi.stubEnv("OMAC_NOTIFY_TMUX_TAIL_LINES", "34");
 
     const config = getNotificationConfig();
     expect(config).not.toBeNull();
@@ -192,8 +192,8 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "env-token");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "env-channel");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "env-token");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "env-channel");
 
     const config = getNotificationConfig();
     // File values win
@@ -215,7 +215,7 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_DISCORD_MENTION", "<@12345678901234567>");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "<@12345678901234567>");
 
     const config = getNotificationConfig();
     expect(config!["discord-bot"]!.mention).toBe("<@12345678901234567>");
@@ -236,7 +236,7 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_DISCORD_MENTION", "<@11111111111111111>");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "<@11111111111111111>");
 
     const config = getNotificationConfig();
     // File mention wins (validated)
@@ -270,8 +270,8 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_DISCORD_MENTION", "<@12345678901234567>");
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "<@12345678901234567>");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
 
     const config = getNotificationConfig();
     expect(config!["discord-bot"]!.mention).toBe("<@12345678901234567>");
@@ -292,7 +292,7 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
 
     const config = getNotificationConfig();
     expect(config!["discord-bot"]!.mention).toBe("<@12345678901234567>");
@@ -313,7 +313,7 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
 
     const config = getNotificationConfig();
     expect(config!["discord-bot"]!.mention).toBeUndefined();
@@ -350,7 +350,7 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/env-slack");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/env-slack");
 
     const config = getNotificationConfig();
     expect(config).not.toBeNull();
@@ -377,7 +377,7 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/env-url");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/env-url");
 
     const config = getNotificationConfig();
     expect(config!.slack!.webhookUrl).toBe("https://hooks.slack.com/services/file-url");
@@ -396,7 +396,7 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_SLACK_MENTION", "<@U1234567890>");
+    vi.stubEnv("OMAC_SLACK_MENTION", "<@U1234567890>");
 
     const config = getNotificationConfig();
     expect(config!.slack!.mention).toBe("<@U1234567890>");
@@ -416,7 +416,7 @@ describe("getNotificationConfig - file + env deep merge", () => {
         },
       }),
     );
-    vi.stubEnv("OMC_SLACK_MENTION", "<@U9999999999>");
+    vi.stubEnv("OMAC_SLACK_MENTION", "<@U9999999999>");
 
     const config = getNotificationConfig();
     expect(config!.slack!.mention).toBe("<!channel>");

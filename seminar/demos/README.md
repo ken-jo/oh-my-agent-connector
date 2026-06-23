@@ -1,10 +1,10 @@
-# OMC Seminar Demo Scripts
+# OMAC Seminar Demo Scripts
 
 This directory contains demo scripts for showcasing Oh-My-ClaudeCode's capabilities.
 
 ## Overview
 
-The seminar includes 5 progressive demos that showcase different aspects of OMC:
+The seminar includes 5 progressive demos that showcase different aspects of OMAC:
 
 1. **Autopilot** (5 min) - Full autonomous execution from idea to working code
 2. **Ultrawork** (3 min) - Maximum parallelism with multiple agents
@@ -17,8 +17,8 @@ The seminar includes 5 progressive demos that showcase different aspects of OMC:
 ## Global Pre-requisites
 
 ### Required Setup
-- OMC installed and configured (`/oh-my-claudecode:omc-setup` completed)
-- HUD statusline installed (`/oh-my-claudecode:hud setup`)
+- OMAC installed and configured (`/oh-my-agent-connector:omac-setup` completed)
+- HUD statusline installed (`/oh-my-agent-connector:hud setup`)
 - Clean workspace directory for demos
 - Terminal with good font size for presentation (16-18pt minimum)
 - Screen recording software running as backup
@@ -29,8 +29,8 @@ The seminar includes 5 progressive demos that showcase different aspects of OMC:
 mkdir -p ~/demo-workspace
 cd ~/demo-workspace
 
-# Verify OMC is installed
-which omc || echo "Run: /oh-my-claudecode:omc-setup"
+# Verify OMAC is installed
+which omac || echo "Run: /oh-my-agent-connector:omac-setup"
 
 # Check HUD is working
 echo "HUD should display in your terminal prompt"
@@ -38,8 +38,8 @@ echo "HUD should display in your terminal prompt"
 
 ### Pre-Demo Checklist
 - [ ] Terminal font size increased for visibility
-- [ ] No active OMC operations running (`/oh-my-claudecode:cancel --all`)
-- [ ] Clean state files (`rm -rf .omc/state/*`)
+- [ ] No active OMAC operations running (`/oh-my-agent-connector:cancel --all`)
+- [ ] Clean state files (`rm -rf .omac/state/*`)
 - [ ] Screen recorder ready
 - [ ] Fallback terminal outputs printed/accessible
 - [ ] Demo workspace prepared
@@ -57,12 +57,12 @@ echo "HUD should display in your terminal prompt"
 5. **Demo 5: Ralph** - "For mission-critical tasks - never gives up until verified complete"
 
 ### Closing (1 min)
-"OMC transforms how you work with Claude - from manual coding to orchestrating specialized agents. All open source at github.com/Yeachan-Heo/oh-my-claudecode."
+"OMAC transforms how you work with Claude - from manual coding to orchestrating specialized agents. All open source at github.com/Yeachan-Heo/oh-my-agent-connector."
 
 ## Tips for Presenters
 
 ### General Tips
-- **Announce behaviors**: OMC announces what it's activating ("I'm activating autopilot...")
+- **Announce behaviors**: OMAC announces what it's activating ("I'm activating autopilot...")
 - **Watch the HUD**: The statusline shows active agents, tasks, and progress
 - **Embrace async**: Background tasks run while you talk - no waiting
 - **Have fallbacks**: Pre-recorded outputs for each demo in case of issues
@@ -71,20 +71,20 @@ echo "HUD should display in your terminal prompt"
 ### Technical Tips
 - **Terminal size**: Ensure output is readable from the back of the room
 - **Timing buffer**: Each demo has 30-60s buffer built in
-- **State cleanup**: Between demos, verify clean state with `/oh-my-claudecode:cancel`
+- **State cleanup**: Between demos, verify clean state with `/oh-my-agent-connector:cancel`
 - **Error handling**: If a demo fails, acknowledge it and move to fallback output
 - **Q&A prep**: Common questions are in each demo's "Talking Points"
 
 ## Common Issues & Solutions
 
 ### Issue: Agent not responding
-**Solution**: Check `.omc/logs/agent-lifecycle.log` for errors, or skip to fallback output
+**Solution**: Check `.omac/logs/agent-lifecycle.log` for errors, or skip to fallback output
 
 ### Issue: HUD not showing
 **Solution**: Mention it verbally ("The HUD would show 3 active agents here...")
 
 ### Issue: Demo taking too long
-**Solution**: Jump to next phase or use `/oh-my-claudecode:cancel` and show fallback
+**Solution**: Jump to next phase or use `/oh-my-agent-connector:cancel` and show fallback
 
 ### Issue: Terminal output too fast
 **Solution**: Scroll back and explain key sections, or pause recording if pre-recorded
@@ -105,7 +105,7 @@ seminar/demos/
 
 - Share demo workspace as GitHub repo
 - Provide recording link
-- Share OMC installation guide
+- Share OMAC installation guide
 - Collect feedback on demo clarity
 
 ## Questions During Demos

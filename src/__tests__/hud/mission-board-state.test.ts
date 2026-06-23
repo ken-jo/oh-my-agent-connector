@@ -13,9 +13,9 @@ import { resolveSessionStatePaths } from '../../lib/worktree-paths.js';
 const tempDirs: string[] = [];
 
 function makeTempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'omc-mission-board-'));
+  const dir = mkdtempSync(join(tmpdir(), 'omac-mission-board-'));
   tempDirs.push(dir);
-  mkdirSync(join(dir, '.omc', 'state'), { recursive: true });
+  mkdirSync(join(dir, '.omac', 'state'), { recursive: true });
   return dir;
 }
 
@@ -33,7 +33,7 @@ describe('mission board state tracking', () => {
     recordMissionAgentStart(cwd, {
       sessionId: 'sess-1234',
       agentId: 'agent-1',
-      agentType: 'oh-my-claudecode:executor',
+      agentType: 'oh-my-agent-connector:executor',
       parentMode: 'ultrawork',
       taskDescription: 'Implement mission board renderer',
       at: '2026-03-09T07:00:00.000Z',
@@ -67,13 +67,13 @@ describe('mission board state tracking', () => {
     recordMissionAgentStart(cwd, {
       sessionId: mergeSessionId,
       agentId: 'agent-9',
-      agentType: 'oh-my-claudecode:architect',
+      agentType: 'oh-my-agent-connector:architect',
       parentMode: 'ralph',
       taskDescription: 'Review mission board architecture',
       at: '2026-03-09T07:00:00.000Z',
     }, mergeSessionId);
 
-    const teamRoot = join(cwd, '.omc', 'state', 'team', 'demo');
+    const teamRoot = join(cwd, '.omac', 'state', 'team', 'demo');
     mkdirSync(join(teamRoot, 'tasks'), { recursive: true });
     mkdirSync(join(teamRoot, 'workers', 'worker-1'), { recursive: true });
     mkdirSync(join(teamRoot, 'workers', 'worker-2'), { recursive: true });
@@ -167,7 +167,7 @@ describe('mission board state tracking', () => {
 
   it('marks team missions blocked when failures or blocked workers are present', () => {
     const cwd = makeTempDir();
-    const teamRoot = join(cwd, '.omc', 'state', 'team', 'blocked-demo');
+    const teamRoot = join(cwd, '.omac', 'state', 'team', 'blocked-demo');
     mkdirSync(join(teamRoot, 'tasks'), { recursive: true });
     mkdirSync(join(teamRoot, 'workers', 'worker-1'), { recursive: true });
 
@@ -211,7 +211,7 @@ describe('mission board state tracking', () => {
     recordMissionAgentStart(cwd, {
       sessionId: sessionA,
       agentId: 'agent-a1',
-      agentType: 'oh-my-claudecode:executor',
+      agentType: 'oh-my-agent-connector:executor',
       parentMode: 'ultrawork',
       taskDescription: 'Task for session A',
       at: '2026-03-09T10:00:00.000Z',
@@ -220,7 +220,7 @@ describe('mission board state tracking', () => {
     recordMissionAgentStart(cwd, {
       sessionId: sessionB,
       agentId: 'agent-b1',
-      agentType: 'oh-my-claudecode:architect',
+      agentType: 'oh-my-agent-connector:architect',
       parentMode: 'ralph',
       taskDescription: 'Task for session B',
       at: '2026-03-09T10:01:00.000Z',
@@ -277,7 +277,7 @@ describe('mission board state tracking', () => {
     const sessionZ = 'session-z';
 
     // Write a legacy mission-state (no sessionId) with a marker agent.
-    const legacyStatePath = join(cwd, '.omc', 'state', 'mission-state.json');
+    const legacyStatePath = join(cwd, '.omac', 'state', 'mission-state.json');
     writeFileSync(legacyStatePath, JSON.stringify({
       updatedAt: '2026-01-01T00:00:00.000Z',
       missions: [{
@@ -299,7 +299,7 @@ describe('mission board state tracking', () => {
     recordMissionAgentStart(cwd, {
       sessionId: sessionZ,
       agentId: 'session-agent',
-      agentType: 'oh-my-claudecode:executor',
+      agentType: 'oh-my-agent-connector:executor',
       parentMode: 'ralph',
       taskDescription: 'Task for session Z',
       at: '2026-05-01T10:00:00.000Z',
@@ -319,7 +319,7 @@ describe('mission board state tracking', () => {
 
   it('deduplicates duplicate team worker rows when refreshing mission board state', () => {
     const cwd = makeTempDir();
-    const teamRoot = join(cwd, '.omc', 'state', 'team', 'dedupe-demo');
+    const teamRoot = join(cwd, '.omac', 'state', 'team', 'dedupe-demo');
     mkdirSync(join(teamRoot, 'tasks'), { recursive: true });
     mkdirSync(join(teamRoot, 'workers', 'worker-1'), { recursive: true });
 

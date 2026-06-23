@@ -30,7 +30,7 @@
 // "fix" them by aligning with the plan:
 //
 //   1. Events are written to a dedicated `orchestrator-events.jsonl` log under
-//      `.omc/state/team/{team}/`, NOT to the shared `events.jsonl` used by the
+//      `.omac/state/team/{team}/`, NOT to the shared `events.jsonl` used by the
 //      rest of the runtime. This keeps orchestrator-internal state isolated and
 //      avoids interleaving with worker/leader event streams that have different
 //      consumers and retention rules.
@@ -60,7 +60,7 @@ import { mkdir, appendFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 import { atomicWriteJson, ensureDirWithMode, validateResolvedPath } from './fs-utils.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 import { isRuntimeV2Enabled } from './runtime-flags.js';
 import { sanitizeName } from './tmux-session.js';
 import { listTeamWorktrees, getWorktreePath, getBranchName } from './git-worktree.js';
@@ -139,12 +139,12 @@ const DEFAULT_DRAIN_TIMEOUT_MS = 10000;
 // ---------------------------------------------------------------------------
 
 function mergerWorktreePathFor(repoRoot: string, teamName: string): string {
-  return join(getOmcRoot(repoRoot), 'team', sanitizeName(teamName), 'merger');
+  return join(getOmacRoot(repoRoot), 'team', sanitizeName(teamName), 'merger');
 }
 
 function persistedStatePath(repoRoot: string, teamName: string): string {
   return join(
-    getOmcRoot(repoRoot),
+    getOmacRoot(repoRoot),
     'state',
     'team',
     sanitizeName(teamName),
@@ -154,7 +154,7 @@ function persistedStatePath(repoRoot: string, teamName: string): string {
 
 function teardownAuditPath(repoRoot: string, teamName: string): string {
   return join(
-    getOmcRoot(repoRoot),
+    getOmacRoot(repoRoot),
     'state',
     'team',
     sanitizeName(teamName),
@@ -164,7 +164,7 @@ function teardownAuditPath(repoRoot: string, teamName: string): string {
 
 function orchestratorEventLogPath(repoRoot: string, teamName: string): string {
   return join(
-    getOmcRoot(repoRoot),
+    getOmacRoot(repoRoot),
     'state',
     'team',
     sanitizeName(teamName),
@@ -185,7 +185,7 @@ function assertLeaderBranchAllowed(leaderBranch: string): void {
 
 function assertRuntimeV2Gate(): void {
   if (!isRuntimeV2Enabled()) {
-    throw new Error('auto-merge requires runtime v2 (OMC_RUNTIME_V2 is explicitly disabled).');
+    throw new Error('auto-merge requires runtime v2 (OMAC_RUNTIME_V2 is explicitly disabled).');
   }
 }
 
@@ -352,10 +352,10 @@ export async function startMergeOrchestrator(
   const drainTimeoutMs = config.drainTimeoutMs ?? DEFAULT_DRAIN_TIMEOUT_MS;
   const mergerPath = mergerWorktreePathFor(config.repoRoot, config.teamName);
 
-  // Validate paths stay under the shared OMC team root (defence-in-depth).
-  // mergerPath lives under getOmcRoot(...)/team, which in a .omc-workspace
+  // Validate paths stay under the shared OMAC team root (defence-in-depth).
+  // mergerPath lives under getOmacRoot(...)/team, which in a .omac-workspace
   // layout is ABOVE repoRoot — validating against repoRoot would false-positive.
-  validateResolvedPath(mergerPath, join(getOmcRoot(config.repoRoot), 'team'));
+  validateResolvedPath(mergerPath, join(getOmacRoot(config.repoRoot), 'team'));
 
   // Bootstrap merger worktree + leader inbox.
   ensureMergerWorktree(config.repoRoot, mergerPath, config.leaderBranch);

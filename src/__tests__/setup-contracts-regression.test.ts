@@ -104,7 +104,7 @@ describe('Contract 1: no join(homedir()...".claude") outside canonical helpers',
   const EXCLUDED_FUNCTIONS = [
     'isDefaultClaudeConfigDir',
     'isDefaultClaudeConfigDirPath',
-    'prepareOmcLaunchConfigDir', // entry-point with its own CLAUDE_CONFIG_DIR || fallback
+    'prepareOmacLaunchConfigDir', // entry-point with its own CLAUDE_CONFIG_DIR || fallback
   ];
 
   // Pattern: join(homedir() ... '.claude') — the dangerous inline path construction
@@ -206,8 +206,8 @@ describe('Contract 2: no unguarded $HOME/.claude in shell/script files', () => {
 
 describe('Contract 2b: setup jq writes are guarded against truncation', () => {
   const SETUP_MUTATION_FILES = [
-    join(REPO_ROOT, 'skills', 'omc-setup', 'phases', '02-configure.md'),
-    join(REPO_ROOT, 'skills', 'omc-setup', 'phases', '03-integrations.md'),
+    join(REPO_ROOT, 'skills', 'omac-setup', 'phases', '02-configure.md'),
+    join(REPO_ROOT, 'skills', 'omac-setup', 'phases', '03-integrations.md'),
     join(REPO_ROOT, 'scripts', 'setup-progress.sh'),
   ];
 
@@ -549,10 +549,10 @@ describe('Contract 9: hooks/hooks.json portability', () => {
   });
 });
 
-// ── Contract 10: Setup installer manages stale OMC-created files ─────────────
-// User requirement: setup cleanup stale ~/.claude/skills and ~/.claude/agents created by OMC
+// ── Contract 10: Setup installer manages stale OMAC-created files ─────────────
+// User requirement: setup cleanup stale ~/.claude/skills and ~/.claude/agents created by OMAC
 
-describe('Contract 10: installer manages stale OMC-created agents and skills', () => {
+describe('Contract 10: installer manages stale OMAC-created agents and skills', () => {
   it('package ships agent definitions that can be enumerated', () => {
     const agentsDir = join(REPO_ROOT, 'agents');
     expect(existsSync(agentsDir)).toBe(true);
@@ -570,7 +570,7 @@ describe('Contract 10: installer manages stale OMC-created agents and skills', (
     expect(skillDirs.length).toBeGreaterThan(5);
   });
 
-  it('syncBundledSkillDefinitions overwrites existing OMC skills (force copy)', () => {
+  it('syncBundledSkillDefinitions overwrites existing OMAC skills (force copy)', () => {
     // The installer uses cpSync with { force: true } which overwrites stale versions
     // Verify this by checking the source code pattern
     const installerSource = readFileSync(join(REPO_ROOT, 'src', 'installer', 'index.ts'), 'utf-8');
@@ -585,7 +585,7 @@ describe('Contract 10: installer manages stale OMC-created agents and skills', (
     expect(installerSource).toContain('existsSync(filepath) && !options.force');
   });
 
-  it('OMC agent filenames are all lowercase kebab-case .md files', () => {
+  it('OMAC agent filenames are all lowercase kebab-case .md files', () => {
     // Ensures agent filenames follow a consistent pattern so stale detection is reliable
     const agentsDir = join(REPO_ROOT, 'agents');
     const agentFiles = readdirSync(agentsDir).filter(f => f.endsWith('.md') && f !== 'AGENTS.md');
@@ -595,7 +595,7 @@ describe('Contract 10: installer manages stale OMC-created agents and skills', (
     }
   });
 
-  it('OMC skill directories match a consistent naming pattern', () => {
+  it('OMAC skill directories match a consistent naming pattern', () => {
     const skillsDir = join(REPO_ROOT, 'skills');
     const skillDirs = readdirSync(skillsDir, { withFileTypes: true })
       .filter(d => d.isDirectory() && existsSync(join(skillsDir, d.name, 'SKILL.md')));
@@ -607,9 +607,9 @@ describe('Contract 10: installer manages stale OMC-created agents and skills', (
 });
 
 
-describe('OMC setup Ralph Ruby dependency guidance (issue #2969)', () => {
+describe('OMAC setup Ralph Ruby dependency guidance (issue #2969)', () => {
   it('checks Ruby during setup with product-facing Ralph remediation', () => {
-    const phasePath = join(REPO_ROOT, 'skills', 'omc-setup', 'phases', '02-configure.md');
+    const phasePath = join(REPO_ROOT, 'skills', 'omac-setup', 'phases', '02-configure.md');
     const content = readFileSync(phasePath, 'utf-8');
 
     expect(content).toContain('Step 2.0: Check Ralph Ruby Dependency');

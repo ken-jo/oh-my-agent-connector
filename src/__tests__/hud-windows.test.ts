@@ -9,7 +9,7 @@ import { getPluginCacheBase } from '../utils/paths.js';
  * HUD Windows Compatibility Tests
  *
  * These tests verify Windows compatibility fixes for HUD:
- * - File naming (omc-hud.mjs)
+ * - File naming (omac-hud.mjs)
  * - Windows dynamic import() requires file:// URLs (pathToFileURL)
  * - Version sorting (numeric vs lexicographic)
  * - Cross-platform plugin cache path resolution (#670)
@@ -23,22 +23,22 @@ const packageRoot = join(__dirname, '..', '..');
 
 describe('HUD Windows Compatibility', () => {
   describe('File Naming', () => {
-    it('session-start.mjs should reference omc-hud.mjs', () => {
+    it('session-start.mjs should reference omac-hud.mjs', () => {
       const sessionStartPath = join(packageRoot, 'scripts', 'session-start.mjs');
       expect(existsSync(sessionStartPath)).toBe(true);
 
       const content = readFileSync(sessionStartPath, 'utf-8');
-      expect(content).toContain('omc-hud.mjs');
-      // Note: May also contain 'omc-hud.mjs' for backward compatibility (dual naming)
+      expect(content).toContain('omac-hud.mjs');
+      // Note: May also contain 'omac-hud.mjs' for backward compatibility (dual naming)
     });
 
-    it('installer should create omc-hud.mjs', () => {
+    it('installer should create omac-hud.mjs', () => {
       const installerPath = join(packageRoot, 'src', 'installer', 'index.ts');
       expect(existsSync(installerPath)).toBe(true);
 
       const content = readFileSync(installerPath, 'utf-8');
-      expect(content).toContain('omc-hud.mjs');
-      // Note: May also contain 'omc-hud.mjs' for legacy support
+      expect(content).toContain('omac-hud.mjs');
+      // Note: May also contain 'omac-hud.mjs' for legacy support
     });
   });
 
@@ -50,8 +50,8 @@ describe('HUD Windows Compatibility', () => {
       expect(content).toContain('pathToFileURL } from "node:url"');
     });
 
-    it('shared HUD wrapper template uses pathToFileURL for OMC_PLUGIN_ROOT path import', () => {
-      // The OMC_DEV/devPath branch was deleted; OMC_PLUGIN_ROOT subsumes it.
+    it('shared HUD wrapper template uses pathToFileURL for OMAC_PLUGIN_ROOT path import', () => {
+      // The OMAC_DEV/devPath branch was deleted; OMAC_PLUGIN_ROOT subsumes it.
       const templatePath = join(packageRoot, 'scripts', 'lib', 'hud-wrapper-template.txt');
       const content = readFileSync(templatePath, 'utf-8');
       expect(content).toContain('pathToFileURL(envHudPath).href');
@@ -158,13 +158,13 @@ describe('HUD Windows Compatibility', () => {
       const cachePath = getPluginCacheBase();
       // Should contain the expected path segments regardless of separator
       const normalized = cachePath.replace(/\\/g, '/');
-      expect(normalized).toContain('plugins/cache/omc/oh-my-claudecode');
+      expect(normalized).toContain('plugins/cache/omac/oh-my-agent-connector');
     });
 
     it('getPluginCacheBase should use platform-native separators', () => {
       const cachePath = getPluginCacheBase();
       // On Windows: backslashes, on Unix: forward slashes
-      expect(cachePath).toContain(`plugins${sep}cache${sep}omc${sep}oh-my-claudecode`);
+      expect(cachePath).toContain(`plugins${sep}cache${sep}omac${sep}oh-my-agent-connector`);
     });
 
     it('getPluginCacheBase should be under claude config dir', () => {
@@ -189,8 +189,8 @@ describe('HUD Windows Compatibility', () => {
       expect(content).toContain('join(configDir,');
     });
 
-    it('omc-doctor skill should use cross-platform Node.js commands', () => {
-      const doctorPath = join(packageRoot, 'skills', 'omc-doctor', 'SKILL.md');
+    it('omac-doctor skill should use cross-platform Node.js commands', () => {
+      const doctorPath = join(packageRoot, 'skills', 'omac-doctor', 'SKILL.md');
       const content = readFileSync(doctorPath, 'utf-8');
 
       // Should NOT use ~ for plugin cache paths in bash commands
@@ -198,7 +198,7 @@ describe('HUD Windows Compatibility', () => {
       // Should use node -e for cross-platform compatibility
       expect(content).toContain("node -e");
       // Should use path.join for constructing paths
-      expect(content).toContain("p.join(d,'plugins','cache','omc','oh-my-claudecode')");
+      expect(content).toContain("p.join(d,'plugins','cache','omac','oh-my-agent-connector')");
       expect(content).not.toContain('ls ~/.claude/CLAUDE-*.md');
       expect(content).toContain("find \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}\" -maxdepth 1 -type f -name 'CLAUDE-*.md' -print 2>/dev/null");
     });
@@ -221,8 +221,8 @@ describe('HUD Windows Compatibility', () => {
       expect(content).toContain(".split(require('path').sep).join('/')");
       expect(content).toContain('The command path MUST use forward slashes on all platforms');
       expect(content).toContain('On Windows the path uses forward slashes (not backslashes):');
-      expect(content).toContain('"command": "node C:/Users/username/.claude/hud/omc-hud.mjs"');
-      expect(content).not.toContain('"command": "node C:\\Users\\username\\.claude\\hud\\omc-hud.mjs"');
+      expect(content).toContain('"command": "node C:/Users/username/.claude/hud/omac-hud.mjs"');
+      expect(content).not.toContain('"command": "node C:\\Users\\username\\.claude\\hud\\omac-hud.mjs"');
     });
 
     it('usage-api should use path.join with separate segments', () => {
@@ -231,7 +231,7 @@ describe('HUD Windows Compatibility', () => {
 
       // Should use join() with separate segments, not forward-slash literals
       // Provider-specific cache files use template literals with the same join() pattern
-      expect(content).toContain("'plugins', 'oh-my-claudecode', `.usage-cache-${source}.json`");
+      expect(content).toContain("'plugins', 'oh-my-agent-connector', `.usage-cache-${source}.json`");
     });
   });
 });

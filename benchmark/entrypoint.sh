@@ -19,23 +19,23 @@ if [ -n "$ANTHROPIC_BASE_URL" ]; then
     export ANTHROPIC_BASE_URL="$ANTHROPIC_BASE_URL"
 fi
 
-# Install OMC if in omc mode
-if [ "$RUN_MODE" = "omc" ]; then
-    echo "Installing oh-my-claudecode for enhanced mode..."
+# Install OMAC if in omac mode
+if [ "$RUN_MODE" = "omac" ]; then
+    echo "Installing oh-my-agent-connector for enhanced mode..."
 
-    # Check if OMC source is mounted
-    if [ -d "/workspace/omc-source" ]; then
-        echo "Installing OMC from mounted source..."
-        cd /workspace/omc-source && npm install && npm link
+    # Check if OMAC source is mounted
+    if [ -d "/workspace/omac-source" ]; then
+        echo "Installing OMAC from mounted source..."
+        cd /workspace/omac-source && npm install && npm link
     else
-        echo "Installing OMC from npm..."
-        npm install -g oh-my-claudecode
+        echo "Installing OMAC from npm..."
+        npm install -g oh-my-agent-connector
     fi
 
-    # Initialize OMC configuration
+    # Initialize OMAC configuration
     mkdir -p ~/.claude
 
-    echo "OMC installation complete"
+    echo "OMAC installation complete"
 fi
 
 # Execute the command passed to the container

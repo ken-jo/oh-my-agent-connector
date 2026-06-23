@@ -1,14 +1,14 @@
 ---
 name: skillify
 aliases: [learner]
-description: Turn a repeatable workflow from the current session into a reusable OMC skill draft
+description: Turn a repeatable workflow from the current session into a reusable OMAC skill draft
 ---
 
 # Skillify
 
-Use this skill when the current session uncovered a repeatable workflow that should become a reusable OMC skill.
+Use this skill when the current session uncovered a repeatable workflow that should become a reusable OMAC skill.
 
-> Compatibility: `/oh-my-claudecode:learner` is a deprecated alias for this skill. Prefer `/oh-my-claudecode:skillify` in docs, prompts, and new workflows. Internal implementation modules may still use the learner name.
+> Compatibility: `/oh-my-agent-connector:learner` is a deprecated alias for this skill. Prefer `/oh-my-agent-connector:skillify` in docs, prompts, and new workflows. Internal implementation modules may still use the learner name.
 
 ## Goal
 Capture a successful multi-step workflow as a concrete skill draft instead of rediscovering it later.
@@ -48,8 +48,8 @@ Prefer skills that encode decision-making heuristics, constraints, pitfalls, and
      ---
      ```
    - Write learned/user/project skills to flat file-backed paths:
-     - `${CLAUDE_CONFIG_DIR:-~/.claude}/skills/omc-learned/<skill-name>.md`
-     - `.omc/skills/<skill-name>.md`
+     - `${CLAUDE_CONFIG_DIR:-~/.claude}/skills/omac-learned/<skill-name>.md`
+     - `.omac/skills/<skill-name>.md`
    - Remember that uncommitted skills are still worktree-local until committed or copied to a user-level directory.
 5. Draft the rest of the skill file with clear triggers, steps, success criteria, and pitfalls.
 6. Point out anything still too fuzzy to encode safely.
@@ -59,7 +59,7 @@ Prefer skills that encode decision-making heuristics, constraints, pitfalls, and
 - Keep the skill practical and scoped.
 - Prefer explicit success criteria over vague prose.
 - If the workflow still has unresolved branching decisions, note them before drafting.
-- Keep `omc-learned` as the storage directory name for compatibility; do not present it as the public invocation name.
+- Keep `omac-learned` as the storage directory name for compatibility; do not present it as the public invocation name.
 
 ## Output
 - Proposed skill name

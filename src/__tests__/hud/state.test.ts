@@ -42,7 +42,7 @@ describe("readHudConfig", () => {
       expect(config).toEqual(DEFAULT_HUD_CONFIG);
     });
 
-    it("reads from settings.json omcHud key first", () => {
+    it("reads from settings.json omacHud key first", () => {
       mockExistsSync.mockImplementation((path) => {
         const s = String(path);
         return /[\\/]Users[\\/]testuser[\\/]\.claude[\\/]settings\.json$/.test(
@@ -51,7 +51,7 @@ describe("readHudConfig", () => {
       });
       mockReadFileSync.mockReturnValue(
         JSON.stringify({
-          omcHud: {
+          omacHud: {
             elements: {
               gitRepo: true,
               gitBranch: true,
@@ -75,7 +75,7 @@ describe("readHudConfig", () => {
       });
       mockReadFileSync.mockReturnValue(
         JSON.stringify({
-          omcHud: {
+          omacHud: {
             elements: {
               callCountsFormat: "emoji",
             },
@@ -88,12 +88,12 @@ describe("readHudConfig", () => {
       expect(config.elements.callCountsFormat).toBe("emoji");
     });
 
-    it("falls back to legacy hud-config.json when settings.json has no omcHud", () => {
+    it("falls back to legacy hud-config.json when settings.json has no omacHud", () => {
       mockExistsSync.mockImplementation((path) => {
         const s = String(path);
         return (
           /[\\/]Users[\\/]testuser[\\/]\.claude[\\/]settings\.json$/.test(s) ||
-          /[\\/]Users[\\/]testuser[\\/]\.claude[\\/]\.omc[\\/]hud-config\.json$/.test(
+          /[\\/]Users[\\/]testuser[\\/]\.claude[\\/]\.omac[\\/]hud-config\.json$/.test(
             s,
           )
         );
@@ -106,7 +106,7 @@ describe("readHudConfig", () => {
           return JSON.stringify({ someOtherKey: true });
         }
         if (
-          /[\\/]Users[\\/]testuser[\\/]\.claude[\\/]\.omc[\\/]hud-config\.json$/.test(
+          /[\\/]Users[\\/]testuser[\\/]\.claude[\\/]\.omac[\\/]hud-config\.json$/.test(
             s,
           )
         ) {
@@ -132,7 +132,7 @@ describe("readHudConfig", () => {
           /[\\/]Users[\\/]testuser[\\/]\.claude[\\/]settings\.json$/.test(s)
         ) {
           return JSON.stringify({
-            omcHud: {
+            omacHud: {
               elements: {
                 gitRepo: true,
               },
@@ -140,7 +140,7 @@ describe("readHudConfig", () => {
           });
         }
         if (
-          /[\\/]Users[\\/]testuser[\\/]\.claude[\\/]\.omc[\\/]hud-config\.json$/.test(
+          /[\\/]Users[\\/]testuser[\\/]\.claude[\\/]\.omac[\\/]hud-config\.json$/.test(
             s,
           )
         ) {
@@ -186,7 +186,7 @@ describe("readHudConfig", () => {
           throw new Error("Read error");
         }
         if (
-          /[\\/]Users[\\/]testuser[\\/]\.claude[\\/]\.omc[\\/]hud-config\.json$/.test(
+          /[\\/]Users[\\/]testuser[\\/]\.claude[\\/]\.omac[\\/]hud-config\.json$/.test(
             s,
           )
         ) {
@@ -211,7 +211,7 @@ describe("readHudConfig", () => {
       });
       mockReadFileSync.mockReturnValue(
         JSON.stringify({
-          omcHud: {
+          omacHud: {
             elements: {
               missionBoard: true,
             },
@@ -234,7 +234,7 @@ describe("readHudConfig", () => {
       });
       mockReadFileSync.mockReturnValue(
         JSON.stringify({
-          omcHud: {
+          omacHud: {
             elements: {
               gitRepo: true,
             },
@@ -247,8 +247,8 @@ describe("readHudConfig", () => {
       // Custom value
       expect(config.elements.gitRepo).toBe(true);
       // Default values preserved
-      expect(config.elements.omcLabel).toBe(
-        DEFAULT_HUD_CONFIG.elements.omcLabel,
+      expect(config.elements.omacLabel).toBe(
+        DEFAULT_HUD_CONFIG.elements.omacLabel,
       );
       expect(config.elements.contextBar).toBe(
         DEFAULT_HUD_CONFIG.elements.contextBar,
@@ -265,7 +265,7 @@ describe("readHudConfig", () => {
       });
       mockReadFileSync.mockReturnValue(
         JSON.stringify({
-          omcHud: {
+          omacHud: {
             thresholds: {
               contextWarning: 80,
             },
@@ -290,7 +290,7 @@ describe("readHudConfig", () => {
       });
       mockReadFileSync.mockReturnValue(
         JSON.stringify({
-          omcHud: {
+          omacHud: {
             maxWidth: 80,
             wrapMode: "wrap",
           },
@@ -312,7 +312,7 @@ describe("readHudConfig", () => {
       });
       mockReadFileSync.mockReturnValue(
         JSON.stringify({
-          omcHud: {
+          omacHud: {
             usageApiPollIntervalMs: 180_000,
           },
         }),
@@ -331,7 +331,7 @@ describe("writeHudConfig", () => {
     vi.clearAllMocks();
   });
 
-  it("preserves unrelated settings.json keys while writing omcHud", () => {
+  it("preserves unrelated settings.json keys while writing omacHud", () => {
     mockExistsSync.mockImplementation((path) =>
       String(path).endsWith("settings.json"),
     );
@@ -353,13 +353,13 @@ describe("writeHudConfig", () => {
     const written = JSON.parse(raw);
     expect(written.theme).toBe("dark");
     expect(written.nested).toEqual({ keep: true });
-    expect(written.omcHud.elements.gitRepo).toBe(true);
+    expect(written.omacHud.elements.gitRepo).toBe(true);
   });
 
-  it("merges legacy hud-config defaults into the written omcHud payload", () => {
+  it("merges legacy hud-config defaults into the written omacHud payload", () => {
     mockExistsSync.mockImplementation((path) => {
       const s = String(path);
-      return s.endsWith("settings.json") || s.endsWith(".omc/hud-config.json");
+      return s.endsWith("settings.json") || s.endsWith(".omac/hud-config.json");
     });
     mockReadFileSync.mockImplementation((path) => {
       const s = String(path);
@@ -383,9 +383,9 @@ describe("writeHudConfig", () => {
     expect(ok).toBe(true);
     const [, raw] = mockAtomicWriteFileSync.mock.calls[0] as [string, string];
     const written = JSON.parse(raw);
-    expect(written.omcHud.elements.cwd).toBe(true);
-    expect(written.omcHud.elements.gitBranch).toBe(true);
-    expect(written.omcHud.wrapMode).toBe("truncate");
+    expect(written.omacHud.elements.cwd).toBe(true);
+    expect(written.omacHud.elements.gitBranch).toBe(true);
+    expect(written.omacHud.wrapMode).toBe("truncate");
   });
 });
 
@@ -400,8 +400,8 @@ describe("layout config round-trip", () => {
     );
     mockReadFileSync.mockReturnValue(
       JSON.stringify({
-        omcHud: {
-          elementOrder: ["contextBar", "omcLabel", "session"],
+        omacHud: {
+          elementOrder: ["contextBar", "omacLabel", "session"],
         },
       }),
     );
@@ -410,7 +410,7 @@ describe("layout config round-trip", () => {
 
     expect(config.elementOrder).toEqual([
       "contextBar",
-      "omcLabel",
+      "omacLabel",
       "session",
     ]);
   });
@@ -421,10 +421,10 @@ describe("layout config round-trip", () => {
     );
     mockReadFileSync.mockReturnValue(
       JSON.stringify({
-        omcHud: {
+        omacHud: {
           layout: {
             line1: ["gitBranch", "model"],
-            main: ["omcLabel", "contextBar"],
+            main: ["omacLabel", "contextBar"],
             detail: ["todos"],
           },
         },
@@ -435,7 +435,7 @@ describe("layout config round-trip", () => {
 
     expect(config.layout).toEqual({
       line1: ["gitBranch", "model"],
-      main: ["omcLabel", "contextBar"],
+      main: ["omacLabel", "contextBar"],
       detail: ["todos"],
     });
   });
@@ -446,7 +446,7 @@ describe("layout config round-trip", () => {
     );
     mockReadFileSync.mockReturnValue(
       JSON.stringify({
-        omcHud: {
+        omacHud: {
           elements: { gitRepo: true },
         },
       }),
@@ -466,15 +466,15 @@ describe("layout config round-trip", () => {
     const ok = writeHudConfig({
       ...DEFAULT_HUD_CONFIG,
       layout: {
-        main: ["contextBar", "omcLabel", "ralph"],
+        main: ["contextBar", "omacLabel", "ralph"],
       },
     });
 
     expect(ok).toBe(true);
     const [, raw] = mockAtomicWriteFileSync.mock.calls[0] as [string, string];
     const written = JSON.parse(raw);
-    expect(written.omcHud.layout).toEqual({
-      main: ["contextBar", "omcLabel", "ralph"],
+    expect(written.omacHud.layout).toEqual({
+      main: ["contextBar", "omacLabel", "ralph"],
     });
   });
 
@@ -486,15 +486,15 @@ describe("layout config round-trip", () => {
 
     const ok = writeHudConfig({
       ...DEFAULT_HUD_CONFIG,
-      elementOrder: ["contextBar", "omcLabel", "session"],
+      elementOrder: ["contextBar", "omacLabel", "session"],
     });
 
     expect(ok).toBe(true);
     const [, raw] = mockAtomicWriteFileSync.mock.calls[0] as [string, string];
     const written = JSON.parse(raw);
-    expect(written.omcHud.elementOrder).toEqual([
+    expect(written.omacHud.elementOrder).toEqual([
       "contextBar",
-      "omcLabel",
+      "omacLabel",
       "session",
     ]);
   });

@@ -113,11 +113,11 @@ export interface DaemonConfig {
   paneLinesToCapture?: number;
   /** Whether to log verbose output (default: false) */
   verbose?: boolean;
-  /** State file path (default: XDG-aware global OMC state path) */
+  /** State file path (default: XDG-aware global OMAC state path) */
   stateFilePath?: string;
-  /** PID file path (default: XDG-aware global OMC state path) */
+  /** PID file path (default: XDG-aware global OMAC state path) */
   pidFilePath?: string;
-  /** Log file path (default: XDG-aware global OMC state path) */
+  /** Log file path (default: XDG-aware global OMAC state path) */
   logFilePath?: string;
 }
 

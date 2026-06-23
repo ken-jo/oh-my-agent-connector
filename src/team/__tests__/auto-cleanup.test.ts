@@ -30,7 +30,7 @@ let tmpClaudeDir: string;
 let originalClaudeConfigDir: string | undefined;
 
 beforeEach(() => {
-  const base = join(tmpdir(), `omc-auto-cleanup-${Date.now()}`);
+  const base = join(tmpdir(), `omac-auto-cleanup-${Date.now()}`);
   tmpClaudeDir = join(base, 'claude');
   TEAMS_DIR = join(tmpClaudeDir, 'teams', TEST_TEAM);
   TASKS_DIR = join(tmpClaudeDir, 'tasks', TEST_TEAM);
@@ -41,8 +41,8 @@ beforeEach(() => {
 
   mkdirSync(join(TEAMS_DIR, 'outbox'), { recursive: true });
   mkdirSync(TASKS_DIR, { recursive: true });
-  mkdirSync(join(WORK_DIR, '.omc', 'state', 'team-bridge', TEST_TEAM), { recursive: true });
-  mkdirSync(join(WORK_DIR, '.omc', 'state'), { recursive: true });
+  mkdirSync(join(WORK_DIR, '.omac', 'state', 'team-bridge', TEST_TEAM), { recursive: true });
+  mkdirSync(join(WORK_DIR, '.omac', 'state'), { recursive: true });
 });
 
 afterEach(() => {
@@ -56,7 +56,7 @@ afterEach(() => {
 });
 
 function writeWorkerRegistry(workers: McpWorkerMember[]): void {
-  const registryPath = join(WORK_DIR, '.omc', 'state', 'team-mcp-workers.json');
+  const registryPath = join(WORK_DIR, '.omac', 'state', 'team-mcp-workers.json');
   atomicWriteJson(registryPath, { teamName: TEST_TEAM, workers });
 }
 
@@ -71,7 +71,7 @@ function makeWorker(name: string): McpWorkerMember {
     agentType: 'mcp-codex',
     model: 'test-model',
     joinedAt: Date.now(),
-    tmuxPaneId: `omc-team-${TEST_TEAM}-${name}`,
+    tmuxPaneId: `omac-team-${TEST_TEAM}-${name}`,
     cwd: WORK_DIR,
     backendType: 'tmux',
     subscriptions: [],

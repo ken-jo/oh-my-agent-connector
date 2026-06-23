@@ -65,7 +65,7 @@ export function getStateDir(): string {
   return process.env.XDG_STATE_HOME || join(homedir(), '.local', 'state');
 }
 
-function prefersXdgOmcDirs(): boolean {
+function prefersXdgOmacDirs(): boolean {
   return process.platform !== 'win32' && process.platform !== 'darwin';
 }
 
@@ -78,102 +78,102 @@ function getUserHomeDir(): string {
 }
 
 /**
- * Legacy global OMC directory under the user's home directory.
+ * Legacy global OMAC directory under the user's home directory.
  */
-export function getLegacyOmcDir(): string {
-  return join(getUserHomeDir(), '.omc');
+export function getLegacyOmacDir(): string {
+  return join(getUserHomeDir(), '.omac');
 }
 
 /**
- * Global OMC config directory.
+ * Global OMAC config directory.
  *
  * Precedence:
- * 1. OMC_HOME (existing explicit override)
+ * 1. OMAC_HOME (existing explicit override)
  * 2. XDG-aware config root on Linux/Unix
- * 3. Legacy ~/.omc elsewhere
+ * 3. Legacy ~/.omac elsewhere
  */
-export function getGlobalOmcConfigRoot(): string {
-  const explicitRoot = process.env.OMC_HOME?.trim();
+export function getGlobalOmacConfigRoot(): string {
+  const explicitRoot = process.env.OMAC_HOME?.trim();
   if (explicitRoot) {
     return explicitRoot;
   }
 
-  if (prefersXdgOmcDirs()) {
-    return join(getConfigDir(), 'omc');
+  if (prefersXdgOmacDirs()) {
+    return join(getConfigDir(), 'omac');
   }
 
-  return getLegacyOmcDir();
+  return getLegacyOmacDir();
 }
 
 /**
- * Global OMC state directory.
+ * Global OMAC state directory.
  *
- * When OMC_HOME is set, preserve that existing override semantics by treating
+ * When OMAC_HOME is set, preserve that existing override semantics by treating
  * it as the shared root and resolving state beneath it.
  */
-export function getGlobalOmcStateRoot(): string {
-  const explicitRoot = process.env.OMC_HOME?.trim();
+export function getGlobalOmacStateRoot(): string {
+  const explicitRoot = process.env.OMAC_HOME?.trim();
   if (explicitRoot) {
     return join(explicitRoot, 'state');
   }
 
-  if (prefersXdgOmcDirs()) {
-    return join(getStateDir(), 'omc');
+  if (prefersXdgOmacDirs()) {
+    return join(getStateDir(), 'omac');
   }
 
-  return join(getLegacyOmcDir(), 'state');
+  return join(getLegacyOmacDir(), 'state');
 }
 
-export function getGlobalOmcConfigPath(...segments: string[]): string {
-  return join(getGlobalOmcConfigRoot(), ...segments);
+export function getGlobalOmacConfigPath(...segments: string[]): string {
+  return join(getGlobalOmacConfigRoot(), ...segments);
 }
 
-export function getGlobalOmcStatePath(...segments: string[]): string {
-  return join(getGlobalOmcStateRoot(), ...segments);
+export function getGlobalOmacStatePath(...segments: string[]): string {
+  return join(getGlobalOmacStateRoot(), ...segments);
 }
 
-export function getLegacyOmcPath(...segments: string[]): string {
-  return join(getLegacyOmcDir(), ...segments);
+export function getLegacyOmacPath(...segments: string[]): string {
+  return join(getLegacyOmacDir(), ...segments);
 }
 
 function dedupePaths(paths: string[]): string[] {
   return [...new Set(paths)];
 }
 
-export function getGlobalOmcConfigCandidates(...segments: string[]): string[] {
-  if (process.env.OMC_HOME?.trim()) {
-    return [getGlobalOmcConfigPath(...segments)];
+export function getGlobalOmacConfigCandidates(...segments: string[]): string[] {
+  if (process.env.OMAC_HOME?.trim()) {
+    return [getGlobalOmacConfigPath(...segments)];
   }
 
   return dedupePaths([
-    getGlobalOmcConfigPath(...segments),
-    getLegacyOmcPath(...segments),
+    getGlobalOmacConfigPath(...segments),
+    getLegacyOmacPath(...segments),
   ]);
 }
 
-export function getGlobalOmcStateCandidates(...segments: string[]): string[] {
-  const explicitRoot = process.env.OMC_HOME?.trim();
+export function getGlobalOmacStateCandidates(...segments: string[]): string[] {
+  const explicitRoot = process.env.OMAC_HOME?.trim();
   if (explicitRoot) {
     return dedupePaths([
-      getGlobalOmcStatePath(...segments),
+      getGlobalOmacStatePath(...segments),
       join(explicitRoot, ...segments),
     ]);
   }
 
   return dedupePaths([
-    getGlobalOmcStatePath(...segments),
-    getLegacyOmcPath('state', ...segments),
+    getGlobalOmacStatePath(...segments),
+    getLegacyOmacPath('state', ...segments),
   ]);
 }
 
 /**
- * Get the plugin cache base directory for oh-my-claudecode.
+ * Get the plugin cache base directory for oh-my-agent-connector.
  * This is the directory containing version subdirectories.
  *
- * Structure: <configDir>/plugins/cache/omc/oh-my-claudecode/
+ * Structure: <configDir>/plugins/cache/omac/oh-my-agent-connector/
  */
 export function getPluginCacheBase(): string {
-  return join(getClaudeConfigDir(), 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+  return join(getClaudeConfigDir(), 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
 }
 
 /**

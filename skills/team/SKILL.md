@@ -15,15 +15,15 @@ The `swarm` compatibility alias was removed in #1131.
 ## Usage
 
 ```
-/oh-my-claudecode:team N:agent-type "task description"
-/oh-my-claudecode:team "task description"
-/oh-my-claudecode:team ralph "task description"
+/oh-my-agent-connector:team N:agent-type "task description"
+/oh-my-agent-connector:team "task description"
+/oh-my-agent-connector:team ralph "task description"
 ```
 
 ### Parameters
 
 - **N** - Number of teammate agents (1-20). Optional; defaults to auto-sizing based on task decomposition.
-- **agent-type** - OMC agent to spawn for the `team-exec` stage (e.g., executor, debugger, designer, codex, gemini). Optional; defaults to stage-aware routing. Use `codex` to spawn Codex CLI workers or `gemini` for Gemini CLI workers (requires respective CLIs installed). See Stage Agent Routing below.
+- **agent-type** - OMAC agent to spawn for the `team-exec` stage (e.g., executor, debugger, designer, codex, gemini). Optional; defaults to stage-aware routing. Use `codex` to spawn Codex CLI workers or `gemini` for Gemini CLI workers (requires respective CLIs installed). See Stage Agent Routing below.
 - **task** - High-level task to decompose and distribute among teammates
 - **ralph** - Optional modifier. When present, wraps the team pipeline in Ralph's persistence loop (retry on failure, architect verification before completion). See Team + Ralph Composition below.
 
@@ -74,7 +74,7 @@ User: "/team 3:executor fix all TypeScript errors"
                       -> SendMessage(shutdown_request) to each teammate
                       <- SendMessage(shutdown_response, approve: true)
                       -> TeamDelete("fix-ts-errors")
-                      -> rm .omc/state/team-state.json
+                      -> rm .omac/state/team-state.json
 ```
 
 **Storage layout (managed by Claude Code):**
@@ -93,7 +93,7 @@ User: "/team 3:executor fix all TypeScript errors"
 
 ## Goal Workflow Relationship
 
-Team is the OMC authority for parallel, staged execution. Use the deterministic conflict policies `refuse`, `adopt_existing`, and `artifact_only` rather than non-deterministic warning handling. If a task mentions Claude Code `/goal`, Ralph, UltraQA, or artifact-only Ultragoal, keep Team as the primary loop authority unless the leader explicitly hands off. Use `/goal` only as a documented native Claude Code handoff target or as visible evidence from the lead session; do not claim the `/goal` evaluator independently runs commands, reads files, or replaces `team-verify` / `team-fix`. Artifact-only Ultragoal references should be treated as durable goal ledger/checkpoint/evidence artifacts, not as worker execution by themselves.
+Team is the OMAC authority for parallel, staged execution. Use the deterministic conflict policies `refuse`, `adopt_existing`, and `artifact_only` rather than non-deterministic warning handling. If a task mentions Claude Code `/goal`, Ralph, UltraQA, or artifact-only Ultragoal, keep Team as the primary loop authority unless the leader explicitly hands off. Use `/goal` only as a documented native Claude Code handoff target or as visible evidence from the lead session; do not claim the `/goal` evaluator independently runs commands, reads files, or replaces `team-verify` / `team-fix`. Artifact-only Ultragoal references should be treated as durable goal ledger/checkpoint/evidence artifacts, not as worker execution by themselves.
 
 ## Staged Pipeline (Canonical Team Runtime)
 
@@ -159,7 +159,7 @@ When transitioning between stages, important context — decisions made, alterna
 
 **Each completing stage MUST produce a handoff document before transitioning.**
 
-The lead writes handoffs to `.omc/handoffs/<stage-name>.md`.
+The lead writes handoffs to `.omac/handoffs/<stage-name>.md`.
 
 #### Handoff Format
 
@@ -177,7 +177,7 @@ The lead writes handoffs to `.omc/handoffs/<stage-name>.md`.
 
 1. **Lead reads previous handoff BEFORE spawning next stage's agents.** The handoff content is included in the next stage's agent spawn prompts, ensuring agents start with full context.
 2. **Handoffs accumulate.** The verify stage can read all prior handoffs (plan → prd → exec) for full decision history.
-3. **On team cancellation, handoffs survive** in `.omc/handoffs/` for session resume. They are not deleted by `TeamDelete`.
+3. **On team cancellation, handoffs survive** in `.omac/handoffs/` for session resume. They are not deleted by `TeamDelete`.
 4. **Handoffs are lightweight.** 10-20 lines max. They capture decisions and rationale, not full specifications (those live in deliverable files like DESIGN.md).
 
 #### Example
@@ -194,8 +194,8 @@ The lead writes handoffs to `.omc/handoffs/<stage-name>.md`.
 
 ### Resume and Cancel Semantics
 
-- **Resume:** restart from the last non-terminal stage using staged state + live task status. Read `.omc/handoffs/` to recover stage transition context.
-- **Cancel:** `/oh-my-claudecode:cancel` requests teammate shutdown, waits for responses (best effort), marks phase `cancelled` with `active=false`, captures cancellation metadata, then deletes team resources and clears/preserves Team state per policy. Handoff files in `.omc/handoffs/` are preserved for potential resume.
+- **Resume:** restart from the last non-terminal stage using staged state + live task status. Read `.omac/handoffs/` to recover stage transition context.
+- **Cancel:** `/oh-my-agent-connector:cancel` requests teammate shutdown, waits for responses (best effort), marks phase `cancelled` with `active=false`, captures cancellation metadata, then deletes team resources and clears/preserves Team state per policy. Handoff files in `.omac/handoffs/` are preserved for potential resume.
 - Terminal states are `complete`, `failed`, and `cancelled`.
 
 ## Windows psmux tmux-compatible gate
@@ -214,7 +214,7 @@ Before blocking or falling back on Windows:
 ### Phase 1: Parse Input
 
 - Extract **N** (agent count), validate 1-20
-- Extract **agent-type**, validate it maps to a known OMC subagent
+- Extract **agent-type**, validate it maps to a known OMAC subagent
 - Extract **task** description
 
 ### Phase 2: Analyze & Decompose
@@ -249,7 +249,7 @@ Call `TeamCreate` with a slug derived from the task:
 
 The current session becomes the team lead (`team-lead@fix-ts-errors`).
 
-Write OMC state using the `state_write` MCP tool for proper session-scoped persistence:
+Write OMAC state using the `state_write` MCP tool for proper session-scoped persistence:
 
 ```
 state_write(mode="team", active=true, current_phase="team-plan", state={
@@ -351,7 +351,7 @@ Spawn N teammates using `Task` with `team_name` and `name` parameters. Each team
 
 ```json
 {
-  "subagent_type": "oh-my-claudecode:executor",
+  "subagent_type": "oh-my-agent-connector:executor",
   "team_name": "fix-ts-errors",
   "name": "worker-1",
   "prompt": "<worker-preamble + assigned tasks>"
@@ -406,7 +406,7 @@ Monitor for stuck or failed teammates:
 
 ### Phase 6.5: Stage Transitions (State Persistence)
 
-On every stage transition, update OMC state:
+On every stage transition, update OMAC state:
 
 ```
 // Entering team-exec after planning
@@ -455,7 +455,7 @@ When all real tasks (non-internal) are completed or failed:
      "team_name": "fix-ts-errors"
    }
    ```
-5. **Clean OMC state** -- Remove `.omc/state/team-state.json`
+5. **Clean OMAC state** -- Remove `.omac/state/team-state.json`
 6. **Report summary** -- Present results to the user
 
 ## Agent Preamble
@@ -502,7 +502,7 @@ Do NOT mark the task as completed. Leave it in_progress so the lead can reassign
 == RULES ==
 - NEVER spawn sub-agents or use the Task tool
 - NEVER run tmux pane/session orchestration commands (for example `tmux split-window`, `tmux new-session`)
-- NEVER run team spawning/orchestration skills or commands (for example `$team`, `$ultrawork`, `$autopilot`, `$ralph`, `omc team ...`, `omx team ...`)
+- NEVER run team spawning/orchestration skills or commands (for example `$team`, `$ultrawork`, `$autopilot`, `$ralph`, `omac team ...`, `omx team ...`)
 - ALWAYS use absolute file paths
 - ALWAYS report progress via SendMessage to "team-lead"
 - Use SendMessage with type "message" only -- never "broadcast"
@@ -513,7 +513,7 @@ Do NOT mark the task as completed. Leave it in_progress so the lead can reassign
 When composing teammate prompts, append a short addendum based on worker type:
 
 - `claude_worker`: Emphasize strict TaskList/TaskUpdate/SendMessage loop and no orchestration commands.
-- `codex_worker`: Emphasize CLI API lifecycle (`omc team api ... --json`) and explicit failure ACKs with stderr.
+- `codex_worker`: Emphasize CLI API lifecycle (`omac team api ... --json`) and explicit failure ACKs with stderr.
 - `gemini_worker`: Emphasize bounded file ownership and milestone ACKs after each completed sub-step.
 
 This addendum must preserve the core rule: **worker = executor only, never leader/orchestrator**.
@@ -669,7 +669,7 @@ Tmux CLI workers run in dedicated tmux panes with filesystem access. They are **
 /team 3:executor "refactor auth module with security review"
 
 Task decomposition:
-#1 [codex_worker] Security review of current auth code -> output to .omc/research/auth-security.md
+#1 [codex_worker] Security review of current auth code -> output to .omac/research/auth-security.md
 #2 [codex_worker] Refactor auth/login.ts and auth/session.ts (uses #1 findings)
 #3 [claude_worker:designer] Redesign auth UI components (login form, session indicator)
 #4 [claude_worker] Update auth tests + fix integration issues
@@ -682,7 +682,7 @@ The lead runs #1 (Codex security analysis), then #2 and #3 in parallel (Codex re
 
 For large ambiguous tasks, run analysis before team creation:
 
-1. Spawn `Task(subagent_type="oh-my-claudecode:planner", ...)` with task description + codebase context
+1. Spawn `Task(subagent_type="oh-my-agent-connector:planner", ...)` with task description + codebase context
 2. Use the analysis to produce better task decomposition
 3. Create team and tasks with enriched context
 
@@ -789,7 +789,7 @@ When the user invokes `/team ralph`, says "team ralph", or combines both keyword
 
 Team+Ralph activates when:
 
-1. User invokes `/team ralph "task"` or `/oh-my-claudecode:team ralph "task"`
+1. User invokes `/team ralph "task"` or `/oh-my-agent-connector:team ralph "task"`
 2. Keyword detector finds both `team` and `ralph` in the prompt
 3. Hook detects `MAGIC KEYWORD: RALPH` alongside team context
 
@@ -817,7 +817,7 @@ state_write(mode="ralph", active=true, iteration=1, max_iterations=10, current_p
 1. Ralph outer loop starts (iteration 1)
 2. Team pipeline runs: `team-plan -> team-prd -> team-exec -> team-verify`
 3. If `team-verify` passes: Ralph runs architect verification (STANDARD tier minimum)
-4. If architect approves: both modes complete, run `/oh-my-claudecode:cancel`
+4. If architect approves: both modes complete, run `/oh-my-agent-connector:cancel`
 5. If `team-verify` fails OR architect rejects: team enters `team-fix`, then loops back to `team-exec -> team-verify`
 6. If fix loop exceeds `max_fix_loops`: Ralph increments iteration and retries the full pipeline
 7. If Ralph exceeds `max_iterations`: terminal `failed` state
@@ -847,7 +847,7 @@ This prevents duplicate teams and allows graceful recovery from lead failures.
 
 | Aspect                  | Team (Native)                                                      | Swarm (Legacy SQLite)                  |
 | ----------------------- | ------------------------------------------------------------------ | -------------------------------------- |
-| **Storage**             | JSON files in `~/.claude/teams/` and `~/.claude/tasks/`            | SQLite in `.omc/state/swarm.db`        |
+| **Storage**             | JSON files in `~/.claude/teams/` and `~/.claude/tasks/`            | SQLite in `.omac/state/swarm.db`        |
 | **Dependencies**        | `better-sqlite3` not needed                                        | Requires `better-sqlite3` npm package  |
 | **Task claiming**       | `TaskUpdate(owner + in_progress)` -- lead pre-assigns              | SQLite IMMEDIATE transaction -- atomic |
 | **Race conditions**     | Possible if two agents claim same task (mitigate by pre-assigning) | None (SQLite transactions)             |
@@ -865,7 +865,7 @@ This prevents duplicate teams and allows graceful recovery from lead failures.
 
 ## Cancellation
 
-The `/oh-my-claudecode:cancel` skill handles team cleanup:
+The `/oh-my-agent-connector:cancel` skill handles team cleanup:
 
 1. Read team state via `state_read(mode="team")` to get `team_name` and `linked_ralph`
 2. Send `shutdown_request` to all active teammates (from `config.json` members)
@@ -886,19 +886,19 @@ If teammates are unresponsive, `TeamDelete` may fail. In that case, the cancel s
 
 ## Runtime V2 (Event-Driven)
 
-When `OMC_RUNTIME_V2=1` is set, the team runtime uses an event-driven architecture instead of the legacy done.json polling watchdog:
+When `OMAC_RUNTIME_V2=1` is set, the team runtime uses an event-driven architecture instead of the legacy done.json polling watchdog:
 
 - **No done.json**: Task completion is detected via CLI API lifecycle transitions (claim-task, transition-task-status)
 - **Snapshot-based monitoring**: Each poll cycle takes a point-in-time snapshot of tasks and workers, computes deltas, and emits events
-- **Event log**: All team events are appended to `.omc/state/team/{teamName}/events.jsonl`
-- **Worker status files**: Workers write status to `.omc/state/team/{teamName}/workers/{name}/status.json`
+- **Event log**: All team events are appended to `.omac/state/team/{teamName}/events.jsonl`
+- **Worker status files**: Workers write status to `.omac/state/team/{teamName}/workers/{name}/status.json`
 - **Preserved**: Sentinel gate (blocks premature completion), circuit breaker (dead worker detection), failure sidecars
 
 The v2 runtime is feature-flagged and can be enabled per-session. The legacy v1 runtime remains the default.
 
 ## Dynamic Scaling
 
-When `OMC_TEAM_SCALING_ENABLED=1` is set, the team supports mid-session scaling:
+When `OMAC_TEAM_SCALING_ENABLED=1` is set, the team supports mid-session scaling:
 
 - **scale_up**: Add workers to a running team (respects max_workers limit)
 - **scale_down**: Remove idle workers with graceful drain (workers finish current task before removal)
@@ -907,7 +907,7 @@ When `OMC_TEAM_SCALING_ENABLED=1` is set, the team supports mid-session scaling:
 
 ## Configuration
 
-Optional settings live in `.claude/omc.jsonc` (project) or `~/.config/claude-omc/config.jsonc` (user). Project values override user values; `OMC_TEAM_ROLE_OVERRIDES` (env JSON) supersedes both.
+Optional settings live in `.claude/omac.jsonc` (project) or `~/.config/claude-omac/config.jsonc` (user). Project values override user values; `OMAC_TEAM_ROLE_OVERRIDES` (env JSON) supersedes both.
 
 ```jsonc
 {
@@ -938,7 +938,7 @@ Declare which provider (`claude`, `codex`, `gemini`) and which model tier should
 ### Example — user target mapping
 
 ```jsonc
-// .claude/omc.jsonc
+// .claude/omac.jsonc
 {
   "team": {
     "roleRouting": {
@@ -981,14 +981,14 @@ User-friendly aliases normalize via `normalizeDelegationRole()` — e.g. `review
 ### Env override
 
 ```bash
-OMC_TEAM_ROLE_OVERRIDES='{"critic":{"provider":"codex"},"code-reviewer":{"provider":"gemini"}}'
+OMAC_TEAM_ROLE_OVERRIDES='{"critic":{"provider":"codex"},"code-reviewer":{"provider":"gemini"}}'
 ```
 
-Precedence: `OMC_TEAM_ROLE_OVERRIDES` > `.claude/omc.jsonc` (project) > `~/.config/claude-omc/config.jsonc` (user) > built-in defaults. Invalid JSON logs a warning and is ignored — env overrides are best-effort and never abort the run.
+Precedence: `OMAC_TEAM_ROLE_OVERRIDES` > `.claude/omac.jsonc` (project) > `~/.config/claude-omac/config.jsonc` (user) > built-in defaults. Invalid JSON logs a warning and is ignored — env overrides are best-effort and never abort the run.
 
 ### Fallback when a CLI is missing
 
-If the CLI for a configured provider is absent from `PATH` at spawn time, `buildLaunchArgs()` throws, the team lead emits a visible `SendMessage` warning, and the runtime falls back to a deterministic Claude assignment pre-computed by `buildResolvedRoutingSnapshot` (same tier + same agent, `provider: "claude"`). Fallback is loud by design — silent fallback is a test failure. Probe provider availability with `omc doctor --team-routing`.
+If the CLI for a configured provider is absent from `PATH` at spawn time, `buildLaunchArgs()` throws, the team lead emits a visible `SendMessage` warning, and the runtime falls back to a deterministic Claude assignment pre-computed by `buildResolvedRoutingSnapshot` (same tier + same agent, `provider: "claude"`). Fallback is loud by design — silent fallback is a test failure. Probe provider availability with `omac doctor --team-routing`.
 
 ### Stickiness — resolved once, reused everywhere
 
@@ -1005,7 +1005,7 @@ On successful completion:
 1. `TeamDelete` handles all Claude Code state:
    - Removes `~/.claude/teams/{team_name}/` (config)
    - Removes `~/.claude/tasks/{team_name}/` (all task files + lock)
-2. OMC state cleanup via MCP tools:
+2. OMAC state cleanup via MCP tools:
    ```
    state_clear(mode="team")
    ```
@@ -1013,7 +1013,7 @@ On successful completion:
    ```
    state_clear(mode="ralph")
    ```
-3. Or run `/oh-my-claudecode:cancel` which handles all cleanup automatically.
+3. Or run `/oh-my-agent-connector:cancel` which handles all cleanup automatically.
 
 **IMPORTANT:** Call `TeamDelete` only AFTER all teammates have been shut down. `TeamDelete` will fail if active members (besides the lead) still exist in the config.
 
@@ -1023,7 +1023,7 @@ MCP workers can operate in isolated git worktrees to prevent file conflicts betw
 
 ### How It Works
 
-1. **Worktree creation**: Before spawning a worker, call `createWorkerWorktree(teamName, workerName, repoRoot)` to create an isolated worktree at `.omc/worktrees/{team}/{worker}` with branch `omc-team/{teamName}/{workerName}`.
+1. **Worktree creation**: Before spawning a worker, call `createWorkerWorktree(teamName, workerName, repoRoot)` to create an isolated worktree at `.omac/worktrees/{team}/{worker}` with branch `omac-team/{teamName}/{workerName}`.
 
 2. **Worker isolation**: Pass the worktree path as the `workingDirectory` in the worker's `BridgeConfig`. The worker operates exclusively in its own worktree.
 
@@ -1076,7 +1076,7 @@ MCP workers can operate in isolated git worktrees to prevent file conflicts betw
 
 ## Parallel session caveats
 
-- **Multi-repo workspace anchor:** drop a `.omc-workspace` marker at the parent directory so multiple sessions across sub-repos share one `.omc/`. Resolution order: `OMC_STATE_DIR > .omc-workspace > git > cwd`. See `docs/REFERENCE.md`.
-- **Session id source:** OMC_SESSION_ID env var wins in CLI contexts; hook payload data.session_id wins in hook contexts.
-- **Plan id (when applicable):** Team state is session-scoped. Team handoffs at `.omc/handoffs/` are shared by design (see Wave G in the workspace plan).
+- **Multi-repo workspace anchor:** drop a `.omac-workspace` marker at the parent directory so multiple sessions across sub-repos share one `.omac/`. Resolution order: `OMAC_STATE_DIR > .omac-workspace > git > cwd`. See `docs/REFERENCE.md`.
+- **Session id source:** OMAC_SESSION_ID env var wins in CLI contexts; hook payload data.session_id wins in hook contexts.
+- **Plan id (when applicable):** Team state is session-scoped. Team handoffs at `.omac/handoffs/` are shared by design (see Wave G in the workspace plan).
 - **Parallel verdict:** supported (session-scoped + shared handoffs by design)

@@ -4,7 +4,7 @@
  * Filesystem-based key-value store for cross-session memory sync
  * between agents in /team and /pipeline workflows.
  *
- * Storage: .omc/state/shared-memory/{namespace}/{key}.json
+ * Storage: .omac/state/shared-memory/{namespace}/{key}.json
  *
  * Each entry is a JSON file containing:
  * - key: string identifier
@@ -15,12 +15,12 @@
  * - ttl: optional time-to-live in seconds
  * - expiresAt: optional ISO timestamp (computed from ttl)
  *
- * @see https://github.com/anthropics/oh-my-claudecode/issues/1119
+ * @see https://github.com/anthropics/oh-my-agent-connector/issues/1119
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync, readdirSync, renameSync } from 'fs';
 import { join } from 'path';
-import { getOmcRoot } from './worktree-paths.js';
+import { getOmacRoot } from './worktree-paths.js';
 import { withFileLockSync } from './file-lock.js';
 import { getClaudeConfigDir } from '../utils/config-dir.js';
 
@@ -50,13 +50,13 @@ export interface SharedMemoryListItem {
 // Config
 // ---------------------------------------------------------------------------
 
-const CONFIG_FILE_NAME = '.omc-config.json';
+const CONFIG_FILE_NAME = '.omac-config.json';
 
 /**
  * Check if shared memory is enabled via config.
  *
  * Reads `agents.sharedMemory.enabled` from
- * `[$CLAUDE_CONFIG_DIR|~/.claude]/.omc-config.json`.
+ * `[$CLAUDE_CONFIG_DIR|~/.claude]/.omac-config.json`.
  * Defaults to true when the config key is absent (opt-out rather than opt-in
  * once the feature ships, but tools check this gate).
  */
@@ -108,8 +108,8 @@ function validateKey(key: string): void {
 /** Get the directory path for a namespace. */
 function getNamespaceDir(namespace: string, worktreeRoot?: string): string {
   validateNamespace(namespace);
-  const omcRoot = getOmcRoot(worktreeRoot);
-  return join(omcRoot, SHARED_MEMORY_DIR, namespace);
+  const omacRoot = getOmacRoot(worktreeRoot);
+  return join(omacRoot, SHARED_MEMORY_DIR, namespace);
 }
 
 /** Get the file path for a specific key within a namespace. */
@@ -308,8 +308,8 @@ export function cleanupExpired(
   namespace?: string,
   worktreeRoot?: string,
 ): { removed: number; namespaces: string[] } {
-  const omcRoot = getOmcRoot(worktreeRoot);
-  const sharedMemDir = join(omcRoot, SHARED_MEMORY_DIR);
+  const omacRoot = getOmacRoot(worktreeRoot);
+  const sharedMemDir = join(omacRoot, SHARED_MEMORY_DIR);
 
   if (!existsSync(sharedMemDir)) return { removed: 0, namespaces: [] };
 
@@ -371,8 +371,8 @@ export function cleanupExpired(
  * List all namespaces that have shared memory entries.
  */
 export function listNamespaces(worktreeRoot?: string): string[] {
-  const omcRoot = getOmcRoot(worktreeRoot);
-  const sharedMemDir = join(omcRoot, SHARED_MEMORY_DIR);
+  const omacRoot = getOmacRoot(worktreeRoot);
+  const sharedMemDir = join(omacRoot, SHARED_MEMORY_DIR);
 
   if (!existsSync(sharedMemDir)) return [];
 

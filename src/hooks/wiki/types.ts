@@ -166,7 +166,7 @@ export interface WikiLintReport {
 // Configuration
 // ============================================================================
 
-/** Wiki configuration (from .omc-config.json). */
+/** Wiki configuration (from .omac-config.json). */
 export interface WikiConfig {
   /** Whether auto-capture is enabled at session end (default: true) */
   autoCapture: boolean;

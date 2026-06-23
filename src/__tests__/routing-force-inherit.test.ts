@@ -2,7 +2,7 @@
  * Tests for routing.forceInherit feature (issue #1135)
  *
  * When routing.forceInherit is true, all agents should inherit the parent
- * model instead of using OMC's per-agent model routing.
+ * model instead of using OMAC's per-agent model routing.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -39,15 +39,15 @@ describe('routing.forceInherit (issue #1135)', () => {
   let originalEnv: string | undefined;
 
   beforeEach(() => {
-    originalEnv = process.env.OMC_ROUTING_FORCE_INHERIT;
+    originalEnv = process.env.OMAC_ROUTING_FORCE_INHERIT;
     vi.clearAllMocks();
   });
 
   afterEach(() => {
     if (originalEnv === undefined) {
-      delete process.env.OMC_ROUTING_FORCE_INHERIT;
+      delete process.env.OMAC_ROUTING_FORCE_INHERIT;
     } else {
-      process.env.OMC_ROUTING_FORCE_INHERIT = originalEnv;
+      process.env.OMAC_ROUTING_FORCE_INHERIT = originalEnv;
     }
   });
 
@@ -137,7 +137,7 @@ describe('routing.forceInherit (issue #1135)', () => {
       const input: AgentInput = {
         description: 'Test task',
         prompt: 'Do something',
-        subagent_type: 'oh-my-claudecode:executor',
+        subagent_type: 'oh-my-agent-connector:executor',
         model: 'opus',
       };
 
@@ -156,7 +156,7 @@ describe('routing.forceInherit (issue #1135)', () => {
       const input: AgentInput = {
         description: 'Test task',
         prompt: 'Do something',
-        subagent_type: 'oh-my-claudecode:executor',
+        subagent_type: 'oh-my-agent-connector:executor',
       };
 
       const result = enforceModel(input);
@@ -173,7 +173,7 @@ describe('routing.forceInherit (issue #1135)', () => {
       const input: AgentInput = {
         description: 'Test task',
         prompt: 'Do something',
-        subagent_type: 'oh-my-claudecode:executor',
+        subagent_type: 'oh-my-agent-connector:executor',
       };
 
       const result = enforceModel(input);
@@ -198,7 +198,7 @@ describe('routing.forceInherit (issue #1135)', () => {
       const toolInput: AgentInput = {
         description: 'Test task',
         prompt: 'Do something',
-        subagent_type: 'oh-my-claudecode:executor',
+        subagent_type: 'oh-my-agent-connector:executor',
         model: 'opus',
       };
 
@@ -207,7 +207,7 @@ describe('routing.forceInherit (issue #1135)', () => {
 
       expect(modified.model).toBeUndefined();
       expect(modified.prompt).toBe('Do something');
-      expect(modified.subagent_type).toBe('oh-my-claudecode:executor');
+      expect(modified.subagent_type).toBe('oh-my-agent-connector:executor');
     });
 
     it('strips model from Agent calls when forceInherit is true', () => {
@@ -218,7 +218,7 @@ describe('routing.forceInherit (issue #1135)', () => {
       const toolInput: AgentInput = {
         description: 'Test task',
         prompt: 'Do something',
-        subagent_type: 'oh-my-claudecode:executor',
+        subagent_type: 'oh-my-agent-connector:executor',
         model: 'opus',
       };
 
@@ -227,7 +227,7 @@ describe('routing.forceInherit (issue #1135)', () => {
 
       expect(modified.model).toBeUndefined();
       expect(modified.prompt).toBe('Do something');
-      expect(modified.subagent_type).toBe('oh-my-claudecode:executor');
+      expect(modified.subagent_type).toBe('oh-my-agent-connector:executor');
     });
 
     it('strips model from lowercase agent calls when forceInherit is true', () => {
@@ -238,7 +238,7 @@ describe('routing.forceInherit (issue #1135)', () => {
       const toolInput: AgentInput = {
         description: 'Test task',
         prompt: 'Do something',
-        subagent_type: 'oh-my-claudecode:executor',
+        subagent_type: 'oh-my-agent-connector:executor',
         model: 'opus',
       };
 
@@ -246,7 +246,7 @@ describe('routing.forceInherit (issue #1135)', () => {
       const modified = result.modifiedInput as AgentInput;
 
       expect(modified.model).toBeUndefined();
-      expect(modified.subagent_type).toBe('oh-my-claudecode:executor');
+      expect(modified.subagent_type).toBe('oh-my-agent-connector:executor');
     });
 
     it('does not strip model when forceInherit is false', () => {
@@ -257,7 +257,7 @@ describe('routing.forceInherit (issue #1135)', () => {
       const toolInput: AgentInput = {
         description: 'Test task',
         prompt: 'Do something',
-        subagent_type: 'oh-my-claudecode:executor',
+        subagent_type: 'oh-my-agent-connector:executor',
         model: 'haiku',
       };
 

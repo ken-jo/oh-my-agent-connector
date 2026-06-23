@@ -22,7 +22,7 @@ describe('self-improve session isolation (Wave B2)', () => {
   let root: string;
 
   beforeEach(() => {
-    root = mkdtempSync(join(tmpdir(), 'omc-si-session-isolation-'));
+    root = mkdtempSync(join(tmpdir(), 'omac-si-session-isolation-'));
   });
 
   afterEach(() => {
@@ -50,7 +50,7 @@ describe('self-improve session isolation (Wave B2)', () => {
 
     const paths = readJson('node', [RESOLVER, '--project-root', root, '--slug', slug, '--session-id', sid]);
 
-    const expectedRoot = join(root, '.omc', 'self-improve', 'topics', slug, 'sessions', sid);
+    const expectedRoot = join(root, '.omac', 'self-improve', 'topics', slug, 'sessions', sid);
     expect(paths.root).toBe(expectedRoot);
   });
 
@@ -97,7 +97,7 @@ describe('self-improve session isolation (Wave B2)', () => {
     expect(paths.session_id).toBeNull();
   });
 
-  it('OMC_SESSION_ID env var is used as fallback when --session-id not passed', () => {
+  it('OMAC_SESSION_ID env var is used as fallback when --session-id not passed', () => {
     const slug = 'env-session';
     const sid = 'env-session-123';
 
@@ -105,7 +105,7 @@ describe('self-improve session isolation (Wave B2)', () => {
     const result = JSON.parse(
       execFileSync('node', [RESOLVER, '--project-root', root, '--slug', slug], {
         encoding: 'utf-8',
-        env: { ...process.env, OMC_SESSION_ID: sid },
+        env: { ...process.env, OMAC_SESSION_ID: sid },
       })
     );
 

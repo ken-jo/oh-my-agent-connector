@@ -53,7 +53,7 @@ export interface OpenClawHookMapping {
   enabled: boolean;
 }
 
-/** Top-level config schema for omc_config.openclaw.json */
+/** Top-level config schema for omac_config.openclaw.json */
 export interface OpenClawConfig {
   /** Global enable/disable */
   enabled: boolean;

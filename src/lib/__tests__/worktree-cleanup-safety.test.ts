@@ -7,7 +7,7 @@ import { validateWorktreeRemovalTarget } from '../worktree-cleanup-safety.js';
 const tempDirs: string[] = [];
 
 function makeTempRoot(): string {
-  const root = join(tmpdir(), `omc-cleanup-safety-${process.pid}-${tempDirs.length}-${Date.now()}`);
+  const root = join(tmpdir(), `omac-cleanup-safety-${process.pid}-${tempDirs.length}-${Date.now()}`);
   mkdirSync(root, { recursive: true });
   tempDirs.push(root);
   return root;

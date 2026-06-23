@@ -8,7 +8,7 @@ import {
   HOOKS_DIR,
   isRunningAsPlugin,
   isProjectScopedPlugin,
-  extractOmcVersionFromClaudeMd,
+  extractOmacVersionFromClaudeMd,
   syncPersistedSetupVersion,
 } from '../installer/index.js';
 import { getRuntimePackageVersion } from '../lib/version.js';
@@ -185,7 +185,7 @@ describe('Installer Constants', () => {
         const content = readFileSync(join(commandsDir, file), 'utf-8');
         if (file === 'compact.md') {
           expect(content, 'compact.md should avoid unsupported Skill compact invocation').not.toContain('Skill("compact")');
-          expect(content, 'compact.md should provide a manual native /compact handoff').toContain('bare Claude Code command');
+          expect(content, 'compact.md should provide a manual native /compact handoff').toContain('bare host command');
         } else {
           expect(content, `${file} should dispatch to a bundled skill`).toContain('SKILL.md');
         }
@@ -209,7 +209,7 @@ describe('Installer Constants', () => {
 
         // Detect pattern: command file that tells user to invoke the same-named skill
         const skillInvokePattern = new RegExp(
-          `/oh-my-claudecode:${commandName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
+          `/oh-my-agent-connector:${commandName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`,
           'i'
         );
 
@@ -342,29 +342,29 @@ describe('Installer Constants', () => {
     });
 
     it('should keep docs/CLAUDE.md version marker in sync with package version', () => {
-      const versionMatch = CLAUDE_MD_CONTENT.match(/<!-- OMC:VERSION:([^\s]*?) -->/);
+      const versionMatch = CLAUDE_MD_CONTENT.match(/<!-- OMAC:VERSION:([^\s]*?) -->/);
       expect(versionMatch?.[1]).toBe(VERSION);
     });
   });
 
 
-  describe('extractOmcVersionFromClaudeMd()', () => {
-    it('prefers the OMC version marker', () => {
-      const content = `<!-- OMC:VERSION:4.7.7 -->
-# oh-my-claudecode - Intelligent Multi-Agent Orchestration`;
-      expect(extractOmcVersionFromClaudeMd(content)).toBe('v4.7.7');
+  describe('extractOmacVersionFromClaudeMd()', () => {
+    it('prefers the OMAC version marker', () => {
+      const content = `<!-- OMAC:VERSION:4.7.7 -->
+# oh-my-agent-connector - Intelligent Multi-Agent Orchestration`;
+      expect(extractOmacVersionFromClaudeMd(content)).toBe('v4.7.7');
     });
 
     it('falls back to legacy heading versions', () => {
-      const content = '# oh-my-claudecode v4.6.0 - Intelligent Multi-Agent Orchestration';
-      expect(extractOmcVersionFromClaudeMd(content)).toBe('v4.6.0');
+      const content = '# oh-my-agent-connector v4.6.0 - Intelligent Multi-Agent Orchestration';
+      expect(extractOmacVersionFromClaudeMd(content)).toBe('v4.6.0');
     });
   });
 
   describe('syncPersistedSetupVersion()', () => {
     it('updates setupVersion for already-configured installs', () => {
-      const tempDir = mkdtempSync(join(tmpdir(), 'omc-installer-test-'));
-      const configPath = join(tempDir, '.omc-config.json');
+      const tempDir = mkdtempSync(join(tmpdir(), 'omac-installer-test-'));
+      const configPath = join(tempDir, '.omac-config.json');
       writeFileSync(configPath, JSON.stringify({ setupCompleted: '2026-03-03T17:59:08+09:00', setupVersion: 'v4.6.0' }, null, 2));
 
       const changed = syncPersistedSetupVersion({
@@ -380,8 +380,8 @@ describe('Installer Constants', () => {
     });
 
     it('does not create setupVersion for fresh installs by default', () => {
-      const tempDir = mkdtempSync(join(tmpdir(), 'omc-installer-test-'));
-      const configPath = join(tempDir, '.omc-config.json');
+      const tempDir = mkdtempSync(join(tmpdir(), 'omac-installer-test-'));
+      const configPath = join(tempDir, '.omac-config.json');
       writeFileSync(configPath, JSON.stringify({ hudEnabled: true }, null, 2));
 
       const changed = syncPersistedSetupVersion({
@@ -527,7 +527,7 @@ describe('Installer Constants', () => {
     });
 
     it('should return true when CLAUDE_PLUGIN_ROOT is set', () => {
-      process.env.CLAUDE_PLUGIN_ROOT = '/home/user/.claude/plugins/marketplaces/oh-my-claudecode';
+      process.env.CLAUDE_PLUGIN_ROOT = '/home/user/.claude/plugins/marketplaces/oh-my-agent-connector';
       expect(isRunningAsPlugin()).toBe(true);
     });
 
@@ -559,30 +559,30 @@ describe('Installer Constants', () => {
 
     it('should return false for global plugin installation', () => {
       // Global plugins are under ~/.claude/plugins/
-      process.env.CLAUDE_PLUGIN_ROOT = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode', '3.9.0');
+      process.env.CLAUDE_PLUGIN_ROOT = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector', '3.9.0');
       expect(isProjectScopedPlugin()).toBe(false);
     });
 
     it('should return true for project-scoped plugin installation', () => {
       // Project-scoped plugins are in the project's .claude/plugins/ directory
-      process.env.CLAUDE_PLUGIN_ROOT = '/home/user/myproject/.claude/plugins/oh-my-claudecode';
+      process.env.CLAUDE_PLUGIN_ROOT = '/home/user/myproject/.claude/plugins/oh-my-agent-connector';
       expect(isProjectScopedPlugin()).toBe(true);
     });
 
     it('should return true when plugin is outside global plugin directory', () => {
       // Any path that's not under ~/.claude/plugins/ is considered project-scoped
-      process.env.CLAUDE_PLUGIN_ROOT = '/var/projects/app/.claude/plugins/omc';
+      process.env.CLAUDE_PLUGIN_ROOT = '/var/projects/app/.claude/plugins/omac';
       expect(isProjectScopedPlugin()).toBe(true);
     });
 
     it('should handle Windows-style paths', () => {
       // Windows paths with backslashes should be normalized
-      process.env.CLAUDE_PLUGIN_ROOT = 'C:\\Users\\user\\project\\.claude\\plugins\\omc';
+      process.env.CLAUDE_PLUGIN_ROOT = 'C:\\Users\\user\\project\\.claude\\plugins\\omac';
       expect(isProjectScopedPlugin()).toBe(true);
     });
 
     it('should handle trailing slashes in paths', () => {
-      process.env.CLAUDE_PLUGIN_ROOT = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc') + '/';
+      process.env.CLAUDE_PLUGIN_ROOT = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac') + '/';
       expect(isProjectScopedPlugin()).toBe(false);
     });
   });

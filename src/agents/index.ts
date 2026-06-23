@@ -56,8 +56,8 @@ export {
   codeSimplifierAgent
 } from './definitions.js';
 
-// Core exports (getAgentDefinitions and omcSystemPrompt)
+// Core exports (getAgentDefinitions and omacSystemPrompt)
 export {
   getAgentDefinitions,
-  omcSystemPrompt
+  omacSystemPrompt
 } from './definitions.js';

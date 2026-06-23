@@ -25,7 +25,7 @@ const SKILLS: Record<string, string> = {
 const REQUIRED_HEADING = "## Parallel session caveats";
 
 const REQUIRED_SESSION_ID_SENTENCE =
-  "OMC_SESSION_ID env var wins in CLI contexts; hook payload data.session_id wins in hook contexts.";
+  "OMAC_SESSION_ID env var wins in CLI contexts; hook payload data.session_id wins in hook contexts.";
 
 const REQUIRED_BULLETS = [
   "**Multi-repo workspace anchor:**",

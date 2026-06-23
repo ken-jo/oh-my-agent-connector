@@ -10,7 +10,7 @@ describe('team api working-directory resolution', () => {
   const teamName = 'resolution-team';
 
   async function seedTeamState(): Promise<string> {
-    const base = join(cwd, '.omc', 'state', 'team', teamName);
+    const base = join(cwd, '.omac', 'state', 'team', teamName);
     await mkdir(join(base, 'tasks'), { recursive: true });
     await mkdir(join(base, 'mailbox'), { recursive: true });
     await writeFile(join(base, 'config.json'), JSON.stringify({
@@ -37,11 +37,11 @@ describe('team api working-directory resolution', () => {
   }
 
   beforeEach(async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-team-api-resolution-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-team-api-resolution-'));
   });
 
   afterEach(async () => {
-    delete process.env.OMC_TEAM_STATE_ROOT;
+    delete process.env.OMAC_TEAM_STATE_ROOT;
     await rm(cwd, { recursive: true, force: true });
   });
 
@@ -66,9 +66,9 @@ describe('team api working-directory resolution', () => {
     expect(typeof (claimResult.data as { claimToken?: string }).claimToken).toBe('string');
   });
 
-  it('resolves workspace cwd from OMC_TEAM_STATE_ROOT when it points at a team-specific root', async () => {
+  it('resolves workspace cwd from OMAC_TEAM_STATE_ROOT when it points at a team-specific root', async () => {
     const teamStateRoot = await seedTeamState();
-    process.env.OMC_TEAM_STATE_ROOT = teamStateRoot;
+    process.env.OMAC_TEAM_STATE_ROOT = teamStateRoot;
 
     const nestedCwd = join(cwd, 'nested', 'worker');
     await mkdir(nestedCwd, { recursive: true });

@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Usage API
+ * OMAC HUD - Usage API
  *
  * Fetches rate limit usage from Anthropic's OAuth API.
  * Based on claude-hud implementation by jarrodwatts.
@@ -194,14 +194,14 @@ interface MinimaxCodingPlanResponse {
  * Get the legacy (pre-split) cache file path
  */
 function getLegacyCachePath(): string {
-  return join(getClaudeConfigDir(), 'plugins', 'oh-my-claudecode', '.usage-cache.json');
+  return join(getClaudeConfigDir(), 'plugins', 'oh-my-agent-connector', '.usage-cache.json');
 }
 
 /**
  * Get the provider-specific cache file path
  */
 function getCachePath(source: 'anthropic' | 'zai' | 'minimax'): string {
-  return join(getClaudeConfigDir(), 'plugins', 'oh-my-claudecode', `.usage-cache-${source}.json`);
+  return join(getClaudeConfigDir(), 'plugins', 'oh-my-agent-connector', `.usage-cache-${source}.json`);
 }
 
 /**
@@ -623,7 +623,7 @@ function refreshAccessToken(refreshToken: string): Promise<OAuthCredentials | nu
               // JSON parse failed
             }
           }
-          if (process.env.OMC_DEBUG) {
+          if (process.env.OMAC_DEBUG) {
             console.error(`[usage-api] Token refresh failed: HTTP ${res.statusCode}`);
           }
           resolve(null);
@@ -674,7 +674,7 @@ function fetchUsageFromApi(accessToken: string): Promise<FetchResult<UsageApiRes
               resolve({ data: null });
             }
           } else if (res.statusCode === 429) {
-            if (process.env.OMC_DEBUG) {
+            if (process.env.OMAC_DEBUG) {
               console.error(`[usage-api] Anthropic API returned 429 (rate limited)`);
             }
             resolve({ data: null, rateLimited: true });
@@ -745,7 +745,7 @@ function fetchUsageFromZai(): Promise<FetchResult<ZaiQuotaResponse>> {
                 resolve({ data: null });
               }
             } else if (res.statusCode === 429) {
-              if (process.env.OMC_DEBUG) {
+              if (process.env.OMAC_DEBUG) {
                 console.error(`[usage-api] z.ai API returned 429 (rate limited)`);
               }
               resolve({ data: null, rateLimited: true });
@@ -816,7 +816,7 @@ function writeBackCredentials(creds: OAuthCredentials): void {
     }
   } catch {
     // Silent failure - credential write-back is best-effort
-    if (process.env.OMC_DEBUG) {
+    if (process.env.OMAC_DEBUG) {
       console.error('[usage-api] Failed to write back refreshed credentials');
     }
   }
@@ -998,7 +998,7 @@ export function parseZaiResponse(response: ZaiQuotaResponse): RateLimits | null 
     weeklyBucket = sorted[1];
   }
 
-  if (allTokensLimits.length > 2 && process.env.OMC_DEBUG) {
+  if (allTokensLimits.length > 2 && process.env.OMAC_DEBUG) {
     console.error(
       `[usage-api] z.ai returned ${allTokensLimits.length} TOKENS_LIMIT entries; using unit-based classification`,
     );
@@ -1067,7 +1067,7 @@ function fetchUsageFromMinimax(apiKey: string): Promise<FetchResult<MinimaxCodin
                 resolve({ data: null });
               }
             } else if (res.statusCode === 429) {
-              if (process.env.OMC_DEBUG) {
+              if (process.env.OMAC_DEBUG) {
                 console.error(`[usage-api] MiniMax API returned 429 (rate limited)`);
               }
               resolve({ data: null, rateLimited: true });
@@ -1102,7 +1102,7 @@ export function parseMinimaxResponse(response: MinimaxCodingPlanResponse): RateL
   // Find the primary coding model (first match, case-insensitive)
   const codingModel = models.find(m => m.model_name.toLowerCase().startsWith('minimax-m'));
   if (!codingModel) {
-    if (process.env.OMC_DEBUG) {
+    if (process.env.OMAC_DEBUG) {
       console.error('[usage-api] No MiniMax-M* model found in coding plan response');
     }
     return null;

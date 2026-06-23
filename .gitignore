@@ -1,6 +1,9 @@
 node_modules/
 dist/
 *.log
-.omc/
+.omac/*
+!.omac/
+!.omac/skills/
+!.omac/skills/**
 .omx/
 .omg/

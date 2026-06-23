@@ -50,7 +50,7 @@ describe("Claude Code /goal adapter docs contract", () => {
     expect(adapterDoc).toContain("Any unknown policy is invalid");
   });
 
-  it("keeps evaluator success separate from OMC final completion", () => {
+  it("keeps evaluator success separate from OMAC final completion", () => {
     expect(adapterDoc).toContain("`evaluator_passed` is not `complete`");
     expect(adapterDoc).toContain(
       "Direct `evaluator_passed -> complete` transitions are invalid",

@@ -1,6 +1,6 @@
 # Model × Agent Compatibility Matrix
 
-Recommendation matrix for which model to pair with each OMC/OMO agent, framed
+Recommendation matrix for which model to pair with each OMAC/OMO agent, framed
 around cost vs. quality. This page exists so the recurring "어떤 모델을 어느
 agent에 박아야 함?" question stops being tribal Discord knowledge.
 

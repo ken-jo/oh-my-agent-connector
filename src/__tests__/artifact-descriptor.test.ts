@@ -17,7 +17,7 @@ describe('artifact descriptor helpers', () => {
         path: join(dir, 'artifact.md'),
         content: 'hello artifact world',
         kind: 'prompt',
-        producer: { system: 'omc', component: 'test' },
+        producer: { system: 'omac', component: 'test' },
         retention: 'persistent',
       });
 
@@ -54,7 +54,7 @@ describe('artifact descriptor helpers', () => {
       kind: string;
       path: string;
       createdAt: string;
-      producer: { system: 'omc'; component: string };
+      producer: { system: 'omac'; component: string };
       retention: 'until-completion';
       sizeBytes: number;
       contentHash: string;
@@ -62,7 +62,7 @@ describe('artifact descriptor helpers', () => {
       kind: 'task-result',
       path: '/tmp/result.md',
       createdAt: new Date().toISOString(),
-      producer: { system: 'omc', component: 'test' },
+      producer: { system: 'omac', component: 'test' },
       retention: 'until-completion' as const,
       sizeBytes: 4096,
       contentHash: 'abc123',

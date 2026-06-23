@@ -5,7 +5,7 @@
  * Uses JSONL append format for atomic writes, following the pattern from
  * session-replay.ts with secure file permissions from daemon.ts.
  *
- * Registry location: XDG-aware global OMC state (legacy ~/.omc/state fallback for reads)
+ * Registry location: XDG-aware global OMAC state (legacy ~/.omac/state fallback for reads)
  * File permissions: 0600 (owner read/write only)
  */
 
@@ -24,7 +24,7 @@ import {
 import { join, dirname } from 'path';
 import { randomUUID } from 'crypto';
 import { isProcessAlive } from '../platform/index.js';
-import { getGlobalOmcStateCandidates, getGlobalOmcStateRoot } from '../utils/paths.js';
+import { getGlobalOmacStateCandidates, getGlobalOmacStateRoot } from '../utils/paths.js';
 
 // ============================================================================
 // Constants
@@ -44,11 +44,11 @@ const LOCK_MAX_WAIT_MS = 10000;
 
 /**
  * Return the registry state directory.
- * OMC_TEST_REGISTRY_DIR overrides the default global state dir so that tests
+ * OMAC_TEST_REGISTRY_DIR overrides the default global state dir so that tests
  * can redirect all I/O to a temporary directory without touching global state.
  */
 function getRegistryStateDir(): string {
-  return process.env['OMC_TEST_REGISTRY_DIR'] ?? getGlobalOmcStateRoot();
+  return process.env['OMAC_TEST_REGISTRY_DIR'] ?? getGlobalOmacStateRoot();
 }
 
 /** Global registry JSONL path */
@@ -57,11 +57,11 @@ function getRegistryPath(): string {
 }
 
 function getRegistryReadPaths(): string[] {
-  if (process.env['OMC_TEST_REGISTRY_DIR']) {
+  if (process.env['OMAC_TEST_REGISTRY_DIR']) {
     return [getRegistryPath()];
   }
 
-  return getGlobalOmcStateCandidates('reply-session-registry.jsonl');
+  return getGlobalOmacStateCandidates('reply-session-registry.jsonl');
 }
 
 /** Lock file path for cross-process synchronization */

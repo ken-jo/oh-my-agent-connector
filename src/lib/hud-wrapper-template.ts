@@ -1,8 +1,8 @@
 /**
  * HUD wrapper template reader (TS side).
  *
- * Single source of truth for the `omc-hud.mjs` statusline wrapper body
- * used by `src/installer/index.ts` (Path A: `omc setup` / npm).
+ * Single source of truth for the `omac-hud.mjs` statusline wrapper body
+ * used by `src/installer/index.ts` (Path A: `omac setup` / npm).
  *
  * The JS mirror lives at `scripts/lib/hud-wrapper-template.mjs` and is
  * used by `scripts/plugin-setup.mjs` (Path B: Claude Code plugin

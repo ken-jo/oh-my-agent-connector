@@ -50,7 +50,7 @@ describe('shared-state updateSharedTask locking', () => {
     initInteropSession('test-session', tempDir);
 
     const task = addSharedTask(tempDir, {
-      source: 'omc',
+      source: 'omac',
       target: 'omx',
       type: 'analyze',
       description: 'test task for locking',
@@ -68,7 +68,7 @@ describe('shared-state updateSharedTask locking', () => {
 
     // Verify lock file does not persist after operation
     const lockPath = join(
-      tempDir, '.omc', 'state', 'interop', 'tasks', `${task.id}.json.lock`,
+      tempDir, '.omac', 'state', 'interop', 'tasks', `${task.id}.json.lock`,
     );
     expect(existsSync(lockPath)).toBe(false);
   });

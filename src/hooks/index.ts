@@ -43,7 +43,7 @@ export {
   writePrd,
   findPrdPath,
   getPrdPath,
-  getOmcPrdPath,
+  getOmacPrdPath,
   getPrdStatus,
   markStoryComplete,
   markStoryIncomplete,
@@ -64,7 +64,7 @@ export {
   parseProgress,
   findProgressPath,
   getProgressPath,
-  getOmcProgressPath,
+  getOmacProgressPath,
   initProgress,
   appendProgress,
   addPattern,
@@ -171,8 +171,8 @@ export {
 } from './rules-injector/index.js';
 
 export {
-  // OMC Orchestrator
-  createOmcOrchestratorHook,
+  // OMAC Orchestrator
+  createOmacOrchestratorHook,
   isAllowedPath,
   isWriteEditTool,
   getGitDiffStats,
@@ -183,7 +183,7 @@ export {
   checkBoulderContinuation,
   processOrchestratorPreTool,
   processOrchestratorPostTool,
-  HOOK_NAME as OMC_ORCHESTRATOR_HOOK_NAME,
+  HOOK_NAME as OMAC_ORCHESTRATOR_HOOK_NAME,
   ALLOWED_PATH_PREFIX,
   WRITE_EDIT_TOOLS,
   DIRECT_WORK_REMINDER,
@@ -193,7 +193,7 @@ export {
   SINGLE_TASK_DIRECTIVE,
   type ToolExecuteInput as OrchestratorToolInput,
   type ToolExecuteOutput as OrchestratorToolOutput
-} from './omc-orchestrator/index.js';
+} from './omac-orchestrator/index.js';
 
 export {
   // Auto Slash Command
@@ -811,7 +811,7 @@ export {
   processCodeSimplifier,
   isCodeSimplifierEnabled,
   getModifiedFiles,
-  readOmcConfig,
+  readOmacConfig,
   isAlreadyTriggered,
   writeTriggerMarker,
   clearTriggerMarker,

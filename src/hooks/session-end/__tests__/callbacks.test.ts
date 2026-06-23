@@ -4,7 +4,7 @@ import type { SessionMetrics } from '../index.js';
 
 // Mock auto-update module
 vi.mock('../../../features/auto-update.js', () => ({
-  getOMCConfig: vi.fn(() => ({
+  getOMACConfig: vi.fn(() => ({
     silentAutoUpdate: false,
     stopHookCallbacks: undefined,
   })),
@@ -21,10 +21,10 @@ vi.mock('fs', async () => {
 });
 
 // Import mocked modules
-import { getOMCConfig } from '../../../features/auto-update.js';
+import { getOMACConfig } from '../../../features/auto-update.js';
 import { writeFileSync, mkdirSync } from 'fs';
 
-const mockGetConfig = vi.mocked(getOMCConfig);
+const mockGetConfig = vi.mocked(getOMACConfig);
 const mockWriteFileSync = vi.mocked(writeFileSync);
 const mockMkdirSync = vi.mocked(mkdirSync);
 

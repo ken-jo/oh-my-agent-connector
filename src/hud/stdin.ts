@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Stdin Parser
+ * OMAC HUD - Stdin Parser
  *
  * Parse stdin JSON from Claude Code statusline interface.
  * Based on claude-hud reference implementation.
@@ -11,7 +11,7 @@ import {
   getSessionStateDir,
   getWorktreeRoot,
   listSessionIds,
-  resolveOmcPath,
+  resolveOmacPath,
 } from '../lib/worktree-paths.js';
 import type { RateLimits, StatuslineStdin } from './types.js';
 
@@ -66,9 +66,9 @@ function getStdinCachePath(): string {
       // Invalid session id — try the next candidate.
     }
   }
-  // Legacy flat path must also resolve through the shared OMC-root helper so
-  // `OMC_STATE_DIR`-backed deployments land on the same directory as writers.
-  return resolveOmcPath('state/hud-stdin-cache.json', root);
+  // Legacy flat path must also resolve through the shared OMAC-root helper so
+  // `OMAC_STATE_DIR`-backed deployments land on the same directory as writers.
+  return resolveOmacPath('state/hud-stdin-cache.json', root);
 }
 
 /**
@@ -92,7 +92,7 @@ export function writeStdinCache(stdin: StatuslineStdin): void {
  * Read the last cached stdin JSON.
  *
  * When a session id is available in the environment, the session-scoped
- * path is authoritative. Otherwise — e.g. `omc hud --watch` running as a
+ * path is authoritative. Otherwise — e.g. `omac hud --watch` running as a
  * detached CLI/tmux process that never inherited the parent's session
  * env — we still need a way to surface the active session's cache; we
  * fall back first to the legacy flat path, and then to the most recently
@@ -118,7 +118,7 @@ export function readStdinCache(): StatuslineStdin | null {
 
   // If the scoped path already *is* the legacy flat path (no session id
   // was available), there's no further lookup to try.
-  const legacyPath = resolveOmcPath('state/hud-stdin-cache.json', root);
+  const legacyPath = resolveOmacPath('state/hud-stdin-cache.json', root);
   if (scopedPath !== legacyPath) {
     return null;
   }
@@ -132,10 +132,10 @@ export function readStdinCache(): StatuslineStdin | null {
  * Scan `state/sessions/{id}/hud-stdin-cache.json` and return the contents
  * of the most recently modified one. Only used as a fallback when no
  * session id is available in the environment (e.g. a tmux-hosted
- * `omc hud --watch` reader that did not inherit `CLAUDE_SESSION_ID`).
+ * `omac hud --watch` reader that did not inherit `CLAUDE_SESSION_ID`).
  *
- * Uses the same OMC-root helpers as the writers (`listSessionIds` /
- * `getSessionStateDir`) so this fallback honors `OMC_STATE_DIR` and any
+ * Uses the same OMAC-root helpers as the writers (`listSessionIds` /
+ * `getSessionStateDir`) so this fallback honors `OMAC_STATE_DIR` and any
  * other centralized-state configuration.
  */
 function readMostRecentSessionCache(root: string): StatuslineStdin | null {

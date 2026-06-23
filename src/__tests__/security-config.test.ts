@@ -26,20 +26,20 @@ const mockedExistsSync = vi.mocked(existsSync);
 const mockedReadFileSync = vi.mocked(readFileSync);
 
 describe('security-config', () => {
-  const originalSecurity = process.env.OMC_SECURITY;
+  const originalSecurity = process.env.OMAC_SECURITY;
 
   afterEach(() => {
     if (originalSecurity === undefined) {
-      delete process.env.OMC_SECURITY;
+      delete process.env.OMAC_SECURITY;
     } else {
-      process.env.OMC_SECURITY = originalSecurity;
+      process.env.OMAC_SECURITY = originalSecurity;
     }
     clearSecurityConfigCache();
   });
 
   describe('defaults (no env var)', () => {
     beforeEach(() => {
-      delete process.env.OMC_SECURITY;
+      delete process.env.OMAC_SECURITY;
       clearSecurityConfigCache();
     });
 
@@ -48,7 +48,7 @@ describe('security-config', () => {
       expect(config.restrictToolPaths).toBe(false);
       expect(config.pythonSandbox).toBe(false);
       expect(config.disableProjectSkills).toBe(false);
-      // Auto-update controlled by OMCConfig; security-config only overrides in strict
+      // Auto-update controlled by OMACConfig; security-config only overrides in strict
       expect(config.disableAutoUpdate).toBe(false);
       expect(config.hardMaxIterations).toBe(500);
       // New fields default to false
@@ -67,9 +67,9 @@ describe('security-config', () => {
     });
   });
 
-  describe('OMC_SECURITY=strict', () => {
+  describe('OMAC_SECURITY=strict', () => {
     beforeEach(() => {
-      process.env.OMC_SECURITY = 'strict';
+      process.env.OMAC_SECURITY = 'strict';
       clearSecurityConfigCache();
     });
 
@@ -96,9 +96,9 @@ describe('security-config', () => {
     });
   });
 
-  describe('OMC_SECURITY with non-strict value', () => {
+  describe('OMAC_SECURITY with non-strict value', () => {
     beforeEach(() => {
-      process.env.OMC_SECURITY = 'relaxed';
+      process.env.OMAC_SECURITY = 'relaxed';
       clearSecurityConfigCache();
     });
 
@@ -113,7 +113,7 @@ describe('security-config', () => {
 
   describe('caching', () => {
     it('returns same object on repeated calls', () => {
-      delete process.env.OMC_SECURITY;
+      delete process.env.OMAC_SECURITY;
       clearSecurityConfigCache();
       const first = getSecurityConfig();
       const second = getSecurityConfig();
@@ -121,11 +121,11 @@ describe('security-config', () => {
     });
 
     it('clearSecurityConfigCache forces re-read', () => {
-      delete process.env.OMC_SECURITY;
+      delete process.env.OMAC_SECURITY;
       clearSecurityConfigCache();
       const first = getSecurityConfig();
 
-      process.env.OMC_SECURITY = 'strict';
+      process.env.OMAC_SECURITY = 'strict';
       clearSecurityConfigCache();
       const second = getSecurityConfig();
 
@@ -136,7 +136,7 @@ describe('security-config', () => {
 
   describe('strict mode override protection', () => {
     it('strict mode: config file with false overrides cannot relax security', () => {
-      process.env.OMC_SECURITY = 'strict';
+      process.env.OMAC_SECURITY = 'strict';
       // Simulate a malicious config file that tries to disable all security
       mockedExistsSync.mockReturnValue(true);
       mockedReadFileSync.mockReturnValue(JSON.stringify({
@@ -165,7 +165,7 @@ describe('security-config', () => {
     });
 
     it('strict mode: config file can tighten hardMaxIterations below 200', () => {
-      process.env.OMC_SECURITY = 'strict';
+      process.env.OMAC_SECURITY = 'strict';
       mockedExistsSync.mockReturnValue(true);
       mockedReadFileSync.mockReturnValue(JSON.stringify({
         security: { hardMaxIterations: 50 },
@@ -178,7 +178,7 @@ describe('security-config', () => {
     });
 
     it('non-strict mode: config file overrides work normally', () => {
-      delete process.env.OMC_SECURITY;
+      delete process.env.OMAC_SECURITY;
       mockedExistsSync.mockReturnValue(true);
       mockedReadFileSync.mockReturnValue(JSON.stringify({
         security: {

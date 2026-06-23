@@ -64,7 +64,7 @@ function normalizeObjective(value: string): string {
  * with `condition` accepted as a synonym for `objective`.
  *
  * NOTE: The Claude Code `/goal` slash command is not invokable from a shell.
- * This snapshot is a model-facing artifact; OMC only verifies textual
+ * This snapshot is a model-facing artifact; OMAC only verifies textual
  * consistency between the model's reported state and the ultragoal plan.
  */
 export function parseClaudeGoalSnapshot(value: unknown): ClaudeGoalSnapshot {

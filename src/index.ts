@@ -5,7 +5,7 @@
  * Inspired by oh-my-opencode, reimagined for Claude Code.
  *
  * Main features:
- * - OMC: Primary orchestrator that delegates to specialized subagents
+ * - OMAC: Primary orchestrator that delegates to specialized subagents
  * - Parallel execution: Background agents run concurrently
  * - LSP/AST tools: IDE-like capabilities for agents
  * - Context management: Auto-injection from AGENTS.md/CLAUDE.md
@@ -14,9 +14,9 @@
  */
 
 import { loadConfig, findContextFiles, loadContextFromFiles } from './config/loader.js';
-import { getAgentDefinitions, omcSystemPrompt } from './agents/definitions.js';
+import { getAgentDefinitions, omacSystemPrompt } from './agents/definitions.js';
 import { getDefaultMcpServers, toSdkMcpFormat } from './mcp/servers.js';
-import { omcToolsServer, getOmcToolNames } from './mcp/omc-tools-server.js';
+import { omacToolsServer, getOmacToolNames } from './mcp/omac-tools-server.js';
 import { createMagicKeywordProcessor, detectMagicKeywords } from './features/magic-keywords.js';
 import { continuationSystemPromptAddition } from './features/continuation-enforcement.js';
 import { appendSkininthegamebrosGuidance } from './agents/skininthegamebros-guidance.js';
@@ -28,10 +28,10 @@ import {
 } from './features/background-tasks.js';
 import type { PluginConfig, SessionState } from './shared/types.js';
 
-export { loadConfig, getAgentDefinitions, omcSystemPrompt };
+export { loadConfig, getAgentDefinitions, omacSystemPrompt };
 export { getDefaultMcpServers, toSdkMcpFormat } from './mcp/servers.js';
 export { lspTools, astTools, allCustomTools } from './tools/index.js';
-export { omcToolsServer, omcToolNames, getOmcToolNames } from './mcp/omc-tools-server.js';
+export { omacToolsServer, omacToolNames, getOmacToolNames } from './mcp/omac-tools-server.js';
 export { createMagicKeywordProcessor, detectMagicKeywords } from './features/magic-keywords.js';
 export {
   createBackgroundTaskManager,
@@ -195,9 +195,9 @@ export {
 } from './installer/index.js';
 
 /**
- * Options for creating a OMC session
+ * Options for creating a OMAC session
  */
-export interface OmcOptions {
+export interface OmacOptions {
   /** Custom configuration (merged with loaded config) */
   config?: Partial<PluginConfig>;
   /** Working directory (default: process.cwd()) */
@@ -213,9 +213,9 @@ export interface OmcOptions {
 }
 
 /**
- * Result of creating a OMC session
+ * Result of creating a OMAC session
  */
-export interface OmcSession {
+export interface OmacSession {
   /** The query options to pass to Claude Agent SDK */
   queryOptions: {
     options: {
@@ -241,17 +241,17 @@ export interface OmcSession {
 }
 
 /**
- * Create a OMC orchestration session
+ * Create a OMAC orchestration session
  *
  * This prepares all the configuration and options needed
  * to run a query with the Claude Agent SDK.
  *
  * @example
  * ```typescript
- * import { createOmcSession } from 'oh-my-claudecode';
+ * import { createOmacSession } from 'oh-my-agent-connector';
  * import { query } from '@anthropic-ai/claude-agent-sdk';
  *
- * const session = createOmcSession();
+ * const session = createOmacSession();
  *
  * // Use with Claude Agent SDK
  * for await (const message of query({
@@ -262,7 +262,7 @@ export interface OmcSession {
  * }
  * ```
  */
-export function createOmcSession(options?: OmcOptions): OmcSession {
+export function createOmacSession(options?: OmacOptions): OmacSession {
   // Load configuration
   const loadedConfig = options?.skipConfigLoad ? {} : loadConfig();
   const config: PluginConfig = {
@@ -280,7 +280,7 @@ export function createOmcSession(options?: OmcOptions): OmcSession {
   }
 
   // Build system prompt
-  let systemPrompt = appendSkininthegamebrosGuidance(omcSystemPrompt, 'system');
+  let systemPrompt = appendSkininthegamebrosGuidance(omacSystemPrompt, 'system');
 
   // Add continuation enforcement
   if (config.features?.continuationEnforcement !== false) {
@@ -329,13 +329,13 @@ export function createOmcSession(options?: OmcOptions): OmcSession {
     allowedTools.push(`mcp__${serverName}__*`);
   }
 
-  // Add OMC custom tools in MCP format (LSP, AST, python_repl)
-  const omcTools = getOmcToolNames({
+  // Add OMAC custom tools in MCP format (LSP, AST, python_repl)
+  const omacTools = getOmacToolNames({
     includeLsp: config.features?.lspTools !== false,
     includeAst: config.features?.astTools !== false,
     includePython: true
   });
-  allowedTools.push(...omcTools);
+  allowedTools.push(...omacTools);
 
   // Create magic keyword processor
   const processPrompt = createMagicKeywordProcessor(config.magicKeywords);
@@ -357,7 +357,7 @@ export function createOmcSession(options?: OmcOptions): OmcSession {
         agents,
         mcpServers: {
           ...toSdkMcpFormat(externalMcpServers),
-          't': omcToolsServer as any
+          't': omacToolsServer as any
         },
         allowedTools,
         permissionMode: 'acceptEdits'
@@ -377,7 +377,7 @@ export function createOmcSession(options?: OmcOptions): OmcSession {
 }
 
 /**
- * Quick helper to process a prompt with OMC enhancements
+ * Quick helper to process a prompt with OMAC enhancements
  */
 export function enhancePrompt(prompt: string, config?: PluginConfig): string {
   const processor = createMagicKeywordProcessor(config?.magicKeywords);
@@ -387,11 +387,11 @@ export function enhancePrompt(prompt: string, config?: PluginConfig): string {
 /**
  * Get the system prompt for the orchestrator (for direct use)
  */
-export function getOmcSystemPrompt(options?: {
+export function getOmacSystemPrompt(options?: {
   includeContinuation?: boolean;
   customAddition?: string;
 }): string {
-  let prompt = appendSkininthegamebrosGuidance(omcSystemPrompt, 'system');
+  let prompt = appendSkininthegamebrosGuidance(omacSystemPrompt, 'system');
 
   if (options?.includeContinuation !== false) {
     prompt += continuationSystemPromptAddition;

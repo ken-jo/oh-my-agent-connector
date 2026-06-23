@@ -1,6 +1,6 @@
 /**
- * tmux utility functions for omc native shell launch
- * Adapted from oh-my-codex patterns for omc
+ * tmux utility functions for omac native shell launch
+ * Adapted from oh-my-codex patterns for omac
  */
 
 import {
@@ -22,7 +22,7 @@ import { promisify } from 'util';
 export interface TmuxExecOptions {
   /** Strip TMUX env var so the command targets the default tmux server.
    *  Default: false — preserves TMUX (targets the current server).
-   *  Set to true for OMC-owned background sessions and cross-session scans. */
+   *  Set to true for OMAC-owned background sessions and cross-session scans. */
   stripTmux?: boolean;
 }
 
@@ -249,8 +249,8 @@ export function resolveLaunchPolicy(
 
 /**
  * Build tmux session name from directory, git branch, and UTC timestamp
- * Format: omc-{dir}-{branch}-{utctimestamp}
- * e.g.  omc-myproject-dev-20260221143052
+ * Format: omac-{dir}-{branch}-{utctimestamp}
+ * e.g.  omac-myproject-dev-20260221143052
  */
 export function buildTmuxSessionName(cwd: string): string {
   const dirToken = sanitizeTmuxToken(basename(cwd));
@@ -279,7 +279,7 @@ export function buildTmuxSessionName(cwd: string): string {
     `${pad(now.getUTCMinutes())}` +
     `${pad(now.getUTCSeconds())}`;
 
-  const name = `omc-${dirToken}-${branchToken}-${utcTimestamp}`;
+  const name = `omac-${dirToken}-${branchToken}-${utcTimestamp}`;
   return name.length > 120 ? name.slice(0, 120) : name;
 }
 
@@ -386,7 +386,7 @@ export function isHudWatchPane(pane: TmuxPaneSnapshot): boolean {
   const command = `${pane.startCommand} ${pane.currentCommand}`.toLowerCase();
   return /\bhud\b/.test(command)
     && /--watch\b/.test(command)
-    && (/\bomc(?:\.js)?\b/.test(command) || /\bnode\b/.test(command));
+    && (/\bomac(?:\.js)?\b/.test(command) || /\bnode\b/.test(command));
 }
 
 /**

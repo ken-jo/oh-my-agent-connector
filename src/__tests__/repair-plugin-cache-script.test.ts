@@ -19,11 +19,11 @@ const tempRoots: string[] = [];
 
 function writePluginRoot(root: string, version: string): void {
   mkdirSync(join(root, 'hooks'), { recursive: true });
-  mkdirSync(join(root, 'skills', 'omc-setup'), { recursive: true });
+  mkdirSync(join(root, 'skills', 'omac-setup'), { recursive: true });
   mkdirSync(join(root, 'docs'), { recursive: true });
   writeFileSync(join(root, 'hooks', 'hooks.json'), '{}\n');
-  writeFileSync(join(root, 'skills', 'omc-setup', 'SKILL.md'), '# setup\n');
-  writeFileSync(join(root, 'docs', 'CLAUDE.md'), `<!-- OMC:VERSION:${version} -->\n`);
+  writeFileSync(join(root, 'skills', 'omac-setup', 'SKILL.md'), '# setup\n');
+  writeFileSync(join(root, 'docs', 'CLAUDE.md'), `<!-- OMAC:VERSION:${version} -->\n`);
 }
 
 afterEach(() => {
@@ -35,11 +35,11 @@ afterEach(() => {
 
 describe('repair-plugin-cache.mjs', () => {
   it('rewrites stale installed_plugins.json and keeps old cache path as a symlink fallback', () => {
-    const root = mkdtempSync(join(tmpdir(), 'omc-repair-plugin-cache-'));
+    const root = mkdtempSync(join(tmpdir(), 'omac-repair-plugin-cache-'));
     tempRoots.push(root);
 
     const configDir = join(root, '.claude');
-    const cacheBase = join(configDir, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    const cacheBase = join(configDir, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     const oldRoot = join(cacheBase, '4.11.6');
     const newRoot = join(cacheBase, '4.14.1');
     mkdirSync(join(configDir, 'plugins'), { recursive: true });
@@ -48,12 +48,12 @@ describe('repair-plugin-cache.mjs', () => {
     writeFileSync(join(configDir, 'plugins', 'installed_plugins.json'), JSON.stringify({
       version: 2,
       plugins: {
-        'oh-my-claudecode@omc': [{ installPath: oldRoot, version: '4.11.6', enabled: true }],
+        'oh-my-agent-connector@omac': [{ installPath: oldRoot, version: '4.11.6', enabled: true }],
       },
     }, null, 2));
 
     const result = spawnSync(process.execPath, [SCRIPT_PATH], {
-      env: { ...process.env, CLAUDE_CONFIG_DIR: configDir, OMC_REPAIR_PLUGIN_CACHE_PLATFORM: 'linux' },
+      env: { ...process.env, CLAUDE_CONFIG_DIR: configDir, OMAC_REPAIR_PLUGIN_CACHE_PLATFORM: 'linux' },
       encoding: 'utf-8',
     });
 
@@ -62,7 +62,7 @@ describe('repair-plugin-cache.mjs', () => {
     expect(result.stdout).toContain('Repaired plugin cache references');
 
     const registry = JSON.parse(readFileSync(join(configDir, 'plugins', 'installed_plugins.json'), 'utf-8'));
-    expect(registry.plugins['oh-my-claudecode@omc'][0]).toMatchObject({
+    expect(registry.plugins['oh-my-agent-connector@omac'][0]).toMatchObject({
       installPath: newRoot,
       version: '4.14.1',
       enabled: true,
@@ -74,21 +74,21 @@ describe('repair-plugin-cache.mjs', () => {
   });
 
   it('repairs a registry entry whose old cache path was already deleted', () => {
-    const root = mkdtempSync(join(tmpdir(), 'omc-repair-missing-cache-'));
+    const root = mkdtempSync(join(tmpdir(), 'omac-repair-missing-cache-'));
     tempRoots.push(root);
 
     const configDir = join(root, '.claude');
-    const cacheBase = join(configDir, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    const cacheBase = join(configDir, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     const oldRoot = join(cacheBase, '4.11.6');
     const newRoot = join(cacheBase, '4.14.1');
     mkdirSync(join(configDir, 'plugins'), { recursive: true });
     writePluginRoot(newRoot, '4.14.1');
     writeFileSync(join(configDir, 'plugins', 'installed_plugins.json'), JSON.stringify({
-      'oh-my-claudecode@omc': [{ installPath: oldRoot, version: '4.11.6' }],
+      'oh-my-agent-connector@omac': [{ installPath: oldRoot, version: '4.11.6' }],
     }, null, 2));
 
     const result = spawnSync(process.execPath, [SCRIPT_PATH], {
-      env: { ...process.env, CLAUDE_CONFIG_DIR: configDir, OMC_REPAIR_PLUGIN_CACHE_PLATFORM: 'linux' },
+      env: { ...process.env, CLAUDE_CONFIG_DIR: configDir, OMAC_REPAIR_PLUGIN_CACHE_PLATFORM: 'linux' },
       encoding: 'utf-8',
     });
 
@@ -98,18 +98,18 @@ describe('repair-plugin-cache.mjs', () => {
     expect(readlinkSync(oldRoot)).toBe('4.14.1');
     expect(existsSync(join(oldRoot, 'hooks', 'hooks.json'))).toBe(true);
     const registry = JSON.parse(readFileSync(join(configDir, 'plugins', 'installed_plugins.json'), 'utf-8'));
-    expect(registry['oh-my-claudecode@omc'][0]).toMatchObject({
+    expect(registry['oh-my-agent-connector@omac'][0]).toMatchObject({
       installPath: newRoot,
       version: '4.14.1',
     });
   });
 
   it.runIf(process.platform !== 'win32')('repairs Unix cache hooks from direct node to the find-node bootstrap', () => {
-    const root = mkdtempSync(join(tmpdir(), 'omc-repair-unix-hooks-'));
+    const root = mkdtempSync(join(tmpdir(), 'omac-repair-unix-hooks-'));
     tempRoots.push(root);
 
     const configDir = join(root, '.claude');
-    const cacheBase = join(configDir, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    const cacheBase = join(configDir, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     const pluginRoot = join(cacheBase, '4.14.4');
     writePluginRoot(pluginRoot, '4.14.4');
     writeFileSync(join(pluginRoot, 'hooks', 'hooks.json'), JSON.stringify({
@@ -138,11 +138,11 @@ describe('repair-plugin-cache.mjs', () => {
   });
 
   it.runIf(process.platform !== 'win32')('repairs every bundled direct-node hook command to find-node on Unix/macOS', () => {
-    const root = mkdtempSync(join(tmpdir(), 'omc-repair-unix-bundled-hooks-'));
+    const root = mkdtempSync(join(tmpdir(), 'omac-repair-unix-bundled-hooks-'));
     tempRoots.push(root);
 
     const configDir = join(root, '.claude');
-    const cacheBase = join(configDir, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    const cacheBase = join(configDir, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     const pluginRoot = join(cacheBase, '4.14.4');
     writePluginRoot(pluginRoot, '4.14.4');
     writeFileSync(
@@ -176,11 +176,11 @@ describe('repair-plugin-cache.mjs', () => {
   });
 
   it('repairs Windows cache hooks from find-node to direct node', () => {
-    const root = mkdtempSync(join(tmpdir(), 'omc-repair-win-hooks-'));
+    const root = mkdtempSync(join(tmpdir(), 'omac-repair-win-hooks-'));
     tempRoots.push(root);
 
     const configDir = join(root, '.claude');
-    const cacheBase = join(configDir, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    const cacheBase = join(configDir, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     const pluginRoot = join(cacheBase, '4.14.4');
     writePluginRoot(pluginRoot, '4.14.4');
     writeFileSync(join(pluginRoot, 'hooks', 'hooks.json'), JSON.stringify({
@@ -196,7 +196,7 @@ describe('repair-plugin-cache.mjs', () => {
     }, null, 2));
 
     const result = spawnSync(process.execPath, [SCRIPT_PATH], {
-      env: { ...process.env, CLAUDE_CONFIG_DIR: configDir, OMC_REPAIR_PLUGIN_CACHE_PLATFORM: 'win32' },
+      env: { ...process.env, CLAUDE_CONFIG_DIR: configDir, OMAC_REPAIR_PLUGIN_CACHE_PLATFORM: 'win32' },
       encoding: 'utf-8',
     });
 
@@ -208,8 +208,8 @@ describe('repair-plugin-cache.mjs', () => {
   });
 
   it('setup instructions repair cache references before prompts and avoid direct cache deletion', () => {
-    const setupSkill = readFileSync(join(REPO_ROOT, 'skills', 'omc-setup', 'SKILL.md'), 'utf-8');
-    const phase = readFileSync(join(REPO_ROOT, 'skills', 'omc-setup', 'phases', '02-configure.md'), 'utf-8');
+    const setupSkill = readFileSync(join(REPO_ROOT, 'skills', 'omac-setup', 'SKILL.md'), 'utf-8');
+    const phase = readFileSync(join(REPO_ROOT, 'skills', 'omac-setup', 'phases', '02-configure.md'), 'utf-8');
 
     expect(setupSkill).toContain('Active Plugin Root Resolution');
     expect(setupSkill).toContain('repair-plugin-cache.mjs');

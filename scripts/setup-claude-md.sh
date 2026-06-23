@@ -4,13 +4,13 @@
 #
 # Handles: version extraction, backup, download, marker stripping, merge, version reporting.
 # For global mode, defaults to overwrite; preserve mode keeps the user's base
-# CLAUDE.md and writes OMC content to a companion file for `omc` launch.
+# CLAUDE.md and writes OMAC content to a companion file for `omac` launch.
 
 set -euo pipefail
 
 MODE="${1:?Usage: setup-claude-md.sh <local|global> [overwrite|preserve]}"
 INSTALL_STYLE="${2:-overwrite}"
-DOWNLOAD_URL="https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md"
+DOWNLOAD_URL="https://raw.githubusercontent.com/Yeachan-Heo/oh-my-agent-connector/main/docs/CLAUDE.md"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_PLUGIN_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 . "$SCRIPT_DIR/lib/config-dir.sh"
@@ -41,7 +41,7 @@ resolve_active_plugin_root() {
     active_path=$(jq -r '
       (.plugins // .)
       | to_entries[]
-      | select(.key | startswith("oh-my-claudecode"))
+      | select(.key | startswith("oh-my-agent-connector"))
       | .value[0].installPath // empty
     ' "$installed_plugins" 2>/dev/null)
 
@@ -90,23 +90,23 @@ resolve_active_plugin_root() {
 
 ACTIVE_PLUGIN_ROOT="$(resolve_active_plugin_root)"
 CANONICAL_CLAUDE_MD="${ACTIVE_PLUGIN_ROOT}/docs/CLAUDE.md"
-CANONICAL_OMC_REFERENCE_SKILL="${ACTIVE_PLUGIN_ROOT}/skills/omc-reference/SKILL.md"
+CANONICAL_OMAC_REFERENCE_SKILL="${ACTIVE_PLUGIN_ROOT}/skills/omac-reference/SKILL.md"
 
-ensure_local_omc_git_exclude() {
+ensure_local_omac_git_exclude() {
   local exclude_path
 
   if ! exclude_path=$(git rev-parse --git-path info/exclude 2>/dev/null); then
-    echo "Skipped OMC git exclude setup (not a git repository)"
+    echo "Skipped OMAC git exclude setup (not a git repository)"
     return 0
   fi
 
   mkdir -p "$(dirname "$exclude_path")"
 
-  local block_start="# BEGIN OMC local artifacts"
+  local block_start="# BEGIN OMAC local artifacts"
 
   if [ -f "$exclude_path" ] && grep -Fq "$block_start" "$exclude_path"; then
     if grep -Fxq ".omx/" "$exclude_path"; then
-      echo "OMC git exclude already configured"
+      echo "OMAC git exclude already configured"
       return 0
     fi
 
@@ -114,7 +114,7 @@ ensure_local_omc_git_exclude() {
       printf '\n' >> "$exclude_path"
     fi
     printf '.omx/\n' >> "$exclude_path"
-    echo "Updated OMC git exclude for local OMX artifacts"
+    echo "Updated OMAC git exclude for local OMX artifacts"
     return 0
   fi
 
@@ -123,28 +123,28 @@ ensure_local_omc_git_exclude() {
   fi
 
   cat >> "$exclude_path" <<'EOF'
-# BEGIN OMC local artifacts
-!.omc/
-.omc/*
-!.omc/skills/
-!.omc/skills/**
+# BEGIN OMAC local artifacts
+!.omac/
+.omac/*
+!.omac/skills/
+!.omac/skills/**
 .omx/
-# END OMC local artifacts
+# END OMAC local artifacts
 EOF
 
-  echo "Configured git exclude for local OMC/OMX artifacts (preserving .omc/skills/)"
+  echo "Configured git exclude for local OMAC/OMX artifacts (preserving .omac/skills/)"
 }
 
 # Determine target path
 CONFIG_DIR="$(resolve_claude_config_dir)"
 if [ "$MODE" = "local" ]; then
-  mkdir -p .claude/skills/omc-reference
+  mkdir -p .claude/skills/omac-reference
   TARGET_PATH=".claude/CLAUDE.md"
-  SKILL_TARGET_PATH=".claude/skills/omc-reference/SKILL.md"
+  SKILL_TARGET_PATH=".claude/skills/omac-reference/SKILL.md"
 elif [ "$MODE" = "global" ]; then
-  mkdir -p "$CONFIG_DIR/skills/omc-reference"
+  mkdir -p "$CONFIG_DIR/skills/omac-reference"
   TARGET_PATH="$CONFIG_DIR/CLAUDE.md"
-  SKILL_TARGET_PATH="$CONFIG_DIR/skills/omc-reference/SKILL.md"
+  SKILL_TARGET_PATH="$CONFIG_DIR/skills/omac-reference/SKILL.md"
 else
   echo "ERROR: Invalid mode '$MODE'. Use 'local' or 'global'." >&2
   exit 1
@@ -156,39 +156,39 @@ if [ "$INSTALL_STYLE" != "overwrite" ] && [ "$INSTALL_STYLE" != "preserve" ]; th
 fi
 
 
-install_omc_reference_skill() {
+install_omac_reference_skill() {
   local source_label=""
   local temp_skill
-  temp_skill=$(mktemp /tmp/omc-reference-skill-XXXXXX.md)
+  temp_skill=$(mktemp /tmp/omac-reference-skill-XXXXXX.md)
 
-  if [ -f "$CANONICAL_OMC_REFERENCE_SKILL" ]; then
-    cp "$CANONICAL_OMC_REFERENCE_SKILL" "$temp_skill"
-    source_label="$CANONICAL_OMC_REFERENCE_SKILL"
-  elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/skills/omc-reference/SKILL.md" ]; then
-    cp "${CLAUDE_PLUGIN_ROOT}/skills/omc-reference/SKILL.md" "$temp_skill"
-    source_label="${CLAUDE_PLUGIN_ROOT}/skills/omc-reference/SKILL.md"
+  if [ -f "$CANONICAL_OMAC_REFERENCE_SKILL" ]; then
+    cp "$CANONICAL_OMAC_REFERENCE_SKILL" "$temp_skill"
+    source_label="$CANONICAL_OMAC_REFERENCE_SKILL"
+  elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/skills/omac-reference/SKILL.md" ]; then
+    cp "${CLAUDE_PLUGIN_ROOT}/skills/omac-reference/SKILL.md" "$temp_skill"
+    source_label="${CLAUDE_PLUGIN_ROOT}/skills/omac-reference/SKILL.md"
   else
     rm -f "$temp_skill"
-    echo "Skipped omc-reference skill install (canonical skill source unavailable)"
+    echo "Skipped omac-reference skill install (canonical skill source unavailable)"
     return 0
   fi
 
   if [ ! -s "$temp_skill" ]; then
     rm -f "$temp_skill"
-    echo "Skipped omc-reference skill install (empty canonical skill source: $source_label)"
+    echo "Skipped omac-reference skill install (empty canonical skill source: $source_label)"
     return 0
   fi
 
   mkdir -p "$(dirname "$SKILL_TARGET_PATH")"
   cp "$temp_skill" "$SKILL_TARGET_PATH"
   rm -f "$temp_skill"
-  echo "Installed omc-reference skill to $SKILL_TARGET_PATH"
+  echo "Installed omac-reference skill to $SKILL_TARGET_PATH"
 }
 
 # Extract old version before download
-OLD_VERSION=$(grep -m1 'OMC:VERSION:' "$TARGET_PATH" 2>/dev/null | sed -E 's/.*OMC:VERSION:([^ ]+).*/\1/' || true)
+OLD_VERSION=$(grep -m1 'OMAC:VERSION:' "$TARGET_PATH" 2>/dev/null | sed -E 's/.*OMAC:VERSION:([^ ]+).*/\1/' || true)
 if [ -z "$OLD_VERSION" ]; then
-  OLD_VERSION=$(omc --version 2>/dev/null | head -1 || true)
+  OLD_VERSION=$(omac --version 2>/dev/null | head -1 || true)
 fi
 if [ -z "$OLD_VERSION" ]; then
   OLD_VERSION="none"
@@ -203,21 +203,21 @@ if [ -f "$TARGET_PATH" ]; then
   echo "Backed up existing CLAUDE.md to $BACKUP_PATH"
 fi
 
-# Load canonical OMC content to temp file
-TEMP_OMC=$(mktemp /tmp/omc-claude-XXXXXX.md)
-trap 'rm -f "$TEMP_OMC"' EXIT
+# Load canonical OMAC content to temp file
+TEMP_OMAC=$(mktemp /tmp/omac-claude-XXXXXX.md)
+trap 'rm -f "$TEMP_OMAC"' EXIT
 
-OMC_IMPORT_START='<!-- OMC:IMPORT:START -->'
-OMC_IMPORT_END='<!-- OMC:IMPORT:END -->'
-COMPANION_FILENAME='CLAUDE-omc.md'
+OMAC_IMPORT_START='<!-- OMAC:IMPORT:START -->'
+OMAC_IMPORT_END='<!-- OMAC:IMPORT:END -->'
+COMPANION_FILENAME='CLAUDE-omac.md'
 
-write_wrapped_omc_file() {
+write_wrapped_omac_file() {
   local destination="$1"
   mkdir -p "$(dirname "$destination")"
   {
-    echo '<!-- OMC:START -->'
-    cat "$TEMP_OMC"
-    echo '<!-- OMC:END -->'
+    echo '<!-- OMAC:START -->'
+    cat "$TEMP_OMAC"
+    echo '<!-- OMAC:END -->'
   } > "$destination"
 }
 
@@ -226,14 +226,14 @@ ensure_managed_companion_import() {
   local companion_name="$2"
   local import_block
   import_block=$(cat <<EOF
-$OMC_IMPORT_START
+$OMAC_IMPORT_START
 @${companion_name}
-$OMC_IMPORT_END
+$OMAC_IMPORT_END
 EOF
 )
 
-  if grep -Fq "$OMC_IMPORT_START" "$target_path"; then
-    perl -0pe 's/^<!-- OMC:IMPORT:START -->\R[\s\S]*?^<!-- OMC:IMPORT:END -->(?:\R)?//msg' "$target_path" > "${target_path}.importless"
+  if grep -Fq "$OMAC_IMPORT_START" "$target_path"; then
+    perl -0pe 's/^<!-- OMAC:IMPORT:START -->\R[\s\S]*?^<!-- OMAC:IMPORT:END -->(?:\R)?//msg' "$target_path" > "${target_path}.importless"
     mv "${target_path}.importless" "$target_path"
   fi
 
@@ -258,56 +258,56 @@ VALIDATION_PATH="$TARGET_PATH"
 
 SOURCE_LABEL=""
 if [ -f "$CANONICAL_CLAUDE_MD" ]; then
-  cp "$CANONICAL_CLAUDE_MD" "$TEMP_OMC"
+  cp "$CANONICAL_CLAUDE_MD" "$TEMP_OMAC"
   SOURCE_LABEL="$CANONICAL_CLAUDE_MD"
 elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -f "${CLAUDE_PLUGIN_ROOT}/docs/CLAUDE.md" ]; then
-  cp "${CLAUDE_PLUGIN_ROOT}/docs/CLAUDE.md" "$TEMP_OMC"
+  cp "${CLAUDE_PLUGIN_ROOT}/docs/CLAUDE.md" "$TEMP_OMAC"
   SOURCE_LABEL="${CLAUDE_PLUGIN_ROOT}/docs/CLAUDE.md"
 else
-  curl -fsSL "$DOWNLOAD_URL" -o "$TEMP_OMC"
+  curl -fsSL "$DOWNLOAD_URL" -o "$TEMP_OMAC"
   SOURCE_LABEL="$DOWNLOAD_URL"
 fi
 
-if [ ! -s "$TEMP_OMC" ]; then
+if [ ! -s "$TEMP_OMAC" ]; then
   echo "ERROR: Failed to download CLAUDE.md. Aborting."
   echo "FALLBACK: Manually download from: $DOWNLOAD_URL"
-  rm -f "$TEMP_OMC"
+  rm -f "$TEMP_OMAC"
   exit 1
 fi
 
-if ! grep -q '<!-- OMC:START -->' "$TEMP_OMC" || ! grep -q '<!-- OMC:END -->' "$TEMP_OMC"; then
-  echo "ERROR: Canonical CLAUDE.md source is missing required OMC markers: $SOURCE_LABEL" >&2
+if ! grep -q '<!-- OMAC:START -->' "$TEMP_OMAC" || ! grep -q '<!-- OMAC:END -->' "$TEMP_OMAC"; then
+  echo "ERROR: Canonical CLAUDE.md source is missing required OMAC markers: $SOURCE_LABEL" >&2
   echo "Refusing to install a summarized or malformed CLAUDE.md." >&2
   exit 1
 fi
 
 # Strip existing markers from downloaded content (idempotency)
 # Use awk for cross-platform compatibility (GNU/BSD)
-if grep -q '<!-- OMC:START -->' "$TEMP_OMC"; then
-  awk '/<!-- OMC:END -->/{p=0} p; /<!-- OMC:START -->/{p=1}' "$TEMP_OMC" > "${TEMP_OMC}.clean"
-  mv "${TEMP_OMC}.clean" "$TEMP_OMC"
+if grep -q '<!-- OMAC:START -->' "$TEMP_OMAC"; then
+  awk '/<!-- OMAC:END -->/{p=0} p; /<!-- OMAC:START -->/{p=1}' "$TEMP_OMAC" > "${TEMP_OMAC}.clean"
+  mv "${TEMP_OMAC}.clean" "$TEMP_OMAC"
 fi
 
 if [ ! -f "$TARGET_PATH" ]; then
   # Fresh install: wrap in markers
-  write_wrapped_omc_file "$TARGET_PATH"
-  rm -f "$TEMP_OMC"
+  write_wrapped_omac_file "$TARGET_PATH"
+  rm -f "$TEMP_OMAC"
   echo "Installed CLAUDE.md (fresh)"
 else
-  # Merge: preserve user content outside OMC markers
-  if grep -q '<!-- OMC:START -->' "$TARGET_PATH"; then
-    # Has markers: remove ALL complete OMC blocks, preserve only real user text
+  # Merge: preserve user content outside OMAC markers
+  if grep -q '<!-- OMAC:START -->' "$TARGET_PATH"; then
+    # Has markers: remove ALL complete OMAC blocks, preserve only real user text
     # Use perl -0 for a global multiline regex replace (portable across GNU/BSD environments)
-    perl -0pe 's/^<!-- OMC:START -->\R[\s\S]*?^<!-- OMC:END -->(?:\R)?//msg; s/^<!-- User customizations(?: \([^)]+\))? -->\R?//mg; s/\A(?:[ \t]*\R)+//; s/(?:\R[ \t]*)+\z//;' \
+    perl -0pe 's/^<!-- OMAC:START -->\R[\s\S]*?^<!-- OMAC:END -->(?:\R)?//msg; s/^<!-- User customizations(?: \([^)]+\))? -->\R?//mg; s/\A(?:[ \t]*\R)+//; s/(?:\R[ \t]*)+\z//;' \
       "$TARGET_PATH" > "${TARGET_PATH}.preserved"
 
-    if grep -Eq '^<!-- OMC:(START|END) -->$' "${TARGET_PATH}.preserved"; then
+    if grep -Eq '^<!-- OMAC:(START|END) -->$' "${TARGET_PATH}.preserved"; then
       # Corrupted/unmatched markers remain: preserve the whole original file for manual recovery
       OLD_CONTENT=$(cat "$TARGET_PATH")
       {
-        echo '<!-- OMC:START -->'
-        cat "$TEMP_OMC"
-        echo '<!-- OMC:END -->'
+        echo '<!-- OMAC:START -->'
+        cat "$TEMP_OMAC"
+        echo '<!-- OMAC:END -->'
         echo ""
         echo "<!-- User customizations (recovered from corrupted markers) -->"
         printf '%s\n' "$OLD_CONTENT"
@@ -315,9 +315,9 @@ else
     else
       PRESERVED_CONTENT=$(cat "${TARGET_PATH}.preserved")
       {
-        echo '<!-- OMC:START -->'
-        cat "$TEMP_OMC"
-        echo '<!-- OMC:END -->'
+        echo '<!-- OMAC:START -->'
+        cat "$TEMP_OMAC"
+        echo '<!-- OMAC:END -->'
         if printf '%s' "$PRESERVED_CONTENT" | grep -q '[^[:space:]]'; then
           echo ""
           echo "<!-- User customizations -->"
@@ -328,43 +328,43 @@ else
 
     mv "${TARGET_PATH}.tmp" "$TARGET_PATH"
     rm -f "${TARGET_PATH}.preserved"
-    echo "Updated OMC section (user customizations preserved)"
+    echo "Updated OMAC section (user customizations preserved)"
   elif [ "$MODE" = "global" ] && [ "$INSTALL_STYLE" = "preserve" ]; then
     COMPANION_TARGET_PATH="$CONFIG_DIR/$COMPANION_FILENAME"
-    ensure_not_symlink_path "$COMPANION_TARGET_PATH" "OMC companion CLAUDE.md"
+    ensure_not_symlink_path "$COMPANION_TARGET_PATH" "OMAC companion CLAUDE.md"
     ensure_not_symlink_path "$TARGET_PATH" "base CLAUDE.md import block"
     if [ -f "$COMPANION_TARGET_PATH" ] && [ -n "$BACKUP_DATE" ]; then
       cp "$COMPANION_TARGET_PATH" "${COMPANION_TARGET_PATH}.backup.${BACKUP_DATE}"
       echo "Backed up existing companion CLAUDE.md to ${COMPANION_TARGET_PATH}.backup.${BACKUP_DATE}"
     fi
-    write_wrapped_omc_file "$COMPANION_TARGET_PATH"
+    write_wrapped_omac_file "$COMPANION_TARGET_PATH"
     ensure_managed_companion_import "$TARGET_PATH" "$COMPANION_FILENAME"
     VALIDATION_PATH="$COMPANION_TARGET_PATH"
-    echo "Installed OMC companion file and preserved existing CLAUDE.md"
+    echo "Installed OMAC companion file and preserved existing CLAUDE.md"
   else
     # No markers: wrap new content in markers, append old content as user section
     # Strip any preserve-mode import block left by a prior preserve install
-    if grep -Fq "$OMC_IMPORT_START" "$TARGET_PATH"; then
-      perl -0pe 's/^<!-- OMC:IMPORT:START -->\R[\s\S]*?^<!-- OMC:IMPORT:END -->(?:\R)?//msg' "$TARGET_PATH" > "${TARGET_PATH}.importless"
+    if grep -Fq "$OMAC_IMPORT_START" "$TARGET_PATH"; then
+      perl -0pe 's/^<!-- OMAC:IMPORT:START -->\R[\s\S]*?^<!-- OMAC:IMPORT:END -->(?:\R)?//msg' "$TARGET_PATH" > "${TARGET_PATH}.importless"
       mv "${TARGET_PATH}.importless" "$TARGET_PATH"
     fi
     OLD_CONTENT=$(cat "$TARGET_PATH")
     {
-      echo '<!-- OMC:START -->'
-      cat "$TEMP_OMC"
-      echo '<!-- OMC:END -->'
+      echo '<!-- OMAC:START -->'
+      cat "$TEMP_OMAC"
+      echo '<!-- OMAC:END -->'
       echo ""
       echo "<!-- User customizations (migrated from previous CLAUDE.md) -->"
       printf '%s\n' "$OLD_CONTENT"
     } > "${TARGET_PATH}.tmp"
     mv "${TARGET_PATH}.tmp" "$TARGET_PATH"
-    echo "Migrated existing CLAUDE.md (added OMC markers, preserved old content)"
+    echo "Migrated existing CLAUDE.md (added OMAC markers, preserved old content)"
   fi
-  rm -f "$TEMP_OMC"
+  rm -f "$TEMP_OMAC"
 
   # Clean up orphaned companion file from a prior preserve-mode install.
-  # If left behind, prepareOmcLaunchConfigDir reads stale companion content
-  # instead of the freshly-updated CLAUDE.md during omc launches.
+  # If left behind, prepareOmacLaunchConfigDir reads stale companion content
+  # instead of the freshly-updated CLAUDE.md during omac launches.
   if [ "$MODE" = "global" ] && [ "$INSTALL_STYLE" = "overwrite" ]; then
     COMPANION_TARGET_PATH="$CONFIG_DIR/$COMPANION_FILENAME"
     if [ -f "$COMPANION_TARGET_PATH" ]; then
@@ -377,21 +377,21 @@ else
   fi
 fi
 
-if ! grep -q '<!-- OMC:START -->' "$VALIDATION_PATH" || ! grep -q '<!-- OMC:END -->' "$VALIDATION_PATH"; then
-  echo "ERROR: Installed CLAUDE.md is missing required OMC markers: $VALIDATION_PATH" >&2
+if ! grep -q '<!-- OMAC:START -->' "$VALIDATION_PATH" || ! grep -q '<!-- OMAC:END -->' "$VALIDATION_PATH"; then
+  echo "ERROR: Installed CLAUDE.md is missing required OMAC markers: $VALIDATION_PATH" >&2
   exit 1
 fi
 
-install_omc_reference_skill
+install_omac_reference_skill
 
 if [ "$MODE" = "local" ]; then
-  ensure_local_omc_git_exclude
+  ensure_local_omac_git_exclude
 fi
 
 # Extract new version and report
-NEW_VERSION=$(grep -m1 'OMC:VERSION:' "$VALIDATION_PATH" 2>/dev/null | sed -E 's/.*OMC:VERSION:([^ ]+).*/\1/' || true)
+NEW_VERSION=$(grep -m1 'OMAC:VERSION:' "$VALIDATION_PATH" 2>/dev/null | sed -E 's/.*OMAC:VERSION:([^ ]+).*/\1/' || true)
 if [ -z "$NEW_VERSION" ]; then
-  NEW_VERSION=$(omc --version 2>/dev/null | head -1 || true)
+  NEW_VERSION=$(omac --version 2>/dev/null | head -1 || true)
 fi
 if [ -z "$NEW_VERSION" ]; then
   NEW_VERSION="unknown"
@@ -425,8 +425,8 @@ if [ "$MODE" = "global" ]; then
 fi
 
 # Verify plugin installation
-if [ -f "$CONFIG_DIR/settings.json" ] && grep -q "oh-my-claudecode" "$CONFIG_DIR/settings.json"; then
+if [ -f "$CONFIG_DIR/settings.json" ] && grep -q "oh-my-agent-connector" "$CONFIG_DIR/settings.json"; then
   echo "Plugin verified"
 else
-  echo "Plugin NOT found - run: claude /install-plugin oh-my-claudecode"
+  echo "Plugin NOT found - run: claude /install-plugin oh-my-agent-connector"
 fi

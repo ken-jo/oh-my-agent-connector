@@ -1,7 +1,7 @@
 /**
  * Installer Module
  *
- * Handles installation of OMC agents, commands, and configuration
+ * Handles installation of OMAC agents, commands, and configuration
  * into the Claude Code config directory (~/.claude/).
  *
  * Cross-platform support via Node.js-based hook scripts (.mjs).
@@ -24,10 +24,10 @@ import { resolveNodeBinary } from '../utils/resolve-node.js';
 import { parseFrontmatter } from '../utils/frontmatter.js';
 import { isSkininthegamebrosUser } from '../utils/skininthegamebros-user.js';
 import { syncUnifiedMcpRegistryTargets } from './mcp-registry.js';
-import { OMC_CONFIG_FILE_REL } from '../lib/paths.js';
+import { OMAC_CONFIG_FILE_REL } from '../lib/paths.js';
 import { buildHudWrapper } from '../lib/hud-wrapper-template.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
-import { syncOmcLearnedUserSkillsForClaudeCode } from '../utils/user-skill-compat.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
+import { syncOmacLearnedUserSkillsForClaudeCode } from '../utils/user-skill-compat.js';
 
 /** Claude Code configuration directory */
 export const CLAUDE_CONFIG_DIR = getClaudeConfigDir();
@@ -37,10 +37,10 @@ export const SKILLS_DIR = join(CLAUDE_CONFIG_DIR, 'skills');
 export const HOOKS_DIR = join(CLAUDE_CONFIG_DIR, 'hooks');
 export const HUD_DIR = join(CLAUDE_CONFIG_DIR, 'hud');
 export const SETTINGS_FILE = join(CLAUDE_CONFIG_DIR, 'settings.json');
-export const VERSION_FILE = join(CLAUDE_CONFIG_DIR, '.omc-version.json');
-const OMC_MANAGED_SKILL_MARKER = '.omc-managed';
+export const VERSION_FILE = join(CLAUDE_CONFIG_DIR, '.omac-version.json');
+const OMAC_MANAGED_SKILL_MARKER = '.omac-managed';
 const PLUGIN_FULL_SKILL_BODIES_DIR = 'skill-bodies';
-const PLUGIN_COMPACT_SKILL_SHIM_MARKER = '<!-- OMC:COMPACT-PLUGIN-SKILL -->';
+const PLUGIN_COMPACT_SKILL_SHIM_MARKER = '<!-- OMAC:COMPACT-PLUGIN-SKILL -->';
 
 /**
  * Core commands - DISABLED for v3.0+
@@ -52,7 +52,7 @@ export const CORE_COMMANDS: string[] = [];
 /** Current version */
 export const VERSION = getRuntimePackageVersion();
 
-const OMC_VERSION_MARKER_PATTERN = /<!-- OMC:VERSION:([^\s]+) -->/;
+const OMAC_VERSION_MARKER_PATTERN = /<!-- OMAC:VERSION:([^\s]+) -->/;
 
 const CC_NATIVE_COMMANDS = new Set([
   'review',
@@ -82,9 +82,9 @@ function currentSkillsDir(): string {
 }
 
 /**
- * Detects the newest installed OMC version from persistent metadata or
+ * Detects the newest installed OMAC version from persistent metadata or
  * existing CLAUDE.md markers so an older CLI package cannot overwrite a
- * newer installation during `omc setup`.
+ * newer installation during `omac setup`.
  */
 function isComparableVersion(version: string | null | undefined): version is string {
   return !!version && /^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/.test(version);
@@ -105,8 +105,8 @@ function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-function extractOmcVersionMarker(content: string): string | null {
-  const match = content.match(OMC_VERSION_MARKER_PATTERN);
+function extractOmacVersionMarker(content: string): string | null {
+  const match = content.match(OMAC_VERSION_MARKER_PATTERN);
   return match?.[1] ?? null;
 }
 
@@ -132,7 +132,7 @@ function getNewestInstalledVersionHint(): string | null {
   for (const candidatePath of claudeCandidates) {
     if (!existsSync(candidatePath)) continue;
     try {
-      const detectedVersion = extractOmcVersionMarker(readFileSync(candidatePath, 'utf-8'));
+      const detectedVersion = extractOmacVersionMarker(readFileSync(candidatePath, 'utf-8'));
       if (isComparableVersion(detectedVersion)) {
         candidates.push(detectedVersion);
       }
@@ -216,7 +216,7 @@ function buildStatusLineCommand(
 
   if (cacheWrapperPath) {
     if (isDefaultClaudeConfigDirPath(CLAUDE_CONFIG_DIR)) {
-      return 'sh ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omc-hud-cache.sh ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omc-hud.mjs';
+      return 'sh ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omac-hud-cache.sh ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omac-hud.mjs';
     }
 
     return `sh ${quoteShellArg(cacheWrapperPath.replace(/\\/g, '/'))} ${quoteShellArg(normalizedHudScriptPath)}`;
@@ -224,10 +224,10 @@ function buildStatusLineCommand(
 
   if (isDefaultClaudeConfigDirPath(CLAUDE_CONFIG_DIR)) {
     if (findNodePath) {
-      return 'sh ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/find-node.sh ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omc-hud.mjs';
+      return 'sh ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/find-node.sh ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omac-hud.mjs';
     }
 
-    return 'node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omc-hud.mjs';
+    return 'node ${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hud/omac-hud.mjs';
   }
 
   if (findNodePath) {
@@ -283,21 +283,21 @@ export interface InstallOptions {
   noPlugin?: boolean;
   /**
    * Dev plugin-dir mode: skip copying agents and bundled skills into
-   * `<configDir>` because the user is launching OMC via
-   * `claude --plugin-dir <path>` (or `omc --plugin-dir <path>`) and the
+   * `<configDir>` because the user is launching OMAC via
+   * `claude --plugin-dir <path>` (or `omac --plugin-dir <path>`) and the
    * plugin already provides them at runtime. HUD, hooks, CLAUDE.md, and
-   * `.omc-config.json` are still installed. Mutually exclusive with
+   * `.omac-config.json` are still installed. Mutually exclusive with
    * `noPlugin` (the CLI gives `noPlugin` precedence).
    */
   pluginDirMode?: boolean;
 }
 
 /**
- * Read hudEnabled from .omc-config.json without importing auto-update
+ * Read hudEnabled from .omac-config.json without importing auto-update
  * (avoids circular dependency since auto-update imports from installer)
  */
 export function isHudEnabledInConfig(): boolean {
-  const configPath = join(CLAUDE_CONFIG_DIR, OMC_CONFIG_FILE_REL);
+  const configPath = join(CLAUDE_CONFIG_DIR, OMAC_CONFIG_FILE_REL);
   if (!existsSync(configPath)) {
     return true; // default: enabled
   }
@@ -312,36 +312,36 @@ export function isHudEnabledInConfig(): boolean {
 }
 
 /**
- * Detect whether a statusLine config belongs to oh-my-claudecode.
+ * Detect whether a statusLine config belongs to oh-my-agent-connector.
  *
- * Checks the command string for known OMC HUD paths so that custom
- * (non-OMC) statusLine configurations are preserved during forced
+ * Checks the command string for known OMAC HUD paths so that custom
+ * (non-OMAC) statusLine configurations are preserved during forced
  * updates/reconciliation.
  *
  * @param statusLine - The statusLine setting object from settings.json
- * @returns true if the statusLine was set by OMC
+ * @returns true if the statusLine was set by OMAC
  */
-export function isOmcStatusLine(statusLine: unknown): boolean {
+export function isOmacStatusLine(statusLine: unknown): boolean {
   if (!statusLine) return false;
-  // Legacy string format (pre-v4.5): "~/.claude/hud/omc-hud.mjs"
+  // Legacy string format (pre-v4.5): "~/.claude/hud/omac-hud.mjs"
   if (typeof statusLine === 'string') {
-    return statusLine.includes('omc-hud');
+    return statusLine.includes('omac-hud');
   }
-  // Current object format: { type: "command", command: "node ...omc-hud.mjs" }
+  // Current object format: { type: "command", command: "node ...omac-hud.mjs" }
   if (typeof statusLine === 'object') {
     const sl = statusLine as Record<string, unknown>;
     if (typeof sl.command === 'string') {
-      return sl.command.includes('omc-hud');
+      return sl.command.includes('omac-hud');
     }
   }
   return false;
 }
 
 /**
- * Known OMC hook script filenames installed into .claude/hooks/.
+ * Known OMAC hook script filenames installed into .claude/hooks/.
  * Must be kept in sync with HOOKS_SETTINGS_CONFIG_NODE command entries.
  */
-const OMC_HOOK_FILENAMES = new Set([
+const OMAC_HOOK_FILENAMES = new Set([
   'keyword-detector.mjs',
   'session-start.mjs',
   'pre-tool-use.mjs',
@@ -353,30 +353,30 @@ const OMC_HOOK_FILENAMES = new Set([
 ]);
 
 /**
- * Detect whether a hook command belongs to oh-my-claudecode.
+ * Detect whether a hook command belongs to oh-my-agent-connector.
  *
  * Recognition strategy (any match is sufficient):
- * 1. Command path contains "omc" as a path/word segment (e.g. `omc-hook.mjs`, `/omc/`)
- * 2. Command path contains "oh-my-claudecode"
- * 3. Command references a known OMC hook filename inside .claude/hooks/
+ * 1. Command path contains "omac" as a path/word segment (e.g. `omac-hook.mjs`, `/omac/`)
+ * 2. Command path contains "oh-my-agent-connector"
+ * 3. Command references a known OMAC hook filename inside .claude/hooks/
  *
  * @param command - The hook command string
- * @returns true if the command belongs to OMC
+ * @returns true if the command belongs to OMAC
  */
-export function isOmcHook(command: string): boolean {
+export function isOmacHook(command: string): boolean {
   const lowerCommand = command.toLowerCase();
-  // Match "omc" as a path segment or word boundary
-  // Matches: /omc/, /omc-, omc/, -omc, _omc, omc_
-  const omcPattern = /(?:^|[\/\\_-])omc(?:$|[\/\\_-])/;
-  const fullNamePattern = /oh-my-claudecode/;
-  if (omcPattern.test(lowerCommand) || fullNamePattern.test(lowerCommand)) {
+  // Match "omac" as a path segment or word boundary
+  // Matches: /omac/, /omac-, omac/, -omac, _omac, omac_
+  const omacPattern = /(?:^|[\/\\_-])omac(?:$|[\/\\_-])/;
+  const fullNamePattern = /oh-my-agent-connector/;
+  if (omacPattern.test(lowerCommand) || fullNamePattern.test(lowerCommand)) {
     return true;
   }
-  // Check for known OMC hook filenames in .claude/hooks/ path.
+  // Check for known OMAC hook filenames in .claude/hooks/ path.
   // Handles both Unix (.claude/hooks/) and Windows (.claude\hooks\) paths.
   const containsHooksDir = /hooks[/\\]/.test(lowerCommand);
   const hookFilenameMatch = lowerCommand.match(/([a-z0-9-]+\.mjs)(?:$|["'\s])/);
-  if (containsHooksDir && hookFilenameMatch && OMC_HOOK_FILENAMES.has(hookFilenameMatch[1])) {
+  if (containsHooksDir && hookFilenameMatch && OMAC_HOOK_FILENAMES.has(hookFilenameMatch[1])) {
     return true;
   }
   return false;
@@ -481,7 +481,7 @@ function configureInstallerSettings(
         const isLegacy = group.hooks.every(h =>
           h.type === 'command'
           && (h.command.includes('/.claude/hooks/') || h.command.includes('\\.claude\\hooks\\'))
-          && isOmcHook(h.command)
+          && isOmacHook(h.command)
         );
         if (isLegacy) legacyRemoved++;
         return !isLegacy;
@@ -497,18 +497,18 @@ function configureInstallerSettings(
       context.log(`  Cleaned up ${legacyRemoved} legacy hook entries from settings.json`);
     }
 
-    const enabledOmcPlugin = context.runningAsPlugin || isOmcPluginEnabledInSettings(settings);
-    const pluginHandlesHooks = context.pluginProvidesHookFiles && enabledOmcPlugin;
+    const enabledOmacPlugin = context.runningAsPlugin || isOmacPluginEnabledInSettings(settings);
+    const pluginHandlesHooks = context.pluginProvidesHookFiles && enabledOmacPlugin;
     const shouldConfigureSettingsHooks = (!context.runningAsPlugin || !!context.allowPluginHookRefresh) && !pluginHandlesHooks;
     if (shouldConfigureSettingsHooks) {
       const desiredHooks = getHooksSettingsConfig().hooks as Record<string, HookGroup[]>;
 
-      for (const [eventType, newOmcGroups] of Object.entries(desiredHooks)) {
+      for (const [eventType, newOmacGroups] of Object.entries(desiredHooks)) {
         const currentGroups = (existingHooks[eventType] as HookGroup[] | undefined) ?? [];
         existingHooks[eventType] = mergeHookGroups(
           eventType,
           currentGroups,
-          newOmcGroups,
+          newOmacGroups,
           context.options,
           context.log,
           context.result,
@@ -541,7 +541,7 @@ function configureInstallerSettings(
         const findNodeSrc = join(getPackageDir(), 'scripts', 'find-node.sh');
         const findNodeDest = join(HUD_DIR, 'find-node.sh');
         const cacheWrapperSrc = join(getPackageDir(), 'scripts', 'lib', 'hud-cache-wrapper.sh');
-        const cacheWrapperDest = join(HUD_DIR, 'omc-hud-cache.sh');
+        const cacheWrapperDest = join(HUD_DIR, 'omac-hud-cache.sh');
         const configDirHelperSrc = join(getPackageDir(), 'scripts', 'lib', 'config-dir.sh');
         const hudLibDir = join(HUD_DIR, 'lib');
         const configDirHelperDest = join(hudLibDir, 'config-dir.sh');
@@ -563,7 +563,7 @@ function configureInstallerSettings(
     }
 
     const needsMigration = typeof settings.statusLine === 'string'
-      && isOmcStatusLine(settings.statusLine);
+      && isOmacStatusLine(settings.statusLine);
     if (!settings.statusLine || needsMigration) {
       settings.statusLine = {
         type: 'command',
@@ -572,7 +572,7 @@ function configureInstallerSettings(
       context.log(needsMigration
         ? '  Migrated statusLine from legacy string to object format'
         : '  Configured statusLine');
-    } else if (context.options.force && isOmcStatusLine(settings.statusLine)) {
+    } else if (context.options.force && isOmacStatusLine(settings.statusLine)) {
       settings.statusLine = {
         type: 'command',
         command: statusLineCommand
@@ -674,41 +674,41 @@ function ensureStandaloneHookScripts(log: (msg: string) => void): void {
 function mergeHookGroups(
   eventType: string,
   existingGroups: HookGroup[],
-  newOmcGroups: HookGroup[],
+  newOmacGroups: HookGroup[],
   options: { force?: boolean; forceHooks?: boolean; allowPluginHookRefresh?: boolean },
   log: (msg: string) => void,
   result: InstallResult,
 ): HookGroup[] {
-  const nonOmcGroups = existingGroups.filter(group =>
-    group.hooks.some(h => h.type === 'command' && !isOmcHook(h.command))
+  const nonOmacGroups = existingGroups.filter(group =>
+    group.hooks.some(h => h.type === 'command' && !isOmacHook(h.command))
   );
-  const hasNonOmcHook = nonOmcGroups.length > 0;
-  const nonOmcCommand = hasNonOmcHook
-    ? nonOmcGroups[0].hooks.find(h => h.type === 'command' && !isOmcHook(h.command))?.command ?? ''
+  const hasNonOmacHook = nonOmacGroups.length > 0;
+  const nonOmacCommand = hasNonOmacHook
+    ? nonOmacGroups[0].hooks.find(h => h.type === 'command' && !isOmacHook(h.command))?.command ?? ''
     : '';
 
   if (options.forceHooks && !options.allowPluginHookRefresh) {
-    if (hasNonOmcHook) {
-      log(`  Warning: Overwriting non-OMC ${eventType} hook with --force-hooks: ${nonOmcCommand}`);
-      result.hookConflicts.push({ eventType, existingCommand: nonOmcCommand });
+    if (hasNonOmacHook) {
+      log(`  Warning: Overwriting non-OMAC ${eventType} hook with --force-hooks: ${nonOmacCommand}`);
+      result.hookConflicts.push({ eventType, existingCommand: nonOmacCommand });
     }
     log(`  Updated ${eventType} hook (--force-hooks)`);
-    return newOmcGroups;
+    return newOmacGroups;
   }
 
   if (options.force) {
-    if (hasNonOmcHook) {
-      log(`  Merged ${eventType} hooks (updated OMC hooks, preserved non-OMC hook: ${nonOmcCommand})`);
-      result.hookConflicts.push({ eventType, existingCommand: nonOmcCommand });
+    if (hasNonOmacHook) {
+      log(`  Merged ${eventType} hooks (updated OMAC hooks, preserved non-OMAC hook: ${nonOmacCommand})`);
+      result.hookConflicts.push({ eventType, existingCommand: nonOmacCommand });
     } else {
       log(`  Updated ${eventType} hook (--force)`);
     }
-    return [...nonOmcGroups, ...newOmcGroups];
+    return [...nonOmacGroups, ...newOmacGroups];
   }
 
-  if (hasNonOmcHook) {
-    log(`  Warning: ${eventType} hook has non-OMC hook. Skipping. Use --force-hooks to override.`);
-    result.hookConflicts.push({ eventType, existingCommand: nonOmcCommand });
+  if (hasNonOmacHook) {
+    log(`  Warning: ${eventType} hook has non-OMAC hook. Skipping. Use --force-hooks to override.`);
+    result.hookConflicts.push({ eventType, existingCommand: nonOmacCommand });
   } else {
     log(`  ${eventType} hook already configured, skipping`);
   }
@@ -716,17 +716,17 @@ function mergeHookGroups(
 }
 
 /**
- * Remove stale OMC-created agent files from the config agents directory.
+ * Remove stale OMAC-created agent files from the config agents directory.
  *
- * When OMC drops an agent definition in a new version, the old .md file
+ * When OMAC drops an agent definition in a new version, the old .md file
  * lingers in ~/.claude/agents/. This function compares the installed files
  * against the current package's agent definitions and removes any that:
- *   1. Are .md files (OMC agent naming convention)
- *   2. Were previously shipped by OMC (match the frontmatter `name:` pattern)
+ *   1. Are .md files (OMAC agent naming convention)
+ *   2. Were previously shipped by OMAC (match the frontmatter `name:` pattern)
  *   3. No longer exist in the current package's agents/ directory
  *
  * User-created files (those whose filename does not match any historically
- * known OMC agent) are preserved.
+ * known OMAC agent) are preserved.
  */
 export function cleanupStaleAgents(log: (msg: string) => void): string[] {
   const agentsDir = currentAgentsDir();
@@ -742,7 +742,7 @@ export function cleanupStaleAgents(log: (msg: string) => void): string[] {
     if (file === 'AGENTS.md') continue;
     if (currentAgentFiles.has(file)) continue;
 
-    // Check if this looks like an OMC-created agent (kebab-case .md with frontmatter)
+    // Check if this looks like an OMAC-created agent (kebab-case .md with frontmatter)
     const filepath = join(agentsDir, file);
     try {
       const content = readFileSync(filepath, 'utf-8');
@@ -763,8 +763,8 @@ export function cleanupStaleAgents(log: (msg: string) => void): string[] {
  * Remove standalone agent files that duplicate plugin-provided agents (#2252).
  *
  * When the plugin is the canonical agent source, standalone copies in
- * ~/.claude/agents/ from a prior `omc setup` cause agent definitions to
- * appear twice. Removes standalone copies with OMC frontmatter whose
+ * ~/.claude/agents/ from a prior `omac setup` cause agent definitions to
+ * appear twice. Removes standalone copies with OMAC frontmatter whose
  * filename matches a current package agent.
  */
 export function prunePluginDuplicateAgents(log: (msg: string) => void): string[] {
@@ -799,10 +799,10 @@ export function prunePluginDuplicateAgents(log: (msg: string) => void): string[]
 }
 
 /**
- * Remove stale OMC-created skill directories from the config skills directory.
+ * Remove stale OMAC-created skill directories from the config skills directory.
  *
  * Similar to cleanupStaleAgents but for skill directories. Removes directories
- * that contain a SKILL.md with OMC frontmatter but are no longer shipped by
+ * that contain a SKILL.md with OMAC frontmatter but are no longer shipped by
  * the current package version. User-created skills are preserved.
  */
 export function cleanupStaleSkills(log: (msg: string) => void): string[] {
@@ -833,12 +833,12 @@ export function cleanupStaleSkills(log: (msg: string) => void): string[] {
   for (const entry of readdirSync(skillsDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     if (currentSkillNames.has(entry.name)) continue;
-    if (entry.name === 'omc-learned') continue;
+    if (entry.name === 'omac-learned') continue;
 
     const skillDir = join(skillsDir, entry.name);
     const skillMdPath = join(skillDir, 'SKILL.md');
     if (!existsSync(skillMdPath)) continue;
-    if (!isOmcManagedSkillDir(skillDir)) continue;
+    if (!isOmacManagedSkillDir(skillDir)) continue;
 
     try {
       rmSync(skillDir, { recursive: true, force: true });
@@ -856,7 +856,7 @@ export function cleanupStaleSkills(log: (msg: string) => void): string[] {
  * Remove standalone skill directories that duplicate plugin-provided skills.
  *
  * When the plugin is the canonical skill source, standalone copies in
- * ~/.claude/skills/ from a prior `omc setup` cause every command to appear
+ * ~/.claude/skills/ from a prior `omac setup` cause every command to appear
  * twice (#2252). This function removes standalone copies whose SKILL.md
  * content-hashes match any installed plugin version, preserving user-authored
  * skills that happen to share a name.
@@ -897,7 +897,7 @@ export function prunePluginDuplicateSkills(log: (msg: string) => void): string[]
   const removed: string[] = [];
   for (const entry of readdirSync(skillsDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    if (entry.name === 'omc-learned' || entry.name === '.omc-trash') continue;
+    if (entry.name === 'omac-learned' || entry.name === '.omac-trash') continue;
 
     // Only prune skills whose name matches a plugin-provided skill
     if (!pluginSkillNames.has(entry.name)) continue;
@@ -909,13 +909,13 @@ export function prunePluginDuplicateSkills(log: (msg: string) => void): string[]
       const standaloneContent = readFileSync(skillMdPath, 'utf-8').trim();
 
       // Safety check: only remove if the standalone content exactly matches the
-      // plugin's copy, OR the directory is explicitly marked as OMC-owned via the
-      // .omc-managed marker file. Frontmatter structure alone is not a reliable
+      // plugin's copy, OR the directory is explicitly marked as OMAC-owned via the
+      // .omac-managed marker file. Frontmatter structure alone is not a reliable
       // ownership signal — user skills routinely use the same ---/name: format.
       const pluginContent = pluginSkillHashes.get(entry.name);
       const skillDir = join(skillsDir, entry.name);
 
-      if (pluginContent === standaloneContent || isOmcManagedSkillDir(skillDir)) {
+      if (pluginContent === standaloneContent || isOmacManagedSkillDir(skillDir)) {
         rmSync(skillDir, { recursive: true, force: true });
         removed.push(entry.name);
         log(`  Pruned plugin-duplicate skill: ${entry.name}/`);
@@ -964,7 +964,7 @@ function directoryHasSkillDefinitions(directory: string): boolean {
   }
 }
 
-export function getInstalledOmcPluginRoots(): string[] {
+export function getInstalledOmacPluginRoots(): string[] {
   const pluginRoots = new Set<string>();
   const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT?.trim();
 
@@ -984,7 +984,7 @@ export function getInstalledOmcPluginRoots(): string[] {
     const plugins = raw.plugins ?? raw;
 
     for (const [pluginId, entries] of Object.entries(plugins)) {
-      if (!pluginId.toLowerCase().includes('oh-my-claudecode') || !Array.isArray(entries)) {
+      if (!pluginId.toLowerCase().includes('oh-my-agent-connector') || !Array.isArray(entries)) {
         continue;
       }
 
@@ -1027,7 +1027,7 @@ const REQUIRED_PLUGIN_PAYLOAD_FILES = [
 ] as const;
 
 const REQUIRED_PLUGIN_COMMAND_FILES = [
-  'commands/omc-setup.md',
+  'commands/omac-setup.md',
 ] as const;
 
 function readPluginManifest(root: string): { manifest: Record<string, unknown> | null; errors: string[] } {
@@ -1179,9 +1179,9 @@ function getKnownMarketplaceInstallRoots(): string[] {
     const roots = new Set<string>();
 
     for (const [marketplaceId, entry] of Object.entries(raw)) {
-      const isOmcMarketplace = marketplaceId.toLowerCase().includes('omc')
-        || marketplaceId.toLowerCase().includes('oh-my-claudecode');
-      if (!isOmcMarketplace) {
+      const isOmacMarketplace = marketplaceId.toLowerCase().includes('omac')
+        || marketplaceId.toLowerCase().includes('oh-my-agent-connector');
+      if (!isOmacMarketplace) {
         continue;
       }
 
@@ -1213,7 +1213,7 @@ function getGlobalInstalledPackageRoot(): string | null {
       return null;
     }
 
-    const globalPackageRoot = join(npmRoot, 'oh-my-claude-sisyphus');
+    const globalPackageRoot = join(npmRoot, 'oh-my-agent-connector');
     return existsSync(globalPackageRoot) ? globalPackageRoot : null;
   } catch {
     return null;
@@ -1310,14 +1310,14 @@ function renderCompactPluginSkillShim(skillDirName: string, content: string): st
   let frontmatter = extractFrontmatterBlock(content) ?? `name: ${skillDirName}`;
   const rawDescription = getFrontmatterStringValue(parsed.metadata, 'short_description')
     ?? getFrontmatterStringValue(parsed.metadata, 'description')
-    ?? `Invoke the ${skillDirName} OMC skill.`;
+    ?? `Invoke the ${skillDirName} OMAC skill.`;
   const description = normalizeCompactSkillDescription(rawDescription);
   const fullBodyRelPath = `../../${PLUGIN_FULL_SKILL_BODIES_DIR}/${skillDirName}/SKILL.md`;
 
   frontmatter = upsertYamlStringField(frontmatter, 'description', description);
-  frontmatter = upsertYamlStringField(frontmatter, 'omc-full-body', fullBodyRelPath);
+  frontmatter = upsertYamlStringField(frontmatter, 'omac-full-body', fullBodyRelPath);
 
-  return `---\n${frontmatter.trim()}\n---\n\n${PLUGIN_COMPACT_SKILL_SHIM_MARKER}\n\n# ${skillDirName}\n\nThis is a compact Claude Code plugin registry shim. It keeps startup skill descriptions small while preserving the full OMC skill body for on-demand invocation.\n\nWhen this skill is invoked, read and follow the full bundled instructions from the active plugin root:\n\n\`${'${CLAUDE_PLUGIN_ROOT:-${OMC_PLUGIN_ROOT}}'}/${PLUGIN_FULL_SKILL_BODIES_DIR}/${skillDirName}/SKILL.md\`\n\nThe plugin root is the directory containing both \`skills/\` and \`${PLUGIN_FULL_SKILL_BODIES_DIR}/\`. Do not resolve \`${PLUGIN_FULL_SKILL_BODIES_DIR}/${skillDirName}/SKILL.md\` under this shim's \`skills/${skillDirName}/\` directory; \`${PLUGIN_FULL_SKILL_BODIES_DIR}/\` is a direct child of the plugin root. The same archived body path is recorded in frontmatter as \`omc-full-body: ${fullBodyRelPath}\` for hosts that understand plugin-root-relative metadata.\n`;
+  return `---\n${frontmatter.trim()}\n---\n\n${PLUGIN_COMPACT_SKILL_SHIM_MARKER}\n\n# ${skillDirName}\n\nThis is a compact Claude Code plugin registry shim. It keeps startup skill descriptions small while preserving the full OMAC skill body for on-demand invocation.\n\nWhen this skill is invoked, read and follow the full bundled instructions from the active plugin root:\n\n\`${'${CLAUDE_PLUGIN_ROOT:-${OMAC_PLUGIN_ROOT}}'}/${PLUGIN_FULL_SKILL_BODIES_DIR}/${skillDirName}/SKILL.md\`\n\nThe plugin root is the directory containing both \`skills/\` and \`${PLUGIN_FULL_SKILL_BODIES_DIR}/\`. Do not resolve \`${PLUGIN_FULL_SKILL_BODIES_DIR}/${skillDirName}/SKILL.md\` under this shim's \`skills/${skillDirName}/\` directory; \`${PLUGIN_FULL_SKILL_BODIES_DIR}/\` is a direct child of the plugin root. The same archived body path is recorded in frontmatter as \`omac-full-body: ${fullBodyRelPath}\` for hosts that understand plugin-root-relative metadata.\n`;
 }
 
 export function compactPluginSkillPayload(targetRoot: string): { compacted: number; totalBytes: number; errors: string[] } {
@@ -1439,7 +1439,7 @@ export function syncInstalledPluginPayload(): {
   sourceRoot: string | null;
   targetRoots: string[];
 } {
-  const targetRoots = getInstalledOmcPluginRoots()
+  const targetRoots = getInstalledOmacPluginRoots()
     .filter(root => existsSync(root) && isCacheInstalledPluginRoot(root));
 
   if (targetRoots.length === 0) {
@@ -1452,7 +1452,7 @@ export function syncInstalledPluginPayload(): {
     return {
       synced: false,
       errors: [
-        'Unable to find a complete OMC package source to repair installed plugin roots',
+        'Unable to find a complete OMAC package source to repair installed plugin roots',
         ...sourceResolution.errors,
       ],
       sourceRoot: null,
@@ -1465,28 +1465,28 @@ export function syncInstalledPluginPayload(): {
 }
 
 /**
- * Detect whether an installed Claude Code plugin already provides OMC agent
+ * Detect whether an installed Claude Code plugin already provides OMAC agent
  * markdown files, so the legacy ~/.claude/agents copy can be skipped.
  */
 export function hasPluginProvidedAgentFiles(): boolean {
-  return getInstalledOmcPluginRoots().some(pluginRoot =>
+  return getInstalledOmacPluginRoots().some(pluginRoot =>
     hasCompletePluginPayload(pluginRoot) && directoryHasMarkdownFiles(join(pluginRoot, 'agents'))
   );
 }
 
 export function hasPluginProvidedSkillFiles(): boolean {
-  return getInstalledOmcPluginRoots().some(pluginRoot =>
+  return getInstalledOmacPluginRoots().some(pluginRoot =>
     hasCompletePluginPayload(pluginRoot) && directoryHasSkillDefinitions(join(pluginRoot, 'skills'))
   );
 }
 
 export function hasPluginProvidedHookFiles(): boolean {
-  return getInstalledOmcPluginRoots().some(pluginRoot =>
+  return getInstalledOmacPluginRoots().some(pluginRoot =>
     hasCompletePluginPayload(pluginRoot) && existsSync(join(pluginRoot, 'hooks', 'hooks.json'))
   );
 }
 
-export function hasEnabledOmcPlugin(): boolean {
+export function hasEnabledOmacPlugin(): boolean {
   if (process.env.CLAUDE_PLUGIN_ROOT?.trim()) {
     return true;
   }
@@ -1506,17 +1506,17 @@ export function hasEnabledOmcPlugin(): boolean {
 
     // Prefer `enabledPlugins` (modern), fall back to `plugins` (legacy).
     // Returning on the first hit short-circuits the check whenever we find
-    // an enabled OMC plugin entry in either field.
+    // an enabled OMAC plugin entry in either field.
     for (const candidate of [settings.enabledPlugins, settings.plugins]) {
       if (Array.isArray(candidate)) {
         if (candidate.some(plugin =>
-          typeof plugin === 'string' && plugin.toLowerCase().includes('oh-my-claudecode')
+          typeof plugin === 'string' && plugin.toLowerCase().includes('oh-my-agent-connector')
         )) {
           return true;
         }
       } else if (candidate && typeof candidate === 'object') {
         if (Object.entries(candidate as Record<string, unknown>).some(([pluginId, value]) =>
-          pluginId.toLowerCase().includes('oh-my-claudecode') && value !== false
+          pluginId.toLowerCase().includes('oh-my-agent-connector') && value !== false
         )) {
           return true;
         }
@@ -1529,17 +1529,17 @@ export function hasEnabledOmcPlugin(): boolean {
   return false;
 }
 
-function isOmcPluginEnabledInSettings(settings: Record<string, unknown>): boolean {
+function isOmacPluginEnabledInSettings(settings: Record<string, unknown>): boolean {
   for (const candidate of [settings.enabledPlugins, settings.plugins]) {
     if (Array.isArray(candidate)) {
       if (candidate.some(plugin =>
-        typeof plugin === 'string' && plugin.toLowerCase().includes('oh-my-claudecode')
+        typeof plugin === 'string' && plugin.toLowerCase().includes('oh-my-agent-connector')
       )) {
         return true;
       }
     } else if (candidate && typeof candidate === 'object') {
       if (Object.entries(candidate as Record<string, unknown>).some(([pluginId, value]) =>
-        pluginId.toLowerCase().includes('oh-my-claudecode') && value !== false
+        pluginId.toLowerCase().includes('oh-my-agent-connector') && value !== false
       )) {
         return true;
       }
@@ -1639,19 +1639,19 @@ function loadCommandDefinitions(): Record<string, string> {
 function toSafeStandaloneSkillName(name: string): string {
   const normalized = name.trim();
   return CC_NATIVE_COMMANDS.has(normalized.toLowerCase())
-    ? `omc-${normalized}`
+    ? `omac-${normalized}`
     : normalized;
 }
 
 function getManagedSkillMarkerPath(skillDir: string): string {
-  return join(skillDir, OMC_MANAGED_SKILL_MARKER);
+  return join(skillDir, OMAC_MANAGED_SKILL_MARKER);
 }
 
-function markSkillAsOmcManaged(skillDir: string): void {
-  writeFileSync(getManagedSkillMarkerPath(skillDir), 'omc-managed\n');
+function markSkillAsOmacManaged(skillDir: string): void {
+  writeFileSync(getManagedSkillMarkerPath(skillDir), 'omac-managed\n');
 }
 
-function isOmcManagedSkillDir(skillDir: string): boolean {
+function isOmacManagedSkillDir(skillDir: string): boolean {
   return existsSync(getManagedSkillMarkerPath(skillDir));
 }
 
@@ -1692,7 +1692,7 @@ function syncBundledSkillDefinitions(log: (msg: string) => void, options?: { saf
     const relativePath = join(targetDirName, 'SKILL.md');
     const targetDir = join(SKILLS_DIR, targetDirName);
     cpSync(sourceDir, targetDir, { recursive: true, force: true });
-    markSkillAsOmcManaged(targetDir);
+    markSkillAsOmacManaged(targetDir);
     installedSkills.push(relativePath.replace(/\\/g, '/'));
     log(`  Synced ${relativePath}`);
   }
@@ -1701,7 +1701,7 @@ function syncBundledSkillDefinitions(log: (msg: string) => void, options?: { saf
 }
 
 function syncUserSkillCompatShims(log: (msg: string) => void): string[] {
-  const synced = syncOmcLearnedUserSkillsForClaudeCode();
+  const synced = syncOmacLearnedUserSkillsForClaudeCode();
 
   for (const skillName of synced) {
     log(`  Synced user skill compatibility shim: ${join(skillName, 'SKILL.md').replace(/\\/g, '/')}`);
@@ -1722,19 +1722,19 @@ function loadClaudeMdContent(): string {
 }
 
 /**
- * Extract the embedded OMC version from a CLAUDE.md file.
+ * Extract the embedded OMAC version from a CLAUDE.md file.
  *
- * Primary source of truth is the injected `<!-- OMC:VERSION:x.y.z -->` marker.
+ * Primary source of truth is the injected `<!-- OMAC:VERSION:x.y.z -->` marker.
  * Falls back to legacy headings that may include a version string inline.
  */
-export function extractOmcVersionFromClaudeMd(content: string): string | null {
-  const versionMarkerMatch = content.match(/<!--\s*OMC:VERSION:([^\s]+)\s*-->/i);
+export function extractOmacVersionFromClaudeMd(content: string): string | null {
+  const versionMarkerMatch = content.match(/<!--\s*OMAC:VERSION:([^\s]+)\s*-->/i);
   if (versionMarkerMatch?.[1]) {
     const markerVersion = versionMarkerMatch[1].trim();
     return markerVersion.startsWith('v') ? markerVersion : `v${markerVersion}`;
   }
 
-  const headingMatch = content.match(/^#\s+oh-my-claudecode.*?\b(v?\d+\.\d+\.\d+(?:[-+][^\s]+)?)\b/m);
+  const headingMatch = content.match(/^#\s+oh-my-agent-connector.*?\b(v?\d+\.\d+\.\d+(?:[-+][^\s]+)?)\b/m);
   if (headingMatch?.[1]) {
     const headingVersion = headingMatch[1].trim();
     return headingVersion.startsWith('v') ? headingVersion : `v${headingVersion}`;
@@ -1744,7 +1744,7 @@ export function extractOmcVersionFromClaudeMd(content: string): string | null {
 }
 
 /**
- * Keep persisted setup metadata in sync with the installed OMC runtime version.
+ * Keep persisted setup metadata in sync with the installed OMAC runtime version.
  *
  * This intentionally updates only already-configured users by default so
  * installer/reconciliation flows do not accidentally mark fresh installs as if
@@ -1756,7 +1756,7 @@ export function syncPersistedSetupVersion(options?: {
   version?: string;
   onlyIfConfigured?: boolean;
 }): boolean {
-  const configPath = options?.configPath ?? join(CLAUDE_CONFIG_DIR, OMC_CONFIG_FILE_REL);
+  const configPath = options?.configPath ?? join(CLAUDE_CONFIG_DIR, OMAC_CONFIG_FILE_REL);
   let config: Record<string, unknown> = {};
 
   if (existsSync(configPath)) {
@@ -1776,7 +1776,7 @@ export function syncPersistedSetupVersion(options?: {
   if (!detectedVersion) {
     const claudeMdPath = options?.claudeMdPath ?? join(CLAUDE_CONFIG_DIR, 'CLAUDE.md');
     if (existsSync(claudeMdPath)) {
-      detectedVersion = extractOmcVersionFromClaudeMd(readFileSync(claudeMdPath, 'utf-8')) ?? undefined;
+      detectedVersion = extractOmacVersionFromClaudeMd(readFileSync(claudeMdPath, 'utf-8')) ?? undefined;
     }
   }
 
@@ -1795,57 +1795,57 @@ export function syncPersistedSetupVersion(options?: {
 }
 
 /**
- * Merge OMC content into existing CLAUDE.md using markers
+ * Merge OMAC content into existing CLAUDE.md using markers
  * @param existingContent - Existing CLAUDE.md content (null if file doesn't exist)
- * @param omcContent - New OMC content to inject
+ * @param omacContent - New OMAC content to inject
  * @returns Merged content with markers
  */
-export function mergeClaudeMd(existingContent: string | null, omcContent: string, version?: string): string {
-  const START_MARKER = '<!-- OMC:START -->';
-  const END_MARKER = '<!-- OMC:END -->';
+export function mergeClaudeMd(existingContent: string | null, omacContent: string, version?: string): string {
+  const START_MARKER = '<!-- OMAC:START -->';
+  const END_MARKER = '<!-- OMAC:END -->';
   const USER_CUSTOMIZATIONS = '<!-- User customizations -->';
-  const OMC_BLOCK_PATTERN = new RegExp(
+  const OMAC_BLOCK_PATTERN = new RegExp(
     `^${escapeRegex(START_MARKER)}\\r?\\n[\\s\\S]*?^${escapeRegex(END_MARKER)}(?:\\r?\\n)?`,
     'gm'
   );
   const markerStartRegex = createLineAnchoredMarkerRegex(START_MARKER);
   const markerEndRegex = createLineAnchoredMarkerRegex(END_MARKER);
 
-  // Idempotency guard: strip markers from omcContent if already present
+  // Idempotency guard: strip markers from omacContent if already present
   // This handles the case where docs/CLAUDE.md ships with markers
-  let cleanOmcContent = omcContent;
-  const omcStartIdx = findLineAnchoredMarker(omcContent, START_MARKER);
-  const omcEndIdx = findLineAnchoredMarker(omcContent, END_MARKER, true);
-  if (omcStartIdx !== -1 && omcEndIdx !== -1 && omcStartIdx < omcEndIdx) {
+  let cleanOmacContent = omacContent;
+  const omacStartIdx = findLineAnchoredMarker(omacContent, START_MARKER);
+  const omacEndIdx = findLineAnchoredMarker(omacContent, END_MARKER, true);
+  if (omacStartIdx !== -1 && omacEndIdx !== -1 && omacStartIdx < omacEndIdx) {
     // Extract content between markers, trimming any surrounding whitespace
-    cleanOmcContent = omcContent
-      .substring(omcStartIdx + START_MARKER.length, omcEndIdx)
+    cleanOmacContent = omacContent
+      .substring(omacStartIdx + START_MARKER.length, omacEndIdx)
       .trim();
   }
 
   // Strip any existing version marker from content and inject current version
-  cleanOmcContent = cleanOmcContent.replace(/<!-- OMC:VERSION:[^\s]*? -->\n?/, '');
-  const versionMarker = version ? `<!-- OMC:VERSION:${version} -->\n` : '';
+  cleanOmacContent = cleanOmacContent.replace(/<!-- OMAC:VERSION:[^\s]*? -->\n?/, '');
+  const versionMarker = version ? `<!-- OMAC:VERSION:${version} -->\n` : '';
 
-  // Case 1: No existing content - wrap omcContent in markers
+  // Case 1: No existing content - wrap omacContent in markers
   if (!existingContent) {
-    return `${START_MARKER}\n${versionMarker}${cleanOmcContent}\n${END_MARKER}\n`;
+    return `${START_MARKER}\n${versionMarker}${cleanOmacContent}\n${END_MARKER}\n`;
   }
 
-  const strippedExistingContent = existingContent.replace(OMC_BLOCK_PATTERN, '');
+  const strippedExistingContent = existingContent.replace(OMAC_BLOCK_PATTERN, '');
   const hasResidualStartMarker = markerStartRegex.test(strippedExistingContent);
   const hasResidualEndMarker = markerEndRegex.test(strippedExistingContent);
 
   // Case 2: Corrupted markers (unmatched markers remain after removing complete blocks)
   if (hasResidualStartMarker || hasResidualEndMarker) {
     // Handle corrupted state - backup will be created by caller
-    // Strip unmatched OMC markers from recovered content to prevent unbounded
+    // Strip unmatched OMAC markers from recovered content to prevent unbounded
     // growth on repeated calls (each call would re-detect corruption and append again)
     const recoveredContent = strippedExistingContent
       .replace(markerStartRegex, '')
       .replace(markerEndRegex, '')
       .trim();
-    return `${START_MARKER}\n${versionMarker}${cleanOmcContent}\n${END_MARKER}\n\n<!-- User customizations (recovered from corrupted markers) -->\n${recoveredContent}`;
+    return `${START_MARKER}\n${versionMarker}${cleanOmacContent}\n${END_MARKER}\n\n<!-- User customizations (recovered from corrupted markers) -->\n${recoveredContent}`;
   }
 
   const preservedUserContent = trimClaudeUserContent(
@@ -1853,15 +1853,15 @@ export function mergeClaudeMd(existingContent: string | null, omcContent: string
   );
 
   if (!preservedUserContent) {
-    return `${START_MARKER}\n${versionMarker}${cleanOmcContent}\n${END_MARKER}\n`;
+    return `${START_MARKER}\n${versionMarker}${cleanOmacContent}\n${END_MARKER}\n`;
   }
 
-  // Case 3: Preserve only user-authored content that lives outside OMC markers
-  return `${START_MARKER}\n${versionMarker}${cleanOmcContent}\n${END_MARKER}\n\n${USER_CUSTOMIZATIONS}\n${preservedUserContent}`;
+  // Case 3: Preserve only user-authored content that lives outside OMAC markers
+  return `${START_MARKER}\n${versionMarker}${cleanOmacContent}\n${END_MARKER}\n\n${USER_CUSTOMIZATIONS}\n${preservedUserContent}`;
 }
 
 /**
- * Install OMC agents, commands, skills, and hooks
+ * Install OMAC agents, commands, skills, and hooks
  */
 export function install(options: InstallOptions = {}): InstallResult {
   const result: InstallResult = {
@@ -1895,7 +1895,7 @@ export function install(options: InstallOptions = {}): InstallResult {
   if (isComparableVersion(targetVersion)
     && isComparableVersion(installedVersionHint)
     && compareVersions(targetVersion, installedVersionHint) < 0) {
-    const message = `Skipping install: installed OMC ${installedVersionHint} is newer than CLI package ${targetVersion}. Run "omc update" to update the CLI package, then rerun "omc setup".`;
+    const message = `Skipping install: installed OMAC ${installedVersionHint} is newer than CLI package ${targetVersion}. Run "omac update" to update the CLI package, then rerun "omac setup".`;
     log(message);
     result.success = true;
     result.message = message;
@@ -1916,7 +1916,7 @@ export function install(options: InstallOptions = {}): InstallResult {
     }
     if (pluginPayloadSync.targetRoots.length > 0) {
       result.errors.push(...pluginPayloadSync.errors.map(error => `Plugin cache sync failed: ${error}`));
-      result.message = 'Installation failed: OMC plugin cache is incomplete and could not be repaired';
+      result.message = 'Installation failed: OMAC plugin cache is incomplete and could not be repaired';
       return result;
     }
   }
@@ -1925,16 +1925,16 @@ export function install(options: InstallOptions = {}): InstallResult {
       ? pluginPayloadSync.targetRoots.join(', ')
       : 'installed plugin roots';
     const sourceSummary = pluginPayloadSync.sourceRoot ?? 'unknown source';
-    log(`Repaired installed OMC plugin payload from ${sourceSummary} -> ${targetSummary}`);
+    log(`Repaired installed OMAC plugin payload from ${sourceSummary} -> ${targetSummary}`);
   }
 
   const pluginProvidesAgentFiles = hasPluginProvidedAgentFiles();
   const pluginProvidesSkillFiles = hasPluginProvidedSkillFiles();
   const pluginProvidesHookFiles = hasPluginProvidedHookFiles();
-  const enabledOmcPlugin = hasEnabledOmcPlugin();
-  // Dev plugin-dir mode: user launched OMC via `claude --plugin-dir <path>` or
-  // `omc --plugin-dir <path>`. The plugin already exposes agents/skills at runtime,
-  // so skip copying them into <configDir>. Auto-detected via OMC_PLUGIN_ROOT in CLI.
+  const enabledOmacPlugin = hasEnabledOmacPlugin();
+  // Dev plugin-dir mode: user launched OMAC via `claude --plugin-dir <path>` or
+  // `omac --plugin-dir <path>`. The plugin already exposes agents/skills at runtime,
+  // so skip copying them into <configDir>. Auto-detected via OMAC_PLUGIN_ROOT in CLI.
   // `noPlugin` still wins (CLI enforces precedence and warns), so we ignore
   // `pluginDirMode` whenever `noPlugin` is set.
   const pluginDirMode = options.pluginDirMode === true && options.noPlugin !== true;
@@ -1943,7 +1943,7 @@ export function install(options: InstallOptions = {}): InstallResult {
   }
   const shouldInstallLegacyAgents = !runningAsPlugin && !pluginProvidesAgentFiles && !pluginDirMode;
   const shouldInstallBundledSkills =
-    !pluginDirMode && (options.noPlugin === true || !enabledOmcPlugin || !pluginProvidesSkillFiles);
+    !pluginDirMode && (options.noPlugin === true || !enabledOmacPlugin || !pluginProvidesSkillFiles);
   const allowPluginHookRefresh = runningAsPlugin && options.refreshHooksInPlugin && !projectScoped;
   if (runningAsPlugin) {
     log('Detected Claude Code plugin context - skipping agent/command file installation');
@@ -1958,7 +1958,7 @@ export function install(options: InstallOptions = {}): InstallResult {
     }
     // Don't return early - continue to install HUD (unless project-scoped)
   } else if (pluginProvidesAgentFiles) {
-    log('Detected installed OMC plugin agent definitions - skipping legacy ~/.claude/agents sync');
+    log('Detected installed OMAC plugin agent definitions - skipping legacy ~/.claude/agents sync');
   }
 
   // Check Claude installation (optional)
@@ -2020,7 +2020,7 @@ export function install(options: InstallOptions = {}): InstallResult {
         }
       }
 
-      // Clean up stale OMC-created agents from previous versions
+      // Clean up stale OMAC-created agents from previous versions
       if (existsSync(AGENTS_DIR)) {
         const removedAgents = cleanupStaleAgents(log);
         if (removedAgents.length > 0) {
@@ -2068,7 +2068,7 @@ export function install(options: InstallOptions = {}): InstallResult {
       // Skip when the plugin already provides hooks AND is enabled to prevent
       // duplicate firing (#2252). If the plugin is disabled, standalone scripts
       // are still needed for settings.json hook entries to work at runtime.
-      if (!(pluginProvidesHookFiles && enabledOmcPlugin)) {
+      if (!(pluginProvidesHookFiles && enabledOmacPlugin)) {
         ensureStandaloneHookScripts(log);
       } else {
         log('Skipping standalone hook scripts (plugin-provided hooks are available)');
@@ -2081,11 +2081,11 @@ export function install(options: InstallOptions = {}): InstallResult {
     if (shouldInstallBundledSkills) {
       log(options.noPlugin
         ? 'Installing bundled skills from local package (--no-plugin)...'
-        : !enabledOmcPlugin
-          ? 'Installing bundled skills from local package (no enabled OMC plugin detected)...'
+        : !enabledOmacPlugin
+          ? 'Installing bundled skills from local package (no enabled OMAC plugin detected)...'
           : 'Installing bundled skills from local package (enabled plugin skill files not found)...');
       result.installedSkills.push(...syncBundledSkillDefinitions(log, {
-        safeStandaloneNames: !enabledOmcPlugin || options.noPlugin === true,
+        safeStandaloneNames: !enabledOmacPlugin || options.noPlugin === true,
       }));
     } else if (pluginProvidesSkillFiles) {
       log('Skipping bundled skill installation (plugin-provided skills are available). Use --no-plugin to force local skill sync.');
@@ -2098,7 +2098,7 @@ export function install(options: InstallOptions = {}): InstallResult {
       log('Skipping bundled skill installation (managed by plugin system)');
     }
 
-    // Clean up stale OMC-created skills from previous versions
+    // Clean up stale OMAC-created skills from previous versions
     if (existsSync(SKILLS_DIR)) {
       const removedSkills = cleanupStaleSkills(log);
       if (removedSkills.length > 0) {
@@ -2114,13 +2114,13 @@ export function install(options: InstallOptions = {}): InstallResult {
     }
 
     // Install CLAUDE.md with merge support.
-    // This runs regardless of plugin context so that `omc update` (which re-execs
+    // This runs regardless of plugin context so that `omac update` (which re-execs
     // as `update-reconcile` with CLAUDE_PLUGIN_ROOT still set) always keeps the
-    // version marker and OMC instructions in ~/.claude/CLAUDE.md up to date.
+    // version marker and OMAC instructions in ~/.claude/CLAUDE.md up to date.
     // Skipped only for project-scoped plugins to avoid mutating global config.
     if (!projectScoped) {
       const claudeMdPath = join(CLAUDE_CONFIG_DIR, 'CLAUDE.md');
-      const omcContent = loadClaudeMdContent();
+      const omacContent = loadClaudeMdContent();
 
       // Read existing content if it exists
       let existingContent: string | null = null;
@@ -2136,8 +2136,8 @@ export function install(options: InstallOptions = {}): InstallResult {
         log(`Backed up existing CLAUDE.md to ${backupPath}`);
       }
 
-      // Merge OMC content with existing content
-      const mergedContent = mergeClaudeMd(existingContent, omcContent, targetVersion);
+      // Merge OMAC content with existing content
+      const mergedContent = mergeClaudeMd(existingContent, omacContent, targetVersion);
       writeFileSync(claudeMdPath, mergedContent);
 
       if (existingContent) {
@@ -2157,7 +2157,7 @@ export function install(options: InstallOptions = {}): InstallResult {
     } else if (hudDisabledByOption) {
       log('Skipping HUD statusline (user opted out)');
     } else if (hudDisabledByConfig) {
-      log('Skipping HUD statusline (hudEnabled is false in .omc-config.json)');
+      log('Skipping HUD statusline (hudEnabled is false in .omac-config.json)');
     } else {
       log('Installing HUD statusline...');
     }
@@ -2170,14 +2170,14 @@ export function install(options: InstallOptions = {}): InstallResult {
       // The wrapper body is read by buildHudWrapper() in src/lib/hud-wrapper-template.ts —
       // the single TS source of truth, mirrored by scripts/lib/hud-wrapper-template.mjs
       // for scripts/plugin-setup.mjs. Drift enforced by hud-wrapper-template-sync.test.ts.
-      hudScriptPath = join(HUD_DIR, 'omc-hud.mjs').replace(/\\/g, '/');
+      hudScriptPath = join(HUD_DIR, 'omac-hud.mjs').replace(/\\/g, '/');
       const hudScript = buildHudWrapper(getPackageDir());
 
       writeFileSync(hudScriptPath, hudScript);
       if (!isWindows()) {
         chmodSync(hudScriptPath, 0o755);
       }
-      log('  Installed omc-hud.mjs');
+      log('  Installed omac-hud.mjs');
     } catch (_e) {
       log('  Warning: Could not install HUD statusline script (non-fatal)');
       hudScriptPath = null;
@@ -2209,20 +2209,20 @@ export function install(options: InstallOptions = {}): InstallResult {
         runningAsPlugin,
       });
 
-      // 3. Persist the detected node binary path into .omc-config.json so that
+      // 3. Persist the detected node binary path into .omac-config.json so that
       //    find-node.sh (used in hooks/hooks.json) can locate it at hook runtime
       //    even when node is not on PATH (nvm/fnm users, issue #892).
       try {
-        const configPath = join(CLAUDE_CONFIG_DIR, OMC_CONFIG_FILE_REL);
-        let omcConfig: Record<string, unknown> = {};
+        const configPath = join(CLAUDE_CONFIG_DIR, OMAC_CONFIG_FILE_REL);
+        let omacConfig: Record<string, unknown> = {};
         if (existsSync(configPath)) {
-          omcConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
+          omacConfig = JSON.parse(readFileSync(configPath, 'utf-8'));
         }
         const detectedNode = resolveNodeBinary();
         if (detectedNode !== 'node') {
-          omcConfig.nodeBinary = detectedNode;
-          writeFileSync(configPath, JSON.stringify(omcConfig, null, 2));
-          log(`  Saved node binary path to .omc-config.json: ${detectedNode}`);
+          omacConfig.nodeBinary = detectedNode;
+          writeFileSync(configPath, JSON.stringify(omacConfig, null, 2));
+          log(`  Saved node binary path to .omac-config.json: ${detectedNode}`);
         }
       } catch {
         log('  Warning: Could not save node binary path (non-fatal)');
@@ -2264,15 +2264,15 @@ export function install(options: InstallOptions = {}): InstallResult {
 
       // Write workspace-level template-version stamp for drift detection in session-start
       try {
-        const omcRoot = getOmcRoot();
-        mkdirSync(omcRoot, { recursive: true });
+        const omacRoot = getOmacRoot();
+        mkdirSync(omacRoot, { recursive: true });
         const templateVersionStamp = {
           version: targetVersion,
           installedAt: new Date().toISOString(),
           pluginRoot: process.env.CLAUDE_PLUGIN_ROOT ?? null
         };
         writeFileSync(
-          join(omcRoot, 'template-version.json'),
+          join(omacRoot, 'template-version.json'),
           JSON.stringify(templateVersionStamp, null, 2)
         );
         log('Saved template-version stamp');
@@ -2310,7 +2310,7 @@ export function install(options: InstallOptions = {}): InstallResult {
 }
 
 /**
- * Check if OMC is already installed
+ * Check if OMAC is already installed
  */
 export function isInstalled(): boolean {
   return existsSync(VERSION_FILE) && (existsSync(AGENTS_DIR) || hasPluginProvidedAgentFiles());

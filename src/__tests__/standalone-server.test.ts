@@ -87,14 +87,14 @@ describe('standalone-server tool composition', () => {
     expect(skillsTools).toHaveLength(3);
   });
 
-  it('should include load_omc_skills_local tool', () => {
+  it('should include load_omac_skills_local tool', () => {
     const names = skillsTools.map(t => t.name);
-    expect(names).toContain('load_omc_skills_local');
+    expect(names).toContain('load_omac_skills_local');
   });
 
-  it('should include list_omc_skills tool', () => {
+  it('should include list_omac_skills tool', () => {
     const names = skillsTools.map(t => t.name);
-    expect(names).toContain('list_omc_skills');
+    expect(names).toContain('list_omac_skills');
   });
 
   it('should include deepinit_manifest tool', () => {

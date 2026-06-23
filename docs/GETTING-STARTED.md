@@ -1,16 +1,16 @@
 # Getting Started
 
-> Quick start guide: from installation to your first OMC session.
+> Quick start guide: from installation to your first OMAC session.
 
-If you're new to Oh My ClaudeCode (OMC), follow the steps below in order.
+If you're new to Oh My ClaudeCode (OMAC), follow the steps below in order.
 
-1. [Installation](#installation) - Install the OMC plugin and run initial setup
+1. [Installation](#installation) - Install the OMAC plugin and run initial setup
 2. [First Session](#first-session) - Run your first task with autopilot
 3. [Configuration](#configuration) - Customize settings and agent models per project
 
 ### What this guide covers
 
-- How to install the OMC plugin
+- How to install the OMAC plugin
 - Running your first autopilot session and understanding the flow
 - Configuring per-user and per-project settings
 
@@ -23,23 +23,23 @@ If you're new to Oh My ClaudeCode (OMC), follow the steps below in order.
 
 ## Installation
 
-OMC ships two surfaces and they are designed to coexist:
+OMAC ships two surfaces and they are designed to coexist:
 
 | Surface | What you get | Recommended install |
 |---|---|---|
-| **Claude Code plugin** (`oh-my-claudecode@omc`) | In-session skills, agents, hooks, statusline, MCP servers — the `/autopilot`, `/ralph`, `/ultrawork`, `/team` slash commands | Marketplace plugin install (Step 1–2 below) |
-| **Terminal CLI** (`omc` binary, package `oh-my-claude-sisyphus`) | Shell commands: `omc setup`, `omc update`, `omc team`, `omc ask`, and a hard-deprecated `omc autoresearch` shim | `npm i -g oh-my-claude-sisyphus@latest` |
+| **Claude Code plugin** (`oh-my-agent-connector@omac`) | In-session skills, agents, hooks, statusline, MCP servers — the `/autopilot`, `/ralph`, `/ultrawork`, `/team` slash commands | Marketplace plugin install (Step 1–2 below) |
+| **Terminal CLI** (`omac` binary, package `oh-my-agent-connector`) | Shell commands: `omac setup`, `omac update`, `omac team`, `omac ask`, and a hard-deprecated `omac autoresearch` shim | `npm i -g oh-my-agent-connector@latest` |
 
-Most users want **both**: the plugin for the in-session experience, and the npm CLI for shell-side automation and updates. Running them in parallel is fully supported — `omc update` and `omc setup` are idempotent and detect the plugin install to avoid duplicating in-session skills (#2252).
+Most users want **both**: the plugin for the in-session experience, and the npm CLI for shell-side automation and updates. Running them in parallel is fully supported — `omac update` and `omac setup` are idempotent and detect the plugin install to avoid duplicating in-session skills (#2252).
 
-> Older versions of this doc said OMC was "plugin-only". That was incorrect: the `omc` CLI is the canonical entry point for `omc setup`/`omc update` and is published on npm as `oh-my-claude-sisyphus`. See the [Quick Start in README.md](../README.md#quick-start) for the same two-path layout.
+> Older versions of this doc said OMAC was "plugin-only". That was incorrect: the `omac` CLI is the canonical entry point for `omac setup`/`omac update` and is published on npm as `oh-my-agent-connector`. See the [Quick Start in README.md](../README.md#quick-start) for the same two-path layout.
 
 ### Step 1: Add the marketplace source
 
 Run the following command inside Claude Code:
 
 ```bash
-/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
+/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-agent-connector
 ```
 
 ### Step 2: Install the plugin
@@ -47,25 +47,25 @@ Run the following command inside Claude Code:
 After adding the marketplace, install the plugin:
 
 ```bash
-/plugin install oh-my-claudecode
+/plugin install oh-my-agent-connector
 ```
 
 ### Step 2b (optional but recommended): install the terminal CLI
 
-If you want `omc setup`, `omc update`, `omc team`, `omc ask`, etc. on your shell:
+If you want `omac setup`, `omac update`, `omac team`, `omac ask`, etc. on your shell:
 
 ```bash
-npm i -g oh-my-claude-sisyphus@latest
+npm i -g oh-my-agent-connector@latest
 ```
 
 > **Known npm warning:** npm may print `deprecated prebuild-install@7.1.3` during this CLI install.
 > The warning currently comes from the upstream `better-sqlite3` native-addon dependency
 > (`better-sqlite3 -> prebuild-install`); `prebuild-install@7.1.3` is still the latest
 > published version, so there is no safe repo-side dependency bump or override to remove it
-> yet. The warning is tracked in [#2913](https://github.com/Yeachan-Heo/oh-my-claudecode/issues/2913)
-> and does not by itself mean the OMC CLI install failed.
+> yet. The warning is tracked in [#2913](https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/2913)
+> and does not by itself mean the OMAC CLI install failed.
 
-Both can be installed at the same time. The CLI auto-detects the plugin install and will not double-register skills under `~/.claude/skills/` (if you previously hit the duplicate-skill bug, run `omc update` once on 4.11.2+ — it self-heals leftover standalone skills that the plugin now provides via `prunePluginDuplicateSkills`).
+Both can be installed at the same time. The CLI auto-detects the plugin install and will not double-register skills under `~/.claude/skills/` (if you previously hit the duplicate-skill bug, run `omac update` once on 4.11.2+ — it self-heals leftover standalone skills that the plugin now provides via `prunePluginDuplicateSkills`).
 
 ### Step 3: Run initial setup
 
@@ -73,10 +73,10 @@ After installation, enter one of the following in Claude Code:
 
 ```bash
 # Option 1: natural language
-setup omc
+setup omac
 
 # Option 2: skill command
-/oh-my-claudecode:omc-setup
+/oh-my-agent-connector:omac-setup
 ```
 
 ### Prerequisites summary
@@ -90,10 +90,10 @@ setup omc
 
 #### Project-scoped setup (recommended)
 
-Applies OMC only to the current project:
+Applies OMAC only to the current project:
 
 ```bash
-/oh-my-claudecode:omc-setup --local
+/oh-my-agent-connector:omac-setup --local
 ```
 
 - Settings are saved to `./.claude/CLAUDE.md`
@@ -102,23 +102,23 @@ Applies OMC only to the current project:
 
 #### Global setup
 
-Applies OMC to all Claude Code sessions:
+Applies OMAC to all Claude Code sessions:
 
 ```bash
-/oh-my-claudecode:omc-setup
+/oh-my-agent-connector:omac-setup
 ```
 
 - Settings are saved to `~/.claude/CLAUDE.md`
 - Applied across all projects
 
-> ⚠️ **Warning:** Global setup now asks explicitly before changing your base `~/.claude/CLAUDE.md`. The default choice is still overwrite. If you choose preserve mode instead, plain `claude` stays on your base config and `omc` force-loads the OMC companion config.
+> ⚠️ **Warning:** Global setup now asks explicitly before changing your base `~/.claude/CLAUDE.md`. The default choice is still overwrite. If you choose preserve mode instead, plain `claude` stays on your base config and `omac` force-loads the OMAC companion config.
 
 ### Verifying the installation
 
 To confirm everything is working, run the diagnostics tool:
 
 ```bash
-/oh-my-claudecode:omc-doctor
+/oh-my-agent-connector:omac-doctor
 ```
 
 This checks the following:
@@ -131,10 +131,10 @@ This checks the following:
 
 ### Running from a local checkout
 
-If you're developing OMC or want to test unreleased features from a specific branch, you can launch Claude Code with your local checkout as the plugin:
+If you're developing OMAC or want to test unreleased features from a specific branch, you can launch Claude Code with your local checkout as the plugin:
 
 ```bash
-omc --plugin-dir /path/to/oh-my-claudecode setup --plugin-dir-mode
+omac --plugin-dir /path/to/oh-my-agent-connector setup --plugin-dir-mode
 ```
 
 This loads agents, skills, and commands directly from your checkout without copying them to `~/.claude/`. For detailed instructions and alternative flows, see [LOCAL_PLUGIN_INSTALL.md](./LOCAL_PLUGIN_INSTALL.md). For a complete decision matrix of plugin-dir flags and modes, see the [Plugin directory flags section in REFERENCE.md](./REFERENCE.md#plugin-directory-flags).
@@ -147,35 +147,35 @@ This loads agents, skills, and commands directly from your checkout without copy
 | Linux | Claude Code Plugin | Bash (.sh) |
 | Windows | WSL2 recommended | Node.js (.mjs) |
 
-> ℹ️ **Note:** Native Windows support is experimental. OMC requires tmux, which is not available on native Windows. Use WSL2 instead.
+> ℹ️ **Note:** Native Windows support is experimental. OMAC requires tmux, which is not available on native Windows. Use WSL2 instead.
 
 ### Updates
 
-OMC automatically checks for updates every 24 hours. To update manually, re-run the plugin install command.
+OMAC automatically checks for updates every 24 hours. To update manually, re-run the plugin install command.
 
-> ⚠️ **Warning:** After a plugin update, run `/oh-my-claudecode:omc-setup` again to apply the latest configuration.
+> ⚠️ **Warning:** After a plugin update, run `/oh-my-agent-connector:omac-setup` again to apply the latest configuration.
 
 ### Uninstalling
 
 ```bash
-/plugin uninstall oh-my-claudecode@oh-my-claudecode
+/plugin uninstall oh-my-agent-connector@oh-my-agent-connector
 ```
 
 ---
 
 ## First Session
 
-Once OMC is installed, run your first task immediately. Open Claude Code and type:
+Once OMAC is installed, run your first task immediately. Open Claude Code and type:
 
 ```bash
 autopilot build me a hello world app
 ```
 
-That single line is enough for OMC to run the full development pipeline automatically.
+That single line is enough for OMAC to run the full development pipeline automatically.
 
 ### What happens
 
-When OMC detects the `autopilot` magic keyword, it starts a 5-stage pipeline:
+When OMAC detects the `autopilot` magic keyword, it starts a 5-stage pipeline:
 
 ### Stage 1: Expansion
 
@@ -202,7 +202,7 @@ Specialist agents perform a final review of functionality, security, and code qu
 While work is in progress, you can monitor the current state in the Claude Code status bar (HUD):
 
 ```
-[OMC] autopilot:execution | agents:3 | todos:2/5 | ctx:45%
+[OMAC] autopilot:execution | agents:3 | todos:2/5 | ctx:45%
 ```
 
 | Field | Meaning |
@@ -215,7 +215,7 @@ While work is in progress, you can monitor the current state in the Claude Code 
 To configure the HUD display, run:
 
 ```bash
-/oh-my-claudecode:hud setup
+/oh-my-agent-connector:hud setup
 ```
 
 ### Starting smaller
@@ -244,22 +244,22 @@ These keywords invoke a single appropriate agent directly, without running the f
 
 ## Configuration
 
-OMC supports two levels of configuration files.
+OMAC supports two levels of configuration files.
 
 | Scope | File path | Purpose |
 |-------|-----------|---------|
-| User (global) | `~/.config/claude-omc/config.jsonc` | Applied to all projects |
-| Project | `.claude/omc.jsonc` | Applied to current project only |
+| User (global) | `~/.config/claude-omac/config.jsonc` | Applied to all projects |
+| Project | `.claude/omac.jsonc` | Applied to current project only |
 
-> ⚠️ **Warning:** The configuration file format is JSONC (JSON with comments support). It is not a TypeScript config file (`omc.config.ts`).
+> ⚠️ **Warning:** The configuration file format is JSONC (JSON with comments support). It is not a TypeScript config file (`omac.config.ts`).
 
 ### Configuration priority
 
 When settings exist from multiple sources, they are merged in the following order (lower entries take precedence):
 
 ```
-Defaults → User config (~/.config/claude-omc/config.jsonc)
-         → Project config (.claude/omc.jsonc)
+Defaults → User config (~/.config/claude-omac/config.jsonc)
+         → Project config (.claude/omac.jsonc)
          → Environment variables
 ```
 
@@ -299,7 +299,7 @@ Defaults → User config (~/.config/claude-omc/config.jsonc)
 
 ### Company context via MCP
 
-If your organization exposes internal guidance through a custom MCP server, configure the selected tool in OMC's standard config files:
+If your organization exposes internal guidance through a custom MCP server, configure the selected tool in OMAC's standard config files:
 
 ```jsonc
 {
@@ -310,7 +310,7 @@ If your organization exposes internal guidance through a custom MCP server, conf
 }
 ```
 
-- Register the MCP server itself through the normal Claude/OMC MCP setup flow.
+- Register the MCP server itself through the normal Claude/OMAC MCP setup flow.
 - `tool` is the full MCP tool name.
 - `onError` controls prompt-level fallback: `warn` (default), `silent`, or `fail`.
 
@@ -385,7 +385,7 @@ You can change keywords in four categories via the `magicKeywords` section of `c
 
 ### Model routing configuration
 
-OMC automatically selects a model tier based on task complexity:
+OMAC automatically selects a model tier based on task complexity:
 
 ```jsonc
 {
@@ -407,7 +407,7 @@ OMC automatically selects a model tier based on task complexity:
 
 ### CLAUDE.md configuration
 
-OMC's default behavior is also configured via `CLAUDE.md` files. Running `/oh-my-claudecode:omc-setup` generates this file automatically.
+OMAC's default behavior is also configured via `CLAUDE.md` files. Running `/oh-my-agent-connector:omac-setup` generates this file automatically.
 
 | Scope | File | Description |
 |-------|------|-------------|
@@ -417,6 +417,6 @@ OMC's default behavior is also configured via `CLAUDE.md` files. Running `/oh-my
 ### When to re-run setup
 
 - After initial installation
-- After an OMC update (to apply the latest configuration)
+- After an OMAC update (to apply the latest configuration)
 - When switching to a different machine
 - When starting a new project (use the `--local` option)

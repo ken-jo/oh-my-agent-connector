@@ -6,7 +6,7 @@ import {
   resolveToWorktreeRoot,
   validateSessionId,
   validateWorkingDirectory,
-  getOmcRoot,
+  getOmacRoot,
 } from '../../lib/worktree-paths.js';
 import { getClaudeConfigDir } from '../../utils/config-dir.js';
 import type {
@@ -163,17 +163,17 @@ function buildCurrentProjectTargets(projectRoot: string): SearchTarget[] {
     targets.push({ filePath, sourceType: 'legacy-transcript' });
   }
 
-  const omcRoot = getOmcRoot(projectRoot);
-  const sessionSummariesDir = join(omcRoot, 'sessions');
+  const omacRoot = getOmacRoot(projectRoot);
+  const sessionSummariesDir = join(omacRoot, 'sessions');
   for (const filePath of listJsonlFiles(sessionSummariesDir)) {
-    targets.push({ filePath, sourceType: 'omc-session-summary' });
+    targets.push({ filePath, sourceType: 'omac-session-summary' });
   }
 
-  const replayDir = join(omcRoot, 'state');
+  const replayDir = join(omacRoot, 'state');
   if (existsSync(replayDir)) {
     for (const filePath of listJsonlFiles(replayDir)) {
       if (filePath.includes('agent-replay-') && filePath.endsWith('.jsonl')) {
-        targets.push({ filePath, sourceType: 'omc-session-replay' });
+        targets.push({ filePath, sourceType: 'omac-session-replay' });
       }
     }
   }
@@ -335,7 +335,7 @@ function buildJsonArtifactEntry(entry: Record<string, unknown>, sourceType: Sear
         ? entry.timestamp
         : undefined;
 
-  const entryType = sourceType === 'omc-session-summary' ? 'session-summary' : 'session-replay';
+  const entryType = sourceType === 'omac-session-summary' ? 'session-summary' : 'session-replay';
 
   return {
     sessionId,
@@ -347,11 +347,11 @@ function buildJsonArtifactEntry(entry: Record<string, unknown>, sourceType: Sear
 }
 
 function buildSearchableEntry(entry: Record<string, unknown>, sourceType: SearchTarget['sourceType']): SearchableEntry | null {
-  if (sourceType === 'project-transcript' || sourceType === 'legacy-transcript' || sourceType === 'omc-session-replay') {
-    return buildTranscriptEntry(entry) ?? (sourceType === 'omc-session-replay' ? buildJsonArtifactEntry(entry, sourceType) : null);
+  if (sourceType === 'project-transcript' || sourceType === 'legacy-transcript' || sourceType === 'omac-session-replay') {
+    return buildTranscriptEntry(entry) ?? (sourceType === 'omac-session-replay' ? buildJsonArtifactEntry(entry, sourceType) : null);
   }
 
-  if (sourceType === 'omc-session-summary') {
+  if (sourceType === 'omac-session-summary') {
     return buildJsonArtifactEntry(entry, sourceType);
   }
 
@@ -410,7 +410,7 @@ async function collectMatchesFromFile(
   const matches: SessionHistoryMatch[] = [];
   const fileMtime = existsSync(target.filePath) ? statSync(target.filePath).mtimeMs : 0;
 
-  if (target.sourceType === 'omc-session-summary' && target.filePath.endsWith('.json')) {
+  if (target.sourceType === 'omac-session-summary' && target.filePath.endsWith('.json')) {
     try {
       const payload = JSON.parse(await import('fs/promises').then((fs) => fs.readFile(target.filePath, 'utf-8')));
       const entry = buildSearchableEntry(payload as Record<string, unknown>, target.sourceType);

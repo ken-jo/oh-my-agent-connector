@@ -357,7 +357,7 @@ function generateContinuationPrompt(
 
   const phasePrompt = getPhasePrompt(state.phase, {
     idea: state.originalIdea,
-    specPath: state.expansion.spec_path || `.omc/autopilot/spec.md`,
+    specPath: state.expansion.spec_path || `.omac/autopilot/spec.md`,
     planPath: state.planning.plan_path || resolveAutopilotPlanPath(),
     openQuestionsPath: resolveOpenQuestionsPlanPath(),
   });
@@ -474,7 +474,7 @@ function checkPipelineAutopilot(
       idea: state.originalIdea,
       directory: state.project_path || directory,
       sessionId,
-      specPath: state.expansion.spec_path || ".omc/autopilot/spec.md",
+      specPath: state.expansion.spec_path || ".omac/autopilot/spec.md",
       planPath: state.planning.plan_path || resolveAutopilotPlanPath(),
       openQuestionsPath: resolveOpenQuestionsPlanPath(),
       config: tracking.pipelineConfig,
@@ -523,7 +523,7 @@ ${stagePrompt}
     idea: state.originalIdea,
     directory: state.project_path || directory,
     sessionId,
-    specPath: state.expansion.spec_path || ".omc/autopilot/spec.md",
+    specPath: state.expansion.spec_path || ".omac/autopilot/spec.md",
     planPath: state.planning.plan_path || resolveAutopilotPlanPath(),
     openQuestionsPath: resolveOpenQuestionsPlanPath(),
     config: tracking.pipelineConfig,

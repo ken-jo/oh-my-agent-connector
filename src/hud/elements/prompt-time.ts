@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Prompt Time Element
+ * OMAC HUD - Prompt Time Element
  *
  * Renders elapsed time since the last user prompt submission.
  * Recorded by the keyword-detector hook on UserPromptSubmit.

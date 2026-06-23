@@ -4,8 +4,8 @@
  * Manages dispatch/requests.json with atomic read/write, dedup, and
  * directory-based locking (O_EXCL mkdir) with stale lock detection.
  *
- * State file: .omc/state/team/{name}/dispatch/requests.json
- * Lock path:  .omc/state/team/{name}/dispatch/.lock/
+ * State file: .omac/state/team/{name}/dispatch/requests.json
+ * Lock path:  .omac/state/team/{name}/dispatch/.lock/
  *
  * Mirrors OMX src/team/state/dispatch.ts behavior exactly.
  */
@@ -61,7 +61,7 @@ export interface TeamDispatchRequestInput {
 
 // ── Lock constants ─────────────────────────────────────────────────────────
 
-const OMC_DISPATCH_LOCK_TIMEOUT_ENV = 'OMC_TEAM_DISPATCH_LOCK_TIMEOUT_MS';
+const OMAC_DISPATCH_LOCK_TIMEOUT_ENV = 'OMAC_TEAM_DISPATCH_LOCK_TIMEOUT_MS';
 const DEFAULT_DISPATCH_LOCK_TIMEOUT_MS = 15_000;
 const MIN_DISPATCH_LOCK_TIMEOUT_MS = 1_000;
 const MAX_DISPATCH_LOCK_TIMEOUT_MS = 120_000;
@@ -88,7 +88,7 @@ function isDispatchStatus(value: unknown): value is TeamDispatchRequestStatus {
 // ── Lock ───────────────────────────────────────────────────────────────────
 
 export function resolveDispatchLockTimeoutMs(env: NodeJS.ProcessEnv = process.env): number {
-  const raw = env[OMC_DISPATCH_LOCK_TIMEOUT_ENV];
+  const raw = env[OMAC_DISPATCH_LOCK_TIMEOUT_ENV];
   if (raw === undefined || raw === '') return DEFAULT_DISPATCH_LOCK_TIMEOUT_MS;
   const parsed = Number(raw);
   if (!Number.isFinite(parsed)) return DEFAULT_DISPATCH_LOCK_TIMEOUT_MS;
@@ -135,7 +135,7 @@ async function withDispatchLock<T>(teamName: string, cwd: string, fn: () => Prom
       if (Date.now() > deadline) {
         throw new Error(
           `Timed out acquiring dispatch lock for ${teamName} after ${timeoutMs}ms. ` +
-          `Set ${OMC_DISPATCH_LOCK_TIMEOUT_ENV} to increase (current: ${timeoutMs}ms, max: ${MAX_DISPATCH_LOCK_TIMEOUT_MS}ms).`,
+          `Set ${OMAC_DISPATCH_LOCK_TIMEOUT_ENV} to increase (current: ${timeoutMs}ms, max: ${MAX_DISPATCH_LOCK_TIMEOUT_MS}ms).`,
         );
       }
 

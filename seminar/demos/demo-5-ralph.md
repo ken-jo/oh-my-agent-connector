@@ -6,7 +6,7 @@
 ## Pre-requisites
 
 - Project with a complex refactoring task that might hit errors
-- OMC installed and configured
+- OMAC installed and configured
 - Understanding that Ralph never gives up until verified complete
 
 ## Setup (2 minutes before demo)
@@ -461,14 +461,14 @@ Total: 3 iterations, 2 self-corrections, 1m 20s
 
 ### Variation 1: Ralph with Structured PRD
 ```
-/oh-my-claudecode:ralph-init
+/oh-my-agent-connector:ralph-init
 ```
 
 "Ralph-init creates a Product Requirements Document. Ralph then works against that PRD with structured verification."
 
 ### Variation 2: Show Ralph State
 ```bash
-cat .omc/state/ralph-state.json
+cat .omac/state/ralph-state.json
 ```
 
 "Ralph state shows iteration history, errors encountered, fixes applied. Useful for debugging complex migrations."
@@ -499,11 +499,11 @@ ralph ulw: refactor all auth modules to TypeScript
 
 ## Closing Statement
 
-"That's Ralph - your persistent agent that never gives up. Errors? Fixed automatically. Complete? Only when architect-verified. This is what makes OMC production-ready, not just a demo."
+"That's Ralph - your persistent agent that never gives up. Errors? Fixed automatically. Complete? Only when architect-verified. This is what makes OMAC production-ready, not just a demo."
 
 **Transition to Q&A or Summary:**
 
-"We've seen five modes of OMC:
+"We've seen five modes of OMAC:
 1. **Autopilot** - Full autonomous execution
 2. **Ultrawork** - Maximum parallelism
 3. **Pipeline** - Sequential coordination
@@ -533,10 +533,10 @@ A: Yes! Perfect use case. Ralph will attempt migration, handle errors (missing c
 A: Higher than single-pass due to iterations, but you're paying for guaranteed completion. A failed manual attempt costs MORE (wasted time + tokens).
 
 **Q: Can I see what Ralph is thinking during iterations?**
-A: Yes! Check `.omc/state/ralph-state.json` for iteration log, or use verbose mode: "ralph --verbose: refactor X"
+A: Yes! Check `.omac/state/ralph-state.json` for iteration log, or use verbose mode: "ralph --verbose: refactor X"
 
 **Q: What happens if I cancel Ralph mid-iteration?**
-A: State is saved. Resume with "resume ralph" or "/oh-my-claudecode:resume-session". It picks up where it left off.
+A: State is saved. Resume with "resume ralph" or "/oh-my-agent-connector:resume-session". It picks up where it left off.
 
 **Q: Best practices for Ralph tasks?**
 A:

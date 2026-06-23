@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Permission Status Element
+ * OMAC HUD - Permission Status Element
  *
  * Renders heuristic-based permission pending indicator.
  */

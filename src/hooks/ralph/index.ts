@@ -61,7 +61,7 @@ export {
   writePrd,
   findPrdPath,
   getPrdPath,
-  getOmcPrdPath,
+  getOmacPrdPath,
   getSessionPrdPath,
   getLegacyStatePrdPath,
 
@@ -104,7 +104,7 @@ export {
   parseProgress,
   findProgressPath,
   getProgressPath,
-  getOmcProgressPath,
+  getOmacProgressPath,
 
   // Progress operations
   initProgress,

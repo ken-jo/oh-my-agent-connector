@@ -39,7 +39,7 @@ describe("Skill Bridge Module", () => {
     clearSkillSession("emitted-learner-session");
     contextCollector.clear("emitted-learner-session");
     originalCwd = process.cwd();
-    testProjectRoot = join(tmpdir(), `omc-bridge-test-${Date.now()}`);
+    testProjectRoot = join(tmpdir(), `omac-bridge-test-${Date.now()}`);
     mkdirSync(testProjectRoot, { recursive: true });
     process.chdir(testProjectRoot);
   });
@@ -54,8 +54,8 @@ describe("Skill Bridge Module", () => {
   });
 
   describe("findSkillFiles", () => {
-    it("should discover skills in project .omc/skills/", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+    it("should discover skills in project .omac/skills/", () => {
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       writeFileSync(
@@ -90,7 +90,7 @@ describe("Skill Bridge Module", () => {
     });
 
     it("should discover skills recursively in subdirectories", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       const subDir = join(skillsDir, "subdir", "nested");
       mkdirSync(subDir, { recursive: true });
 
@@ -114,7 +114,7 @@ describe("Skill Bridge Module", () => {
     });
 
     it("should ignore non-.md files", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       writeFileSync(
@@ -133,7 +133,7 @@ describe("Skill Bridge Module", () => {
     });
 
     it("should treat symlinked project roots as within boundary", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       writeFileSync(
@@ -143,7 +143,7 @@ describe("Skill Bridge Module", () => {
 
       const linkedProjectRoot = join(
         tmpdir(),
-        `omc-bridge-link-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        `omac-bridge-link-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       );
 
       try {
@@ -232,7 +232,7 @@ Content`;
 
   describe("matchSkillsForInjection", () => {
     it("should match skills by trigger substring", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       writeFileSync(
@@ -252,7 +252,7 @@ Content`;
     });
 
     it("returns compact descriptor metadata for matched skills", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       const longBody = `${"Full body secret. ".repeat(200)}Do not inject this whole body.`;
@@ -280,7 +280,7 @@ ${longBody}`,
     });
 
     it("registers emitted learner context as compact descriptors within budget", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       const giantBody = `${"Sensitive full body content. ".repeat(400)}Tail.`;
@@ -320,7 +320,7 @@ ${giantBody}`,
     });
 
     it("keeps learner omission text inside the descriptor budget", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       const largeSummary = "Summary ".repeat(220);
@@ -356,7 +356,7 @@ Body`,
     });
 
     it("should not match when triggers dont match", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       writeFileSync(
@@ -374,7 +374,7 @@ Body`,
     });
 
     it("should not match skills with empty scalar triggers", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       writeFileSync(
@@ -392,7 +392,7 @@ Body`,
     });
 
     it("should ignore blank trigger entries while matching valid triggers", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       writeFileSync(
@@ -425,7 +425,7 @@ Mixed trigger instructions`,
     });
 
     it("should use fuzzy matching when opt-in", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       // Skill with fuzzy matching enabled
@@ -447,7 +447,7 @@ Mixed trigger instructions`,
     });
 
     it("should respect skill limit", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       // Create 10 skills that all match "test"
@@ -502,7 +502,7 @@ Mixed trigger instructions`,
 
       const stateFile = join(
         testProjectRoot,
-        ".omc",
+        ".omac",
         "state",
         "skill-sessions.json",
       );
@@ -516,7 +516,7 @@ Mixed trigger instructions`,
     });
 
     it("should not re-inject already injected skills", () => {
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       writeFileSync(
@@ -549,7 +549,7 @@ Mixed trigger instructions`,
     it("should return project skills before user skills", () => {
       // We can't easily test user skills dir in isolation, but we can verify
       // that project skills come first in the returned array
-      const skillsDir = join(testProjectRoot, ".omc", "skills");
+      const skillsDir = join(testProjectRoot, ".omac", "skills");
       mkdirSync(skillsDir, { recursive: true });
 
       writeFileSync(

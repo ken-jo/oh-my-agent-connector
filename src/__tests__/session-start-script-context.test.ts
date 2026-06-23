@@ -13,11 +13,11 @@ describe('session-start.mjs regression #1386', () => {
   let fakeProject: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-session-start-script-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-session-start-script-'));
     fakeHome = join(tempDir, 'home');
     fakeProject = join(tempDir, 'project');
-    mkdirSync(join(fakeProject, '.omc', 'state', 'sessions', 'session-1386'), { recursive: true });
-    // session-start validateCwd requires a real workspace anchor (.git / .omc-workspace)
+    mkdirSync(join(fakeProject, '.omac', 'state', 'sessions', 'session-1386'), { recursive: true });
+    // session-start validateCwd requires a real workspace anchor (.git / .omac-workspace)
     mkdirSync(join(fakeProject, '.git'), { recursive: true });
   });
 
@@ -27,7 +27,7 @@ describe('session-start.mjs regression #1386', () => {
 
   it('marks restored ultrawork state as prior-session context instead of imperative continuation', () => {
     writeFileSync(
-      join(fakeProject, '.omc', 'state', 'sessions', 'session-1386', 'ultrawork-state.json'),
+      join(fakeProject, '.omac', 'state', 'sessions', 'session-1386', 'ultrawork-state.json'),
       JSON.stringify({
         active: true,
         session_id: 'session-1386',
@@ -62,9 +62,9 @@ describe('session-start.mjs regression #1386', () => {
   });
 
   it('injects persisted project memory into session-start additionalContext', () => {
-    mkdirSync(join(fakeProject, '.omc'), { recursive: true });
+    mkdirSync(join(fakeProject, '.omac'), { recursive: true });
     writeFileSync(
-      join(fakeProject, '.omc', 'project-memory.json'),
+      join(fakeProject, '.omac', 'project-memory.json'),
       JSON.stringify({
         version: '1.0.0',
         lastScanned: Date.now(),
@@ -158,7 +158,7 @@ describe('session-start.mjs regression #1386', () => {
   it('injects model routing override for non-standard providers before lower-priority context', () => {
     writeFileSync(
       join(fakeProject, 'AGENTS.md'),
-      `# oh-my-claudecode - Intelligent Multi-Agent Orchestration
+      `# oh-my-agent-connector - Intelligent Multi-Agent Orchestration
 
 <guidance_schema_contract>schema</guidance_schema_contract>
 
@@ -201,14 +201,14 @@ ${'- oversized startup guidance\n'.repeat(700)}
   it('surfaces update notices through systemMessage without injecting them into additionalContext', () => {
     const claudeDir = join(fakeHome, '.claude');
     const pluginRoot = join(tempDir, 'plugin');
-    mkdirSync(join(claudeDir, '.omc'), { recursive: true });
+    mkdirSync(join(claudeDir, '.omac'), { recursive: true });
     mkdirSync(join(claudeDir, 'hud'), { recursive: true });
     mkdirSync(pluginRoot, { recursive: true });
     writeFileSync(join(pluginRoot, 'package.json'), JSON.stringify({ version: '1.0.0', type: 'module' }));
-    writeFileSync(join(claudeDir, 'hud', 'omc-hud.mjs'), '');
-    writeFileSync(join(claudeDir, 'settings.json'), JSON.stringify({ statusLine: 'node ~/.claude/hud/omc-hud.mjs' }));
+    writeFileSync(join(claudeDir, 'hud', 'omac-hud.mjs'), '');
+    writeFileSync(join(claudeDir, 'settings.json'), JSON.stringify({ statusLine: 'node ~/.claude/hud/omac-hud.mjs' }));
     writeFileSync(
-      join(claudeDir, '.omc', 'update-check.json'),
+      join(claudeDir, '.omac', 'update-check.json'),
       JSON.stringify({
         timestamp: Date.now(),
         latestVersion: '999.0.0',
@@ -229,7 +229,7 @@ ${'- oversized startup guidance\n'.repeat(700)}
         HOME: fakeHome,
         USERPROFILE: fakeHome,
         CLAUDE_PLUGIN_ROOT: pluginRoot,
-        OMC_NOTIFY: '0',
+        OMAC_NOTIFY: '0',
       },
       timeout: 15000,
     });
@@ -242,27 +242,27 @@ ${'- oversized startup guidance\n'.repeat(700)}
       hookSpecificOutput?: { additionalContext?: string };
     };
     expect(output.continue).toBe(true);
-    expect(output.systemMessage).toContain('[OMC UPDATE AVAILABLE]');
+    expect(output.systemMessage).toContain('[OMAC UPDATE AVAILABLE]');
     expect(output.systemMessage).toContain('v999.0.0');
     expect(output.systemMessage).toContain('/update');
-    expect(output.hookSpecificOutput?.additionalContext ?? '').not.toContain('[OMC UPDATE AVAILABLE]');
+    expect(output.hookSpecificOutput?.additionalContext ?? '').not.toContain('[OMAC UPDATE AVAILABLE]');
     expect(output.hookSpecificOutput?.additionalContext ?? '').not.toContain('999.0.0');
   });
 
   it('does not show update notice when stale CLAUDE_PLUGIN_ROOT is older than plugin cache', () => {
     const claudeDir = join(fakeHome, '.claude');
-    const stalePluginRoot = join(claudeDir, 'plugins', 'cache', 'omc', 'oh-my-claudecode', '4.14.4');
-    const latestPluginRoot = join(claudeDir, 'plugins', 'cache', 'omc', 'oh-my-claudecode', '4.14.5');
-    mkdirSync(join(claudeDir, '.omc'), { recursive: true });
+    const stalePluginRoot = join(claudeDir, 'plugins', 'cache', 'omac', 'oh-my-agent-connector', '4.14.4');
+    const latestPluginRoot = join(claudeDir, 'plugins', 'cache', 'omac', 'oh-my-agent-connector', '4.14.5');
+    mkdirSync(join(claudeDir, '.omac'), { recursive: true });
     mkdirSync(join(claudeDir, 'hud'), { recursive: true });
     mkdirSync(stalePluginRoot, { recursive: true });
     mkdirSync(latestPluginRoot, { recursive: true });
     writeFileSync(join(stalePluginRoot, 'package.json'), JSON.stringify({ version: '4.14.4', type: 'module' }));
     writeFileSync(join(latestPluginRoot, 'package.json'), JSON.stringify({ version: '4.14.5', type: 'module' }));
-    writeFileSync(join(claudeDir, 'hud', 'omc-hud.mjs'), '');
-    writeFileSync(join(claudeDir, 'settings.json'), JSON.stringify({ statusLine: 'node ~/.claude/hud/omc-hud.mjs' }));
+    writeFileSync(join(claudeDir, 'hud', 'omac-hud.mjs'), '');
+    writeFileSync(join(claudeDir, 'settings.json'), JSON.stringify({ statusLine: 'node ~/.claude/hud/omac-hud.mjs' }));
     writeFileSync(
-      join(claudeDir, '.omc', 'update-check.json'),
+      join(claudeDir, '.omac', 'update-check.json'),
       JSON.stringify({
         timestamp: Date.now(),
         latestVersion: '4.14.5',
@@ -283,7 +283,7 @@ ${'- oversized startup guidance\n'.repeat(700)}
         HOME: fakeHome,
         USERPROFILE: fakeHome,
         CLAUDE_PLUGIN_ROOT: stalePluginRoot,
-        OMC_NOTIFY: '0',
+        OMAC_NOTIFY: '0',
       },
       timeout: 15000,
     });
@@ -296,9 +296,9 @@ ${'- oversized startup guidance\n'.repeat(700)}
       hookSpecificOutput?: { additionalContext?: string };
     };
     expect(output.continue).toBe(true);
-    expect(output.systemMessage ?? '').not.toContain('[OMC UPDATE AVAILABLE]');
+    expect(output.systemMessage ?? '').not.toContain('[OMAC UPDATE AVAILABLE]');
     expect(output.systemMessage ?? '').not.toContain('4.14.4');
-    expect(output.hookSpecificOutput?.additionalContext ?? '').not.toContain('[OMC UPDATE AVAILABLE]');
+    expect(output.hookSpecificOutput?.additionalContext ?? '').not.toContain('[OMAC UPDATE AVAILABLE]');
   });
 
 });

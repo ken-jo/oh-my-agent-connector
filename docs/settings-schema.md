@@ -1,17 +1,17 @@
 # Settings Schema
 
-This page documents OMC-owned configuration keys in the standard OMC config files:
+This page documents OMAC-owned configuration keys in the standard OMAC config files:
 
-- Project: `.claude/omc.jsonc`
-- User: `~/.config/claude-omc/config.jsonc`
+- Project: `.claude/omac.jsonc`
+- User: `~/.config/claude-omac/config.jsonc`
 
 Project config overrides user config.
 
-## `omc.companyContext` / `companyContext`
+## `omac.companyContext` / `companyContext`
 
-Issue #2692 and the PR #2694 follow-up review refer to this setting as `omc.companyContext`.
-In the current OMC config surface, the same block is written as the top-level
-`companyContext` object inside the OMC config files above.
+Issue #2692 and the PR #2694 follow-up review refer to this setting as `omac.companyContext`.
+In the current OMAC config surface, the same block is written as the top-level
+`companyContext` object inside the OMAC config files above.
 
 ```jsonc
 {

@@ -41,9 +41,9 @@ export interface DiscordNotificationConfig {
 /** Discord Bot API configuration (bot token + channel ID) */
 export interface DiscordBotNotificationConfig {
   enabled: boolean;
-  /** Discord bot token (or env var: OMC_DISCORD_NOTIFIER_BOT_TOKEN) */
+  /** Discord bot token (or env var: OMAC_DISCORD_NOTIFIER_BOT_TOKEN) */
   botToken?: string;
-  /** Channel ID to send messages to (or env var: OMC_DISCORD_NOTIFIER_CHANNEL) */
+  /** Channel ID to send messages to (or env var: OMAC_DISCORD_NOTIFIER_CHANNEL) */
   channelId?: string;
   /** Optional mention to prepend to messages (e.g. "<@123456>" for user, "<@&789>" for role) */
   mention?: string;
@@ -136,7 +136,7 @@ export interface EventNotificationConfig {
   webhook?: WebhookNotificationConfig;
 }
 
-/** Top-level notification configuration (stored in .omc-config.json) */
+/** Top-level notification configuration (stored in .omac-config.json) */
 export interface NotificationConfig {
   /** Global enable/disable for all notifications */
   enabled: boolean;
@@ -182,7 +182,7 @@ export interface NotificationPayload {
   projectPath?: string;
   /** Basename of the project directory */
   projectName?: string;
-  /** Active OMC modes during this session */
+  /** Active OMAC modes during this session */
   modesUsed?: string[];
   /** Context summary of what was done */
   contextSummary?: string;
@@ -210,7 +210,7 @@ export interface NotificationPayload {
   tmuxPaneId?: string;
   /** Agent name for agent-call events (e.g., "executor", "architect") */
   agentName?: string;
-  /** Agent type for agent-call events (e.g., "oh-my-claudecode:executor") */
+  /** Agent type for agent-call events (e.g., "oh-my-agent-connector:executor") */
   agentType?: string;
   /** Captured tmux pane content (last N lines) */
   tmuxTail?: string;

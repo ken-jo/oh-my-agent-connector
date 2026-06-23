@@ -3,11 +3,11 @@
 SWE-bench Failure Analysis Tool
 
 Analyze failed instances to identify patterns, categorize failures,
-and understand differences between vanilla and OMC runs.
+and understand differences between vanilla and OMAC runs.
 
 Usage:
     python analyze_failures.py --results results/vanilla/ --predictions predictions.json
-    python analyze_failures.py --vanilla results/vanilla/ --omc results/omc/ --compare
+    python analyze_failures.py --vanilla results/vanilla/ --omac results/omac/ --compare
 """
 
 import argparse
@@ -364,54 +364,54 @@ def generate_recommendations(analysis: dict[str, Any]) -> list[dict[str, str]]:
 
 def compare_failures(
     vanilla_analysis: dict[str, Any],
-    omc_analysis: dict[str, Any]
+    omac_analysis: dict[str, Any]
 ) -> dict[str, Any]:
-    """Compare failure patterns between vanilla and OMC."""
+    """Compare failure patterns between vanilla and OMAC."""
     comparison = {
         "timestamp": datetime.now().isoformat(),
         "vanilla_failures": vanilla_analysis["total_failures"],
-        "omc_failures": omc_analysis["total_failures"],
+        "omac_failures": omac_analysis["total_failures"],
         "category_comparison": {},
         "unique_to_vanilla": [],
-        "unique_to_omc": [],
+        "unique_to_omac": [],
         "common_failures": [],
         "insights": []
     }
 
     # Category comparison
     all_categories = set(vanilla_analysis["category_counts"].keys()) | \
-                    set(omc_analysis["category_counts"].keys())
+                    set(omac_analysis["category_counts"].keys())
 
     for category in all_categories:
         vanilla_count = vanilla_analysis["category_counts"].get(category, 0)
-        omc_count = omc_analysis["category_counts"].get(category, 0)
+        omac_count = omac_analysis["category_counts"].get(category, 0)
 
         comparison["category_comparison"][category] = {
             "vanilla": vanilla_count,
-            "omc": omc_count,
-            "delta": omc_count - vanilla_count
+            "omac": omac_count,
+            "delta": omac_count - vanilla_count
         }
 
     # Instance comparison
     vanilla_failed = {f["instance_id"] for f in vanilla_analysis["failures"]}
-    omc_failed = {f["instance_id"] for f in omc_analysis["failures"]}
+    omac_failed = {f["instance_id"] for f in omac_analysis["failures"]}
 
-    comparison["unique_to_vanilla"] = list(vanilla_failed - omc_failed)
-    comparison["unique_to_omc"] = list(omc_failed - vanilla_failed)
-    comparison["common_failures"] = list(vanilla_failed & omc_failed)
+    comparison["unique_to_vanilla"] = list(vanilla_failed - omac_failed)
+    comparison["unique_to_omac"] = list(omac_failed - vanilla_failed)
+    comparison["common_failures"] = list(vanilla_failed & omac_failed)
 
     # Generate insights
     insights = []
 
-    if len(comparison["unique_to_vanilla"]) > len(comparison["unique_to_omc"]):
+    if len(comparison["unique_to_vanilla"]) > len(comparison["unique_to_omac"]):
         insights.append({
             "type": "positive",
-            "message": f"OMC fixed {len(comparison['unique_to_vanilla'])} failures that vanilla couldn't solve."
+            "message": f"OMAC fixed {len(comparison['unique_to_vanilla'])} failures that vanilla couldn't solve."
         })
-    elif len(comparison["unique_to_omc"]) > len(comparison["unique_to_vanilla"]):
+    elif len(comparison["unique_to_omac"]) > len(comparison["unique_to_vanilla"]):
         insights.append({
             "type": "negative",
-            "message": f"OMC introduced {len(comparison['unique_to_omc'])} new failures compared to vanilla."
+            "message": f"OMAC introduced {len(comparison['unique_to_omac'])} new failures compared to vanilla."
         })
 
     # Check for category improvements
@@ -419,12 +419,12 @@ def compare_failures(
         if counts["delta"] < -2:
             insights.append({
                 "type": "positive",
-                "message": f"OMC reduced '{category}' failures by {abs(counts['delta'])}."
+                "message": f"OMAC reduced '{category}' failures by {abs(counts['delta'])}."
             })
         elif counts["delta"] > 2:
             insights.append({
                 "type": "negative",
-                "message": f"OMC increased '{category}' failures by {counts['delta']}."
+                "message": f"OMAC increased '{category}' failures by {counts['delta']}."
             })
 
     comparison["insights"] = insights
@@ -492,17 +492,17 @@ def generate_failure_report(
     if comparison:
         lines.extend([
             "",
-            "## Vanilla vs OMC Comparison",
+            "## Vanilla vs OMAC Comparison",
             "",
             f"- **Vanilla Failures:** {comparison['vanilla_failures']}",
-            f"- **OMC Failures:** {comparison['omc_failures']}",
-            f"- **Fixed by OMC:** {len(comparison['unique_to_vanilla'])}",
-            f"- **New in OMC:** {len(comparison['unique_to_omc'])}",
+            f"- **OMAC Failures:** {comparison['omac_failures']}",
+            f"- **Fixed by OMAC:** {len(comparison['unique_to_vanilla'])}",
+            f"- **New in OMAC:** {len(comparison['unique_to_omac'])}",
             f"- **Common Failures:** {len(comparison['common_failures'])}",
             "",
             "### Category Changes",
             "",
-            "| Category | Vanilla | OMC | Delta |",
+            "| Category | Vanilla | OMAC | Delta |",
             "|----------|---------|-----|-------|",
         ])
 
@@ -511,7 +511,7 @@ def generate_failure_report(
             key=lambda x: x[1]["delta"]
         ):
             delta_str = f"{counts['delta']:+d}" if counts['delta'] != 0 else "0"
-            lines.append(f"| {category} | {counts['vanilla']} | {counts['omc']} | {delta_str} |")
+            lines.append(f"| {category} | {counts['vanilla']} | {counts['omac']} | {delta_str} |")
 
         if comparison.get("insights"):
             lines.extend([
@@ -561,10 +561,10 @@ Examples:
     python analyze_failures.py --results results/vanilla/
 
     # With predictions for more context
-    python analyze_failures.py --results results/omc/ --predictions predictions.json
+    python analyze_failures.py --results results/omac/ --predictions predictions.json
 
-    # Compare vanilla vs OMC failures
-    python analyze_failures.py --vanilla results/vanilla/ --omc results/omc/ --compare
+    # Compare vanilla vs OMAC failures
+    python analyze_failures.py --vanilla results/vanilla/ --omac results/omac/ --compare
         """
     )
 
@@ -587,15 +587,15 @@ Examples:
     )
 
     parser.add_argument(
-        "--omc",
+        "--omac",
         type=Path,
-        help="Path to OMC results for comparison"
+        help="Path to OMAC results for comparison"
     )
 
     parser.add_argument(
         "--compare",
         action="store_true",
-        help="Compare vanilla vs OMC (requires --vanilla and --omc)"
+        help="Compare vanilla vs OMAC (requires --vanilla and --omac)"
     )
 
     parser.add_argument(
@@ -618,10 +618,10 @@ Examples:
 
     # Validate arguments
     if args.compare:
-        if not args.vanilla or not args.omc:
-            parser.error("--compare requires both --vanilla and --omc")
+        if not args.vanilla or not args.omac:
+            parser.error("--compare requires both --vanilla and --omac")
     elif not args.results:
-        parser.error("Either --results or (--vanilla, --omc, --compare) required")
+        parser.error("Either --results or (--vanilla, --omac, --compare) required")
 
     args.output.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -632,9 +632,9 @@ Examples:
         vanilla_results = load_results(args.vanilla)
         vanilla_predictions = None
 
-        logger.info(f"Loading OMC results from {args.omc}")
-        omc_results = load_results(args.omc)
-        omc_predictions = None
+        logger.info(f"Loading OMAC results from {args.omac}")
+        omac_results = load_results(args.omac)
+        omac_predictions = None
 
         # Try to load predictions
         for pred_path in [args.vanilla / "predictions.json", args.vanilla.parent / "vanilla_predictions.json"]:
@@ -642,28 +642,28 @@ Examples:
                 vanilla_predictions = load_predictions(pred_path)
                 break
 
-        for pred_path in [args.omc / "predictions.json", args.omc.parent / "omc_predictions.json"]:
+        for pred_path in [args.omac / "predictions.json", args.omac.parent / "omac_predictions.json"]:
             if pred_path.exists():
-                omc_predictions = load_predictions(pred_path)
+                omac_predictions = load_predictions(pred_path)
                 break
 
         logger.info("Analyzing failures...")
         vanilla_analysis = analyze_failures(vanilla_results, vanilla_predictions)
-        omc_analysis = analyze_failures(omc_results, omc_predictions)
+        omac_analysis = analyze_failures(omac_results, omac_predictions)
 
         logger.info("Comparing failures...")
-        comparison = compare_failures(vanilla_analysis, omc_analysis)
+        comparison = compare_failures(vanilla_analysis, omac_analysis)
 
         # Save outputs
         json_file = args.output / f"comparison_analysis_{timestamp}.json"
         with open(json_file, "w") as f:
             json.dump({
                 "vanilla": vanilla_analysis,
-                "omc": omc_analysis,
+                "omac": omac_analysis,
                 "comparison": comparison
             }, f, indent=2)
 
-        report = generate_failure_report(omc_analysis, comparison)
+        report = generate_failure_report(omac_analysis, comparison)
         md_file = args.output / f"comparison_analysis_{timestamp}.md"
         md_file.write_text(report)
 
@@ -671,9 +671,9 @@ Examples:
         print("FAILURE COMPARISON COMPLETE")
         print("=" * 60)
         print(f"Vanilla Failures: {vanilla_analysis['total_failures']}")
-        print(f"OMC Failures:     {omc_analysis['total_failures']}")
-        print(f"Fixed by OMC:     {len(comparison['unique_to_vanilla'])}")
-        print(f"New in OMC:       {len(comparison['unique_to_omc'])}")
+        print(f"OMAC Failures:     {omac_analysis['total_failures']}")
+        print(f"Fixed by OMAC:     {len(comparison['unique_to_vanilla'])}")
+        print(f"New in OMAC:       {len(comparison['unique_to_omac'])}")
         print(f"\nResults saved to: {args.output}")
         print("=" * 60)
 

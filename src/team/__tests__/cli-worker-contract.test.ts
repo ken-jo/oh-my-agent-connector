@@ -67,13 +67,13 @@ describe('cli-worker-contract', () => {
 
   describe('cliWorkerOutputFilePath', () => {
     it('joins team state root + worker into the conventional path', () => {
-      const p = cliWorkerOutputFilePath('/repo/.omc/state/team/foo', 'worker-2');
-      expect(p).toBe('/repo/.omc/state/team/foo/workers/worker-2/verdict.json');
+      const p = cliWorkerOutputFilePath('/repo/.omac/state/team/foo', 'worker-2');
+      expect(p).toBe('/repo/.omac/state/team/foo/workers/worker-2/verdict.json');
     });
 
     it('normalizes windows backslashes to forward slashes', () => {
-      const p = cliWorkerOutputFilePath('C:\\proj\\.omc\\state\\team\\foo', 'worker-1');
-      expect(p).toBe('C:/proj/.omc/state/team/foo/workers/worker-1/verdict.json');
+      const p = cliWorkerOutputFilePath('C:\\proj\\.omac\\state\\team\\foo', 'worker-1');
+      expect(p).toBe('C:/proj/.omac/state/team/foo/workers/worker-1/verdict.json');
     });
   });
 

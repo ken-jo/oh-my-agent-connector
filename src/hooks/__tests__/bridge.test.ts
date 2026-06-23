@@ -13,8 +13,8 @@ describe('processHook - Environment Kill-Switches', () => {
   beforeEach(() => {
     // Reset environment and cache before each test
     process.env = { ...originalEnv };
-    delete process.env.DISABLE_OMC;
-    delete process.env.OMC_SKIP_HOOKS;
+    delete process.env.DISABLE_OMAC;
+    delete process.env.OMAC_SKIP_HOOKS;
     resetSkipHooksCache();
   });
 
@@ -24,9 +24,9 @@ describe('processHook - Environment Kill-Switches', () => {
     resetSkipHooksCache();
   });
 
-  describe('DISABLE_OMC flag', () => {
-    it('should return continue:true when DISABLE_OMC=1', async () => {
-      process.env.DISABLE_OMC = '1';
+  describe('DISABLE_OMAC flag', () => {
+    it('should return continue:true when DISABLE_OMAC=1', async () => {
+      process.env.DISABLE_OMAC = '1';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -39,8 +39,8 @@ describe('processHook - Environment Kill-Switches', () => {
       expect(result).toEqual({ continue: true });
     });
 
-    it('should return continue:true when DISABLE_OMC=true (string)', async () => {
-      process.env.DISABLE_OMC = 'true';
+    it('should return continue:true when DISABLE_OMAC=true (string)', async () => {
+      process.env.DISABLE_OMAC = 'true';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -53,7 +53,7 @@ describe('processHook - Environment Kill-Switches', () => {
       expect(result).toEqual({ continue: true });
     });
 
-    it('should process normally when DISABLE_OMC is not set', async () => {
+    it('should process normally when DISABLE_OMAC is not set', async () => {
       const input: HookInput = {
         sessionId: 'test-session',
         prompt: 'hello world',
@@ -67,8 +67,8 @@ describe('processHook - Environment Kill-Switches', () => {
       // No message because 'hello world' doesn't contain keywords
     });
 
-    it('should process normally when DISABLE_OMC=false', async () => {
-      process.env.DISABLE_OMC = 'false';
+    it('should process normally when DISABLE_OMAC=false', async () => {
+      process.env.DISABLE_OMAC = 'false';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -83,9 +83,9 @@ describe('processHook - Environment Kill-Switches', () => {
     });
   });
 
-  describe('OMC_SKIP_HOOKS flag', () => {
+  describe('OMAC_SKIP_HOOKS flag', () => {
     it('should skip single hook type when specified', async () => {
-      process.env.OMC_SKIP_HOOKS = 'pre-tool-use';
+      process.env.OMAC_SKIP_HOOKS = 'pre-tool-use';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -100,7 +100,7 @@ describe('processHook - Environment Kill-Switches', () => {
     });
 
     it('should skip multiple hook types when comma-separated', async () => {
-      process.env.OMC_SKIP_HOOKS = 'pre-tool-use,persistent-mode';
+      process.env.OMAC_SKIP_HOOKS = 'pre-tool-use,persistent-mode';
 
       const preToolInput: HookInput = {
         sessionId: 'test-session',
@@ -120,8 +120,8 @@ describe('processHook - Environment Kill-Switches', () => {
       expect(persistentResult).toEqual({ continue: true });
     });
 
-    it('should handle whitespace in OMC_SKIP_HOOKS', async () => {
-      process.env.OMC_SKIP_HOOKS = ' pre-tool-use , persistent-mode ';
+    it('should handle whitespace in OMAC_SKIP_HOOKS', async () => {
+      process.env.OMAC_SKIP_HOOKS = ' pre-tool-use , persistent-mode ';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -135,7 +135,7 @@ describe('processHook - Environment Kill-Switches', () => {
     });
 
     it('should process normally when hook type is not in skip list', async () => {
-      process.env.OMC_SKIP_HOOKS = 'persistent-mode';
+      process.env.OMAC_SKIP_HOOKS = 'persistent-mode';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -149,8 +149,8 @@ describe('processHook - Environment Kill-Switches', () => {
       expect(result.continue).toBe(true);
     });
 
-    it('should process normally when OMC_SKIP_HOOKS is empty', async () => {
-      process.env.OMC_SKIP_HOOKS = '';
+    it('should process normally when OMAC_SKIP_HOOKS is empty', async () => {
+      process.env.OMAC_SKIP_HOOKS = '';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -165,9 +165,9 @@ describe('processHook - Environment Kill-Switches', () => {
   });
 
   describe('Combined flags', () => {
-    it('should respect DISABLE_OMC even if OMC_SKIP_HOOKS is set', async () => {
-      process.env.DISABLE_OMC = '1';
-      process.env.OMC_SKIP_HOOKS = 'keyword-detector';
+    it('should respect DISABLE_OMAC even if OMAC_SKIP_HOOKS is set', async () => {
+      process.env.DISABLE_OMAC = '1';
+      process.env.OMAC_SKIP_HOOKS = 'keyword-detector';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -177,7 +177,7 @@ describe('processHook - Environment Kill-Switches', () => {
 
       const result = await processHook('keyword-detector', input);
 
-      // DISABLE_OMC takes precedence
+      // DISABLE_OMAC takes precedence
       expect(result).toEqual({ continue: true });
     });
   });
@@ -199,8 +199,8 @@ describe('processHook - Environment Kill-Switches', () => {
       expect(duration).toBeLessThan(500);
     });
 
-    it('should have minimal overhead when DISABLE_OMC=1', async () => {
-      process.env.DISABLE_OMC = '1';
+    it('should have minimal overhead when DISABLE_OMAC=1', async () => {
+      process.env.DISABLE_OMAC = '1';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -240,8 +240,8 @@ describe('processHook - Environment Kill-Switches', () => {
       'permission-request'
     ] satisfies HookType[];
 
-    it('should disable all hook types when DISABLE_OMC=1', async () => {
-      process.env.DISABLE_OMC = '1';
+    it('should disable all hook types when DISABLE_OMAC=1', async () => {
+      process.env.DISABLE_OMAC = '1';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -268,7 +268,7 @@ describe('processHook - Environment Kill-Switches', () => {
         toolInput: {
           description: 'Test agent',
           prompt: 'Do something',
-          subagent_type: 'oh-my-claudecode:executor',
+          subagent_type: 'oh-my-agent-connector:executor',
           model: 'sonnet',
         },
       };
@@ -292,7 +292,7 @@ describe('processHook - Environment Kill-Switches', () => {
         toolInput: {
           description: 'Test task',
           prompt: 'Do something',
-          subagent_type: 'oh-my-claudecode:executor',
+          subagent_type: 'oh-my-agent-connector:executor',
           model: 'opus',
         },
       };
@@ -316,7 +316,7 @@ describe('processHook - Environment Kill-Switches', () => {
         toolInput: {
           description: 'Test agent',
           prompt: 'Do something',
-          subagent_type: 'oh-my-claudecode:executor',
+          subagent_type: 'oh-my-agent-connector:executor',
         },
       };
 
@@ -336,7 +336,7 @@ describe('processHook - Environment Kill-Switches', () => {
         toolInput: {
           description: 'Test agent',
           prompt: 'Do something',
-          subagent_type: 'oh-my-claudecode:executor',
+          subagent_type: 'oh-my-agent-connector:executor',
           model: 'sonnet',
         },
       };
@@ -359,7 +359,7 @@ describe('processHook - Environment Kill-Switches', () => {
         toolInput: {
           description: 'Test agent',
           prompt: 'Do something',
-          subagent_type: 'oh-my-claudecode:executor',
+          subagent_type: 'oh-my-agent-connector:executor',
         },
         toolOutput: 'done',
       };
@@ -430,7 +430,7 @@ describe('processHook - Environment Kill-Switches', () => {
             additionalContext:
               '[RALPLAN INIT] Explicit /ralplan invoke detected during UserPromptSubmit.\n' +
               'Proceed immediately with the consensus planning workflow for:\n' +
-              '/oh-my-claudecode:ralplan issue #2622',
+              '/oh-my-agent-connector:ralplan issue #2622',
           },
         }),
       ).toEqual({
@@ -440,7 +440,7 @@ describe('processHook - Environment Kill-Switches', () => {
           additionalContext:
             '[RALPLAN INIT] Explicit /ralplan invoke detected during UserPromptSubmit.\n' +
             'Proceed immediately with the consensus planning workflow for:\n' +
-            '/oh-my-claudecode:ralplan issue #2622',
+            '/oh-my-agent-connector:ralplan issue #2622',
         },
       });
     });

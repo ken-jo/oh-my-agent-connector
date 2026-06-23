@@ -1,12 +1,12 @@
 # Verification log — isolated-home installs, live hook bridge, exact parity
 
-All evidence from real runs on this machine (2026-06-11). **Safety honored:** the OMC
+All evidence from real runs on this machine (2026-06-11). **Safety honored:** the OMAC
 marketplace plugin is LIVE in the real `~/.claude`, so every install/probe/hook run below
 executed in an isolated home (`mkdtemp` → `/tmp/oh-my-agent-connector-verify-IUMqih`, with `HOME`,
 `USERPROFILE`, `AGENT_CONNECTOR_DATA_DIR` overridden into it and a fake
 `~/.claude/settings.json {}` for detection) — the same pattern as
 `agent-connector/tests/cli/doctor-targets.test.ts`. Post-run audit: the real
-`~/.claude.json` `mcpServers` has **no** omc entries and the only `agent-connector`
+`~/.claude.json` `mcpServers` has **no** omac entries and the only `agent-connector`
 strings in the real `settings.json` are the pre-existing `--connector context-mode`
 hooks (mtime predates this run). Multi-platform was `--dry-run` only.
 
@@ -17,7 +17,7 @@ summary: 136 created, 0 updated, 0 removed, 0 skipped, 0 warning(s)   (exit 0)
 ```
 
 Breakdown of the 136: 1 settings backup (`.agent-connector/backups/…-settings.json`)
-+ 1 `mcpServers.oh-my-claudecode` (`~/.claude.json`) + 7 hook events
++ 1 `mcpServers.oh-my-agent-connector` (`~/.claude.json`) + 7 hook events
 (`~/.claude/settings.json`) + **127 content files** (19 agents + 28 commands +
 40 SKILL.md + 40 skill resources).
 
@@ -34,8 +34,8 @@ entries** (BASELINE.md's "12-event" rounds this; precise counts per
 | Surface | Marketplace plugin | This install | Parity |
 |---|---|---|---|
 | Hook events | 11 keys / 13 groups / 24 command entries | **11 settings.json events** (SessionStart, SessionEnd, UserPromptSubmit, PreToolUse, PostToolUse, PreCompact, Stop + the E1 four: PermissionRequest matcher `Bash`, PostToolUseFailure, SubagentStart, SubagentStop), one home-bin entry each; SessionStart `init`/`maintenance` matcher groups routed inside the handler on `raw.source` | **24/24 command entries bridged** (13/13 groups, 11/11 keys) since agent-connector's E1 8→12-event extension — live round-trips in §7 |
-| Hook command shape | `node $CLAUDE_PLUGIN_ROOT/scripts/run.cjs …` ×24 | `"$HOME/.agent-connector/bin/agent-connector" hook claude-code <Event> --connector oh-my-claudecode` ×7 | scripts still spawn through upstream `run.cjs` inside the bridge (timeouts preserved) |
-| MCP server | plugin `.mcp.json` server `t` | `mcpServers.oh-my-claudecode` in `~/.claude.json`, telemetry-wrapped: `agent-connector serve --connector oh-my-claudecode … -- node <upstream>/bridge/mcp-server.cjs` with `CLAUDE_PLUGIN_ROOT` env | 49/49 tools (probe below) |
+| Hook command shape | `node $CLAUDE_PLUGIN_ROOT/scripts/run.cjs …` ×24 | `"$HOME/.agent-connector/bin/agent-connector" hook claude-code <Event> --connector oh-my-agent-connector` ×7 | scripts still spawn through upstream `run.cjs` inside the bridge (timeouts preserved) |
+| MCP server | plugin `.mcp.json` server `t` | `mcpServers.oh-my-agent-connector` in `~/.claude.json`, telemetry-wrapped: `agent-connector serve --connector oh-my-agent-connector … -- node <upstream>/bridge/mcp-server.cjs` with `CLAUDE_PLUGIN_ROOT` env | 49/49 tools (probe below) |
 | Agents | 19 | 19 (`.claude/agents/*.md`) | 19/19 |
 | Skills | 40 SKILL.md + 40 resources | 40 + 40 (`.claude/skills/**`) | 80/80 |
 | Commands | 28 | 28 (`.claude/commands/*.md`) | 28/28 |
@@ -43,10 +43,10 @@ entries** (BASELINE.md's "12-event" rounds this; precise counts per
 ## 3. Live MCP probe — `doctor --probe --targets claude-code`
 
 ```
-[pass] oh-my-claudecode: MCP initialize — serverInfo t@1.0.0, protocol 2025-11-25
-[pass] oh-my-claudecode: capabilities — tools
-[pass] oh-my-claudecode: ping — alive
-[pass] oh-my-claudecode: tools/list — 49 tool(s)
+[pass] oh-my-agent-connector: MCP initialize — serverInfo t@1.0.0, protocol 2025-11-25
+[pass] oh-my-agent-connector: capabilities — tools
+[pass] oh-my-agent-connector: ping — alive
+[pass] oh-my-agent-connector: tools/list — 49 tool(s)
 doctor: 94 pass, 0 fail, exit 0
 ```
 
@@ -57,35 +57,35 @@ dry-run hosts; expected, not a defect.)
 
 ## 4. Live hook bridge — Claude-shaped events through the installed home-bin runtime
 
-All runs used the exact command installed in settings.json, with OMC state pinned
-into the sandbox (`OMC_STATE_DIR=$SB/omc-state`, `CLAUDE_CONFIG_DIR=$SB/.claude`,
+All runs used the exact command installed in settings.json, with OMAC state pinned
+into the sandbox (`OMAC_STATE_DIR=$SB/omac-state`, `CLAUDE_CONFIG_DIR=$SB/.claude`,
 cwd `$SB/project`). Containment audit: every write landed under
-`$SB/omc-state/**` or `$SB/project/.omc/**`; nothing outside the sandbox.
+`$SB/omac-state/**` or `$SB/project/.omac/**`; nothing outside the sandbox.
 
 **4a. UserPromptSubmit** — stdin `{"hook_event_name":"UserPromptSubmit","prompt":"ralph please fix the build",…}`:
 
 ```json
 {"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":
  "[MAGIC KEYWORD: RALPH]\n\nSkill routing detected: ralph\nPreferred invocation:
-  /oh-my-claudecode:ralph\n…IMPORTANT: Start the ralph workflow immediately.…"}}
+  /oh-my-agent-connector:ralph\n…IMPORTANT: Start the ralph workflow immediately.…"}}
 ```
 
 Upstream `keyword-detector.mjs` + `skill-injector.mjs` ran unchanged; the keyword
 detector even activated ralph/ultrawork mode state files — inside the sandbox
-(`$SB/omc-state/project-…/state/sessions/verify-ups-1/{ralph,ultrawork}-state.json`).
+(`$SB/omac-state/project-…/state/sessions/verify-ups-1/{ralph,ultrawork}-state.json`).
 
 **4b. SessionStart** — first attempt returned allow with a faithful relay of
-upstream's guard (`[OMC] session-start: refusing to use cwd … as workspace anchor
-(no .omc-workspace or .git marker)` on stderr). After `git init` in the sandbox
+upstream's guard (`[OMAC] session-start: refusing to use cwd … as workspace anchor
+(no .omac-workspace or .git marker)` on stderr). After `git init` in the sandbox
 project (a real workspace, as upstream requires):
 
 ```json
 {"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":
- "<system-reminder>\n[OMC] HUD not configured (HUD script missing). Run /hud setup
+ "<system-reminder>\n[OMAC] HUD not configured (HUD script missing). Run /hud setup
   then restart Claude Code.\n</system-reminder>"}}
 ```
 
-OMC context injection bridged back (124 chars; the HUD notice is what a fresh
+OMAC context injection bridged back (124 chars; the HUD notice is what a fresh
 HUD-less home legitimately injects).
 
 **4c. Stop (bonus — the R1 live round trip)** — with an active
@@ -116,9 +116,9 @@ summary: 397 created, 0 updated, 0 removed, 0 skipped, 1 warning(s)
 
 | Host | Planned writes | MCP | Hooks | Content |
 |---|---:|---|---|---|
-| codex | 134 | `mcp_servers.oh-my-claudecode` → `~/.codex/config.toml` | 6 events → `~/.codex/hooks.json` (SessionStart, PreToolUse, PostToolUse, PreCompact, UserPromptSubmit, Stop) | 127 (28 → `prompts/`, agents, skills) |
-| opencode | 129 | `mcp.oh-my-claudecode` → `opencode.json` | 1 plugin module (SessionStart, PreToolUse, PostToolUse; module notes unsupported: SessionEnd, UserPromptSubmit, PreCompact, Stop) | 127 |
-| gemini-cli | 134 (+1 warn) | `mcpServers.oh-my-claudecode` → `~/.gemini/settings.json` | 6 events (SessionStart, SessionEnd, BeforeAgent, BeforeTool, AfterTool, PreCompress); `warn: Stop has no Gemini CLI hook equivalent — skipped` | 127 |
+| codex | 134 | `mcp_servers.oh-my-agent-connector` → `~/.codex/config.toml` | 6 events → `~/.codex/hooks.json` (SessionStart, PreToolUse, PostToolUse, PreCompact, UserPromptSubmit, Stop) | 127 (28 → `prompts/`, agents, skills) |
+| opencode | 129 | `mcp.oh-my-agent-connector` → `opencode.json` | 1 plugin module (SessionStart, PreToolUse, PostToolUse; module notes unsupported: SessionEnd, UserPromptSubmit, PreCompact, Stop) | 127 |
+| gemini-cli | 134 (+1 warn) | `mcpServers.oh-my-agent-connector` → `~/.gemini/settings.json` | 6 events (SessionStart, SessionEnd, BeforeAgent, BeforeTool, AfterTool, PreCompress); `warn: Stop has no Gemini CLI hook equivalent — skipped` | 127 |
 
 Exit code 1 is by design: `src/cli/commands/install.ts:54` returns 1 whenever any
 plan entry is a `warn` — here exactly the one honest gemini Stop gap.
@@ -134,7 +134,7 @@ entire sibling project (oh-my-codex, oh-my-opencode); here three more hosts are 
 `deny` as `hookSpecificOutput.permissionDecision:"deny"`. Claude Code only honors
 `permissionDecision` on PreToolUse; for **Stop** (and SubagentStop/UserPromptSubmit)
 it honors top-level `{"decision":"block","reason":…}`. §4c shows the live
-consequence: OMC's ralph block crossed the bridge intact but the adapter emitted a
+consequence: OMAC's ralph block crossed the bridge intact but the adapter emitted a
 Stop reply Claude will ignore — the boulder would silently stop rolling. Fix sketch
 (not applied): make the deny branch event-aware — for `Stop` emit
 `{"decision":"block","reason":response.reason}`; keep `permissionDecision` for
@@ -157,7 +157,7 @@ agent-connector's E1 extension normalized **PermissionRequest /
 PostToolUseFailure / SubagentStart / SubagentStop** (8 → 12 canonical events),
 and the connector now bridges all 24/24 upstream command entries. Fresh
 isolated home (`mkdtemp` → `/tmp/oh-my-agent-connector-e1-YX9Za2`, same
-HOME/USERPROFILE/AGENT_CONNECTOR_DATA_DIR/CLAUDE_CONFIG_DIR/OMC_STATE_DIR
+HOME/USERPROFILE/AGENT_CONNECTOR_DATA_DIR/CLAUDE_CONFIG_DIR/OMAC_STATE_DIR
 overrides, `git init`-ed project for the workspace anchor):
 
 **Install:** `install --targets claude-code` → `140 created, 0 warnings`
@@ -209,18 +209,18 @@ JSON, cwd = sandbox project):
 
 - **SubagentStop, with seeded deliverables state** — `deliverables.json`
   (`{"plan":{"files":["docs/plan.md"]}}`) + session `team-state.json`
-  (`current_phase:"plan"`) seeded into the sandbox OMC state root:
+  (`current_phase:"plan"`) seeded into the sandbox OMAC state root:
 
   ```json
-  {"hookSpecificOutput":{"hookEventName":"SubagentStop","additionalContext":"[OMC] Deliverable verification for stage \"plan\":\n1 issue(s) found:\n  - docs/plan.md: file not found\nThese deliverables may be expected by the next stage."}}
+  {"hookSpecificOutput":{"hookEventName":"SubagentStop","additionalContext":"[OMAC] Deliverable verification for stage \"plan\":\n1 issue(s) found:\n  - docs/plan.md: file not found\nThese deliverables may be expected by the next stage."}}
   ```
 
   the advisory deliverables nudge is back, end-to-end.
 
 Telemetry recorded every new event in the sandbox NDJSON (`telemetry report`:
 PermissionRequest ×2, PostToolUseFailure ×1, SubagentStart ×1, SubagentStop ×2).
-Containment re-audited: real `~/.claude.json` has no omc `mcpServers` entries
-and the only `oh-my-claudecode` string in the real `settings.json` is the
+Containment re-audited: real `~/.claude.json` has no omac `mcpServers` entries
+and the only `oh-my-agent-connector` string in the real `settings.json` is the
 pre-existing marketplace `enabledPlugins` entry (mtime predates the run).
 
 ## 8. New 0.3.x surfaces — memory + configPatch + marketplace (2026-06-14)
@@ -235,20 +235,20 @@ HOME/USERPROFILE/CLAUDE_CONFIG_DIR/AGENT_CONNECTOR_DATA_DIR overrides, seeded em
 §7 + the two new surfaces, each on its create path):
 
 ```
-+ memory: created CLAUDE.md with block oh-my-claudecode/orchestrator (hash 0651f16a2c92)
-+ configPatch statusLine: <absent> → {"type":"command","command":"node $OMC/dist/hud/index.js"}
++ memory: created CLAUDE.md with block oh-my-agent-connector/orchestrator (hash 0651f16a2c92)
++ configPatch statusLine: <absent> → {"type":"command","command":"node $OMAC/dist/hud/index.js"}
 ```
 
 - **memory** — `~/.claude/CLAUDE.md` written (3830 B), exactly one
-  `agent-connector:begin oh-my-claudecode/orchestrator` / `:end` marker pair, the upstream
-  heading `# oh-my-claudecode - Intelligent Multi-Agent Orchestration` inside it, and the
-  upstream `OMC:START` fence stripped (0 hits). Compiled at load from `$OMC/docs/CLAUDE.md`.
+  `agent-connector:begin oh-my-agent-connector/orchestrator` / `:end` marker pair, the upstream
+  heading `# oh-my-agent-connector - Intelligent Multi-Agent Orchestration` inside it, and the
+  upstream `OMAC:START` fence stripped (0 hits). Compiled at load from `$OMAC/docs/CLAUDE.md`.
   Per-host target verified by dry-run: `claude-code → CLAUDE.md`, `gemini-cli → GEMINI.md`,
   `codex/opencode → AGENTS.md`; `cursor` honestly skip-warns ("no user-scope memory file …
   app/UI-managed or undocumented").
 - **configPatch** — `settings.json.statusLine` set to the HUD command; ownership ledger at
   `<dataRoot>/state/config-patches.json` records `prior.present:false` + the connector as
-  owner + a value hash. Piping a Claude-shaped status payload to `node $OMC/dist/hud/index.js`
+  owner + a value hash. Piping a Claude-shaped status payload to `node $OMAC/dist/hud/index.js`
   renders a real status line.
 
 **Idempotent re-run:** `1 created (new backup), 141 skipped, 0 warnings` — both new surfaces
@@ -258,21 +258,21 @@ skip cleanly (memory block hash-matches; configPatch already-owned-and-unchanged
 checks:
 
 ```
-[pass] Claude Code: memory block oh-my-claudecode/orchestrator — intact in …/.claude/CLAUDE.md
-[pass] Claude Code: configPatch statusLine — ok — statusLine = {"type":"command","command":"node $OMC/dist/hud/index.js"}
-[pass] oh-my-claudecode: tools/list — 49 tool(s)
+[pass] Claude Code: memory block oh-my-agent-connector/orchestrator — intact in …/.claude/CLAUDE.md
+[pass] Claude Code: configPatch statusLine — ok — statusLine = {"type":"command","command":"node $OMAC/dist/hud/index.js"}
+[pass] oh-my-agent-connector: tools/list — 49 tool(s)
 ```
 
 **Real-home safety (re-audited):** the real `~/.claude/CLAUDE.md` has **no** orchestrator
-block, and the real `settings.json.statusLine` is **unchanged** (still the live OMC plugin's
-`node …/hud/omc-hud.mjs`). A dry-run against the real home proved the ownership contract in
+block, and the real `settings.json.statusLine` is **unchanged** (still the live OMAC plugin's
+`node …/hud/omac-hud.mjs`). A dry-run against the real home proved the ownership contract in
 the other direction: `configPatch statusLine skipped: already set … (not created by
 agent-connector)` — AC refuses to clobber a key it does not own.
 
 **Marketplace method** — `install --method marketplace --dry-run`:
 
-- **OMC:** `481 created` planned — bundle staged per drivable host under
-  `~/.agent-connector/marketplace/<host>/oh-my-claudecode/**` + the host-native registration
+- **OMAC:** `481 created` planned — bundle staged per drivable host under
+  `~/.agent-connector/marketplace/<host>/oh-my-agent-connector/**` + the host-native registration
   command (e.g. `gemini extensions install … --consent`).
 - **context-mode** (sibling port, already installed DIRECTLY on the real machine): `0 created,
   4 warn + 1 skip` — the driver **refuses the marketplace install on every host where a direct
@@ -289,7 +289,7 @@ agent-connector)` — AC refuses to clobber a key it does not own.
 | Live hook bridge | pass — UserPromptSubmit (ralph keyword), SessionStart (context), Stop (state 1→2), PermissionRequest (allow + fall-through), PostToolUseFailure (guidance), SubagentStart (context), SubagentStop (clean + deliverables nudge) |
 | Multi-platform dry-run | 397 planned writes across codex/opencode/gemini-cli, 1 honest warn |
 | New 0.3.x surfaces (§8) | pass — install 142/0; memory CLAUDE.md block intact, configPatch statusLine ok (+ownership ledger), HUD renders; idempotent; marketplace driver plan + double-install guard |
-| Real home untouched | confirmed — no omc entries; no orchestrator block; statusLine still the live plugin's; only pre-existing context-mode hooks |
+| Real home untouched | confirmed — no omac entries; no orchestrator block; statusLine still the live plugin's; only pre-existing context-mode hooks |
 
 
 ## OpenCode real-host proof — 2026-06-23

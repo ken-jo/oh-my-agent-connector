@@ -29,7 +29,7 @@ describe('shutdownTeamV2 split-pane pane cleanup', () => {
   let cwd = '';
 
   beforeEach(async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-v2-pane-cleanup-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-v2-pane-cleanup-'));
     tmuxCalls.length = 0;
     execFileMock.mockReset();
     execMock.mockReset();
@@ -85,7 +85,7 @@ describe('shutdownTeamV2 split-pane pane cleanup', () => {
 
   it('kills discovered split-pane worker panes beyond stale recorded pane metadata', async () => {
     const teamName = 'pane-cleanup-team';
-    const teamRoot = `.omc/state/team/${teamName}`;
+    const teamRoot = `.omac/state/team/${teamName}`;
 
     await writeJson(cwd, `${teamRoot}/config.json`, {
       name: teamName,

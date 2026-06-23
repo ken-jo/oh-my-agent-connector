@@ -21,11 +21,11 @@ import {
 } from '../merge-orchestrator.js';
 
 beforeAll(() => {
-  process.env.OMC_RUNTIME_V2 = '1';
+  process.env.OMAC_RUNTIME_V2 = '1';
 });
 
 afterEach(() => {
-  process.env.OMC_RUNTIME_V2 = '1';
+  process.env.OMAC_RUNTIME_V2 = '1';
 });
 
 // ---------------------------------------------------------------------------
@@ -39,10 +39,10 @@ describe('worktree runtime e2e: 3 workers × 3 commits', () => {
   beforeEach(async () => {
     fixture = await createGitFixture({
       workerCount: 3,
-      leaderBranchName: 'omc-team-test-leader',
+      leaderBranchName: 'omac-team-test-leader',
       teamName: 'e2e-team',
     });
-    process.env.OMC_RUNTIME_V2 = '1';
+    process.env.OMAC_RUNTIME_V2 = '1';
 
     const config: OrchestratorConfig = {
       teamName: fixture.teamName,
@@ -179,7 +179,7 @@ describe('worktree runtime e2e: 3 workers × 3 commits', () => {
     // Leader inbox should have been created and seeded by orchestrator startup
     const leaderInboxPath = join(
       fixture.repoRoot,
-      '.omc', 'state', 'team', fixture.teamName,
+      '.omac', 'state', 'team', fixture.teamName,
       'leader', 'inbox.md',
     );
     expect(existsSync(leaderInboxPath)).toBe(true);
@@ -214,7 +214,7 @@ describe('M3 compliance: fixture never uses main/master', () => {
   it('orchestrator rejects main leader branch', async () => {
     const fixture = await createGitFixture({ workerCount: 1 });
     try {
-      process.env.OMC_RUNTIME_V2 = '1';
+      process.env.OMAC_RUNTIME_V2 = '1';
       const config: OrchestratorConfig = {
         teamName: fixture.teamName,
         repoRoot: fixture.repoRoot,

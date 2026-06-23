@@ -14,12 +14,12 @@ import { tmpdir } from 'os';
 // SHARED MEMORY MOCK — must be declared before any imports that use it
 // ============================================================================
 
-const mockGetOmcRoot = vi.fn<(worktreeRoot?: string) => string>();
+const mockGetOmacRoot = vi.fn<(worktreeRoot?: string) => string>();
 vi.mock('../lib/worktree-paths.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../lib/worktree-paths.js')>();
   return {
     ...actual,
-    getOmcRoot: (...args: [string?]) => mockGetOmcRoot(...args),
+    getOmacRoot: (...args: [string?]) => mockGetOmacRoot(...args),
     validateWorkingDirectory: (dir?: string) => dir || '/tmp',
   };
 });
@@ -66,17 +66,17 @@ describe('EDGE: Pipeline Orchestrator (issue #1132)', () => {
   beforeEach(() => {
     testDir = join(tmpdir(), `edge-pipe-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(testDir, { recursive: true });
-    // Pipeline state uses getOmcRoot(worktreeRoot) — mock returns <dir>/.omc for any arg
-    mockGetOmcRoot.mockImplementation((dir?: string) => {
+    // Pipeline state uses getOmacRoot(worktreeRoot) — mock returns <dir>/.omac for any arg
+    mockGetOmacRoot.mockImplementation((dir?: string) => {
       const base = dir || testDir;
-      const omcDir = join(base, '.omc');
-      mkdirSync(omcDir, { recursive: true });
-      return omcDir;
+      const omacDir = join(base, '.omac');
+      mkdirSync(omacDir, { recursive: true });
+      return omacDir;
     });
   });
 
   afterEach(() => {
-    mockGetOmcRoot.mockReset();
+    mockGetOmacRoot.mockReset();
     if (existsSync(testDir)) rmSync(testDir, { recursive: true, force: true });
   });
 
@@ -255,13 +255,13 @@ describe('EDGE: Shared Memory (issue #1137)', () => {
 
   beforeEach(() => {
     testDir = join(tmpdir(), `edge-shmem-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    const omcDir = join(testDir, '.omc');
-    mkdirSync(omcDir, { recursive: true });
-    mockGetOmcRoot.mockReturnValue(omcDir);
+    const omacDir = join(testDir, '.omac');
+    mkdirSync(omacDir, { recursive: true });
+    mockGetOmacRoot.mockReturnValue(omacDir);
   });
 
   afterEach(() => {
-    mockGetOmcRoot.mockReset();
+    mockGetOmacRoot.mockReset();
     if (existsSync(testDir)) rmSync(testDir, { recursive: true, force: true });
   });
 
@@ -308,8 +308,8 @@ describe('EDGE: Shared Memory (issue #1137)', () => {
 
   it('listEntries on empty namespace returns empty array', () => {
     // Create an empty namespace dir
-    const omcDir = mockGetOmcRoot();
-    mkdirSync(join(omcDir, 'state', 'shared-memory', 'empty-ns'), { recursive: true });
+    const omacDir = mockGetOmacRoot();
+    mkdirSync(join(omacDir, 'state', 'shared-memory', 'empty-ns'), { recursive: true });
 
     const items = listEntries('empty-ns');
     expect(items).toEqual([]);
@@ -329,8 +329,8 @@ describe('EDGE: Shared Memory (issue #1137)', () => {
   });
 
   it('cleanupExpired on empty namespace returns {removed: 0}', () => {
-    const omcDir = mockGetOmcRoot();
-    mkdirSync(join(omcDir, 'state', 'shared-memory', 'clean-ns'), { recursive: true });
+    const omacDir = mockGetOmacRoot();
+    mkdirSync(join(omacDir, 'state', 'shared-memory', 'clean-ns'), { recursive: true });
 
     const result = cleanupExpired('clean-ns');
     expect(result.removed).toBe(0);
@@ -367,49 +367,49 @@ describe('EDGE: Shared Memory (issue #1137)', () => {
 // ============================================================================
 
 describe('EDGE: Config Loader forceInherit (issue #1135)', () => {
-  const ORIG = process.env.OMC_ROUTING_FORCE_INHERIT;
+  const ORIG = process.env.OMAC_ROUTING_FORCE_INHERIT;
 
   afterEach(() => {
-    if (ORIG === undefined) delete process.env.OMC_ROUTING_FORCE_INHERIT;
-    else process.env.OMC_ROUTING_FORCE_INHERIT = ORIG;
+    if (ORIG === undefined) delete process.env.OMAC_ROUTING_FORCE_INHERIT;
+    else process.env.OMAC_ROUTING_FORCE_INHERIT = ORIG;
   });
 
-  it('OMC_ROUTING_FORCE_INHERIT=TRUE (uppercase) does not enable forceInherit', () => {
+  it('OMAC_ROUTING_FORCE_INHERIT=TRUE (uppercase) does not enable forceInherit', () => {
     // Only 'true' (lowercase) is truthy per the === 'true' check in loader
-    process.env.OMC_ROUTING_FORCE_INHERIT = 'TRUE';
+    process.env.OMAC_ROUTING_FORCE_INHERIT = 'TRUE';
     const config = loadEnvConfig();
     expect(config.routing?.forceInherit).toBe(false);
   });
 
-  it('OMC_ROUTING_FORCE_INHERIT=1 (number string) does not enable forceInherit', () => {
-    process.env.OMC_ROUTING_FORCE_INHERIT = '1';
+  it('OMAC_ROUTING_FORCE_INHERIT=1 (number string) does not enable forceInherit', () => {
+    process.env.OMAC_ROUTING_FORCE_INHERIT = '1';
     const config = loadEnvConfig();
     expect(config.routing?.forceInherit).toBe(false);
   });
 
-  it('OMC_ROUTING_FORCE_INHERIT=yes is not truthy', () => {
-    process.env.OMC_ROUTING_FORCE_INHERIT = 'yes';
+  it('OMAC_ROUTING_FORCE_INHERIT=yes is not truthy', () => {
+    process.env.OMAC_ROUTING_FORCE_INHERIT = 'yes';
     const config = loadEnvConfig();
     expect(config.routing?.forceInherit).toBe(false);
   });
 
-  it('OMC_ROUTING_FORCE_INHERIT=" true " (whitespace) does not enable forceInherit', () => {
-    process.env.OMC_ROUTING_FORCE_INHERIT = ' true ';
+  it('OMAC_ROUTING_FORCE_INHERIT=" true " (whitespace) does not enable forceInherit', () => {
+    process.env.OMAC_ROUTING_FORCE_INHERIT = ' true ';
     const config = loadEnvConfig();
     expect(config.routing?.forceInherit).toBe(false);
   });
 
-  it('OMC_ROUTING_FORCE_INHERIT="" (empty string) sets forceInherit to false', () => {
-    process.env.OMC_ROUTING_FORCE_INHERIT = '';
+  it('OMAC_ROUTING_FORCE_INHERIT="" (empty string) sets forceInherit to false', () => {
+    process.env.OMAC_ROUTING_FORCE_INHERIT = '';
     const config = loadEnvConfig();
     // Empty string !== 'true' so forceInherit should be false
     expect(config.routing?.forceInherit).toBe(false);
   });
 
   it('multiple env vars set simultaneously: all are reflected', () => {
-    process.env.OMC_ROUTING_FORCE_INHERIT = 'true';
-    process.env.OMC_ROUTING_ENABLED = 'false';
-    process.env.OMC_ROUTING_DEFAULT_TIER = 'HIGH';
+    process.env.OMAC_ROUTING_FORCE_INHERIT = 'true';
+    process.env.OMAC_ROUTING_ENABLED = 'false';
+    process.env.OMAC_ROUTING_DEFAULT_TIER = 'HIGH';
 
     const config = loadEnvConfig();
     expect(config.routing?.forceInherit).toBe(true);
@@ -417,8 +417,8 @@ describe('EDGE: Config Loader forceInherit (issue #1135)', () => {
     expect(config.routing?.defaultTier).toBe('HIGH');
 
     // Clean up extra vars
-    delete process.env.OMC_ROUTING_ENABLED;
-    delete process.env.OMC_ROUTING_DEFAULT_TIER;
+    delete process.env.OMAC_ROUTING_ENABLED;
+    delete process.env.OMAC_ROUTING_DEFAULT_TIER;
   });
 });
 

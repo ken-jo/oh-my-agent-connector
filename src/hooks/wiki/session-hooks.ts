@@ -9,7 +9,7 @@
 
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { getOmcRoot } from '../../lib/worktree-paths.js';
+import { getOmacRoot } from '../../lib/worktree-paths.js';
 import { getClaudeConfigDir } from '../../utils/config-dir.js';
 import {
   getWikiDir,
@@ -26,14 +26,14 @@ import { WIKI_SCHEMA_VERSION, DEFAULT_WIKI_CONFIG } from './types.js';
 import type { WikiConfig } from './types.js';
 
 /**
- * Load wiki config from .omc-config.json.
+ * Load wiki config from .omac-config.json.
  * Returns defaults if config doesn't exist or wiki section is missing.
  */
 function loadWikiConfig(root: string): WikiConfig {
   try {
-    const configPath = join(getOmcRoot(root), '.omc-config.json');
+    const configPath = join(getOmacRoot(root), '.omac-config.json');
     // Try active Claude config too
-    const activeConfigPath = join(getClaudeConfigDir(), '.omc-config.json');
+    const activeConfigPath = join(getClaudeConfigDir(), '.omac-config.json');
 
     for (const path of [configPath, activeConfigPath]) {
       if (existsSync(path)) {
@@ -83,7 +83,7 @@ export function onSessionStart(data: { cwd?: string }): { additionalContext?: st
     if (!index || pages.length === 0) return {};
 
     const summary = [
-      `[LLM Wiki: ${pages.length} pages at .omc/wiki/]`,
+      `[LLM Wiki: ${pages.length} pages at .omac/wiki/]`,
       '',
       'Use wiki_query to search, wiki_list to browse, wiki_read to view pages.',
       '',
@@ -193,7 +193,7 @@ export function onPreCompact(data: { cwd?: string }): { additionalContext?: stri
  */
 function feedProjectMemory(root: string): void {
   try {
-    const pmPath = join(getOmcRoot(root), 'project-memory.json');
+    const pmPath = join(getOmacRoot(root), 'project-memory.json');
     if (!existsSync(pmPath)) return;
 
     const pm = JSON.parse(readFileSync(pmPath, 'utf-8'));

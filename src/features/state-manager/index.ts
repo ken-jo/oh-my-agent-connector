@@ -2,8 +2,8 @@
  * State Manager
  *
  * Unified state management that standardizes state file locations:
- * - Local state: .omc/state/{name}.json
- * - Global state: XDG-aware user OMC state with legacy ~/.omc/state fallback
+ * - Local state: .omac/state/{name}.json
+ * - Global state: XDG-aware user OMAC state with legacy ~/.omac/state fallback
  *
  * Features:
  * - Type-safe read/write operations
@@ -16,12 +16,12 @@ import * as fs from "fs";
 import * as path from "path";
 import { atomicWriteJsonSync } from "../../lib/atomic-write.js";
 import {
-  OmcPaths,
+  OmacPaths,
   getWorktreeRoot,
-  getOmcRoot,
+  getOmacRoot,
   validateWorkingDirectory,
 } from "../../lib/worktree-paths.js";
-import { getGlobalOmcStateRoot, getLegacyOmcPath } from "../../utils/paths.js";
+import { getGlobalOmacStateRoot, getLegacyOmacPath } from "../../utils/paths.js";
 import {
   StateLocation,
   StateConfig,
@@ -40,13 +40,13 @@ import {
 // Standard state directories
 /** Get the absolute path to the local state directory, resolved from the git worktree root. */
 function getLocalStateDir(): string {
-  return path.join(validateWorkingDirectory(), OmcPaths.STATE);
+  return path.join(validateWorkingDirectory(), OmacPaths.STATE);
 }
 /**
  * @deprecated for mode state. Global state directory is only used for analytics and daemon state.
  * Mode state should use LOCAL_STATE_DIR exclusively.
  */
-const GLOBAL_STATE_DIR = getGlobalOmcStateRoot();
+const GLOBAL_STATE_DIR = getGlobalOmacStateRoot();
 
 /** Maximum age for state files before they are considered stale (4 hours) */
 const MAX_STATE_AGE_MS = 4 * 60 * 60 * 1000;
@@ -71,18 +71,18 @@ export function clearStateCache(): void {
 
 // Legacy state locations (for backward compatibility)
 const LEGACY_LOCATIONS: Record<string, string[]> = {
-  boulder: [".omc/state/boulder.json"],
-  autopilot: [".omc/state/autopilot-state.json"],
-  "autopilot-state": [".omc/state/autopilot-state.json"],
-  ralph: [".omc/state/ralph-state.json"],
-  "ralph-state": [".omc/state/ralph-state.json"],
-  "ralph-verification": [".omc/state/ralph-verification.json"],
-  ultrawork: [".omc/state/ultrawork-state.json"],
-  "ultrawork-state": [".omc/state/ultrawork-state.json"],
-  ultraqa: [".omc/state/ultraqa-state.json"],
-  "ultraqa-state": [".omc/state/ultraqa-state.json"],
-  "hud-state": [".omc/state/hud-state.json"],
-  prd: [".omc/state/prd.json"],
+  boulder: [".omac/state/boulder.json"],
+  autopilot: [".omac/state/autopilot-state.json"],
+  "autopilot-state": [".omac/state/autopilot-state.json"],
+  ralph: [".omac/state/ralph-state.json"],
+  "ralph-state": [".omac/state/ralph-state.json"],
+  "ralph-verification": [".omac/state/ralph-verification.json"],
+  ultrawork: [".omac/state/ultrawork-state.json"],
+  "ultrawork-state": [".omac/state/ultrawork-state.json"],
+  ultraqa: [".omac/state/ultraqa-state.json"],
+  "ultraqa-state": [".omac/state/ultraqa-state.json"],
+  "hud-state": [".omac/state/hud-state.json"],
+  prd: [".omac/state/prd.json"],
 };
 
 /**
@@ -101,7 +101,7 @@ export function getLegacyPaths(name: string, location: StateLocation = StateLoca
   const legacyPaths = [...(LEGACY_LOCATIONS[name] || [])];
 
   if (location === StateLocation.GLOBAL) {
-    legacyPaths.push(getLegacyOmcPath("state", `${name}.json`));
+    legacyPaths.push(getLegacyOmacPath("state", `${name}.json`));
   }
 
   return legacyPaths;
@@ -587,7 +587,7 @@ export function cleanupStaleStates(
   maxAgeMs: number = MAX_STATE_AGE_MS,
 ): number {
   const stateDir = directory
-    ? path.join(getOmcRoot(directory), "state")
+    ? path.join(getOmacRoot(directory), "state")
     : getLocalStateDir();
 
   if (!fs.existsSync(stateDir)) return 0;
@@ -641,10 +641,10 @@ export function cleanupStaleStates(
     }
   };
 
-  // Scan top-level state files (.omc/state/*.json)
+  // Scan top-level state files (.omac/state/*.json)
   scanDir(stateDir);
 
-  // Scan session directories (.omc/state/sessions/*/*.json)
+  // Scan session directories (.omac/state/sessions/*/*.json)
   const sessionsDir = path.join(stateDir, "sessions");
   if (fs.existsSync(sessionsDir)) {
     try {

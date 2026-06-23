@@ -1,20 +1,21 @@
 {
   "name": "oh-my-agent-connector",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
-  "description": "Private agent-connector fork of oh-my-claudecode: OMC runtime plus one defineConnector() that deploys MCP, hooks, agents, skills, and commands across agent CLIs.",
+  "description": "Private host-neutral OMAC runtime plus one defineConnector() that deploys MCP, hooks, agents, skills, and commands across agent CLIs.",
   "bin": {
-    "oh-my-claudecode": "bin/oh-my-claudecode.js",
-    "omc": "bin/oh-my-claudecode.js",
-    "omc-cli": "bridge/cli.cjs",
+    "oh-my-agent-connector-runtime": "bin/oh-my-agent-connector-runtime.js",
+    "omac": "bin/oh-my-agent-connector-runtime.js",
+    "omac-cli": "bridge/cli.cjs",
     "oh-my-agent-connector": "./bin.mjs"
   },
   "scripts": {
     "detect": "node bin.mjs detect",
     "install:dry": "node bin.mjs install --dry-run",
     "doctor": "node bin.mjs doctor --probe",
-    "build": "tsc && node scripts/build-skill-bridge.mjs && node scripts/build-mcp-server.mjs && node scripts/build-bridge-entry.mjs && npm run compose-docs && npm run build:runtime-cli && npm run build:team-server && npm run build:cli",
+    "build": "tsc && node scripts/build-skill-bridge.mjs && node scripts/build-mcp-server.mjs && node scripts/build-bridge-entry.mjs && npm run compose-docs && node scripts/build-runtime-cli.mjs && node scripts/build-team-server.mjs && node scripts/build-cli.mjs",
+    "prepublishOnly": "npm run build",
     "compose-docs": "node scripts/compose-docs.mjs",
     "test": "vitest",
     "test:run": "vitest run",

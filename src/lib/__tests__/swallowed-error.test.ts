@@ -17,6 +17,6 @@ describe('swallowed-error helper', () => {
     const log = createSwallowedErrorLogger('test context');
 
     expect(() => log(new Error('boom'))).not.toThrow();
-    expect(warnSpy).toHaveBeenCalledWith('[omc] test context: boom');
+    expect(warnSpy).toHaveBeenCalledWith('[omac] test context: boom');
   });
 });

@@ -134,7 +134,7 @@ function makeRuntime(cwd: string, agentType: 'gemini' | 'codex' | 'claude' | 'gr
 }
 
 function setupTaskDir(cwd: string): void {
-  const tasksDir = join(cwd, '.omc/state/team/test-team/tasks');
+  const tasksDir = join(cwd, '.omac/state/team/test-team/tasks');
   mkdirSync(tasksDir, { recursive: true });
   writeFileSync(join(tasksDir, '1.json'), JSON.stringify({
     id: '1',
@@ -143,7 +143,7 @@ function setupTaskDir(cwd: string): void {
     status: 'pending',
     owner: null,
   }));
-  const workerDir = join(cwd, '.omc/state/team/test-team/workers/worker-1');
+  const workerDir = join(cwd, '.omac/state/team/test-team/workers/worker-1');
   mkdirSync(workerDir, { recursive: true });
 }
 
@@ -154,7 +154,7 @@ describe('spawnWorkerForTask – prompt mode and interactive worker launch', () 
     tmuxCalls.args = [];
     tmuxCalls.capturePaneText = '❯ ready\n';
     tmuxCalls.lastLiteralSend = '';
-    delete process.env.OMC_SHELL_READY_TIMEOUT_MS;
+    delete process.env.OMAC_SHELL_READY_TIMEOUT_MS;
     cwd = mkdtempSync(join(tmpdir(), 'runtime-gemini-prompt-'));
     setupTaskDir(cwd);
   });
@@ -174,7 +174,7 @@ describe('spawnWorkerForTask – prompt mode and interactive worker launch', () 
     // Should contain -p flag for prompt mode
     expect(launchCmd).toContain("'-p'");
     // Should contain the inbox path reference
-    expect(launchCmd).toContain('.omc/state/team/test-team/workers/worker-1/inbox.md');
+    expect(launchCmd).toContain('.omac/state/team/test-team/workers/worker-1/inbox.md');
     expect(launchCmd).toContain('execute now');
     expect(launchCmd).toContain('concrete progress');
 
@@ -203,7 +203,7 @@ describe('spawnWorkerForTask – prompt mode and interactive worker launch', () 
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
 
-    const inboxPath = join(cwd, '.omc/state/team/test-team/workers/worker-1/inbox.md');
+    const inboxPath = join(cwd, '.omac/state/team/test-team/workers/worker-1/inbox.md');
     const content = readFileSync(inboxPath, 'utf-8');
     expect(content).toContain('Initial Task Assignment');
     expect(content).toContain('Test task');
@@ -227,7 +227,7 @@ describe('spawnWorkerForTask – prompt mode and interactive worker launch', () 
     expect(launchCmd).toContain('/usr/local/bin/codex');
     expect(launchCmd).toContain('--dangerously-bypass-approvals-and-sandbox');
     expect(launchCmd).not.toContain("'exec'");
-    expect(launchCmd).not.toContain('.omc/state/team/test-team/workers/worker-1/inbox.md');
+    expect(launchCmd).not.toContain('.omac/state/team/test-team/workers/worker-1/inbox.md');
     expect(launchCmd).not.toContain('execute now');
     expect(launchCmd).not.toContain('concrete progress');
 
@@ -269,11 +269,11 @@ describe('spawnWorkerForTask – prompt mode and interactive worker launch', () 
   it('non-prompt worker throws when pane never becomes ready and resets task to pending', async () => {
     const runtime = makeRuntime(cwd, 'claude');
     tmuxCalls.capturePaneText = 'still booting\n';
-    process.env.OMC_SHELL_READY_TIMEOUT_MS = '40';
+    process.env.OMAC_SHELL_READY_TIMEOUT_MS = '40';
 
     await expect(spawnWorkerForTask(runtime, 'worker-1', 0)).rejects.toThrow('worker_pane_not_ready:worker-1');
 
-    const taskPath = join(cwd, '.omc/state/team/test-team/tasks/1.json');
+    const taskPath = join(cwd, '.omac/state/team/test-team/tasks/1.json');
     const task = JSON.parse(readFileSync(taskPath, 'utf-8')) as { status: string; owner: string | null };
     expect(task.status).toBe('pending');
     expect(task.owner).toBeNull();
@@ -282,7 +282,7 @@ describe('spawnWorkerForTask – prompt mode and interactive worker launch', () 
   });
 
   it('returns empty and skips spawn when task is already in_progress (claim already taken)', async () => {
-    const taskPath = join(cwd, '.omc/state/team/test-team/tasks/1.json');
+    const taskPath = join(cwd, '.omac/state/team/test-team/tasks/1.json');
     writeFileSync(taskPath, JSON.stringify({
       id: '1',
       subject: 'Test task',
@@ -313,14 +313,14 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     tmuxCalls.args = [];
     tmuxCalls.capturePaneText = '❯ ready\n';
     tmuxCalls.lastLiteralSend = '';
-    delete process.env.OMC_SHELL_READY_TIMEOUT_MS;
+    delete process.env.OMAC_SHELL_READY_TIMEOUT_MS;
     // Clear model/provider env vars before each test
-    delete process.env.OMC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL;
-    delete process.env.OMC_CODEX_DEFAULT_MODEL;
-    delete process.env.OMC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL;
-    delete process.env.OMC_GEMINI_DEFAULT_MODEL;
-    delete process.env.OMC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL;
-    delete process.env.OMC_GROK_DEFAULT_MODEL;
+    delete process.env.OMAC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL;
+    delete process.env.OMAC_CODEX_DEFAULT_MODEL;
+    delete process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL;
+    delete process.env.OMAC_GEMINI_DEFAULT_MODEL;
+    delete process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL;
+    delete process.env.OMAC_GROK_DEFAULT_MODEL;
     delete process.env.ANTHROPIC_MODEL;
     delete process.env.CLAUDE_MODEL;
     delete process.env.ANTHROPIC_BASE_URL;
@@ -332,9 +332,9 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     delete process.env.ANTHROPIC_DEFAULT_OPUS_MODEL;
     delete process.env.ANTHROPIC_DEFAULT_SONNET_MODEL;
     delete process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL;
-    delete process.env.OMC_MODEL_HIGH;
-    delete process.env.OMC_MODEL_MEDIUM;
-    delete process.env.OMC_MODEL_LOW;
+    delete process.env.OMAC_MODEL_HIGH;
+    delete process.env.OMAC_MODEL_MEDIUM;
+    delete process.env.OMAC_MODEL_LOW;
     cwd = mkdtempSync(join(tmpdir(), 'runtime-model-passthrough-'));
     setupTaskDir(cwd);
   });
@@ -344,8 +344,8 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     rmSync(cwd, { recursive: true, force: true });
   });
 
-  it('codex worker passes model from OMC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL', async () => {
-    process.env.OMC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL = 'gpt-4o';
+  it('codex worker passes model from OMAC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL', async () => {
+    process.env.OMAC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL = 'gpt-4o';
     const runtime = makeRuntime(cwd, 'codex');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -361,8 +361,8 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     expect(launchCmd).toContain("'gpt-4o'");
   });
 
-  it('codex worker falls back to OMC_CODEX_DEFAULT_MODEL', async () => {
-    process.env.OMC_CODEX_DEFAULT_MODEL = 'o3-mini';
+  it('codex worker falls back to OMAC_CODEX_DEFAULT_MODEL', async () => {
+    process.env.OMAC_CODEX_DEFAULT_MODEL = 'o3-mini';
     const runtime = makeRuntime(cwd, 'codex');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -377,9 +377,9 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     expect(launchCmd).toContain("'o3-mini'");
   });
 
-  it('codex worker prefers OMC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL over legacy fallback', async () => {
-    process.env.OMC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL = 'gpt-4o';
-    process.env.OMC_CODEX_DEFAULT_MODEL = 'o3-mini';
+  it('codex worker prefers OMAC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL over legacy fallback', async () => {
+    process.env.OMAC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL = 'gpt-4o';
+    process.env.OMAC_CODEX_DEFAULT_MODEL = 'o3-mini';
     const runtime = makeRuntime(cwd, 'codex');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -393,8 +393,8 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     expect(launchCmd).toContain("'--model' 'gpt-4o'");
   });
 
-  it('gemini worker passes model from OMC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL', async () => {
-    process.env.OMC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
+  it('gemini worker passes model from OMAC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL', async () => {
+    process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
     const runtime = makeRuntime(cwd, 'gemini');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -409,8 +409,8 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     expect(launchCmd).toContain("'gemini-2.0-flash'");
   });
 
-  it('gemini worker falls back to OMC_GEMINI_DEFAULT_MODEL', async () => {
-    process.env.OMC_GEMINI_DEFAULT_MODEL = 'gemini-1.5-pro';
+  it('gemini worker falls back to OMAC_GEMINI_DEFAULT_MODEL', async () => {
+    process.env.OMAC_GEMINI_DEFAULT_MODEL = 'gemini-1.5-pro';
     const runtime = makeRuntime(cwd, 'gemini');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -425,9 +425,9 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     expect(launchCmd).toContain("'gemini-1.5-pro'");
   });
 
-  it('gemini worker prefers OMC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL over legacy fallback', async () => {
-    process.env.OMC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
-    process.env.OMC_GEMINI_DEFAULT_MODEL = 'gemini-1.5-pro';
+  it('gemini worker prefers OMAC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL over legacy fallback', async () => {
+    process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
+    process.env.OMAC_GEMINI_DEFAULT_MODEL = 'gemini-1.5-pro';
     const runtime = makeRuntime(cwd, 'gemini');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -441,8 +441,8 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     expect(launchCmd).toContain("'--model' 'gemini-2.0-flash'");
   });
 
-  it('grok worker passes model from OMC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL', async () => {
-    process.env.OMC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL = 'grok-4-fast';
+  it('grok worker passes model from OMAC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL', async () => {
+    process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL = 'grok-4-fast';
     const runtime = makeRuntime(cwd, 'grok');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -458,8 +458,8 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     expect(launchCmd).toContain("'grok-4-fast'");
   });
 
-  it('grok worker falls back to OMC_GROK_DEFAULT_MODEL', async () => {
-    process.env.OMC_GROK_DEFAULT_MODEL = 'grok-code-fast-1';
+  it('grok worker falls back to OMAC_GROK_DEFAULT_MODEL', async () => {
+    process.env.OMAC_GROK_DEFAULT_MODEL = 'grok-code-fast-1';
     const runtime = makeRuntime(cwd, 'grok');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -474,9 +474,9 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     expect(launchCmd).toContain("'grok-code-fast-1'");
   });
 
-  it('grok worker prefers OMC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL over legacy fallback', async () => {
-    process.env.OMC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL = 'grok-4-fast';
-    process.env.OMC_GROK_DEFAULT_MODEL = 'grok-code-fast-1';
+  it('grok worker prefers OMAC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL over legacy fallback', async () => {
+    process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL = 'grok-4-fast';
+    process.env.OMAC_GROK_DEFAULT_MODEL = 'grok-code-fast-1';
     const runtime = makeRuntime(cwd, 'grok');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -498,7 +498,7 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     process.env.CLAUDE_CODE_USE_BEDROCK = '1';
     process.env.ANTHROPIC_MODEL = 'us.anthropic.claude-sonnet-4-6-v1:0';
     process.env.CLAUDE_CODE_BEDROCK_SONNET_MODEL = 'us.anthropic.claude-sonnet-4-6-v1:0';
-    process.env.OMC_MODEL_MEDIUM = 'us.anthropic.claude-sonnet-4-6-v1:0';
+    process.env.OMAC_MODEL_MEDIUM = 'us.anthropic.claude-sonnet-4-6-v1:0';
     const runtime = makeRuntime(cwd, 'grok');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -521,7 +521,7 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
   });
 
   it('claude worker does not pass model flag (not supported)', async () => {
-    process.env.OMC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL = 'gpt-4o';
+    process.env.OMAC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL = 'gpt-4o';
     const runtime = makeRuntime(cwd, 'claude');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -580,9 +580,9 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     process.env.ANTHROPIC_DEFAULT_OPUS_MODEL = 'claude-opus-4-6-custom';
     process.env.ANTHROPIC_DEFAULT_SONNET_MODEL = 'claude-sonnet-4-6-custom';
     process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL = 'claude-haiku-4-5-custom';
-    process.env.OMC_MODEL_HIGH = 'claude-opus-4-6-override';
-    process.env.OMC_MODEL_MEDIUM = 'claude-sonnet-4-6-override';
-    process.env.OMC_MODEL_LOW = 'claude-haiku-4-5-override';
+    process.env.OMAC_MODEL_HIGH = 'claude-opus-4-6-override';
+    process.env.OMAC_MODEL_MEDIUM = 'claude-sonnet-4-6-override';
+    process.env.OMAC_MODEL_LOW = 'claude-haiku-4-5-override';
     const runtime = makeRuntime(cwd, 'claude');
 
     await spawnWorkerForTask(runtime, 'worker-1', 0);
@@ -606,11 +606,11 @@ describe('spawnWorkerForTask – model passthrough from environment variables', 
     expect(launchCmd).toContain('claude-sonnet-4-6-custom');
     expect(launchCmd).toContain('ANTHROPIC_DEFAULT_HAIKU_MODEL=');
     expect(launchCmd).toContain('claude-haiku-4-5-custom');
-    expect(launchCmd).toContain('OMC_MODEL_HIGH=');
+    expect(launchCmd).toContain('OMAC_MODEL_HIGH=');
     expect(launchCmd).toContain('claude-opus-4-6-override');
-    expect(launchCmd).toContain('OMC_MODEL_MEDIUM=');
+    expect(launchCmd).toContain('OMAC_MODEL_MEDIUM=');
     expect(launchCmd).toContain('claude-sonnet-4-6-override');
-    expect(launchCmd).toContain('OMC_MODEL_LOW=');
+    expect(launchCmd).toContain('OMAC_MODEL_LOW=');
     expect(launchCmd).toContain('claude-haiku-4-5-override');
     // With Bedrock env vars set, resolveClaudeWorkerModel returns the sonnet model
     // so --model IS expected now (this was the #1695 fix)

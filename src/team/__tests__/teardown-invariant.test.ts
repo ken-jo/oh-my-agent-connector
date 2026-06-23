@@ -21,11 +21,11 @@ import {
 import { sanitizeName } from '../tmux-session.js';
 
 beforeAll(() => {
-  process.env.OMC_RUNTIME_V2 = '1';
+  process.env.OMAC_RUNTIME_V2 = '1';
 });
 
 afterEach(() => {
-  process.env.OMC_RUNTIME_V2 = '1';
+  process.env.OMAC_RUNTIME_V2 = '1';
 });
 
 // ---------------------------------------------------------------------------
@@ -52,7 +52,7 @@ describe('drainAndStop — clean + conflicting work', () => {
 
   beforeEach(async () => {
     fixture = await createGitFixture({ workerCount: 2 });
-    process.env.OMC_RUNTIME_V2 = '1';
+    process.env.OMAC_RUNTIME_V2 = '1';
   });
 
   afterEach(async () => {
@@ -93,7 +93,7 @@ describe('drainAndStop — clean + conflicting work', () => {
     // Teardown audit file should exist if there were unmerged workers.
     const auditPath = join(
       fixture.repoRoot,
-      '.omc', 'state', 'team', fixture.teamName,
+      '.omac', 'state', 'team', fixture.teamName,
       'teardown-audit.jsonl',
     );
 
@@ -111,7 +111,7 @@ describe('drainAndStop — clean + conflicting work', () => {
       // Leader inbox should contain the teardown audit message
       const leaderInboxPath = join(
         fixture.repoRoot,
-        '.omc', 'state', 'team', fixture.teamName,
+        '.omac', 'state', 'team', fixture.teamName,
         'leader', 'inbox.md',
       );
       expect(existsSync(leaderInboxPath)).toBe(true);
@@ -135,7 +135,7 @@ describe('drainAndStop — drain timeout', () => {
 
   beforeEach(async () => {
     fixture = await createGitFixture({ workerCount: 1 });
-    process.env.OMC_RUNTIME_V2 = '1';
+    process.env.OMAC_RUNTIME_V2 = '1';
   });
 
   afterEach(async () => {
@@ -166,7 +166,7 @@ describe('drainAndStop — drain timeout', () => {
 
       const auditPath = join(
         fixture.repoRoot,
-        '.omc', 'state', 'team', fixture.teamName,
+        '.omac', 'state', 'team', fixture.teamName,
         'teardown-audit.jsonl',
       );
       expect(existsSync(auditPath)).toBe(true);
@@ -176,7 +176,7 @@ describe('drainAndStop — drain timeout', () => {
       // Leader inbox should have the audit message
       const leaderInboxPath = join(
         fixture.repoRoot,
-        '.omc', 'state', 'team', fixture.teamName,
+        '.omac', 'state', 'team', fixture.teamName,
         'leader', 'inbox.md',
       );
       expect(existsSync(leaderInboxPath)).toBe(true);
@@ -210,7 +210,7 @@ describe('drainAndStop — one audit row per unmerged worker', () => {
 
   beforeEach(async () => {
     fixture = await createGitFixture({ workerCount: 2 });
-    process.env.OMC_RUNTIME_V2 = '1';
+    process.env.OMAC_RUNTIME_V2 = '1';
   });
 
   afterEach(async () => {
@@ -236,7 +236,7 @@ describe('drainAndStop — one audit row per unmerged worker', () => {
     if (result.unmerged.length > 0) {
       const auditPath = join(
         fixture.repoRoot,
-        '.omc', 'state', 'team', fixture.teamName,
+        '.omac', 'state', 'team', fixture.teamName,
         'teardown-audit.jsonl',
       );
       expect(existsSync(auditPath)).toBe(true);

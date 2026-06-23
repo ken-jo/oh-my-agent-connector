@@ -4,7 +4,7 @@
  * Tmux Session Management for MCP Team Bridge
  *
  * Create, kill, list, and manage tmux sessions for MCP worker bridge daemons.
- * Sessions are named "omc-team-{teamName}-{workerName}".
+ * Sessions are named "omac-team-{teamName}-{workerName}".
  */
 
 import { existsSync } from 'fs';
@@ -14,14 +14,14 @@ import { promisify } from 'util';
 import { join, basename, isAbsolute, win32 } from 'path';
 import fs from 'fs/promises';
 import { validateTeamName } from './team-name.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 import { tmuxExec, tmuxExecAsync, tmuxShell, tmuxCmdAsync } from '../cli/tmux-utils.js';
 import { configureTmuxClipboardForSession, configureTmuxClipboardForSessionAsync } from '../cli/tmux-clipboard.js';
 
 const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 const execFileAsync = promisify(execFile);
 
-const TMUX_SESSION_PREFIX = 'omc-team';
+const TMUX_SESSION_PREFIX = 'omac-team';
 
 export type TeamMultiplexerContext = 'tmux' | 'cmux' | 'none';
 
@@ -292,7 +292,7 @@ export interface WaitForShellReadyOptions {
 
 async function waitForShellReady(paneId: string, opts: WaitForShellReadyOptions = {}): Promise<boolean> {
   if (isCmuxSurfaceTarget(paneId)) return true;
-  const envTimeout = Number.parseInt(process.env.OMC_TEAM_SHELL_READY_TIMEOUT_MS ?? '', 10);
+  const envTimeout = Number.parseInt(process.env.OMAC_TEAM_SHELL_READY_TIMEOUT_MS ?? '', 10);
   const timeoutMs = Number.isFinite(opts.timeoutMs) && (opts.timeoutMs ?? 0) > 0
     ? Number(opts.timeoutMs)
     : (Number.isFinite(envTimeout) && envTimeout > 0 ? envTimeout : 5_000);
@@ -409,7 +409,7 @@ export function buildWorkerStartCommand(config: WorkerPaneConfig): string {
   const shell = getDefaultShell();
   const launchSpec = buildWorkerLaunchSpec(process.env.SHELL);
   const launchWords = getLaunchWords(config);
-  const shouldSourceRc = process.env.OMC_TEAM_NO_RC !== '1';
+  const shouldSourceRc = process.env.OMAC_TEAM_NO_RC !== '1';
 
   if (isNativeWindowsPsmuxPowerShellPane()) {
     const envStatements = Object.entries(config.envVars)
@@ -544,7 +544,7 @@ export function sanitizeName(name: string): string {
   return sanitized.slice(0, 50);
 }
 
-/** Build session name: "omc-team-{teamName}-{workerName}" */
+/** Build session name: "omac-team-{teamName}-{workerName}" */
 export function sessionName(teamName: string, workerName: string): string {
   return `${TMUX_SESSION_PREFIX}-${sanitizeName(teamName)}-${sanitizeName(workerName)}`;
 }
@@ -616,7 +616,7 @@ export function listActiveSessions(teamName: string): string[] {
  *
  * Instead of passing JSON via tmux send-keys (brittle quoting), the caller
  * writes config to a temp file and passes --config flag:
- *   <current-js-runtime> dist/team/bridge-entry.js --config /tmp/omc-bridge-{worker}.json
+ *   <current-js-runtime> dist/team/bridge-entry.js --config /tmp/omac-bridge-{worker}.json
  */
 function quoteBridgeShellArg(value: string): string {
   return `'${value.replace(/'/g, `'"'"'`)}'`;
@@ -726,7 +726,7 @@ export async function createTeamSession(
 
   if (useDedicatedWindow) {
     const targetSession = sessionAndWindow.split(':')[0] ?? sessionAndWindow;
-    const windowName = `omc-${sanitizeName(teamName)}`.slice(0, 32);
+    const windowName = `omac-${sanitizeName(teamName)}`.slice(0, 32);
     const newWindowResult = await tmuxExecAsync([
       'new-window', '-d', '-P', '-F', '#S:#I #{pane_id}',
       '-t', targetSession,
@@ -812,7 +812,7 @@ export async function createTeamSession(
 /**
  * Spawn a CLI agent in a specific pane.
 
- * Worker startup: env OMC_TEAM_WORKER={teamName}/workerName shell -lc "exec agentCmd"
+ * Worker startup: env OMAC_TEAM_WORKER={teamName}/workerName shell -lc "exec agentCmd"
  */
 export async function spawnWorkerInPane(
   sessionName: string,
@@ -1037,7 +1037,7 @@ export async function waitForPaneReady(
   paneId: string,
   opts: WaitForPaneReadyOptions = {}
 ): Promise<boolean> {
-  const envTimeout = Number.parseInt(process.env.OMC_SHELL_READY_TIMEOUT_MS ?? '', 10);
+  const envTimeout = Number.parseInt(process.env.OMAC_SHELL_READY_TIMEOUT_MS ?? '', 10);
   const timeoutMs = Number.isFinite(opts.timeoutMs) && (opts.timeoutMs ?? 0) > 0
     ? Number(opts.timeoutMs)
     : (Number.isFinite(envTimeout) && envTimeout > 0 ? envTimeout : 30_000);
@@ -1056,7 +1056,7 @@ export async function waitForPaneReady(
 
   console.warn(
     `[tmux-session] waitForPaneReady: pane ${paneId} timed out after ${timeoutMs}ms ` +
-    `(set OMC_SHELL_READY_TIMEOUT_MS to tune)`
+    `(set OMAC_SHELL_READY_TIMEOUT_MS to tune)`
   );
   return false;
 }
@@ -1084,7 +1084,7 @@ export function shouldAttemptAdaptiveRetry(args: {
   paneInCopyMode: boolean;
   retriesAttempted: number;
 }): boolean {
-  if (process.env.OMC_TEAM_AUTO_INTERRUPT_RETRY === '0') return false;
+  if (process.env.OMAC_TEAM_AUTO_INTERRUPT_RETRY === '0') return false;
   if (args.retriesAttempted >= 1) return false;
   if (args.paneInCopyMode) return false;
   if (!args.paneBusy) return false;
@@ -1243,7 +1243,7 @@ export async function sendToWorker(
 /**
  * Inject a status message into the leader Claude pane.
  * The message is typed into the leader's input, triggering a new conversation turn.
- * Prefixes with [OMC_TMUX_INJECT] marker to distinguish from user input.
+ * Prefixes with [OMAC_TMUX_INJECT] marker to distinguish from user input.
  * Returns false on error (does not throw).
  */
 export async function injectToLeaderPane(
@@ -1251,9 +1251,9 @@ export async function injectToLeaderPane(
   leaderPaneId: string,
   message: string
 ): Promise<boolean> {
-  const prefixed = `[OMC_TMUX_INJECT] ${message}`.slice(0, 200);
+  const prefixed = `[OMAC_TMUX_INJECT] ${message}`.slice(0, 200);
 
-  // If the leader is running a blocking tool (e.g. omc_run_team_wait shows
+  // If the leader is running a blocking tool (e.g. omac_run_team_wait shows
   // "esc to interrupt"), send C-c first so the message is not queued in the
   // stdin buffer behind the blocked process.
   try {
@@ -1326,7 +1326,7 @@ export async function killWorkerPanes(opts: {
   if (!paneIds.length) return;   // guard: nothing to kill
 
   // 1. Write graceful shutdown sentinel
-  const shutdownPath = join(getOmcRoot(cwd), 'state', 'team', teamName, 'shutdown.json');
+  const shutdownPath = join(getOmacRoot(cwd), 'state', 'team', teamName, 'shutdown.json');
   try {
     await fs.writeFile(shutdownPath, JSON.stringify({ requestedAt: Date.now() }));
     const aliveChecks = await Promise.all(paneIds.map(id => isWorkerAlive(id)));
@@ -1417,7 +1417,7 @@ export async function killTeamSession(
 
   const sessionTarget = sessionName.split(':')[0] ?? sessionName;
 
-  if (process.env.OMC_TEAM_ALLOW_KILL_CURRENT_SESSION !== '1' && process.env.TMUX) {
+  if (process.env.OMAC_TEAM_ALLOW_KILL_CURRENT_SESSION !== '1' && process.env.TMUX) {
     try {
       const current = await tmuxCmdAsync(['display-message', '-p', '#S']);
       const currentSessionName = current.stdout.trim();

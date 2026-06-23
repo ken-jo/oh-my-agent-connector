@@ -77,7 +77,7 @@ describe('MODEL ROUTING OVERRIDE message — three-site sync', () => {
     // Prescriptive shape applied to all three.
     for (const block of [scriptsSlice, templateSlice, bridgeBlock]) {
       expect(block).toMatch(
-        /ANTHROPIC_DEFAULT_SONNET_MODEL|CLAUDE_CODE_BEDROCK_SONNET_MODEL|OMC_SUBAGENT_MODEL/,
+        /ANTHROPIC_DEFAULT_SONNET_MODEL|CLAUDE_CODE_BEDROCK_SONNET_MODEL|OMAC_SUBAGENT_MODEL/,
       );
       expect(block).toMatch(/\[1m\][\s\S]{0,200}REQUIRED/);
       expect(block).toContain('MODEL ROUTING OVERRIDE');

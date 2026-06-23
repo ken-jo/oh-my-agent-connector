@@ -87,8 +87,8 @@ Invalid combinations:
 
 ### Standard Paths
 All mode state files use standardized locations:
-- Primary: `.omc/state/{name}.json` (local, per-project)
-- Global backup: `~/.omc/state/{name}.json` (global, session continuity)
+- Primary: `.omac/state/{name}.json` (local, per-project)
+- Global backup: `~/.omac/state/{name}.json` (global, session continuity)
 
 ### Mode State Files
 | Mode | State File |
@@ -100,6 +100,6 @@ All mode state files use standardized locations:
 | ultraqa | `ultraqa-state.json` |
 | pipeline | `pipeline-state.json` |
 
-**Important:** Never store OMC state in `~/.claude/` - that directory is reserved for Claude Code itself.
+**Important:** Never store OMAC state in `~/.claude/` - that directory is reserved for Claude Code itself.
 
 Legacy locations are auto-migrated on read.

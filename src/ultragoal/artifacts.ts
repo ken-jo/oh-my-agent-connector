@@ -6,9 +6,9 @@ import {
   parseClaudeGoalSnapshot,
   reconcileClaudeGoalSnapshot,
 } from '../goal-workflows/claude-goal-snapshot.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 
-export const ULTRAGOAL_DIR = '.omc/ultragoal';
+export const ULTRAGOAL_DIR = '.omac/ultragoal';
 export const ULTRAGOAL_BRIEF = 'brief.md';
 export const ULTRAGOAL_GOALS = 'goals.json';
 export const ULTRAGOAL_LEDGER = 'ledger.jsonl';
@@ -18,10 +18,10 @@ export const ULTRAGOAL_PLANS_SUBDIR = 'plans';
  * Multi-plan support (Wave 2 — multi-repo workspace parallelism).
  *
  * Legacy layout (single plan per repo, default for backwards compatibility):
- *   .omc/ultragoal/{brief.md, goals.json, ledger.jsonl}
+ *   .omac/ultragoal/{brief.md, goals.json, ledger.jsonl}
  *
  * Multi-plan layout (opt-in via planId argument or --plan-id / --auto-plan-id CLI flag):
- *   .omc/ultragoal/plans/{planId}/{brief.md, goals.json, ledger.jsonl}
+ *   .omac/ultragoal/plans/{planId}/{brief.md, goals.json, ledger.jsonl}
  *
  * planId is a stable string. Auto-generated form: "{ms}-{slug}" where slug is
  * derived from the first non-empty title in the brief.
@@ -63,8 +63,8 @@ export interface UltragoalPlan {
   version: 1;
   /**
    * Stable plan identifier. When undefined, the plan uses the legacy
-   * single-plan layout (.omc/ultragoal/{brief.md,goals.json,ledger.jsonl}).
-   * When set, artifacts live under .omc/ultragoal/plans/{planId}/.
+   * single-plan layout (.omac/ultragoal/{brief.md,goals.json,ledger.jsonl}).
+   * When set, artifacts live under .omac/ultragoal/plans/{planId}/.
    */
   planId?: string;
   createdAt: string;
@@ -108,14 +108,14 @@ export interface CreateUltragoalOptions {
   now?: Date;
   force?: boolean;
   /**
-   * Explicit plan id; writes to .omc/ultragoal/plans/{planId}/. Mutually
+   * Explicit plan id; writes to .omac/ultragoal/plans/{planId}/. Mutually
    * exclusive with autoPlanId. When both omitted, plan uses legacy layout.
    */
   planId?: string;
   /**
    * Auto-generate a plan id from the brief title and current time.
    * Format: "{epochMs}-{slug}". Enables safe parallel ultragoal runs in
-   * multi-repo workspaces sharing one .omc/.
+   * multi-repo workspaces sharing one .omac/.
    */
   autoPlanId?: boolean;
 }
@@ -174,9 +174,9 @@ function iso(now = new Date()): string {
 }
 
 export function ultragoalDir(cwd: string, planId?: string): string {
-  const omcRoot = getOmcRoot(cwd);
-  if (planId) return join(omcRoot, 'ultragoal', ULTRAGOAL_PLANS_SUBDIR, planId);
-  return join(omcRoot, 'ultragoal');
+  const omacRoot = getOmacRoot(cwd);
+  if (planId) return join(omacRoot, 'ultragoal', ULTRAGOAL_PLANS_SUBDIR, planId);
+  return join(omacRoot, 'ultragoal');
 }
 
 export function ultragoalBriefPath(cwd: string, planId?: string): string {
@@ -192,11 +192,11 @@ export function ultragoalLedgerPath(cwd: string, planId?: string): string {
 }
 
 /**
- * List all multi-plan IDs under .omc/ultragoal/plans/.
+ * List all multi-plan IDs under .omac/ultragoal/plans/.
  * Returns an empty array when the plans/ subdir doesn't exist.
  */
 export async function listUltragoalPlanIds(cwd: string): Promise<string[]> {
-  const dir = join(getOmcRoot(cwd), 'ultragoal', ULTRAGOAL_PLANS_SUBDIR);
+  const dir = join(getOmacRoot(cwd), 'ultragoal', ULTRAGOAL_PLANS_SUBDIR);
   try {
     const entries = await readdir(dir, { withFileTypes: true });
     return entries
@@ -225,7 +225,7 @@ export async function resolveActivePlanId(cwd: string, explicitPlanId?: string):
     return explicitPlanId;
   }
   // Legacy single-plan takes precedence when present.
-  if (existsSync(join(getOmcRoot(cwd), 'ultragoal', ULTRAGOAL_GOALS))) return undefined;
+  if (existsSync(join(getOmacRoot(cwd), 'ultragoal', ULTRAGOAL_GOALS))) return undefined;
   const plans = await listUltragoalPlanIds(cwd);
   if (plans.length === 1) return plans[0];
   if (plans.length === 0) return undefined;
@@ -316,7 +316,7 @@ function assertActiveInProgressCheckpoint(plan: UltragoalPlan, goal: UltragoalIt
 function buildCompletedLegacyGoalRemediation(goal: UltragoalItem): string {
   return [
     'If the active /goal condition is a different completed legacy goal, do not repeat --status complete in this session.',
-    `Record a non-terminal blocker with: omc ultragoal checkpoint --goal-id ${goal.id} --status blocked --evidence "<completed legacy Claude goal blocks setting a new /goal in this session>" --claude-goal-json "<different completed goal snapshot JSON or path>".`,
+    `Record a non-terminal blocker with: omac ultragoal checkpoint --goal-id ${goal.id} --status blocked --evidence "<completed legacy Claude goal blocks setting a new /goal in this session>" --claude-goal-json "<different completed goal snapshot JSON or path>".`,
     'Then continue this ultragoal in a fresh Claude Code session in the same repo/worktree and set the intended /goal there.',
   ].join(' ');
 }
@@ -416,8 +416,8 @@ export async function readUltragoalPlan(cwd: string, planId?: string): Promise<U
     raw = await readFile(path, 'utf-8');
   } catch {
     const hint = planId
-      ? `Pass --plan-id ${planId} to a previously-created plan, or run \`omc ultragoal create-goals --plan-id ${planId} ...\`.`
-      : 'Run `omc ultragoal create-goals ...` first.';
+      ? `Pass --plan-id ${planId} to a previously-created plan, or run \`omac ultragoal create-goals --plan-id ${planId} ...\`.`
+      : 'Run `omac ultragoal create-goals ...` first.';
     throw new UltragoalError(`No ultragoal plan found at ${repoRelative(cwd, path)}. ${hint}`);
   }
   const parsed = JSON.parse(raw) as UltragoalPlan;
@@ -672,7 +672,7 @@ export async function checkpointUltragoal(cwd: string, options: CheckpointOption
         };
       } else {
         const taskScopedRequirement = aggregateMode && snapshot?.status === 'complete' && Boolean(snapshot.objective)
-          ? ' Completed task-scoped aggregate reconciliation requires the checkpoint goal to be the active in-progress OMC goal, evidence that names that active OMC goal id, names .omc/ultragoal/goals.json or ledger.jsonl, includes completed implementation plus validation/review evidence, and a Claude /goal objective that maps to the ultragoal brief/artifact.'
+          ? ' Completed task-scoped aggregate reconciliation requires the checkpoint goal to be the active in-progress OMAC goal, evidence that names that active OMAC goal id, names .omac/ultragoal/goals.json or ledger.jsonl, includes completed implementation plus validation/review evidence, and a Claude /goal objective that maps to the ultragoal brief/artifact.'
           : '';
         const remediation = reconciliation.snapshot.available
           && reconciliation.snapshot.status === 'complete'
@@ -819,11 +819,11 @@ function buildPerStoryClaudeGoalInstruction(goal: UltragoalItem, plan: Ultragoal
     `Ledger: ${plan.ledgerPath}`,
     `Goal: ${goal.id} — ${goal.title}`,
     '',
-    'Claude /goal integration constraints (model-facing — OMC cannot mutate Claude /goal state from a shell):',
+    'Claude /goal integration constraints (model-facing — OMAC cannot mutate Claude /goal state from a shell):',
     '- First confirm the active Claude /goal condition for this session. If none is active, invoke /goal <condition> with the payload below.',
     '- If a different active Claude /goal exists, finish or clear that /goal before starting this ultragoal.',
     '- If the active /goal is a different completed legacy goal and the Claude session refuses to set a new /goal, continue this ultragoal in a fresh Claude Code session (same repo/worktree) and invoke /goal there.',
-    `- To preserve the durable ledger before switching sessions, record the non-terminal blocker without failing this goal: omc ultragoal checkpoint --goal-id ${goal.id} --status blocked --evidence "<completed legacy Claude goal blocks new /goal in this session>" --claude-goal-json "<goal snapshot JSON or path>"`,
+    `- To preserve the durable ledger before switching sessions, record the non-terminal blocker without failing this goal: omac ultragoal checkpoint --goal-id ${goal.id} --status blocked --evidence "<completed legacy Claude goal blocks new /goal in this session>" --claude-goal-json "<goal snapshot JSON or path>"`,
     '- Work only this goal until its completion audit passes.',
     finalStory
       ? '- Final mandatory quality gate: run ai-slop-cleaner on changed files even when it is a no-op, rerun verification, then run $code-review.'
@@ -832,8 +832,8 @@ function buildPerStoryClaudeGoalInstruction(goal: UltragoalItem, plan: Ultragoal
       ? '- If final $code-review is not APPROVE with architect status CLEAR, do not clear the /goal. Record blockers with:'
       : '- After the goal is actually complete, clear or update the active /goal (run /goal clear once the auto-clear has not already fired), then share a fresh /goal snapshot and checkpoint the ledger with:',
     finalStory
-      ? `  omc ultragoal record-review-blockers --goal-id ${goal.id} --title "Resolve final code-review blockers" --objective "<blocker-resolution objective>" --evidence "<review findings>" --claude-goal-json "<active /goal snapshot JSON or path>"`
-      : `  omc ultragoal checkpoint --goal-id ${goal.id} --status complete --evidence "<tests/files/PR evidence>" --claude-goal-json "<fresh /goal snapshot JSON or path>"`,
+      ? `  omac ultragoal record-review-blockers --goal-id ${goal.id} --title "Resolve final code-review blockers" --objective "<blocker-resolution objective>" --evidence "<review findings>" --claude-goal-json "<active /goal snapshot JSON or path>"`
+      : `  omac ultragoal checkpoint --goal-id ${goal.id} --status complete --evidence "<tests/files/PR evidence>" --claude-goal-json "<fresh /goal snapshot JSON or path>"`,
     finalStory
       ? '- In legacy per-story mode, the blocker story may require a fresh/available Claude /goal context because this story remains an active incomplete /goal; do not claim it is complete.'
       : null,
@@ -841,7 +841,7 @@ function buildPerStoryClaudeGoalInstruction(goal: UltragoalItem, plan: Ultragoal
       ? '- If final $code-review is clean (APPROVE + CLEAR), clear the /goal (or wait for the auto-clear), then checkpoint with --quality-gate-json:'
       : null,
     finalStory
-      ? `  omc ultragoal checkpoint --goal-id ${goal.id} --status complete --evidence "<tests/files/PR evidence>" --claude-goal-json "<fresh complete /goal snapshot JSON or path>" --quality-gate-json "<quality gate JSON or path>"`
+      ? `  omac ultragoal checkpoint --goal-id ${goal.id} --status complete --evidence "<tests/files/PR evidence>" --claude-goal-json "<fresh complete /goal snapshot JSON or path>" --quality-gate-json "<quality gate JSON or path>"`
       : null,
     '- If blocked or failed, checkpoint with --status failed and the failure evidence; rerun complete-goals --retry-failed to resume.',
     '',
@@ -864,27 +864,27 @@ function buildAggregateClaudeGoalInstruction(goal: UltragoalItem, plan: Ultragoa
     `Ledger: ${plan.ledgerPath}`,
     `Goal: ${goal.id} — ${goal.title}`,
     '',
-    'Claude /goal integration constraints (model-facing — OMC cannot mutate Claude /goal state from a shell):',
-    '- Claude /goal = the whole ultragoal run; OMC G001/G002/etc. = ledger stories.',
+    'Claude /goal integration constraints (model-facing — OMAC cannot mutate Claude /goal state from a shell):',
+    '- Claude /goal = the whole ultragoal run; OMAC G001/G002/etc. = ledger stories.',
     '- First confirm the active Claude /goal condition for this session. If none is active, invoke /goal <condition> with the aggregate payload below.',
-    '- If the active /goal already reports the same aggregate objective as active, continue this OMC story without setting a new /goal.',
+    '- If the active /goal already reports the same aggregate objective as active, continue this OMAC story without setting a new /goal.',
     '- If a different active or incomplete Claude /goal exists, finish or clear that /goal before starting this ultragoal; do not claim a shell command can replace Claude /goal state.',
     finalStory
       ? '- This is the final pending story: run the mandatory final ai-slop-cleaner pass, rerun verification, and run $code-review before any /goal clear.'
-      : '- This is not the final story: do not clear the /goal yet; the aggregate Claude /goal must remain active while later OMC stories remain.',
+      : '- This is not the final story: do not clear the /goal yet; the aggregate Claude /goal must remain active while later OMAC stories remain.',
     finalStory
       ? '- If final $code-review is not APPROVE with architect status CLEAR, do not clear the /goal. Record durable blocker work first:'
       : null,
     finalStory
-      ? `  omc ultragoal record-review-blockers --goal-id ${goal.id} --title "Resolve final code-review blockers" --objective "<blocker-resolution objective>" --evidence "<review findings>" --claude-goal-json "<active /goal snapshot JSON or path>"`
+      ? `  omac ultragoal record-review-blockers --goal-id ${goal.id} --title "Resolve final code-review blockers" --objective "<blocker-resolution objective>" --evidence "<review findings>" --claude-goal-json "<active /goal snapshot JSON or path>"`
       : null,
     finalStory
       ? '- If final $code-review is clean (APPROVE + CLEAR), clear the /goal (or let the auto-clear fire when the condition holds), share a fresh complete /goal snapshot, then checkpoint with --quality-gate-json.'
       : null,
-    `- Checkpoint this OMC story with a fresh /goal snapshot whose objective matches the aggregate payload and whose status is ${checkpointStatus}:`,
+    `- Checkpoint this OMAC story with a fresh /goal snapshot whose objective matches the aggregate payload and whose status is ${checkpointStatus}:`,
     finalStory
-      ? `  omc ultragoal checkpoint --goal-id ${goal.id} --status complete --evidence "<tests/files/PR evidence>" --claude-goal-json "<fresh complete /goal snapshot JSON or path>" --quality-gate-json "<quality gate JSON or path>"`
-      : `  omc ultragoal checkpoint --goal-id ${goal.id} --status complete --evidence "<tests/files/PR evidence>" --claude-goal-json "<fresh /goal snapshot JSON or path>"`,
+      ? `  omac ultragoal checkpoint --goal-id ${goal.id} --status complete --evidence "<tests/files/PR evidence>" --claude-goal-json "<fresh complete /goal snapshot JSON or path>" --quality-gate-json "<quality gate JSON or path>"`
+      : `  omac ultragoal checkpoint --goal-id ${goal.id} --status complete --evidence "<tests/files/PR evidence>" --claude-goal-json "<fresh /goal snapshot JSON or path>"`,
     '- If blocked or failed, checkpoint with --status failed and the failure evidence; rerun complete-goals --retry-failed to resume.',
     '',
     'Suggested /goal payload (model-facing — invoke /goal yourself in-session):',
@@ -893,7 +893,7 @@ function buildAggregateClaudeGoalInstruction(goal: UltragoalItem, plan: Ultragoa
     'Aggregate /goal condition:',
     objective,
     '',
-    'Current OMC story objective:',
+    'Current OMAC story objective:',
     goal.objective,
   ].filter((line): line is string => line !== null).join('\n');
 }

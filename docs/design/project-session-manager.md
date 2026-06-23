@@ -2,7 +2,7 @@
 
 > **Skill Name:** `project-session-manager` (alias: `psm`)
 > **Version:** 1.0.0
-> **Author:** oh-my-claudecode
+> **Author:** oh-my-agent-connector
 > **Status:** Design Draft
 
 ## Executive Summary
@@ -54,20 +54,20 @@ PSM provides a unified interface to:
 ### 2.1 PR Review
 
 ```bash
-# Review PR #123 from oh-my-claudecode repo
-/psm review omc#123
+# Review PR #123 from oh-my-agent-connector repo
+/psm review omac#123
 
 # Review PR from any GitHub URL
 /psm review https://github.com/anthropics/claude-code/pull/456
 
 # Review with specific focus
-/psm review omc#123 --focus "security implications"
+/psm review omac#123 --focus "security implications"
 ```
 
 **What happens:**
 1. Fetches PR branch
-2. Creates worktree at `~/.psm/worktrees/omc/pr-123`
-3. Spawns tmux session `psm:omc:pr-123`
+2. Creates worktree at `~/.psm/worktrees/omac/pr-123`
+3. Spawns tmux session `psm:omac:pr-123`
 4. Launches Claude Code with PR context pre-loaded
 5. Opens diff in editor (optional)
 
@@ -75,10 +75,10 @@ PSM provides a unified interface to:
 
 ```bash
 # Fix issue #42
-/psm fix omc#42
+/psm fix omac#42
 
 # Fix with branch name override
-/psm fix omc#42 --branch fix/auth-timeout
+/psm fix omac#42 --branch fix/auth-timeout
 
 # Fix from issue URL
 /psm fix https://github.com/anthropics/claude-code/issues/789
@@ -87,7 +87,7 @@ PSM provides a unified interface to:
 **What happens:**
 1. Fetches issue details via `gh`
 2. Creates feature branch from main
-3. Creates worktree at `~/.psm/worktrees/omc/issue-42`
+3. Creates worktree at `~/.psm/worktrees/omac/issue-42`
 4. Spawns tmux session with issue context
 5. Pre-populates Claude Code with issue description
 
@@ -95,13 +95,13 @@ PSM provides a unified interface to:
 
 ```bash
 # Start new feature
-/psm feature omc "add-webhook-support"
+/psm feature omac "add-webhook-support"
 
 # Feature from existing branch
-/psm feature omc --branch feature/webhooks
+/psm feature omac --branch feature/webhooks
 
 # Feature with specific base
-/psm feature omc "dark-mode" --base develop
+/psm feature omac "dark-mode" --base develop
 ```
 
 **What happens:**
@@ -114,13 +114,13 @@ PSM provides a unified interface to:
 
 ```bash
 # Prepare release
-/psm release omc v3.5.0
+/psm release omac v3.5.0
 
 # Release candidate
-/psm release omc v3.5.0-rc1 --draft
+/psm release omac v3.5.0-rc1 --draft
 
 # Hotfix release
-/psm release omc v3.4.1 --hotfix --base v3.4.0
+/psm release omac v3.4.1 --hotfix --base v3.4.0
 ```
 
 **What happens:**
@@ -136,19 +136,19 @@ PSM provides a unified interface to:
 /psm list
 
 # List sessions for specific project
-/psm list omc
+/psm list omac
 
 # Attach to existing session
-/psm attach omc:pr-123
+/psm attach omac:pr-123
 
 # Detach current session (return to main)
 /psm detach
 
 # Kill specific session
-/psm kill omc:pr-123
+/psm kill omac:pr-123
 
 # Kill all sessions for project
-/psm kill omc --all
+/psm kill omac --all
 
 # Cleanup completed sessions
 /psm cleanup
@@ -161,7 +161,7 @@ PSM provides a unified interface to:
 
 ```bash
 # Switch to another session (detach current, attach target)
-/psm switch omc:feature-auth
+/psm switch omac:feature-auth
 
 # Switch with session picker (fzf)
 /psm switch
@@ -204,7 +204,7 @@ PSM supports multiple reference formats:
 
 ```bash
 # Short alias (requires ~/.psm/projects.json config)
-omc#123
+omac#123
 
 # Full GitHub reference
 anthropics/claude-code#123
@@ -225,9 +225,9 @@ https://github.com/anthropics/claude-code/pull/123
 // ~/.psm/projects.json
 {
   "aliases": {
-    "omc": {
-      "repo": "anthropics/oh-my-claudecode",
-      "local": "~/Workspace/oh-my-claudecode",
+    "omac": {
+      "repo": "anthropics/oh-my-agent-connector",
+      "local": "~/Workspace/oh-my-agent-connector",
       "default_base": "main"
     },
     "cc": {
@@ -258,7 +258,7 @@ https://github.com/anthropics/claude-code/pull/123
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    PSM Skill Entry Point                     │
-│                   /oh-my-claudecode:psm                      │
+│                   /oh-my-agent-connector:psm                      │
 └─────────────────────────────────────────────────────────────┘
                               │
               ┌───────────────┼───────────────┐
@@ -284,7 +284,7 @@ https://github.com/anthropics/claude-code/pull/123
                               ▼
     ┌─────────────────────────────────────────────────────────┐
     │                    Integration Layer                     │
-    │  (gh CLI, git, tmux, claude, omc skills, Clawdbot)       │
+    │  (gh CLI, git, tmux, claude, omac skills, Clawdbot)       │
     └─────────────────────────────────────────────────────────┘
 ```
 
@@ -361,7 +361,7 @@ User Command
 ├── logs/                    # Session logs
 │   └── psm.log
 └── worktrees/               # Default worktree location
-    ├── omc/                 # Per-project worktrees
+    ├── omac/                 # Per-project worktrees
     │   ├── pr-123/
     │   ├── issue-42/
     │   └── feature-auth/
@@ -372,12 +372,12 @@ User Command
 ### 5.2 Per-Session Directory
 
 ```
-~/.psm/worktrees/omc/pr-123/
+~/.psm/worktrees/omac/pr-123/
 ├── .git                     # Git worktree link
 ├── .psm-session.json        # Session metadata
 ├── .psm-context.md          # Pre-loaded Claude context
 ├── <project files>          # Actual code
-└── .omc/                    # OMC state (if applicable)
+└── .omac/                    # OMAC state (if applicable)
 ```
 
 ### 5.3 Session Metadata File
@@ -385,22 +385,22 @@ User Command
 ```json
 // .psm-session.json
 {
-  "id": "omc:pr-123",
+  "id": "omac:pr-123",
   "type": "review",
-  "project": "omc",
+  "project": "omac",
   "ref": "pr-123",
   "branch": "feature/add-hooks",
   "base": "main",
   "created_at": "2024-01-26T10:30:00Z",
   "last_accessed": "2024-01-26T14:45:00Z",
-  "tmux_session": "psm:omc:pr-123",
-  "worktree_path": "~/.psm/worktrees/omc/pr-123",
-  "source_repo": "~/Workspace/oh-my-claudecode",
+  "tmux_session": "psm:omac:pr-123",
+  "worktree_path": "~/.psm/worktrees/omac/pr-123",
+  "source_repo": "~/Workspace/oh-my-agent-connector",
   "github": {
     "pr_number": 123,
     "pr_title": "Add webhook support",
     "pr_author": "contributor",
-    "pr_url": "https://github.com/anthropics/oh-my-claudecode/pull/123"
+    "pr_url": "https://github.com/anthropics/oh-my-agent-connector/pull/123"
   },
   "state": "active",
   "notes": []
@@ -417,11 +417,11 @@ Format: `psm:<project>:<type>-<identifier>`
 
 | Type | Pattern | Example |
 |------|---------|---------|
-| PR Review | `psm:<proj>:pr-<num>` | `psm:omc:pr-123` |
-| Issue Fix | `psm:<proj>:issue-<num>` | `psm:omc:issue-42` |
-| Feature | `psm:<proj>:feat-<name>` | `psm:omc:feat-auth` |
-| Release | `psm:<proj>:rel-<ver>` | `psm:omc:rel-v3.5.0` |
-| Generic | `psm:<proj>:<name>` | `psm:omc:experiment` |
+| PR Review | `psm:<proj>:pr-<num>` | `psm:omac:pr-123` |
+| Issue Fix | `psm:<proj>:issue-<num>` | `psm:omac:issue-42` |
+| Feature | `psm:<proj>:feat-<name>` | `psm:omac:feat-auth` |
+| Release | `psm:<proj>:rel-<ver>` | `psm:omac:rel-v3.5.0` |
+| Generic | `psm:<proj>:<name>` | `psm:omac:experiment` |
 
 ### 6.2 Worktree Directory Names
 
@@ -572,26 +572,26 @@ steps:
 {
   "version": 1,
   "sessions": {
-    "omc:pr-123": {
-      "id": "omc:pr-123",
+    "omac:pr-123": {
+      "id": "omac:pr-123",
       "state": "active",
       "created_at": "2024-01-26T10:30:00Z",
       "last_accessed": "2024-01-26T14:45:00Z",
-      "worktree": "~/.psm/worktrees/omc/pr-123",
-      "tmux": "psm:omc:pr-123",
+      "worktree": "~/.psm/worktrees/omac/pr-123",
+      "tmux": "psm:omac:pr-123",
       "type": "review",
       "metadata": {
         "pr_number": 123,
         "pr_merged": false
       }
     },
-    "omc:issue-42": {
-      "id": "omc:issue-42",
+    "omac:issue-42": {
+      "id": "omac:issue-42",
       "state": "detached",
       "created_at": "2024-01-25T09:00:00Z",
       "last_accessed": "2024-01-25T18:00:00Z",
-      "worktree": "~/.psm/worktrees/omc/issue-42",
-      "tmux": "psm:omc:issue-42",
+      "worktree": "~/.psm/worktrees/omac/issue-42",
+      "tmux": "psm:omac:issue-42",
       "type": "fix",
       "metadata": {
         "issue_number": 42,
@@ -732,9 +732,9 @@ def cleanup(options):
 
 ## 10. Integration Points
 
-### 10.1 OMC Skill Integration
+### 10.1 OMAC Skill Integration
 
-| OMC Skill | PSM Integration |
+| OMAC Skill | PSM Integration |
 |-----------|-----------------|
 | `autopilot` | Can spawn PSM session for isolated work |
 | `ultrawork` | Parallel agents across PSM sessions |
@@ -775,23 +775,23 @@ interface ClawdbotPSMIntegration {
 
 ```bash
 # VSCode
-/psm review omc#123 --editor vscode
+/psm review omac#123 --editor vscode
 
 # Cursor
-/psm review omc#123 --editor cursor
+/psm review omac#123 --editor cursor
 
 # Neovim
-/psm review omc#123 --editor nvim
+/psm review omac#123 --editor nvim
 ```
 
 Opens editor in worktree directory alongside tmux session.
 
 ### 10.5 HUD Integration
 
-PSM status in OMC HUD statusline:
+PSM status in OMAC HUD statusline:
 
 ```
-[psm:omc:pr-123] 📋 Review | 🕐 2h active | 📁 ~/.psm/worktrees/omc/pr-123
+[psm:omac:pr-123] 📋 Review | 🕐 2h active | 📁 ~/.psm/worktrees/omac/pr-123
 ```
 
 ---
@@ -830,14 +830,14 @@ PSM status in OMC HUD statusline:
 ### 11.3 Conflict Resolution
 
 ```
-User runs: /psm review omc#123
+User runs: /psm review omac#123
 
 Existing session found!
 
 Options:
   [A] Attach to existing session (recommended)
   [R] Recreate (destroys existing worktree)
-  [C] Create parallel (omc:pr-123-2)
+  [C] Create parallel (omac:pr-123-2)
   [Q] Quit
 ```
 
@@ -942,7 +942,7 @@ interface PSMPlugin {
 │   /psm repair           Fix corrupted state               │
 ├────────────────────────────────────────────────────────────┤
 │ REFERENCES                                                 │
-│   omc#123               Project alias + number            │
+│   omac#123               Project alias + number            │
 │   org/repo#123          Full GitHub reference             │
 │   https://...           GitHub URL                        │
 └────────────────────────────────────────────────────────────┘
@@ -998,30 +998,30 @@ interface PSMPlugin {
 ## Appendix C: Example Session Transcript
 
 ```bash
-$ /psm review omc#123
+$ /psm review omac#123
 
-🔍 Fetching PR #123 from oh-my-claudecode...
+🔍 Fetching PR #123 from oh-my-agent-connector...
    Title: "Add webhook support for external integrations"
    Author: @contributor
    Changed: 12 files (+450, -23)
 
-📁 Creating worktree at ~/.psm/worktrees/omc/pr-123...
+📁 Creating worktree at ~/.psm/worktrees/omac/pr-123...
    Branch: feature/webhook-support
    Base: main
 
-🖥️  Creating tmux session: psm:omc:pr-123...
+🖥️  Creating tmux session: psm:omac:pr-123...
 
 🤖 Launching Claude Code with PR context...
 
 ✅ Session ready!
 
-   Session ID: omc:pr-123
-   Worktree:   ~/.psm/worktrees/omc/pr-123
-   Tmux:       psm:omc:pr-123
+   Session ID: omac:pr-123
+   Worktree:   ~/.psm/worktrees/omac/pr-123
+   Tmux:       psm:omac:pr-123
 
    Commands:
-     /psm attach omc:pr-123  - Reattach later
-     /psm kill omc:pr-123    - End session
+     /psm attach omac:pr-123  - Reattach later
+     /psm kill omac:pr-123    - End session
      /psm cleanup            - Clean when PR merged
 
 Attaching to session...

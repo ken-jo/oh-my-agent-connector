@@ -332,16 +332,16 @@ describe("reply-listener", () => {
       expect(source).toContain("getReplyListenerPlatformConfig");
     });
 
-    it("forwards OMC_* env vars to daemon process", () => {
+    it("forwards OMAC_* env vars to daemon process", () => {
       const fs = require("fs");
       const path = require("path");
       const source = fs.readFileSync(
         path.join(__dirname, "..", "reply-listener.ts"),
         "utf-8",
       );
-      // Should forward OMC_* env vars for getNotificationConfig()
-      expect(source).toContain("OMC_");
-      expect(source).toContain("startsWith('OMC_')");
+      // Should forward OMAC_* env vars for getNotificationConfig()
+      expect(source).toContain("OMAC_");
+      expect(source).toContain("startsWith('OMAC_')");
     });
 
     it("uses minimal env allowlist for daemon", () => {
@@ -659,7 +659,7 @@ describe("reply-listener", () => {
       );
 
       expect(configSource).toContain("parseSlackUserIds");
-      expect(configSource).toContain("OMC_REPLY_SLACK_USER_IDS");
+      expect(configSource).toContain("OMAC_REPLY_SLACK_USER_IDS");
       expect(configSource).toContain("authorizedSlackUserIds");
     });
   });

@@ -9,9 +9,9 @@
  */
 
 import {
-  createOmcSession,
+  createOmacSession,
   getAgentDefinitions,
-  getOmcSystemPrompt,
+  getOmacSystemPrompt,
   getDefaultMcpServers
 } from '../src/index.js';
 
@@ -21,11 +21,11 @@ async function main() {
   // Example 1: Custom agent configuration
   console.log('Example 1: Custom Agents');
 
-  const customSession = createOmcSession({
+  const customSession = createOmacSession({
     config: {
       agents: {
         // Use a faster model for the orchestrator in dev
-        omc: { model: 'claude-sonnet-4-6-20260217' },
+        omac: { model: 'claude-sonnet-4-6-20260217' },
         // Override model for specific agents
         designer: { model: 'claude-haiku-4-5-20251001' },
         writer: { model: 'claude-haiku-4-5-20251001' }
@@ -61,7 +61,7 @@ async function main() {
   // Example 3: Custom system prompt
   console.log('Example 3: Custom System Prompt');
 
-  const customPrompt = getOmcSystemPrompt({
+  const customPrompt = getOmacSystemPrompt({
     includeContinuation: true,
     customAddition: `
 ## Project-Specific Instructions
@@ -101,7 +101,7 @@ Always validate user input with Zod schemas.
   // Example 5: Full custom configuration
   console.log('Example 5: Full Custom Session');
 
-  const fullCustomSession = createOmcSession({
+  const fullCustomSession = createOmacSession({
     workingDirectory: '/path/to/project',
     skipConfigLoad: true, // Don't load from files
     skipContextInjection: false, // Still inject AGENTS.md
@@ -114,7 +114,7 @@ Always:
 `,
     config: {
       agents: {
-        omc: { model: 'claude-opus-4-6-20260205' }
+        omac: { model: 'claude-opus-4-6-20260205' }
       },
       features: {
         parallelExecution: true,
@@ -153,7 +153,7 @@ Always:
 
 import { createSdkMcpServer, tool } from '@anthropic-ai/claude-agent-sdk';
 import { z } from 'zod';
-import { createOmcSession } from 'oh-my-claudecode';
+import { createOmacSession } from 'oh-my-agent-connector';
 
 // Create custom MCP server with your tools
 const customTools = createSdkMcpServer({
@@ -173,7 +173,7 @@ const customTools = createSdkMcpServer({
 });
 
 // Create session and merge custom MCP server
-const session = createOmcSession();
+const session = createOmacSession();
 const options = {
   ...session.queryOptions.options,
   mcpServers: {

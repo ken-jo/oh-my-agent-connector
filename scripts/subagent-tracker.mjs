@@ -4,11 +4,11 @@ const require = createRequire(import.meta.url);
 import { readStdin } from './lib/stdin.mjs';
 
 function shouldSkipSubagentTracker(action) {
-  if (process.env.DISABLE_OMC === '1' || process.env.DISABLE_OMC === 'true') {
+  if (process.env.DISABLE_OMAC === '1' || process.env.DISABLE_OMAC === 'true') {
     return true;
   }
 
-  const skipHooks = (process.env.OMC_SKIP_HOOKS || '')
+  const skipHooks = (process.env.OMAC_SKIP_HOOKS || '')
     .split(',')
     .map((hook) => hook.trim())
     .filter(Boolean);

@@ -61,15 +61,15 @@ describe("Project Memory PreCompact storage integration", () => {
   });
 
   it("loads minimal persisted memory and formats compaction context without list fields", async () => {
-    delete process.env.OMC_STATE_DIR;
+    delete process.env.OMAC_STATE_DIR;
     const projectRoot = await fs.mkdtemp(
       path.join(os.tmpdir(), "project-memory-precompact-"),
     );
     tempDirs.push(projectRoot);
     await fs.writeFile(path.join(projectRoot, "package.json"), "{}\n");
-    await fs.mkdir(path.join(projectRoot, ".omc"), { recursive: true });
+    await fs.mkdir(path.join(projectRoot, ".omac"), { recursive: true });
     await fs.writeFile(
-      path.join(projectRoot, ".omc", "project-memory.json"),
+      path.join(projectRoot, ".omac", "project-memory.json"),
       JSON.stringify(createMinimalPersistedMemory(projectRoot)),
       "utf-8",
     );

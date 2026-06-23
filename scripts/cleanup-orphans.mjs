@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * OMC Orphan Agent Cleanup
+ * OMAC Orphan Agent Cleanup
  *
  * Detects and terminates orphan agent processes — agents whose team
  * config has been deleted (via TeamDelete) but whose OS processes
@@ -71,8 +71,8 @@ function findOrphanProcesses(filterTeam) {
       const output = execSync('ps aux', { encoding: 'utf-8', timeout: 10000 });
 
       for (const line of output.split('\n')) {
-        // Match OMC agent processes with team context (exclude bare 'node' to avoid over-matching)
-        if ((line.includes('claude') || line.includes('codex') || line.includes('gemini') || line.includes('omc') || line.includes('oh-my-claude'))) {
+        // Match OMAC agent processes with team context (exclude bare 'node' to avoid over-matching)
+        if ((line.includes('claude') || line.includes('codex') || line.includes('gemini') || line.includes('omac') || line.includes('oh-my-claude'))) {
           // Restrict team name match to valid slug characters.
           // Support both native TeamDelete-style args and tmux worker env assignments.
           const match =
@@ -137,8 +137,8 @@ function teamConfigExists(name) {
  * On Unix: issue SIGTERM for graceful exit. A best-effort SIGKILL escalation
  * is scheduled 5s later, but the timer is `.unref()`ed so it does not block
  * the Node event loop — main() exits promptly after SIGTERM and does not
- * hang waiting for the escalation window to elapse. In practice, OMC agent
- * processes (claude/codex/gemini/omc) respect SIGTERM and exit within
+ * hang waiting for the escalation window to elapse. In practice, OMAC agent
+ * processes (claude/codex/gemini/omac) respect SIGTERM and exit within
  * milliseconds; the SIGKILL path is a safety net that only fires if the
  * caller's event loop stays alive long enough (e.g., another timer or I/O
  * keeps the process running past 5s). Callers that need guaranteed

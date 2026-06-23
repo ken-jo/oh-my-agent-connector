@@ -8,7 +8,7 @@ const SCRIPT_PATH = join(process.cwd(), "scripts", "session-start.mjs");
 
 describe("session-start background output isolation", () => {
   it("keeps foreground hook stdout/stderr clean when notification module writes", () => {
-    const sandbox = mkdtempSync(join(tmpdir(), "omc-session-start-bg-"));
+    const sandbox = mkdtempSync(join(tmpdir(), "omac-session-start-bg-"));
     const projectDir = join(sandbox, "project");
     const pluginRoot = join(sandbox, "plugin");
     const notificationsDir = join(pluginRoot, "dist", "notifications");
@@ -34,7 +34,7 @@ describe("session-start background output isolation", () => {
           ...process.env,
           CLAUDE_PLUGIN_ROOT: pluginRoot,
           CLAUDE_CONFIG_DIR: join(sandbox, "claude"),
-          OMC_NOTIFY: "1",
+          OMAC_NOTIFY: "1",
         },
       });
 

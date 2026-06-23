@@ -4,7 +4,7 @@
  * Unified handler for persistent work modes: ultrawork, ralph, and todo-continuation.
  * This hook intercepts Stop events and enforces work continuation based on:
  * 1. Active ultrawork mode with pending todos
- * 2. Active ralph loop (until cancelled via /oh-my-claudecode:cancel)
+ * 2. Active ralph loop (until cancelled via /oh-my-agent-connector:cancel)
  * 3. Any pending todos (general enforcement)
  *
  * Priority order: Ralph > Ultrawork > Todo Continuation
@@ -15,7 +15,7 @@ import { atomicWriteJsonSync } from '../../lib/atomic-write.js';
 import { join } from 'path';
 import { getHardMaxIterations } from '../../lib/security-config.js';
 import { getClaudeConfigDir } from '../../utils/config-dir.js';
-import { getGlobalOmcConfigCandidates } from '../../utils/paths.js';
+import { getGlobalOmacConfigCandidates } from '../../utils/paths.js';
 import {
   readUltraworkState,
   writeUltraworkState,
@@ -24,7 +24,7 @@ import {
   getUltraworkPersistenceMessage,
   type UltraworkState
 } from '../ultrawork/index.js';
-import { resolveToWorktreeRoot, resolveSessionStatePath, resolveStatePath, getOmcRoot } from '../../lib/worktree-paths.js';
+import { resolveToWorktreeRoot, resolveSessionStatePath, resolveStatePath, getOmacRoot } from '../../lib/worktree-paths.js';
 import { readModeState, writeModeState } from '../../lib/mode-state-io.js';
 import {
   readRalphState,
@@ -132,7 +132,7 @@ function isSessionCancelInProgress(directory: string, sessionId?: string): boole
 
   // Fallback: check legacy (non-session-scoped) cancel signal
   if (!cancelSignalPath) {
-    cancelSignalPath = join(getOmcRoot(directory), 'state', 'cancel-signal-state.json');
+    cancelSignalPath = join(getOmacRoot(directory), 'state', 'cancel-signal-state.json');
   }
 
   if (!existsSync(cancelSignalPath)) {
@@ -203,7 +203,7 @@ function isFreshTimestamp(value: unknown, ttlMs = PENDING_ASYNC_STATE_STALE_MS):
 
 function hasPendingBackgroundTask(directory: string, sessionId?: string): boolean {
   try {
-    const stateRoot = join(getOmcRoot(directory), 'state');
+    const stateRoot = join(getOmacRoot(directory), 'state');
     const hudPath = sessionId
       ? join(stateRoot, 'sessions', sessionId, 'hud-state.json')
       : join(stateRoot, 'hud-state.json');
@@ -225,7 +225,7 @@ function hasPendingBackgroundTask(directory: string, sessionId?: string): boolea
 }
 
 function readPendingWakeupState(directory: string, sessionId?: string): Array<Record<string, unknown>> {
-  const stateRoot = join(getOmcRoot(directory), 'state');
+  const stateRoot = join(getOmacRoot(directory), 'state');
   const dirs = sessionId
     ? [join(stateRoot, 'sessions', sessionId), stateRoot]
     : [stateRoot];
@@ -346,7 +346,7 @@ export function hasPendingOwnedAsyncWork(directory: string, sessionId?: string):
  * Returns null if file doesn't exist or error is stale (>60 seconds old).
  */
 export function readLastToolError(directory: string): ToolErrorState | null {
-  const stateDir = join(getOmcRoot(directory), 'state');
+  const stateDir = join(getOmacRoot(directory), 'state');
   const errorPath = join(stateDir, 'last-tool-error.json');
 
   try {
@@ -381,7 +381,7 @@ export function readLastToolError(directory: string): ToolErrorState | null {
  * Clear tool error state file atomically.
  */
 export function clearToolErrorState(directory: string): void {
-  const stateDir = join(getOmcRoot(directory), 'state');
+  const stateDir = join(getOmacRoot(directory), 'state');
   const errorPath = join(stateDir, 'last-tool-error.json');
 
   try {
@@ -454,11 +454,11 @@ export function resetTodoContinuationAttempts(sessionId: string): void {
 }
 
 /**
- * Read the session-idle notification cooldown in seconds from global OMC config.
+ * Read the session-idle notification cooldown in seconds from global OMAC config.
  * Default: 60 seconds. 0 = disabled (no cooldown).
  */
 export function getIdleNotificationCooldownSeconds(): number {
-  for (const configPath of getGlobalOmcConfigCandidates('config.json')) {
+  for (const configPath of getGlobalOmacConfigCandidates('config.json')) {
     try {
       if (!existsSync(configPath)) continue;
       const config = JSON.parse(readFileSync(configPath, 'utf-8')) as Record<string, unknown>;
@@ -1177,7 +1177,7 @@ async function checkRalphLoop(
     writeRalphState(workingDir, state, sessionId);
     return {
       shouldBlock: true,
-      message: `[RALPH - HARD LIMIT] Reached hard max iterations (${hardMax}). Mode auto-disabled. Restart with /oh-my-claudecode:ralph if needed.`,
+      message: `[RALPH - HARD LIMIT] Reached hard max iterations (${hardMax}). Mode auto-disabled. Restart with /oh-my-agent-connector:ralph if needed.`,
       mode: 'ralph',
       metadata: { iteration: state.iteration, maxIterations: state.max_iterations }
     };
@@ -1224,7 +1224,7 @@ CRITICAL INSTRUCTIONS:
 1. Review your progress and the original task
 ${prdInstruction}
 3. Continue from where you left off
-4. When FULLY complete (after ${state.critic_mode === 'codex' ? 'Codex critic' : state.critic_mode === 'critic' ? 'Critic' : 'Architect'} verification), run \`/oh-my-claudecode:cancel\` to cleanly exit and clean up state files. If cancel fails, retry with \`/oh-my-claudecode:cancel --force\`.
+4. When FULLY complete (after ${state.critic_mode === 'codex' ? 'Codex critic' : state.critic_mode === 'critic' ? 'Critic' : 'Architect'} verification), run \`/oh-my-agent-connector:cancel\` to cleanly exit and clean up state files. If cancel fails, retry with \`/oh-my-agent-connector:cancel --force\`.
 5. Do NOT stop until the task is truly done
 
 ${newState.prompt ? `Original task: ${truncatePromptForEcho(newState.prompt)}` : ''}
@@ -1258,8 +1258,8 @@ interface StopBreakerState {
 
 function readStopBreaker(directory: string, name: string, sessionId?: string, ttlMs?: number): number {
   const stateDir = sessionId
-    ? join(getOmcRoot(directory), 'state', 'sessions', sessionId)
-    : join(getOmcRoot(directory), 'state');
+    ? join(getOmacRoot(directory), 'state', 'sessions', sessionId)
+    : join(getOmacRoot(directory), 'state');
   const breakerPath = join(stateDir, `${name}-stop-breaker.json`);
 
   try {
@@ -1280,8 +1280,8 @@ function readStopBreaker(directory: string, name: string, sessionId?: string, tt
 
 function writeStopBreaker(directory: string, name: string, count: number, sessionId?: string): void {
   const stateDir = sessionId
-    ? join(getOmcRoot(directory), 'state', 'sessions', sessionId)
-    : join(getOmcRoot(directory), 'state');
+    ? join(getOmacRoot(directory), 'state', 'sessions', sessionId)
+    : join(getOmacRoot(directory), 'state');
 
   try {
     mkdirSync(stateDir, { recursive: true });
@@ -1414,7 +1414,7 @@ async function checkTeamPipeline(
 
 The team pipeline is active in phase "${phase}". Continue working on the team workflow.
 Do not stop until the pipeline reaches a terminal state (complete/failed/cancelled).
-When done, run \`/oh-my-claudecode:cancel\` to cleanly exit.
+When done, run \`/oh-my-agent-connector:cancel\` to cleanly exit.
 
 </team-pipeline-continuation>
 
@@ -1706,7 +1706,7 @@ async function checkRalplan(
 The ralplan consensus workflow is active. Continue the Planner/Architect/Critic planning loop only.
 Ralplan is read-only/planning mode: do not implement, invoke execution skills, edit source, commit, push, or open PRs from this continuation.
 When consensus is reached, stop at a pending-approval handoff and require explicit user approval before execution.
-When done, run \`/oh-my-claudecode:cancel\` to cleanly exit.
+When done, run \`/oh-my-agent-connector:cancel\` to cleanly exit.
 
 </ralplan-continuation>
 
@@ -1772,7 +1772,7 @@ async function checkUltrawork(
     deactivateUltrawork(workingDir, sessionId);
     return {
       shouldBlock: true,
-      message: '[ULTRAWORK - HARD LIMIT] Reached hard max iterations (' + hardMax + '). Mode auto-disabled. Restart with /oh-my-claudecode:ultrawork if needed.',
+      message: '[ULTRAWORK - HARD LIMIT] Reached hard max iterations (' + hardMax + '). Mode auto-disabled. Restart with /oh-my-agent-connector:ultrawork if needed.',
       mode: 'ultrawork',
       metadata: { reinforcementCount: state.reinforcement_count }
     };
@@ -1879,17 +1879,17 @@ export async function checkPersistentModes(
   const workingDir = resolveToWorktreeRoot(directory);
 
   // Hard bypass invariants: never enforce stop continuation under any of these
-  // environment-level kill switches. bridge.ts also guards DISABLE_OMC and
-  // OMC_SKIP_HOOKS at hook-entry, but we re-check here so direct callers and
+  // environment-level kill switches. bridge.ts also guards DISABLE_OMAC and
+  // OMAC_SKIP_HOOKS at hook-entry, but we re-check here so direct callers and
   // nested helpers (team workers, tests) observe the same contract.
   if (
-    process.env.DISABLE_OMC === '1' ||
-    process.env.DISABLE_OMC === 'true' ||
-    process.env.OMC_TEAM_WORKER
+    process.env.DISABLE_OMAC === '1' ||
+    process.env.DISABLE_OMAC === 'true' ||
+    process.env.OMAC_TEAM_WORKER
   ) {
     return { shouldBlock: false, message: '', mode: 'none' };
   }
-  const skipHooks = (process.env.OMC_SKIP_HOOKS ?? '')
+  const skipHooks = (process.env.OMAC_SKIP_HOOKS ?? '')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
@@ -1906,7 +1906,7 @@ export async function checkPersistentModes(
 
   // CRITICAL: Never block context-limit/critical-context stops.
   // Blocking these causes a deadlock where Claude Code cannot compact or exit.
-  // See: https://github.com/Yeachan-Heo/oh-my-claudecode/issues/213
+  // See: https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/213
   if (isCriticalContextStop(stopContext)) {
     return {
       shouldBlock: false,
@@ -1950,7 +1950,7 @@ export async function checkPersistentModes(
   // When the API returns 429 / quota-exhausted, Claude Code stops the session.
   // Blocking these stops creates an infinite retry loop: the hook injects a
   // continuation prompt → Claude hits the rate limit again → stops again → loops.
-  // Fix for: https://github.com/Yeachan-Heo/oh-my-claudecode/issues/777
+  // Fix for: https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/777
   if (isRateLimitStop(stopContext)) {
     return {
       shouldBlock: false,

@@ -118,7 +118,7 @@ describe('HUD watch mode initialization', () => {
       writeHudState: vi.fn(() => true),
     }));
 
-    vi.doMock('../../hud/omc-state.js', () => ({
+    vi.doMock('../../hud/omac-state.js', () => ({
       readRalphStateForHud,
       readUltraworkStateForHud,
       readPrdStateForHud: vi.fn(() => null),
@@ -139,7 +139,7 @@ describe('HUD watch mode initialization', () => {
     vi.doMock('../../lib/worktree-paths.js', () => ({
       resolveToWorktreeRoot: vi.fn((cwd?: string) => cwd ?? '/tmp/worktree'),
       resolveTranscriptPath: vi.fn((transcriptPath?: string) => transcriptPath),
-      getOmcRoot: vi.fn(() => '/tmp/worktree/.omc'),
+      getOmacRoot: vi.fn(() => '/tmp/worktree/.omac'),
     }));
 
     return import('../../hud/index.js');
@@ -160,7 +160,7 @@ describe('HUD watch mode initialization', () => {
     vi.doUnmock('../../hud/stdin.js');
     vi.doUnmock('../../hud/transcript.js');
     vi.doUnmock('../../hud/state.js');
-    vi.doUnmock('../../hud/omc-state.js');
+    vi.doUnmock('../../hud/omac-state.js');
     vi.doUnmock('../../hud/usage-api.js');
     vi.doUnmock('../../hud/custom-rate-provider.js');
     vi.doUnmock('../../hud/render.js');
@@ -205,7 +205,7 @@ describe('HUD watch mode initialization', () => {
     expect(initializeHUDState).toHaveBeenCalledWith('/tmp/worktree', undefined);
   });
 
-  it('passes the current session id to OMC state readers', async () => {
+  it('passes the current session id to OMAC state readers', async () => {
     const stdin = makeStdin();
     stdin.transcript_path = '/tmp/worktree/transcripts/123e4567-e89b-12d3-a456-426614174000.jsonl';
     const hud = await importHudModule({ stdin });

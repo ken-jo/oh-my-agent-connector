@@ -7,10 +7,10 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { isOmcHook, InstallOptions } from '../index.js';
+import { isOmacHook, InstallOptions } from '../index.js';
 
 /**
- * Detect hook conflicts using the real isOmcHook function.
+ * Detect hook conflicts using the real isOmacHook function.
  * Mirrors the install() logic to avoid test duplication.
  */
 function detectConflicts(
@@ -20,7 +20,7 @@ function detectConflicts(
   for (const [eventType, eventHooks] of Object.entries(hooks)) {
     for (const hookGroup of eventHooks) {
       for (const hook of hookGroup.hooks) {
-        if (hook.type === 'command' && !isOmcHook(hook.command)) {
+        if (hook.type === 'command' && !isOmacHook(hook.command)) {
           conflicts.push({ eventType, existingCommand: hook.command });
         }
       }
@@ -32,73 +32,73 @@ function detectConflicts(
 const TEST_CLAUDE_DIR = join(homedir(), '.claude-test-safe-installer');
 const TEST_SETTINGS_FILE = join(TEST_CLAUDE_DIR, 'settings.json');
 
-describe('isOmcHook', () => {
-  it('returns true for commands containing "omc"', () => {
-    expect(isOmcHook('node ~/.claude/hooks/omc-hook.mjs')).toBe(true);
-    expect(isOmcHook('bash $HOME/.claude/hooks/omc-detector.sh')).toBe(true);
-    expect(isOmcHook('/usr/bin/omc-tool')).toBe(true);
+describe('isOmacHook', () => {
+  it('returns true for commands containing "omac"', () => {
+    expect(isOmacHook('node ~/.claude/hooks/omac-hook.mjs')).toBe(true);
+    expect(isOmacHook('bash $HOME/.claude/hooks/omac-detector.sh')).toBe(true);
+    expect(isOmacHook('/usr/bin/omac-tool')).toBe(true);
   });
 
-  it('returns true for commands containing "oh-my-claudecode"', () => {
-    expect(isOmcHook('node ~/.claude/hooks/oh-my-claudecode-hook.mjs')).toBe(true);
-    expect(isOmcHook('bash $HOME/.claude/hooks/oh-my-claudecode.sh')).toBe(true);
+  it('returns true for commands containing "oh-my-agent-connector"', () => {
+    expect(isOmacHook('node ~/.claude/hooks/oh-my-agent-connector-hook.mjs')).toBe(true);
+    expect(isOmacHook('bash $HOME/.claude/hooks/oh-my-agent-connector.sh')).toBe(true);
   });
 
-  it('returns false for commands not containing omc or oh-my-claudecode', () => {
-    expect(isOmcHook('node ~/.claude/hooks/other-plugin.mjs')).toBe(false);
-    expect(isOmcHook('bash $HOME/.claude/hooks/beads-hook.sh')).toBe(false);
-    expect(isOmcHook('python /usr/bin/custom-hook.py')).toBe(false);
+  it('returns false for commands not containing omac or oh-my-agent-connector', () => {
+    expect(isOmacHook('node ~/.claude/hooks/other-plugin.mjs')).toBe(false);
+    expect(isOmacHook('bash $HOME/.claude/hooks/beads-hook.sh')).toBe(false);
+    expect(isOmacHook('python /usr/bin/custom-hook.py')).toBe(false);
   });
 
   it('is case-insensitive', () => {
-    expect(isOmcHook('node ~/.claude/hooks/OMC-hook.mjs')).toBe(true);
-    expect(isOmcHook('bash $HOME/.claude/hooks/OH-MY-CLAUDECODE.sh')).toBe(true);
+    expect(isOmacHook('node ~/.claude/hooks/OMAC-hook.mjs')).toBe(true);
+    expect(isOmacHook('bash $HOME/.claude/hooks/OH-MY-AGENT-CONNECTOR.sh')).toBe(true);
   });
 });
 
-describe('isOmcHook detection', () => {
-  it('detects real OMC hooks correctly', () => {
-    expect(isOmcHook('node ~/.claude/hooks/omc-hook.mjs')).toBe(true);
-    expect(isOmcHook('node ~/.claude/hooks/oh-my-claudecode-hook.mjs')).toBe(true);
-    expect(isOmcHook('node ~/.claude/hooks/omc-pre-tool-use.mjs')).toBe(true);
-    expect(isOmcHook('/usr/local/bin/omc')).toBe(true);
+describe('isOmacHook detection', () => {
+  it('detects real OMAC hooks correctly', () => {
+    expect(isOmacHook('node ~/.claude/hooks/omac-hook.mjs')).toBe(true);
+    expect(isOmacHook('node ~/.claude/hooks/oh-my-agent-connector-hook.mjs')).toBe(true);
+    expect(isOmacHook('node ~/.claude/hooks/omac-pre-tool-use.mjs')).toBe(true);
+    expect(isOmacHook('/usr/local/bin/omac')).toBe(true);
   });
 
-  it('detects actual OMC hook commands from settings.json (issue #606)', () => {
-    // These are the real commands OMC installs into settings.json
-    expect(isOmcHook('node "$HOME/.claude/hooks/keyword-detector.mjs"')).toBe(true);
-    expect(isOmcHook('node "$HOME/.claude/hooks/session-start.mjs"')).toBe(true);
-    expect(isOmcHook('node "$HOME/.claude/hooks/pre-tool-use.mjs"')).toBe(true);
-    expect(isOmcHook('node "$HOME/.claude/hooks/post-tool-use.mjs"')).toBe(true);
-    expect(isOmcHook('node "$HOME/.claude/hooks/post-tool-use-failure.mjs"')).toBe(true);
-    expect(isOmcHook('node "$HOME/.claude/hooks/persistent-mode.mjs"')).toBe(true);
+  it('detects actual OMAC hook commands from settings.json (issue #606)', () => {
+    // These are the real commands OMAC installs into settings.json
+    expect(isOmacHook('node "$HOME/.claude/hooks/keyword-detector.mjs"')).toBe(true);
+    expect(isOmacHook('node "$HOME/.claude/hooks/session-start.mjs"')).toBe(true);
+    expect(isOmacHook('node "$HOME/.claude/hooks/pre-tool-use.mjs"')).toBe(true);
+    expect(isOmacHook('node "$HOME/.claude/hooks/post-tool-use.mjs"')).toBe(true);
+    expect(isOmacHook('node "$HOME/.claude/hooks/post-tool-use-failure.mjs"')).toBe(true);
+    expect(isOmacHook('node "$HOME/.claude/hooks/persistent-mode.mjs"')).toBe(true);
   });
 
-  it('detects custom-profile OMC hook commands by hook filename', () => {
-    expect(isOmcHook('node "/tmp/custom-claude/hooks/keyword-detector.mjs"')).toBe(true);
+  it('detects custom-profile OMAC hook commands by hook filename', () => {
+    expect(isOmacHook('node "/tmp/custom-claude/hooks/keyword-detector.mjs"')).toBe(true);
   });
 
   it('detects CLAUDE_CONFIG_DIR-aware hook commands', () => {
-    expect(isOmcHook('node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/keyword-detector.mjs"')).toBe(true);
-    expect(isOmcHook('node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/pre-tool-use.mjs"')).toBe(true);
-    expect(isOmcHook('node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/persistent-mode.mjs"')).toBe(true);
+    expect(isOmacHook('node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/keyword-detector.mjs"')).toBe(true);
+    expect(isOmacHook('node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/pre-tool-use.mjs"')).toBe(true);
+    expect(isOmacHook('node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/persistent-mode.mjs"')).toBe(true);
   });
 
-  it('detects Windows-style OMC hook commands (issue #606)', () => {
-    expect(isOmcHook('node "%USERPROFILE%\\.claude\\hooks\\keyword-detector.mjs"')).toBe(true);
-    expect(isOmcHook('node "%USERPROFILE%\\.claude\\hooks\\pre-tool-use.mjs"')).toBe(true);
+  it('detects Windows-style OMAC hook commands (issue #606)', () => {
+    expect(isOmacHook('node "%USERPROFILE%\\.claude\\hooks\\keyword-detector.mjs"')).toBe(true);
+    expect(isOmacHook('node "%USERPROFILE%\\.claude\\hooks\\pre-tool-use.mjs"')).toBe(true);
   });
 
-  it('rejects non-OMC hooks correctly', () => {
-    expect(isOmcHook('eslint --fix')).toBe(false);
-    expect(isOmcHook('prettier --write')).toBe(false);
-    expect(isOmcHook('node custom-hook.mjs')).toBe(false);
-    expect(isOmcHook('node ~/other-plugin/hooks/detector.mjs')).toBe(false);
+  it('rejects non-OMAC hooks correctly', () => {
+    expect(isOmacHook('eslint --fix')).toBe(false);
+    expect(isOmacHook('prettier --write')).toBe(false);
+    expect(isOmacHook('node custom-hook.mjs')).toBe(false);
+    expect(isOmacHook('node ~/other-plugin/hooks/detector.mjs')).toBe(false);
   });
 
   it('uses case-insensitive matching', () => {
-    expect(isOmcHook('node ~/.claude/hooks/OMC-hook.mjs')).toBe(true);
-    expect(isOmcHook('OH-MY-CLAUDECODE-detector.sh')).toBe(true);
+    expect(isOmacHook('node ~/.claude/hooks/OMAC-hook.mjs')).toBe(true);
+    expect(isOmacHook('OH-MY-AGENT-CONNECTOR-detector.sh')).toBe(true);
   });
 });
 
@@ -123,7 +123,7 @@ describe('Safe Installer - Hook Conflict Detection', () => {
   });
 
   it('detects conflict when PreToolUse is owned by another plugin', () => {
-    // Create settings.json with non-OMC hook
+    // Create settings.json with non-OMAC hook
     const existingSettings = {
       hooks: {
         PreToolUse: [
@@ -154,7 +154,7 @@ describe('Safe Installer - Hook Conflict Detection', () => {
     expect(conflicts[0].existingCommand).toBe('node ~/.claude/hooks/beads-hook.mjs');
   });
 
-  it('does not detect conflict when hook is OMC-owned', () => {
+  it('does not detect conflict when hook is OMAC-owned', () => {
     const existingSettings = {
       hooks: {
         PreToolUse: [

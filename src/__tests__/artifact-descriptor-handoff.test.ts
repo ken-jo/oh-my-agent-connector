@@ -85,7 +85,7 @@ describe('artifact descriptor contract', () => {
       const input = {
         kind: 'prompt',
         createdAt: '2026-04-07T00:00:00.000Z',
-        producer: { system: 'omc', component: 'worker-1' },
+        producer: { system: 'omac', component: 'worker-1' },
         retention: 'session',
         expiresAt: '2026-04-08T00:00:00.000Z',
       };
@@ -122,7 +122,7 @@ describe('artifact descriptor contract', () => {
         path: join(dir, 'short.md'),
         content,
         createdAt: '2026-04-07T00:00:00.000Z',
-        producer: { system: 'omc', component: 'worker-1' },
+        producer: { system: 'omac', component: 'worker-1' },
         retention: 'session',
       });
 
@@ -154,7 +154,7 @@ describe('artifact descriptor contract', () => {
         path: join(dir, 'large.md'),
         content,
         createdAt: '2026-04-07T00:00:00.000Z',
-        producer: { system: 'omc', component: 'worker-1' },
+        producer: { system: 'omac', component: 'worker-1' },
         retention: 'until-completion',
       });
 
@@ -170,7 +170,7 @@ describe('artifact descriptor contract', () => {
       expect(readDescriptor(handoff)).toMatchObject({
         kind: 'result',
         path: descriptor.path,
-        producer: { system: 'omc', component: 'worker-1' },
+        producer: { system: 'omac', component: 'worker-1' },
         retention: 'until-completion',
       });
       expect(handoff.summary).toBe('large result omitted from inline handoff');

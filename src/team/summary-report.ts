@@ -11,7 +11,7 @@
 
 import { join } from 'node:path';
 import { writeFileWithMode, ensureDirWithMode, validateResolvedPath } from './fs-utils.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 import { getActivityLog, formatActivityTimeline } from './activity-log.js';
 import { generateUsageReport } from './usage-tracker.js';
 import { readAuditLog } from './audit-log.js';
@@ -105,7 +105,7 @@ export function generateTeamReport(
 
 /**
  * Write the report to disk.
- * Path: .omc/reports/team-{teamName}-{timestamp}.md
+ * Path: .omac/reports/team-{teamName}-{timestamp}.md
  * Returns the file path.
  */
 export function saveTeamReport(
@@ -113,11 +113,11 @@ export function saveTeamReport(
   teamName: string
 ): string {
   const report = generateTeamReport(workingDirectory, teamName);
-  const dir = join(getOmcRoot(workingDirectory), 'reports');
+  const dir = join(getOmacRoot(workingDirectory), 'reports');
   ensureDirWithMode(dir);
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const filePath = join(dir, `team-${teamName}-${timestamp}.md`);
-  // filePath lives under getOmcRoot(...)/reports, which in a .omc-workspace
+  // filePath lives under getOmacRoot(...)/reports, which in a .omac-workspace
   // layout is ABOVE workingDirectory. Validate against the shared reports dir
   // (still catches teamName traversal) instead of the sub-repo.
   validateResolvedPath(filePath, dir);

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * PreToolUse Hook: OMC Reminder Enforcer (Node.js)
+ * PreToolUse Hook: OMAC Reminder Enforcer (Node.js)
  * Injects contextual reminders before every tool execution
  * Cross-platform: Windows, macOS, Linux
  */
@@ -15,7 +15,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { getClaudeConfigDir } from './lib/config-dir.mjs';
 import { evaluateAgentHeavyPreflight } from './lib/pre-tool-enforcer-preflight.mjs';
 import { evaluateForceAgentDelegation } from './lib/force-agent-delegation-preflight.mjs';
-import { resolveOmcStateRoot } from './lib/state-root.mjs';
+import { resolveOmacStateRoot } from './lib/state-root.mjs';
 import { readStdin } from './lib/stdin.mjs';
 
 // Inlined from src/config/models.ts — avoids a dist/ import so the hook works
@@ -61,7 +61,7 @@ function hasNormalClaudeActiveModel() {
   return getActiveModelIds().some(isNormalClaudeModelId);
 }
 function isConfigForceInheritProxyEnv() {
-  const config = loadOmcConfig();
+  const config = loadOmacConfig();
   return config.routing?.forceInherit === true && !hasNormalClaudeActiveModel();
 }
 function isNonClaudeProviderEnv() {
@@ -84,17 +84,17 @@ function isTierAlias(modelId) {
   return TIER_ALIASES.has((modelId || '').toLowerCase());
 }
 // Resolution chain for tier alias → subagent-safe model ID.
-// Order mirrors src/config/models.ts:TIER_ENV_KEYS with OMC_SUBAGENT_MODEL as top-priority override.
-// OMC_SUBAGENT_MODEL at position 0 wins for ALL tiers — tier-specific vars are only
+// Order mirrors src/config/models.ts:TIER_ENV_KEYS with OMAC_SUBAGENT_MODEL as top-priority override.
+// OMAC_SUBAGENT_MODEL at position 0 wins for ALL tiers — tier-specific vars are only
 // reached when it is unset or fails isSubagentSafeModelId validation.
-// OMC_MODEL_* is intentionally excluded: those are OMC-internal vars that the OMC bridge
+// OMAC_MODEL_* is intentionally excluded: those are OMAC-internal vars that the OMAC bridge
 // reads for its own routing, but CC itself does not read them when resolving tier aliases
-// (sonnet/haiku/opus). Allowing OMC_MODEL_* as proof would let the hook pass while CC
+// (sonnet/haiku/opus). Allowing OMAC_MODEL_* as proof would let the hook pass while CC
 // still fails to route the alias, reintroducing the downstream deadlock this gate prevents.
 const TIER_TO_DEFAULT_ENV_KEYS = {
-  haiku:  ['OMC_SUBAGENT_MODEL', 'CLAUDE_CODE_BEDROCK_HAIKU_MODEL',  'ANTHROPIC_DEFAULT_HAIKU_MODEL'],
-  sonnet: ['OMC_SUBAGENT_MODEL', 'CLAUDE_CODE_BEDROCK_SONNET_MODEL', 'ANTHROPIC_DEFAULT_SONNET_MODEL'],
-  opus:   ['OMC_SUBAGENT_MODEL', 'CLAUDE_CODE_BEDROCK_OPUS_MODEL',   'ANTHROPIC_DEFAULT_OPUS_MODEL'],
+  haiku:  ['OMAC_SUBAGENT_MODEL', 'CLAUDE_CODE_BEDROCK_HAIKU_MODEL',  'ANTHROPIC_DEFAULT_HAIKU_MODEL'],
+  sonnet: ['OMAC_SUBAGENT_MODEL', 'CLAUDE_CODE_BEDROCK_SONNET_MODEL', 'ANTHROPIC_DEFAULT_SONNET_MODEL'],
+  opus:   ['OMAC_SUBAGENT_MODEL', 'CLAUDE_CODE_BEDROCK_OPUS_MODEL',   'ANTHROPIC_DEFAULT_OPUS_MODEL'],
 };
 function resolveTierAliasToSafeModel(tierAlias) {
   const keys = TIER_TO_DEFAULT_ENV_KEYS[(tierAlias || '').toLowerCase()];
@@ -103,7 +103,7 @@ function resolveTierAliasToSafeModel(tierAlias) {
     const value = (process.env[key] || '').trim();
     // CC-native vars (ANTHROPIC_DEFAULT_* and CLAUDE_CODE_BEDROCK_*) are read by CC's own
     // model resolution, which handles [1m] suffixes correctly for explicit model= calls.
-    // OMC-internal vars (OMC_SUBAGENT_MODEL, OMC_MODEL_*) are not read by CC, so a [1m]
+    // OMAC-internal vars (OMAC_SUBAGENT_MODEL, OMAC_MODEL_*) are not read by CC, so a [1m]
     // value there is not a valid routing proof — keep the stricter isSubagentSafeModelId check.
     const isAnthropicDefaultTierVar = key.startsWith('ANTHROPIC_DEFAULT_');
     const isNativeCcVar = isAnthropicDefaultTierVar || key.startsWith('CLAUDE_CODE_BEDROCK_');
@@ -122,13 +122,13 @@ function normalizeToCcAlias(model) {
   return null;
 }
 /**
- * Read the `model:` field from an OMC agent definition's YAML frontmatter.
+ * Read the `model:` field from an OMAC agent definition's YAML frontmatter.
  * Returns the raw model string (e.g. "claude-opus-4-6") or null if not found.
  */
 function readAgentDefinitionModel(subagentType) {
   // Guard: subagent_type must be a string — non-string payloads would throw on .replace()
   // and the catch block would silently return {continue:true}, bypassing enforcement.
-  const agentType = (typeof subagentType === 'string' ? subagentType : '').replace(/^oh-my-claudecode:/, '');
+  const agentType = (typeof subagentType === 'string' ? subagentType : '').replace(/^oh-my-agent-connector:/, '');
   if (!agentType) return null;
   // Reject path traversal: agent names are simple identifiers; no path separators allowed.
   if (!/^[a-zA-Z0-9_-]+$/.test(agentType)) return null;
@@ -316,7 +316,7 @@ const ADVISORY_THROTTLE_DEFAULT_COOLDOWN_MS = 5 * 60 * 1000;
 const ADVISORY_THROTTLE_MIN_PRUNE_WINDOW_MS = 60 * 60 * 1000;
 
 function getAdvisoryThrottleCooldownMs() {
-  const raw = process.env.OMC_PRE_TOOL_ADVISORY_COOLDOWN_MS;
+  const raw = process.env.OMAC_PRE_TOOL_ADVISORY_COOLDOWN_MS;
   if (raw == null || raw === '') return ADVISORY_THROTTLE_DEFAULT_COOLDOWN_MS;
   const parsed = Number.parseInt(raw, 10);
   if (!Number.isFinite(parsed)) return ADVISORY_THROTTLE_DEFAULT_COOLDOWN_MS;
@@ -324,7 +324,7 @@ function getAdvisoryThrottleCooldownMs() {
 }
 
 function getAdvisoryThrottleNowMs() {
-  const raw = process.env.OMC_PRE_TOOL_ADVISORY_NOW_MS;
+  const raw = process.env.OMAC_PRE_TOOL_ADVISORY_NOW_MS;
   if (raw != null && raw !== '') {
     const parsed = Number.parseInt(raw, 10);
     if (Number.isFinite(parsed)) return parsed;
@@ -409,7 +409,7 @@ const MODE_STATE_FILES = [
   'ultraqa-state.json',
   'pipeline-state.json',
   'team-state.json',
-  'omc-teams-state.json',
+  'omac-teams-state.json',
 ];
 const QUIET_LEVEL = getQuietLevel();
 const BUILT_IN_TASK_LIST_TOOL_NAMES = new Set([
@@ -422,44 +422,44 @@ const BUILT_IN_TASK_LIST_TOOL_NAMES = new Set([
 ]);
 
 function getQuietLevel() {
-  const parsed = Number.parseInt(process.env.OMC_QUIET || '0', 10);
+  const parsed = Number.parseInt(process.env.OMAC_QUIET || '0', 10);
   if (Number.isNaN(parsed)) return 0;
   return Math.max(0, parsed);
 }
 
 /**
- * Resolve the .omc root directory for a given starting directory.
+ * Resolve the .omac root directory for a given starting directory.
  *
- * Resolution order (mirrors src/lib/worktree-paths.ts getOmcRoot):
- *   1) OMC_STATE_DIR env — log a warning and fall through (full project-id
- *      derivation lives in the TS layer; use resolveOmcStateRoot() for async
- *      TS-backed OMC_STATE_DIR support in main()).
- *   2) Walk up from startDir looking for a .omc-workspace marker file.
+ * Resolution order (mirrors src/lib/worktree-paths.ts getOmacRoot):
+ *   1) OMAC_STATE_DIR env — log a warning and fall through (full project-id
+ *      derivation lives in the TS layer; use resolveOmacStateRoot() for async
+ *      TS-backed OMAC_STATE_DIR support in main()).
+ *   2) Walk up from startDir looking for a .omac-workspace marker file.
  *      The first directory containing that file is the workspace anchor.
  *   3) git rev-parse --show-toplevel from startDir.
  *   4) Fallback to startDir itself.
  *
  * @param {string} startDir - Directory to resolve from (usually cwd from hook payload)
- * @returns {string} Absolute path to the .omc root directory
+ * @returns {string} Absolute path to the .omac root directory
  */
-function resolveOmcRoot(startDir) {
+function resolveOmacRoot(startDir) {
   const dir = startDir || process.cwd();
 
-  // 1) OMC_STATE_DIR: full project-id derivation is TS-only; warn and fall through.
-  if (process.env.OMC_STATE_DIR) {
+  // 1) OMAC_STATE_DIR: full project-id derivation is TS-only; warn and fall through.
+  if (process.env.OMAC_STATE_DIR) {
     process.stderr.write(
-      '[omc] OMC_STATE_DIR is set; resolveOmcRoot() falling through to workspace-marker ' +
-      'resolution. Use resolveOmcStateRoot() for full OMC_STATE_DIR support.\n'
+      '[omac] OMAC_STATE_DIR is set; resolveOmacRoot() falling through to workspace-marker ' +
+      'resolution. Use resolveOmacStateRoot() for full OMAC_STATE_DIR support.\n'
     );
   }
 
-  // 2) Walk up looking for .omc-workspace marker
+  // 2) Walk up looking for .omac-workspace marker
   try {
     let cursor = resolve(dir);
     const home = (() => { try { return resolve(homedir()); } catch { return null; } })();
     while (true) {
-      if (existsSync(join(cursor, '.omc-workspace'))) {
-        return join(cursor, '.omc');
+      if (existsSync(join(cursor, '.omac-workspace'))) {
+        return join(cursor, '.omac');
       }
       const parent = dirname(cursor);
       if (parent === cursor) break;
@@ -478,13 +478,13 @@ function resolveOmcRoot(startDir) {
       stdio: ['pipe', 'pipe', 'pipe'],
       timeout: 5000,
     }).trim();
-    if (top) return join(top, '.omc');
+    if (top) return join(top, '.omac');
   } catch {
     // not in a git repo — fall through
   }
 
   // 4) Fallback to startDir
-  return join(dir, '.omc');
+  return join(dir, '.omac');
 }
 
 
@@ -574,9 +574,9 @@ async function getTodoStatus(directory) {
   let inProgress = 0;
 
   // Check project-local todos
-  const omcRoot = await resolveOmcStateRoot(directory);
+  const omacRoot = await resolveOmacStateRoot(directory);
   const localPaths = [
-    join(omcRoot, 'todos.json'),
+    join(omacRoot, 'todos.json'),
     join(directory, '.claude', 'todos.json')
   ];
 
@@ -661,7 +661,7 @@ function isUltragoalTerminalState(state, directory) {
   const phase = normalizePhase(state.current_phase ?? state.phase ?? state.status);
   if (phase && ULTRAGOAL_TERMINAL_PHASES.has(phase)) return true;
 
-  const plan = readJsonFile(join(directory, '.omc', 'ultragoal', 'goals.json'));
+  const plan = readJsonFile(join(directory, '.omac', 'ultragoal', 'goals.json'));
   if (!plan || typeof plan !== 'object') return false;
   if (plan.aggregateCompletion?.status === 'complete') return true;
   if (!Array.isArray(plan.goals) || plan.goals.length === 0) return false;
@@ -700,7 +700,7 @@ function getExpectedUltragoalObjective(state, directory) {
     if (typeof value === 'string' && value.trim()) return value.trim();
   }
 
-  const plan = readJsonFile(join(directory, '.omc', 'ultragoal', 'goals.json'));
+  const plan = readJsonFile(join(directory, '.omac', 'ultragoal', 'goals.json'));
   if (typeof plan?.claudeObjective === 'string' && plan.claudeObjective.trim()) return plan.claudeObjective.trim();
   if (typeof plan?.aggregateCompletion?.objective === 'string' && plan.aggregateCompletion.objective.trim()) {
     return plan.aggregateCompletion.objective.trim();
@@ -740,7 +740,7 @@ function isUltragoalBootstrapTool(toolName, toolInput) {
   if (toolName === 'Skill' && extractSkillName(toolInput) === 'ultragoal') return true;
   if (toolName !== 'Bash') return false;
   const command = typeof toolInput.command === 'string' ? toolInput.command : '';
-  return /(?:^|[;&|\s])(?:omc|oh-my-claudecode)\s+ultragoal\s+(?:create(?:-goals)?|create-goals|complete(?:-goals)?|complete-goals|next|start-next|status)\b/.test(command);
+  return /(?:^|[;&|\s])(?:omac|oh-my-agent-connector)\s+ultragoal\s+(?:create(?:-goals)?|create-goals|complete(?:-goals)?|complete-goals|next|start-next|status)\b/.test(command);
 }
 
 function evaluateUltragoalPreToolEnforcement(stateDir, directory, sessionId, data) {
@@ -768,7 +768,7 @@ function evaluateUltragoalPreToolEnforcement(stateDir, directory, sessionId, dat
   const mismatch = actualObjective
     ? `current Claude /goal appears unrelated: "${actual.objective}".`
     : 'no active Claude /goal snapshot was visible to the hook.';
-  return `[ULTRAGOAL /GOAL REQUIRED] Active ultragoal state requires the matching Claude /goal before tools run; ${mismatch} Activate /goal with the ultragoal objective, or set ALLOW_ULTRAGOAL_WITHOUT_GOAL=1 to bypass this guard intentionally. Expected objective: ${expected || '<record one in ultragoal-state.json or .omc/ultragoal/goals.json>'}`;
+  return `[ULTRAGOAL /GOAL REQUIRED] Active ultragoal state requires the matching Claude /goal before tools run; ${mismatch} Activate /goal with the ultragoal objective, or set ALLOW_ULTRAGOAL_WITHOUT_GOAL=1 to bypass this guard intentionally. Expected objective: ${expected || '<record one in ultragoal-state.json or .omac/ultragoal/goals.json>'}`;
 }
 
 function hasActiveJsonMode(stateDir, { allowSessionTagged = false } = {}) {
@@ -988,23 +988,23 @@ const SKILL_PROTECTION_CONFIGS = {
 const SKILL_PROTECTION_MAP = {
   // === Already have mode state → no additional protection ===
   autopilot: 'none', ralph: 'none', ultragoal: 'none', ultrawork: 'none', team: 'none',
-  'omc-teams': 'none', ultraqa: 'none', cancel: 'none',
+  'omac-teams': 'none', ultraqa: 'none', cancel: 'none',
 
   // === Instant / read-only → no protection needed ===
-  trace: 'none', hud: 'none', 'omc-doctor': 'none', 'omc-help': 'none',
-  'learn-about-omc': 'none', note: 'none',
+  trace: 'none', hud: 'none', 'omac-doctor': 'none', 'omac-help': 'none',
+  'learn-about-omac': 'none', note: 'none',
 
   // === Light protection (simple shortcuts, 3 reinforcements) ===
   skill: 'light', ask: 'light', 'configure-notifications': 'light',
 
   // === Medium protection (review/planning, 5 reinforcements) ===
-  'omc-plan': 'medium', plan: 'medium',
+  'omac-plan': 'medium', plan: 'medium',
   ralplan: 'none',  // Has first-class checkRalplan() enforcement; no skill-active needed
   'deep-interview': 'heavy',
   review: 'medium', 'external-context': 'medium',
   'ai-slop-cleaner': 'medium',
-  sciomc: 'medium', learner: 'medium', 'omc-setup': 'medium',
-  setup: 'medium',        // alias for omc-setup
+  sciomac: 'medium', learner: 'medium', 'omac-setup': 'medium',
+  setup: 'medium',        // alias for omac-setup
   'mcp-setup': 'medium', 'project-session-manager': 'medium',
   psm: 'medium',          // alias for project-session-manager
   'writer-memory': 'medium', 'ralph-init': 'medium',
@@ -1015,22 +1015,22 @@ const SKILL_PROTECTION_MAP = {
 };
 
 function getSkillProtectionLevel(skillName, rawSkillName) {
-  // When rawSkillName is provided, only apply protection to OMC-prefixed skills.
+  // When rawSkillName is provided, only apply protection to OMAC-prefixed skills.
   // Non-prefixed skills are project custom skills or other plugins — no protection.
-  // See: https://github.com/Yeachan-Heo/oh-my-claudecode/issues/1581
+  // See: https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/1581
   if (rawSkillName != null && typeof rawSkillName === 'string' &&
-      !rawSkillName.toLowerCase().startsWith('oh-my-claudecode:')) {
+      !rawSkillName.toLowerCase().startsWith('oh-my-agent-connector:')) {
     return 'none';
   }
-  const normalized = (skillName || '').toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = (skillName || '').toLowerCase().replace(/^oh-my-agent-connector:/, '');
   return SKILL_PROTECTION_MAP[normalized] || 'none';
 }
 
-// Load OMC config to check forceInherit setting (issues #1135, #1201)
-function loadOmcConfig() {
+// Load OMAC config to check forceInherit setting (issues #1135, #1201)
+function loadOmacConfig() {
   const configPaths = [
-    join(getClaudeConfigDir(), '.omc-config.json'),
-    join(process.cwd(), '.omc', 'config.json'),
+    join(getClaudeConfigDir(), '.omac-config.json'),
+    join(process.cwd(), '.omac', 'config.json'),
   ];
   for (const configPath of configPaths) {
     try {
@@ -1044,8 +1044,8 @@ function loadOmcConfig() {
 
 // Check if forceInherit is enabled via config or env var
 function isForceInheritEnabled() {
-  if (process.env.OMC_ROUTING_FORCE_INHERIT === 'true') return true;
-  const config = loadOmcConfig();
+  if (process.env.OMAC_ROUTING_FORCE_INHERIT === 'true') return true;
+  const config = loadOmacConfig();
   return config.routing?.forceInherit === true;
 }
 
@@ -1063,7 +1063,7 @@ function writeSkillActiveState(stateDir, skillName, sessionId, rawSkillName) {
 
   const config = SKILL_PROTECTION_CONFIGS[protection];
   const now = new Date().toISOString();
-  const normalized = (skillName || '').toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = (skillName || '').toLowerCase().replace(/^oh-my-agent-connector:/, '');
 
   const safeSessionId = sessionId && SESSION_ID_PATTERN.test(sessionId) ? sessionId : '';
   const targetDir = safeSessionId
@@ -1071,7 +1071,7 @@ function writeSkillActiveState(stateDir, skillName, sessionId, rawSkillName) {
     : stateDir;
   const targetPath = join(targetDir, 'skill-active-state.json');
 
-  // Nesting guard: when a skill (e.g. omc-setup) invokes a child skill
+  // Nesting guard: when a skill (e.g. omac-setup) invokes a child skill
   // (e.g. mcp-setup), the child must not overwrite the parent's active state.
   // If a DIFFERENT skill is already active in this session, skip writing —
   // the parent's stop-hook protection already covers the session.
@@ -1182,9 +1182,9 @@ async function recordToolInvocation(data, directory) {
 }
 
 async function main() {
-  // Skip guard: check OMC_SKIP_HOOKS env var (see issue #838)
-  const _skipHooks = (process.env.OMC_SKIP_HOOKS || '').split(',').map(s => s.trim());
-  if (process.env.DISABLE_OMC === '1' || _skipHooks.includes('pre-tool-use')) {
+  // Skip guard: check OMAC_SKIP_HOOKS env var (see issue #838)
+  const _skipHooks = (process.env.OMAC_SKIP_HOOKS || '').split(',').map(s => s.trim());
+  if (process.env.DISABLE_OMAC === '1' || _skipHooks.includes('pre-tool-use')) {
     console.log(JSON.stringify({ continue: true }));
     return;
   }
@@ -1195,11 +1195,11 @@ async function main() {
     const toolName = extractJsonField(input, 'tool_name') || extractJsonField(input, 'toolName', 'unknown');
     const directory = extractJsonField(input, 'cwd') || extractJsonField(input, 'directory', process.cwd());
 
-    // Resolve the .omc state root once, honoring OMC_STATE_DIR.
+    // Resolve the .omac state root once, honoring OMAC_STATE_DIR.
     // All helpers receive stateDir so they stay in sync with the centralized
     // resolver used by session-start.mjs and persistent-mode (issue #2518, PR #2532).
-    const omcRoot = await resolveOmcStateRoot(directory);
-    const stateDir = join(omcRoot, 'state');
+    const omacRoot = await resolveOmacStateRoot(directory);
+    const stateDir = join(omacRoot, 'state');
 
     // Record Skill invocations to flow trace
     let data = {};
@@ -1215,7 +1215,7 @@ async function main() {
       if (skillName) {
         const sid = typeof data.session_id === 'string' ? data.session_id
           : typeof data.sessionId === 'string' ? data.sessionId : '';
-        // Pass rawSkillName to distinguish OMC skills from project custom skills (issue #1581)
+        // Pass rawSkillName to distinguish OMAC skills from project custom skills (issue #1581)
         const rawSkill = toolInput.skill || toolInput.skill_name || toolInput.skillName || toolInput.command || '';
         const rawSkillName = typeof rawSkill === 'string' && rawSkill.trim() ? rawSkill.trim() : undefined;
         writeSkillActiveState(stateDir, skillName, sid, rawSkillName);
@@ -1251,7 +1251,7 @@ async function main() {
     // New behaviour (issue #1868 — [1m] suffix deadlock):
     //   ALLOW explicit valid provider-specific model IDs (full Bedrock/Vertex format, no [1m])
     //   DENY  tier names (sonnet/opus/haiku) and [1m]-suffixed IDs
-    //   DENY  no-model calls when the session model itself has [1m] — guide to OMC_SUBAGENT_MODEL
+    //   DENY  no-model calls when the session model itself has [1m] — guide to OMAC_SUBAGENT_MODEL
     if (toolName === 'Task' || toolName === 'Agent') {
       const toolInput = data.toolInput || data.tool_input || {};
       const toolModel = toolInput.model;
@@ -1272,7 +1272,7 @@ async function main() {
 
         if (toolModel) {
           // Allow tier aliases (sonnet/opus/haiku) when a subagent-safe model can be
-          // resolved for that tier. Resolution chain: OMC_SUBAGENT_MODEL (global override)
+          // resolved for that tier. Resolution chain: OMAC_SUBAGENT_MODEL (global override)
           // → CLAUDE_CODE_BEDROCK_*_MODEL → ANTHROPIC_DEFAULT_*_MODEL.
           if (isTierAlias(toolModel) && resolveTierAliasToSafeModel(toolModel)) {
             // fall through to continue — tier alias resolves to a safe provider-specific ID
@@ -1280,7 +1280,7 @@ async function main() {
             const tierUpper = isTierAlias(toolModel) ? toolModel.toUpperCase() : '';
             const derivedTier = tierUpper || (normalizeToCcAlias(toolModel) || '').toUpperCase();
             const guidance = derivedTier
-              ? `Set ANTHROPIC_DEFAULT_${derivedTier}_MODEL=<valid-bedrock-id> in settings.json env, or set OMC_SUBAGENT_MODEL as a global override.`
+              ? `Set ANTHROPIC_DEFAULT_${derivedTier}_MODEL=<valid-bedrock-id> in settings.json env, or set OMAC_SUBAGENT_MODEL as a global override.`
               : `Remove the \`model\` parameter, or set ANTHROPIC_DEFAULT_SONNET_MODEL=<valid-bedrock-id> in settings.json env.`;
             console.log(JSON.stringify({
               continue: true,
@@ -1330,7 +1330,7 @@ async function main() {
           if (agentDefModel && !isSubagentSafeModelId(agentDefModel) && !isTierAlias(agentDefModel)
               && hasSafeRouting) {
             const guidance = `Add model="${defTierAlias}" to this ${toolName} call — tier aliases resolve to configured provider models (${resolvedModel}).`;
-            const agentType = (toolInput.subagent_type).replace(/^oh-my-claudecode:/, '');
+            const agentType = (toolInput.subagent_type).replace(/^oh-my-agent-connector:/, '');
             console.log(JSON.stringify({
               continue: true,
               hookSpecificOutput: {
@@ -1378,11 +1378,11 @@ async function main() {
     // preflight blocks Task/Agent spawning when context is exhausted, this
     // evaluator blocks raw Read/Edit/Write/Grep/Glob when configured rules
     // indicate the work should be delegated to a specialised agent. Default OFF
-    // — only fires when `.omc/config.json` has `routing.forceDelegation.enforce`.
+    // — only fires when `.omac/config.json` has `routing.forceDelegation.enforce`.
     const delegationBlock = evaluateForceAgentDelegation({
       toolName,
       stateDir,
-      loadOmcConfig,
+      loadOmacConfig,
     });
     if (delegationBlock) {
       // Force-delegation preflight returns `{ decision: 'block', reason }` to

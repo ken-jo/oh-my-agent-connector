@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { getOmcSystemPrompt } from '../index.js';
+import { getOmacSystemPrompt } from '../index.js';
 import { getAgentDefinitions } from '../agents/definitions.js';
 import { resolveSystemPrompt } from '../agents/prompt-helpers.js';
 
@@ -23,13 +23,13 @@ describe('skininthegamebros guidance', () => {
   });
 
   it('does not append skininthegamebros guidance by default', () => {
-    const prompt = getOmcSystemPrompt();
+    const prompt = getOmacSystemPrompt();
     expect(prompt).not.toContain('Skininthegamebros Execution Guidance');
   });
 
   it('appends skininthegamebros guidance to the orchestrator prompt for USER_TYPE=ant', () => {
     process.env.USER_TYPE = 'ant';
-    const prompt = getOmcSystemPrompt();
+    const prompt = getOmacSystemPrompt();
     expect(prompt).toContain('Skininthegamebros Execution Guidance');
     expect(prompt).toContain('Report outcomes faithfully');
   });

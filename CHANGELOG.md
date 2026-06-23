@@ -1,4 +1,4 @@
-# oh-my-claudecode v4.14.6: $TMPDIR transcript dogfood, Japanese keyword routing, team dispatch hardening
+# oh-my-agent-connector v4.14.6: $TMPDIR transcript dogfood, Japanese keyword routing, team dispatch hardening
 
 ## Release Notes
 
@@ -42,15 +42,15 @@ Patch release with **1 new feature**, **8 bug fixes**, and **3 hardening/quality
 ### Install / Update
 
 ```bash
-npm install -g oh-my-claude-sisyphus@4.14.6
+npm install -g oh-my-agent-connector@4.14.6
 ```
 
 Or reinstall the plugin:
 ```bash
-claude /install-plugin oh-my-claudecode
+claude /install-plugin oh-my-agent-connector
 ```
 
-**Full Changelog**: https://github.com/Yeachan-Heo/oh-my-claudecode/compare/v4.14.5...v4.14.6
+**Full Changelog**: https://github.com/Yeachan-Heo/oh-my-agent-connector/compare/v4.14.5...v4.14.6
 
 ## Contributors
 

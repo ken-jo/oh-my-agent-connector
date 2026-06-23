@@ -58,19 +58,19 @@ function withTempDir(fn) {
 }
 
 function skillStatePath(tempDir, sessionId) {
-  return join(tempDir, '.omc', 'state', 'sessions', sessionId, 'skill-active-state.json');
+  return join(tempDir, '.omac', 'state', 'sessions', sessionId, 'skill-active-state.json');
 }
 
 function legacySkillStatePath(tempDir) {
-  return join(tempDir, '.omc', 'state', 'skill-active-state.json');
+  return join(tempDir, '.omac', 'state', 'skill-active-state.json');
 }
 
 function ralplanStatePath(tempDir, sessionId) {
-  return join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ralplan-state.json');
+  return join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ralplan-state.json');
 }
 
 function writeSkillStateFixtures(tempDir, sessionId, skillName = 'plan') {
-  mkdirSync(join(tempDir, '.omc', 'state', 'sessions', sessionId), { recursive: true });
+  mkdirSync(join(tempDir, '.omac', 'state', 'sessions', sessionId), { recursive: true });
   writeFileSync(
     skillStatePath(tempDir, sessionId),
     JSON.stringify({
@@ -84,7 +84,7 @@ function writeSkillStateFixtures(tempDir, sessionId, skillName = 'plan') {
       stale_ttl_ms: 900000,
     }),
   );
-  mkdirSync(join(tempDir, '.omc', 'state'), { recursive: true });
+  mkdirSync(join(tempDir, '.omac', 'state'), { recursive: true });
   writeFileSync(
     legacySkillStatePath(tempDir),
     JSON.stringify({
@@ -95,7 +95,7 @@ function writeSkillStateFixtures(tempDir, sessionId, skillName = 'plan') {
 }
 
 function writeRalplanStateFixture(tempDir, sessionId, overrides = {}) {
-  mkdirSync(join(tempDir, '.omc', 'state', 'sessions', sessionId), { recursive: true });
+  mkdirSync(join(tempDir, '.omac', 'state', 'sessions', sessionId), { recursive: true });
   writeFileSync(
     ralplanStatePath(tempDir, sessionId),
     JSON.stringify({
@@ -499,8 +499,8 @@ describe('agent output summarization / truncation (issue #1373)', () => {
         cwd: process.cwd(),
       },
       {
-        OMC_AGENT_OUTPUT_ANALYSIS_LIMIT: '300',
-        OMC_AGENT_OUTPUT_SUMMARY_LIMIT: '90',
+        OMAC_AGENT_OUTPUT_ANALYSIS_LIMIT: '300',
+        OMAC_AGENT_OUTPUT_SUMMARY_LIMIT: '90',
       },
     );
 
@@ -841,8 +841,8 @@ describe('post-tool hook structured Write/Edit envelopes (issue #2840)', () => {
   });
 });
 
-describe('OMC_QUIET hook message suppression (issue #1646)', () => {
-  it('suppresses routine success/advice messages at OMC_QUIET=1 while keeping failures', () => {
+describe('OMAC_QUIET hook message suppression (issue #1646)', () => {
+  it('suppresses routine success/advice messages at OMAC_QUIET=1 while keeping failures', () => {
     const edit = runPostToolVerifier(
       {
         tool_name: 'Edit',
@@ -850,7 +850,7 @@ describe('OMC_QUIET hook message suppression (issue #1646)', () => {
         session_id: 'quiet-1',
         cwd: process.cwd(),
       },
-      { OMC_QUIET: '1' },
+      { OMAC_QUIET: '1' },
     );
 
     expect(edit).toEqual({ continue: true, suppressOutput: true });
@@ -862,7 +862,7 @@ describe('OMC_QUIET hook message suppression (issue #1646)', () => {
         session_id: 'quiet-1',
         cwd: process.cwd(),
       },
-      { OMC_QUIET: '1' },
+      { OMAC_QUIET: '1' },
     );
 
     expect(grep).toEqual({ continue: true, suppressOutput: true });
@@ -874,14 +874,14 @@ describe('OMC_QUIET hook message suppression (issue #1646)', () => {
         session_id: 'quiet-1',
         cwd: process.cwd(),
       },
-      { OMC_QUIET: '1' },
+      { OMAC_QUIET: '1' },
     );
 
     expect(writeFailure.hookSpecificOutput?.additionalContext)
       .toContain('Write operation failed');
   });
 
-  it('keeps important warnings at OMC_QUIET=2 but suppresses routine task summaries', () => {
+  it('keeps important warnings at OMAC_QUIET=2 but suppresses routine task summaries', () => {
     const nonZero = runPostToolVerifier(
       {
         tool_name: 'Bash',
@@ -889,18 +889,18 @@ describe('OMC_QUIET hook message suppression (issue #1646)', () => {
         session_id: 'quiet-2',
         cwd: process.cwd(),
       },
-      { OMC_QUIET: '2' },
+      { OMAC_QUIET: '2' },
     );
 
     expect(nonZero.hookSpecificOutput?.additionalContext)
       .toContain('produced valid output');
 
     const taskSummary = withTempDir((tempDir) => {
-      mkdirSync(join(tempDir, '.omc', 'state'), { recursive: true });
+      mkdirSync(join(tempDir, '.omac', 'state'), { recursive: true });
       writeFileSync(
-        join(tempDir, '.omc', 'state', 'subagent-tracking.json'),
+        join(tempDir, '.omac', 'state', 'subagent-tracking.json'),
         JSON.stringify({
-          agents: [{ status: 'running', agent_type: 'oh-my-claudecode:executor' }],
+          agents: [{ status: 'running', agent_type: 'oh-my-agent-connector:executor' }],
           total_completed: 1,
           total_failed: 0,
         }),
@@ -913,7 +913,7 @@ describe('OMC_QUIET hook message suppression (issue #1646)', () => {
           session_id: 'quiet-2',
           cwd: tempDir,
         },
-        { OMC_QUIET: '2' },
+        { OMAC_QUIET: '2' },
       );
     });
 
@@ -929,7 +929,7 @@ describe('Skill active state cleanup on PostToolUse (issue #2103)', () => {
 
       const out = runPostToolVerifier({
         tool_name: 'Skill',
-        tool_input: { skill: 'oh-my-claudecode:plan' },
+        tool_input: { skill: 'oh-my-agent-connector:plan' },
         tool_response: { ok: true },
         session_id: sessionId,
         cwd: tempDir,
@@ -944,11 +944,11 @@ describe('Skill active state cleanup on PostToolUse (issue #2103)', () => {
   it('does not clear parent-owned skill-active-state for nested child Skill completion in post-tool-verifier', () => {
     withTempDir((tempDir) => {
       const sessionId = 'skill-nested-script';
-      writeSkillStateFixtures(tempDir, sessionId, 'omc-setup');
+      writeSkillStateFixtures(tempDir, sessionId, 'omac-setup');
 
       const out = runPostToolVerifier({
         tool_name: 'Skill',
-        tool_input: { skill: 'oh-my-claudecode:mcp-setup' },
+        tool_input: { skill: 'oh-my-agent-connector:mcp-setup' },
         tool_response: { ok: true },
         session_id: sessionId,
         cwd: tempDir,
@@ -967,7 +967,7 @@ describe('Skill active state cleanup on PostToolUse (issue #2103)', () => {
 
       const out = runHookScript(TEMPLATE_HOOK_PATH, {
         tool_name: 'Skill',
-        tool_input: { skill: 'oh-my-claudecode:plan' },
+        tool_input: { skill: 'oh-my-agent-connector:plan' },
         tool_response: { ok: true },
         session_id: sessionId,
         cwd: tempDir,
@@ -986,7 +986,7 @@ describe('Skill active state cleanup on PostToolUse (issue #2103)', () => {
 
       const out = runPostToolVerifier({
         tool_name: 'Skill',
-        tool_input: { skill: 'oh-my-claudecode:ralplan' },
+        tool_input: { skill: 'oh-my-agent-connector:ralplan' },
         tool_response: { ok: true },
         session_id: sessionId,
         cwd: tempDir,
@@ -1010,7 +1010,7 @@ describe('Skill active state cleanup on PostToolUse (issue #2103)', () => {
       const out = runHookScript(TEMPLATE_HOOK_PATH, {
         tool_name: 'Skill',
         tool_input: {
-          skill: 'oh-my-claudecode:plan',
+          skill: 'oh-my-agent-connector:plan',
           args: '--consensus issue #2368',
         },
         tool_response: { ok: true },
@@ -1035,7 +1035,7 @@ describe('Skill active state cleanup on PostToolUse (issue #2103)', () => {
 
       const out = runPostToolVerifier({
         tool_name: 'Skill',
-        tool_input: { skill: 'oh-my-claudecode:deep-interview' },
+        tool_input: { skill: 'oh-my-agent-connector:deep-interview' },
         tool_response: { ok: true },
         session_id: sessionId,
         cwd: tempDir,
@@ -1054,7 +1054,7 @@ describe('Skill active state cleanup on PostToolUse (issue #2103)', () => {
 
       const out = runPostToolVerifier({
         tool_name: 'Skill',
-        tool_input: { skill: 'oh-my-claudecode:self-improve' },
+        tool_input: { skill: 'oh-my-agent-connector:self-improve' },
         tool_response: { ok: true },
         session_id: sessionId,
         cwd: tempDir,

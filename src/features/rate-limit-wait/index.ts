@@ -4,10 +4,10 @@
  * Auto-resume Claude Code sessions when rate limits reset.
  *
  * Usage:
- *   omc wait status         - Show current rate limit status
- *   omc wait daemon start   - Start the background daemon
- *   omc wait daemon stop    - Stop the daemon
- *   omc wait detect         - Scan for blocked Claude Code sessions
+ *   omac wait status         - Show current rate limit status
+ *   omac wait daemon start   - Start the background daemon
+ *   omac wait daemon stop    - Stop the daemon
+ *   omac wait detect         - Scan for blocked Claude Code sessions
  */
 
 // Type exports

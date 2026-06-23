@@ -3,7 +3,7 @@
 
 # src
 
-TypeScript source code for oh-my-claudecode - the core library that powers multi-agent orchestration.
+TypeScript source code for oh-my-agent-connector - the core library that powers multi-agent orchestration.
 
 ## Purpose
 
@@ -21,7 +21,7 @@ This directory contains all TypeScript source code organized into modules:
 
 | File | Description |
 |------|-------------|
-| `index.ts` | Main entry point - exports `createOmcSession()` |
+| `index.ts` | Main entry point - exports `createOmacSession()` |
 | `shared/types.ts` | Shared TypeScript types used across modules |
 
 ## Subdirectories
@@ -52,9 +52,9 @@ This directory contains all TypeScript source code organized into modules:
 2. **Entry Point Pattern**:
    ```typescript
    // Main export in index.ts
-   export { createOmcSession } from './session';
+   export { createOmacSession } from './session';
    export { lspTools, astTools, allCustomTools } from './tools';
-   export { getAgentDefinitions, omcSystemPrompt } from './agents/definitions';
+   export { getAgentDefinitions, omacSystemPrompt } from './agents/definitions';
    ```
 
 3. **Tool Registration**: Custom tools are registered in `tools/index.ts`:

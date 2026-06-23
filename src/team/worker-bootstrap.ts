@@ -1,7 +1,7 @@
 import { mkdir, writeFile, appendFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { sanitizePromptContent } from '../agents/prompt-helpers.js';
-import { formatOmcCliInvocation } from '../utils/omc-cli-rendering.js';
+import { formatOmacCliInvocation } from '../utils/omac-cli-rendering.js';
 import type { CliAgentType } from './model-contract.js';
 import { sanitizeName } from './tmux-session.js';
 import { validateResolvedPath } from './fs-utils.js';
@@ -15,14 +15,14 @@ export interface WorkerBootstrapParams {
   cwd: string;
   /**
    * Worker-facing root used in instructions. The default is the leader cwd
-   * relative global state root (`.omc/state`); non-default values are treated as
-   * a team-specific root (`.../.omc/state/team/<team>`), matching
-   * `OMC_TEAM_STATE_ROOT` and `teamStateRoot()` semantics.
+   * relative global state root (`.omac/state`); non-default values are treated as
+   * a team-specific root (`.../.omac/state/team/<team>`), matching
+   * `OMAC_TEAM_STATE_ROOT` and `teamStateRoot()` semantics.
    */
   instructionStateRoot?: string;
 }
 
-const DEFAULT_INSTRUCTION_STATE_ROOT = '.omc/state';
+const DEFAULT_INSTRUCTION_STATE_ROOT = '.omac/state';
 
 function buildInstructionPath(...parts: string[]): string {
   return join(...parts).replaceAll('\\', '/');
@@ -77,9 +77,9 @@ export function generateMailboxTriggerMessage(
 }
 
 function agentTypeGuidance(agentType: CliAgentType): string {
-  const teamApiCommand = formatOmcCliInvocation('team api');
-  const claimTaskCommand = formatOmcCliInvocation('team api claim-task');
-  const transitionTaskStatusCommand = formatOmcCliInvocation('team api transition-task-status');
+  const teamApiCommand = formatOmacCliInvocation('team api');
+  const claimTaskCommand = formatOmacCliInvocation('team api claim-task');
+  const transitionTaskStatusCommand = formatOmacCliInvocation('team api transition-task-status');
   switch (agentType) {
     case 'codex':
       return [
@@ -141,16 +141,16 @@ export function generateWorkerOverlay(params: WorkerBootstrapParams): string {
   const inboxPath = buildTeamStateInstructionPath(teamName, instructionStateRoot, 'workers', workerName, 'inbox.md');
   const statusPath = buildTeamStateInstructionPath(teamName, instructionStateRoot, 'workers', workerName, 'status.json');
   const shutdownAckPath = buildTeamStateInstructionPath(teamName, instructionStateRoot, 'workers', workerName, 'shutdown-ack.json');
-  const claimTaskCommand = formatOmcCliInvocation(`team api claim-task --input "{\\"team_name\\":\\"${teamName}\\",\\"task_id\\":\\"<id>\\",\\"worker\\":\\"${workerName}\\"}" --json`);
-  const sendAckCommand = formatOmcCliInvocation(`team api send-message --input "{\\"team_name\\":\\"${teamName}\\",\\"from_worker\\":\\"${workerName}\\",\\"to_worker\\":\\"leader-fixed\\",\\"body\\":\\"ACK: ${workerName} initialized\\"}" --json`);
-  const completeTaskCommand = formatOmcCliInvocation(`team api transition-task-status --input "{\\"team_name\\":\\"${teamName}\\",\\"task_id\\":\\"<id>\\",\\"from\\":\\"in_progress\\",\\"to\\":\\"completed\\",\\"claim_token\\":\\"<claim_token>\\",\\"result\\":\\"Summary: <what changed>\\\\nVerification: <tests/checks run>\\\\nSubagent skip reason: worker protocol forbids nested subagents; completed focused probe in-session\\"}" --json`);
-  const failTaskCommand = formatOmcCliInvocation(`team api transition-task-status --input "{\\"team_name\\":\\"${teamName}\\",\\"task_id\\":\\"<id>\\",\\"from\\":\\"in_progress\\",\\"to\\":\\"failed\\",\\"claim_token\\":\\"<claim_token>\\"}" --json`);
-  const readTaskCommand = formatOmcCliInvocation(`team api read-task --input "{\\"team_name\\":\\"${teamName}\\",\\"task_id\\":\\"<id>\\"}" --json`);
-  const releaseClaimCommand = formatOmcCliInvocation(`team api release-task-claim --input "{\\"team_name\\":\\"${teamName}\\",\\"task_id\\":\\"<id>\\",\\"claim_token\\":\\"<claim_token>\\",\\"worker\\":\\"${workerName}\\"}" --json`);
-  const mailboxListCommand = formatOmcCliInvocation(`team api mailbox-list --input "{\\"team_name\\":\\"${teamName}\\",\\"worker\\":\\"${workerName}\\"}" --json`);
-  const mailboxDeliveredCommand = formatOmcCliInvocation(`team api mailbox-mark-delivered --input "{\\"team_name\\":\\"${teamName}\\",\\"worker\\":\\"${workerName}\\",\\"message_id\\":\\"<id>\\"}" --json`);
-  const teamApiCommand = formatOmcCliInvocation('team api');
-  const teamCommand = formatOmcCliInvocation('team');
+  const claimTaskCommand = formatOmacCliInvocation(`team api claim-task --input "{\\"team_name\\":\\"${teamName}\\",\\"task_id\\":\\"<id>\\",\\"worker\\":\\"${workerName}\\"}" --json`);
+  const sendAckCommand = formatOmacCliInvocation(`team api send-message --input "{\\"team_name\\":\\"${teamName}\\",\\"from_worker\\":\\"${workerName}\\",\\"to_worker\\":\\"leader-fixed\\",\\"body\\":\\"ACK: ${workerName} initialized\\"}" --json`);
+  const completeTaskCommand = formatOmacCliInvocation(`team api transition-task-status --input "{\\"team_name\\":\\"${teamName}\\",\\"task_id\\":\\"<id>\\",\\"from\\":\\"in_progress\\",\\"to\\":\\"completed\\",\\"claim_token\\":\\"<claim_token>\\",\\"result\\":\\"Summary: <what changed>\\\\nVerification: <tests/checks run>\\\\nSubagent skip reason: worker protocol forbids nested subagents; completed focused probe in-session\\"}" --json`);
+  const failTaskCommand = formatOmacCliInvocation(`team api transition-task-status --input "{\\"team_name\\":\\"${teamName}\\",\\"task_id\\":\\"<id>\\",\\"from\\":\\"in_progress\\",\\"to\\":\\"failed\\",\\"claim_token\\":\\"<claim_token>\\"}" --json`);
+  const readTaskCommand = formatOmacCliInvocation(`team api read-task --input "{\\"team_name\\":\\"${teamName}\\",\\"task_id\\":\\"<id>\\"}" --json`);
+  const releaseClaimCommand = formatOmacCliInvocation(`team api release-task-claim --input "{\\"team_name\\":\\"${teamName}\\",\\"task_id\\":\\"<id>\\",\\"claim_token\\":\\"<claim_token>\\",\\"worker\\":\\"${workerName}\\"}" --json`);
+  const mailboxListCommand = formatOmacCliInvocation(`team api mailbox-list --input "{\\"team_name\\":\\"${teamName}\\",\\"worker\\":\\"${workerName}\\"}" --json`);
+  const mailboxDeliveredCommand = formatOmacCliInvocation(`team api mailbox-mark-delivered --input "{\\"team_name\\":\\"${teamName}\\",\\"worker\\":\\"${workerName}\\",\\"message_id\\":\\"<id>\\"}" --json`);
+  const teamApiCommand = formatOmacCliInvocation('team api');
+  const teamCommand = formatOmacCliInvocation('team');
 
   const taskList = sanitizedTasks.length > 0
     ? sanitizedTasks.map(t => `- **Task ${t.id}**: ${t.subject}\n  Description: ${t.description}\n  Status: pending`).join('\n')
@@ -184,7 +184,7 @@ You MUST complete ALL of these steps. Do NOT skip any step. Do NOT exit without 
 - **Team**: ${teamName}
 - **Worker**: ${workerName}
 - **Agent Type**: ${agentType}
-- **Environment**: OMC_TEAM_WORKER=${teamName}/${workerName}
+- **Environment**: OMAC_TEAM_WORKER=${teamName}/${workerName}
 
 ## Your Tasks
 ${taskList}
@@ -205,9 +205,9 @@ Use the CLI API for all task lifecycle operations. Do NOT directly edit task fil
   - Completion is rejected with \`missing_delegation_compliance_evidence\` when required evidence is absent.
 
 ## Canonical Team State Root
-- Resolve the team state root in this order: \`OMC_TEAM_STATE_ROOT\` env -> worker identity \`team_state_root\` -> config/manifest \`team_state_root\` -> ${params.cwd}/.omc/state/team/${teamName}.
-- \`OMC_TEAM_STATE_ROOT\` is the team-specific root (\`.../.omc/state/team/${teamName}\`). When it is set, append worker/mailbox paths directly below it; do not append another \`team/${teamName}\` segment.
-- Worktree-backed workers MUST use the canonical leader-owned state root for inbox, mailbox, task lifecycle, status, heartbeat, and shutdown files; do not use a local worktree \`.omc/state\` when \`OMC_TEAM_STATE_ROOT\` is set.
+- Resolve the team state root in this order: \`OMAC_TEAM_STATE_ROOT\` env -> worker identity \`team_state_root\` -> config/manifest \`team_state_root\` -> ${params.cwd}/.omac/state/team/${teamName}.
+- \`OMAC_TEAM_STATE_ROOT\` is the team-specific root (\`.../.omac/state/team/${teamName}\`). When it is set, append worker/mailbox paths directly below it; do not append another \`team/${teamName}\` segment.
+- Worktree-backed workers MUST use the canonical leader-owned state root for inbox, mailbox, task lifecycle, status, heartbeat, and shutdown files; do not use a local worktree \`.omac/state\` when \`OMAC_TEAM_STATE_ROOT\` is set.
 
 ## Communication Protocol
 - **Inbox**: Read ${inboxPath} for new instructions
@@ -223,7 +223,7 @@ Use the CLI API for all task lifecycle operations. Do NOT directly edit task fil
 
 ## Message Protocol
 Send messages via CLI API:
-- To leader: \`${formatOmcCliInvocation(`team api send-message --input "{\\"team_name\\":\\"${teamName}\\",\\"from_worker\\":\\"${workerName}\\",\\"to_worker\\":\\"leader-fixed\\",\\"body\\":\\"<message>\\"}" --json`)}\`
+- To leader: \`${formatOmacCliInvocation(`team api send-message --input "{\\"team_name\\":\\"${teamName}\\",\\"from_worker\\":\\"${workerName}\\",\\"to_worker\\":\\"leader-fixed\\",\\"body\\":\\"<message>\\"}" --json`)}\`
 - Check mailbox: \`${mailboxListCommand}\`
 - Mark delivered: \`${mailboxDeliveredCommand}\`
 
@@ -252,7 +252,7 @@ When you see a shutdown request in your inbox:
 ${agentTypeGuidance(agentType)}
 
 ## BEFORE YOU EXIT
-You MUST call \`${formatOmcCliInvocation('team api transition-task-status')}\` to mark your task as "completed" or "failed" before exiting.
+You MUST call \`${formatOmacCliInvocation('team api transition-task-status')}\` to mark your task as "completed" or "failed" before exiting.
 If you skip this step, the leader cannot track your work and the task will appear stuck.
 
 ${bootstrapInstructions ? `## Role Context\n${bootstrapInstructions}\n` : ''}`;
@@ -268,7 +268,7 @@ export async function composeInitialInbox(
   cwd: string,
   cliOutputContract?: string,
 ): Promise<void> {
-  const inboxPath = join(cwd, `.omc/state/team/${teamName}/workers/${workerName}/inbox.md`);
+  const inboxPath = join(cwd, `.omac/state/team/${teamName}/workers/${workerName}/inbox.md`);
   await mkdir(dirname(inboxPath), { recursive: true });
   const finalContent = cliOutputContract && !content.includes(cliOutputContract)
     ? `${content}\n${cliOutputContract}`
@@ -291,7 +291,7 @@ export async function appendToInbox(
 ): Promise<void> {
   const safeTeam = sanitizeName(teamName);
   const safeWorker = sanitizeName(workerName);
-  const inboxPath = join(cwd, `.omc/state/team/${safeTeam}/workers/${safeWorker}/inbox.md`);
+  const inboxPath = join(cwd, `.omac/state/team/${safeTeam}/workers/${safeWorker}/inbox.md`);
   validateResolvedPath(inboxPath, cwd);
   await mkdir(dirname(inboxPath), { recursive: true });
   await appendFile(inboxPath, `\n\n---\n${message}`, 'utf-8');
@@ -308,15 +308,15 @@ export async function ensureWorkerStateDir(
   workerName: string,
   cwd: string
 ): Promise<void> {
-  const workerDir = join(cwd, `.omc/state/team/${teamName}/workers/${workerName}`);
+  const workerDir = join(cwd, `.omac/state/team/${teamName}/workers/${workerName}`);
   await mkdir(workerDir, { recursive: true });
 
   // Also ensure mailbox dir
-  const mailboxDir = join(cwd, `.omc/state/team/${teamName}/mailbox`);
+  const mailboxDir = join(cwd, `.omac/state/team/${teamName}/mailbox`);
   await mkdir(mailboxDir, { recursive: true });
 
   // And tasks dir
-  const tasksDir = join(cwd, `.omc/state/team/${teamName}/tasks`);
+  const tasksDir = join(cwd, `.omac/state/team/${teamName}/tasks`);
   await mkdir(tasksDir, { recursive: true });
 }
 
@@ -329,7 +329,7 @@ export async function writeWorkerOverlay(
 ): Promise<string> {
   const { teamName, workerName, cwd } = params;
   const overlay = generateWorkerOverlay(params);
-  const overlayPath = join(cwd, `.omc/state/team/${teamName}/workers/${workerName}/AGENTS.md`);
+  const overlayPath = join(cwd, `.omac/state/team/${teamName}/workers/${workerName}/AGENTS.md`);
   await mkdir(dirname(overlayPath), { recursive: true });
   await writeFile(overlayPath, overlay, 'utf-8');
   return overlayPath;

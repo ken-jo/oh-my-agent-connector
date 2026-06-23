@@ -10,8 +10,8 @@ import { join } from 'path';
 import { homedir } from 'os';
 
 /** Storage directory for rules injector state */
-export const OMC_STORAGE_DIR = join(homedir(), '.omc');
-export const RULES_INJECTOR_STORAGE = join(OMC_STORAGE_DIR, 'rules-injector');
+export const OMAC_STORAGE_DIR = join(homedir(), '.omac');
+export const RULES_INJECTOR_STORAGE = join(OMAC_STORAGE_DIR, 'rules-injector');
 
 /** Project marker files that indicate a project root */
 export const PROJECT_MARKERS = [

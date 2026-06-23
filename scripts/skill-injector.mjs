@@ -34,7 +34,7 @@ try {
 
 /**
  * Resolve the session id for hook context.
- * Payload session_id takes priority; falls back to OMC_SESSION_ID env var.
+ * Payload session_id takes priority; falls back to OMAC_SESSION_ID env var.
  *
  * @param {object|null} hookPayload - Parsed stdin payload (may be null)
  * @returns {string|undefined}
@@ -49,8 +49,8 @@ function resolveHookSessionId(hookPayload) {
       : undefined;
 
   const envId =
-    process.env.OMC_SESSION_ID && process.env.OMC_SESSION_ID.trim()
-      ? process.env.OMC_SESSION_ID.trim()
+    process.env.OMAC_SESSION_ID && process.env.OMAC_SESSION_ID.trim()
+      ? process.env.OMAC_SESSION_ID.trim()
       : undefined;
 
   return payloadId ?? envId;
@@ -77,32 +77,32 @@ function validateSessionId(sessionId) {
 }
 
 // ============================================================================
-// OMC root resolver — walk up from cwd looking for workspace markers.
-// Mirrors getOmcRoot from src/lib/worktree-paths.ts — inlined for .mjs.
+// OMAC root resolver — walk up from cwd looking for workspace markers.
+// Mirrors getOmacRoot from src/lib/worktree-paths.ts — inlined for .mjs.
 // ============================================================================
 
 /**
- * Walk up from startDir looking for .omc-workspace, then .git, then fallback
- * to startDir itself. Returns the .omc subdirectory of the found root.
- * Mirrors getOmcRoot from src/lib/worktree-paths.ts — inlined synchronously for .mjs.
+ * Walk up from startDir looking for .omac-workspace, then .git, then fallback
+ * to startDir itself. Returns the .omac subdirectory of the found root.
+ * Mirrors getOmacRoot from src/lib/worktree-paths.ts — inlined synchronously for .mjs.
  *
- * NOTE: OMC_STATE_DIR with content-hash is handled asynchronously in state-root.mjs.
- * This inline sync resolver skips OMC_STATE_DIR and always uses the walk-up result,
- * which is correct for the fallback path (bridge handles OMC_STATE_DIR when available).
+ * NOTE: OMAC_STATE_DIR with content-hash is handled asynchronously in state-root.mjs.
+ * This inline sync resolver skips OMAC_STATE_DIR and always uses the walk-up result,
+ * which is correct for the fallback path (bridge handles OMAC_STATE_DIR when available).
  *
  * @param {string} startDir - Directory to start from (data.cwd)
- * @returns {string} Absolute path to the .omc root directory
+ * @returns {string} Absolute path to the .omac root directory
  */
-function resolveOmcRootSync(startDir) {
+function resolveOmacRootSync(startDir) {
   let dir = startDir;
 
-  // Walk up looking for .omc-workspace or .git
+  // Walk up looking for .omac-workspace or .git
   while (dir) {
-    if (existsSync(join(dir, '.omc-workspace'))) {
-      return join(dir, '.omc');
+    if (existsSync(join(dir, '.omac-workspace'))) {
+      return join(dir, '.omac');
     }
     if (existsSync(join(dir, '.git'))) {
-      return join(dir, '.omc');
+      return join(dir, '.omac');
     }
     const parent = dirname(dir);
     if (parent === dir) break; // filesystem root reached
@@ -110,7 +110,7 @@ function resolveOmcRootSync(startDir) {
   }
 
   // Fallback: use startDir
-  return join(startDir, '.omc');
+  return join(startDir, '.omac');
 }
 
 // ============================================================================
@@ -119,22 +119,22 @@ function resolveOmcRootSync(startDir) {
 
 /**
  * Resolve the skill-sessions-fallback state file path.
- * Session-scoped: <omcRoot>/state/sessions/<sid>/skill-sessions-fallback-state.json
- * Legacy:         <omcRoot>/state/skill-sessions-fallback.json
+ * Session-scoped: <omacRoot>/state/sessions/<sid>/skill-sessions-fallback-state.json
+ * Legacy:         <omacRoot>/state/skill-sessions-fallback.json
  *
- * @param {string} omcRoot - Resolved .omc root directory
+ * @param {string} omacRoot - Resolved .omac root directory
  * @param {string|undefined} sessionId - Validated session id (or undefined)
  * @returns {{ statePath: string, stateDir: string }}
  */
-function resolveSkillFallbackStatePaths(omcRoot, sessionId) {
+function resolveSkillFallbackStatePaths(omacRoot, sessionId) {
   if (sessionId) {
-    const sessionDir = join(omcRoot, 'state', 'sessions', sessionId);
+    const sessionDir = join(omacRoot, 'state', 'sessions', sessionId);
     return {
       stateDir: sessionDir,
       statePath: join(sessionDir, 'skill-sessions-fallback-state.json'),
     };
   }
-  const stateDir = join(omcRoot, 'state');
+  const stateDir = join(omacRoot, 'state');
   return {
     stateDir,
     statePath: join(stateDir, 'skill-sessions-fallback.json'),
@@ -268,9 +268,9 @@ function withFileLockSync(lockPath, fn) {
 
 // Constants (used by fallback)
 const cfgDir = getClaudeConfigDir();
-const USER_SKILLS_DIR = join(cfgDir, 'skills', 'omc-learned');
-const GLOBAL_SKILLS_DIR = join(homedir(), '.omc', 'skills');
-const PROJECT_SKILLS_SUBDIR = join('.omc', 'skills');
+const USER_SKILLS_DIR = join(cfgDir, 'skills', 'omac-learned');
+const GLOBAL_SKILLS_DIR = join(homedir(), '.omac', 'skills');
+const PROJECT_SKILLS_SUBDIR = join('.omac', 'skills');
 const SKILL_EXTENSION = '.md';
 const MAX_SKILLS_PER_SESSION = 5;
 const MAX_LEARNED_SKILL_DESCRIPTOR_CHARS = 1000;
@@ -285,8 +285,8 @@ const MAX_LEARNED_SKILLS_CONTEXT_CHARS = 3000;
 // in-memory Map always starts empty — skills were re-injected on every turn.
 // Persisting to a session-scoped JSON state file preserves the injected-set
 // across process spawns, matching bridge behaviour.
-// Storage: {omcRoot}/state/sessions/{sid}/skill-sessions-fallback-state.json
-// Legacy (no sessionId): {omcRoot}/state/skill-sessions-fallback.json
+// Storage: {omacRoot}/state/sessions/{sid}/skill-sessions-fallback-state.json
+// Legacy (no sessionId): {omacRoot}/state/skill-sessions-fallback.json
 const FALLBACK_SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour (same as bridge)
 
 function readFallbackState(statePath) {
@@ -392,13 +392,13 @@ function findSkillFilesFallback(directory) {
 }
 
 // Find matching skills (fallback)
-function findMatchingSkillsFallback(prompt, directory, sessionId, omcRoot) {
+function findMatchingSkillsFallback(prompt, directory, sessionId, omacRoot) {
   const promptLower = prompt.toLowerCase();
   const candidates = findSkillFilesFallback(directory);
   const matches = [];
 
   // Resolve session-scoped (or legacy) state file paths
-  const { stateDir, statePath } = resolveSkillFallbackStatePaths(omcRoot, sessionId);
+  const { stateDir, statePath } = resolveSkillFallbackStatePaths(omacRoot, sessionId);
   const lockPath = lockPathFor(statePath);
 
   // Score candidates outside the lock (read-only file access, no shared state)
@@ -480,7 +480,7 @@ function findMatchingSkillsFallback(prompt, directory, sessionId, omcRoot) {
 // =============================================================================
 
 // Find matching skills - delegates to bridge or fallback
-function findMatchingSkills(prompt, directory, sessionId, omcRoot) {
+function findMatchingSkills(prompt, directory, sessionId, omacRoot) {
   if (bridge) {
     // Use bridge (RECURSIVE discovery, persistent session cache)
     const matches = bridge.matchSkillsForInjection(prompt, directory, sessionId, {
@@ -496,7 +496,7 @@ function findMatchingSkills(prompt, directory, sessionId, omcRoot) {
   }
 
   // Fallback (NON-RECURSIVE, file-based dedup via session-scoped state file)
-  return findMatchingSkillsFallback(prompt, directory, sessionId, omcRoot);
+  return findMatchingSkillsFallback(prompt, directory, sessionId, omacRoot);
 }
 
 function compactText(text, maxChars) {
@@ -583,8 +583,8 @@ async function main() {
     const rawSessionId = resolveHookSessionId(data);
     const sessionId = validateSessionId(rawSessionId) ?? (data.session_id || data.sessionId || 'unknown');
 
-    // Resolve OMC root (walk up from data.cwd looking for workspace markers)
-    const omcRoot = resolveOmcRootSync(directory);
+    // Resolve OMAC root (walk up from data.cwd looking for workspace markers)
+    const omacRoot = resolveOmacRootSync(directory);
 
     // Skip if no prompt
     if (!prompt) {
@@ -592,7 +592,7 @@ async function main() {
       return;
     }
 
-    const matchingSkills = findMatchingSkills(prompt, directory, sessionId, omcRoot);
+    const matchingSkills = findMatchingSkills(prompt, directory, sessionId, omacRoot);
 
     // Record skill activations to flow trace (best-effort)
     if (matchingSkills.length > 0) {

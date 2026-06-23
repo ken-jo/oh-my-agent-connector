@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve as resolvePath } from 'node:path';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 import {
   TEAM_NAME_SAFE_PATTERN,
   WORKER_NAME_SAFE_PATTERN,
@@ -204,7 +204,7 @@ function parseTaskDelegationPlan(value: unknown): TeamTaskDelegationPlan {
 
 function teamStateExists(teamName: string, candidateCwd: string): boolean {
   if (!TEAM_NAME_SAFE_PATTERN.test(teamName)) return false;
-  const teamRoot = join(getOmcRoot(candidateCwd), 'state', 'team', teamName);
+  const teamRoot = join(getOmacRoot(candidateCwd), 'state', 'team', teamName);
   return existsSync(join(teamRoot, 'config.json')) || existsSync(join(teamRoot, 'tasks')) || existsSync(teamRoot);
 }
 
@@ -216,24 +216,24 @@ function parseTeamWorkerEnv(raw: string | undefined): { teamName: string; worker
 }
 
 function parseTeamWorkerContextFromEnv(env: NodeJS.ProcessEnv = process.env): { teamName: string; workerName: string } | null {
-  return parseTeamWorkerEnv(env.OMC_TEAM_WORKER) ?? parseTeamWorkerEnv(env.OMX_TEAM_WORKER);
+  return parseTeamWorkerEnv(env.OMAC_TEAM_WORKER) ?? parseTeamWorkerEnv(env.OMX_TEAM_WORKER);
 }
 
 function readTeamStateRootFromEnv(env: NodeJS.ProcessEnv = process.env): string | null {
-  const candidate = typeof env.OMC_TEAM_STATE_ROOT === 'string' && env.OMC_TEAM_STATE_ROOT.trim() !== ''
-    ? env.OMC_TEAM_STATE_ROOT.trim()
+  const candidate = typeof env.OMAC_TEAM_STATE_ROOT === 'string' && env.OMAC_TEAM_STATE_ROOT.trim() !== ''
+    ? env.OMAC_TEAM_STATE_ROOT.trim()
     : (typeof env.OMX_TEAM_STATE_ROOT === 'string' && env.OMX_TEAM_STATE_ROOT.trim() !== ''
       ? env.OMX_TEAM_STATE_ROOT.trim()
       : '');
   return candidate || null;
 }
 
-export function resolveTeamApiCliCommand(env: NodeJS.ProcessEnv = process.env): 'omc team api' | 'omx team api' {
-  const hasOmcContext = (
-    (typeof env.OMC_TEAM_WORKER === 'string' && env.OMC_TEAM_WORKER.trim() !== '')
-    || (typeof env.OMC_TEAM_STATE_ROOT === 'string' && env.OMC_TEAM_STATE_ROOT.trim() !== '')
+export function resolveTeamApiCliCommand(env: NodeJS.ProcessEnv = process.env): 'omac team api' | 'omx team api' {
+  const hasOmacContext = (
+    (typeof env.OMAC_TEAM_WORKER === 'string' && env.OMAC_TEAM_WORKER.trim() !== '')
+    || (typeof env.OMAC_TEAM_STATE_ROOT === 'string' && env.OMAC_TEAM_STATE_ROOT.trim() !== '')
   );
-  if (hasOmcContext) return 'omc team api';
+  if (hasOmacContext) return 'omac team api';
 
   const hasOmxContext = (
     (typeof env.OMX_TEAM_WORKER === 'string' && env.OMX_TEAM_WORKER.trim() !== '')
@@ -241,7 +241,7 @@ export function resolveTeamApiCliCommand(env: NodeJS.ProcessEnv = process.env): 
   );
   if (hasOmxContext) return 'omx team api';
 
-  return 'omc team api';
+  return 'omac team api';
 }
 
 function isRuntimeV2Config(config: unknown): config is { workers: unknown[] } {
@@ -287,7 +287,7 @@ async function executeTeamCleanupViaRuntime(teamName: string, cwd: string): Prom
     const legacyConfig = config as { tmuxSession?: string; leaderPaneId?: string | null; tmuxOwnsWindow?: boolean };
     const sessionName = typeof legacyConfig.tmuxSession === 'string' && legacyConfig.tmuxSession.trim() !== ''
       ? legacyConfig.tmuxSession.trim()
-      : `omc-team-${teamName}`;
+      : `omac-team-${teamName}`;
     const leaderPaneId = typeof legacyConfig.leaderPaneId === 'string' && legacyConfig.leaderPaneId.trim() !== ''
       ? legacyConfig.leaderPaneId.trim()
       : undefined;
@@ -315,7 +315,7 @@ function stateRootToWorkingDirectory(stateRoot: string): string {
   const absolute = resolvePath(stateRoot);
   const normalized = absolute.replaceAll('\\', '/');
 
-  for (const marker of ['/.omc/state/team/', '/.omx/state/team/']) {
+  for (const marker of ['/.omac/state/team/', '/.omx/state/team/']) {
     const idx = normalized.lastIndexOf(marker);
     if (idx >= 0) {
       const workspaceRoot = absolute.slice(0, idx);
@@ -324,7 +324,7 @@ function stateRootToWorkingDirectory(stateRoot: string): string {
     }
   }
 
-  for (const marker of ['/.omc/state', '/.omx/state']) {
+  for (const marker of ['/.omac/state', '/.omx/state']) {
     const idx = normalized.lastIndexOf(marker);
     if (idx >= 0) {
       const workspaceRoot = absolute.slice(0, idx);
@@ -341,7 +341,7 @@ function resolveTeamWorkingDirectoryFromMetadata(
   candidateCwd: string,
   workerContext: { teamName: string; workerName: string } | null,
 ): string | null {
-  const teamRoot = join(getOmcRoot(candidateCwd), 'state', 'team', teamName);
+  const teamRoot = join(getOmacRoot(candidateCwd), 'state', 'team', teamName);
   if (!existsSync(teamRoot)) return null;
 
   if (workerContext?.teamName === teamName) {
@@ -420,7 +420,7 @@ export function buildLegacyTeamDeprecationHint(
 
 const QUEUED_FOR_HOOK_DISPATCH_REASON = 'queued_for_hook_dispatch';
 const LEADER_PANE_MISSING_MAILBOX_PERSISTED_REASON = 'leader_pane_missing_mailbox_persisted';
-const WORKTREE_TRIGGER_STATE_ROOT = '$OMC_TEAM_STATE_ROOT';
+const WORKTREE_TRIGGER_STATE_ROOT = '$OMAC_TEAM_STATE_ROOT';
 
 function resolveInstructionStateRoot(worktreePath?: string | null): string | undefined {
   return worktreePath ? WORKTREE_TRIGGER_STATE_ROOT : undefined;

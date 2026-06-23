@@ -38,18 +38,18 @@ const CONFIG_ENV_KEYS = [
   'CLAUDE_CODE_USE_BEDROCK',
   'CLAUDE_CODE_USE_VERTEX',
   // explicit routing overrides
-  'OMC_ROUTING_FORCE_INHERIT',
-  'OMC_ROUTING_ENABLED',
-  'OMC_ROUTING_DEFAULT_TIER',
-  'OMC_ESCALATION_ENABLED',
+  'OMAC_ROUTING_FORCE_INHERIT',
+  'OMAC_ROUTING_ENABLED',
+  'OMAC_ROUTING_DEFAULT_TIER',
+  'OMAC_ESCALATION_ENABLED',
   // model alias overrides (issue #1211)
-  'OMC_MODEL_ALIAS_HAIKU',
-  'OMC_MODEL_ALIAS_SONNET',
-  'OMC_MODEL_ALIAS_OPUS',
+  'OMAC_MODEL_ALIAS_HAIKU',
+  'OMAC_MODEL_ALIAS_SONNET',
+  'OMAC_MODEL_ALIAS_OPUS',
   // tier model resolution (feeds buildDefaultConfig)
-  'OMC_MODEL_HIGH',
-  'OMC_MODEL_MEDIUM',
-  'OMC_MODEL_LOW',
+  'OMAC_MODEL_HIGH',
+  'OMAC_MODEL_MEDIUM',
+  'OMAC_MODEL_LOW',
   'CLAUDE_CODE_BEDROCK_HAIKU_MODEL',
   'CLAUDE_CODE_BEDROCK_SONNET_MODEL',
   'CLAUDE_CODE_BEDROCK_OPUS_MODEL',
@@ -121,7 +121,7 @@ export interface EnforcementResult {
   injected: boolean;
   /** The model that was used */
   model: string;
-  /** Warning message (only if OMC_DEBUG=true) */
+  /** Warning message (only if OMAC_DEBUG=true) */
   warning?: string;
 }
 
@@ -131,10 +131,10 @@ function isDelegationToolName(toolName: string): boolean {
 }
 
 function canonicalizeSubagentType(subagentType: string): string {
-  const hasPrefix = subagentType.startsWith('oh-my-claudecode:');
-  const rawAgentType = subagentType.replace(/^oh-my-claudecode:/, '');
+  const hasPrefix = subagentType.startsWith('oh-my-agent-connector:');
+  const rawAgentType = subagentType.replace(/^oh-my-agent-connector:/, '');
   const canonicalAgentType = normalizeDelegationRole(rawAgentType);
-  return hasPrefix ? `oh-my-claudecode:${canonicalAgentType}` : canonicalAgentType;
+  return hasPrefix ? `oh-my-agent-connector:${canonicalAgentType}` : canonicalAgentType;
 }
 
 /**
@@ -177,7 +177,7 @@ export function enforceModel(agentInput: AgentInput): EnforcementResult {
     };
   }
 
-  const agentType = canonicalSubagentType.replace(/^oh-my-claudecode:/, '');
+  const agentType = canonicalSubagentType.replace(/^oh-my-agent-connector:/, '');
   const agentDefs = getAgentDefinitions({ config });
   const agentDef = agentDefs[agentType];
 
@@ -225,14 +225,14 @@ export function enforceModel(agentInput: AgentInput): EnforcementResult {
   };
 
   let warning: string | undefined;
-  if (process.env.OMC_DEBUG === 'true') {
+  if (process.env.OMAC_DEBUG === 'true') {
     const aliasNote = resolvedModel !== agentDef.model && aliasSourceModel
       ? ` (aliased from ${aliasSourceModel})`
       : '';
     const normalizedNote = normalizedModel !== resolvedModel
       ? ` (normalized from ${resolvedModel})`
       : '';
-    warning = `[OMC] Auto-injecting model: ${normalizedModel} for ${agentType}${aliasNote}${normalizedNote}`;
+    warning = `[OMAC] Auto-injecting model: ${normalizedModel} for ${agentType}${aliasNote}${normalizedNote}`;
   }
 
   return {
@@ -291,7 +291,7 @@ export function processPreToolUse(
  * Get model for an agent type (for testing/debugging)
  */
 export function getModelForAgent(agentType: string): string {
-  const normalizedType = normalizeDelegationRole(agentType.replace(/^oh-my-claudecode:/, ''));
+  const normalizedType = normalizeDelegationRole(agentType.replace(/^oh-my-agent-connector:/, ''));
   const agentDefs = getAgentDefinitions({ config: getCachedConfig() });
   const agentDef = agentDefs[normalizedType];
 

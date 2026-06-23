@@ -6,7 +6,7 @@
  * Read/write/scan task JSON files with atomic writes (temp + rename).
  *
  * Canonical task storage path:
- *   {cwd}/.omc/state/team/{teamName}/tasks/{id}.json
+ *   {cwd}/.omac/state/team/{teamName}/tasks/{id}.json
  *
  * Legacy path (read-only fallback during migration):
  *   ~/.claude/tasks/{teamName}/{id}.json
@@ -18,7 +18,7 @@
 
 import { readFileSync, readdirSync, existsSync, openSync, closeSync, unlinkSync, writeSync, statSync, constants as fsConstants } from 'fs';
 import { join } from 'path';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 import { getClaudeConfigDir } from '../utils/config-dir.js';
 import type { TaskFile, TaskFileUpdate, TaskFailureSidecar } from './types.js';
 import { sanitizeName } from './tmux-session.js';
@@ -151,12 +151,12 @@ function sanitizeTaskId(taskId: string): string {
 
 /**
  * Returns the canonical tasks directory for a team.
- * All new writes go here: {cwd}/.omc/state/team/{teamName}/tasks/
+ * All new writes go here: {cwd}/.omac/state/team/{teamName}/tasks/
  */
 function canonicalTasksDir(teamName: string, cwd?: string): string {
   const root = cwd ?? process.cwd();
   const dir = getTaskStoragePath(root, sanitizeName(teamName));
-  validateResolvedPath(dir, join(getOmcRoot(root), 'state', 'team'));
+  validateResolvedPath(dir, join(getOmacRoot(root), 'state', 'team'));
   return dir;
 }
 

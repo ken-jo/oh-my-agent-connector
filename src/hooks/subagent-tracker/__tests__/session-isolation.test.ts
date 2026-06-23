@@ -21,7 +21,7 @@ describe("session isolation", () => {
 
   beforeEach(() => {
     testDir = join(tmpdir(), `subagent-isolation-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    mkdirSync(join(testDir, ".omc", "state"), { recursive: true });
+    mkdirSync(join(testDir, ".omac", "state"), { recursive: true });
   });
 
   afterEach(() => {
@@ -34,7 +34,7 @@ describe("session isolation", () => {
       agents: [
         {
           agent_id: agentId,
-          agent_type: "oh-my-claudecode:executor",
+          agent_type: "oh-my-agent-connector:executor",
           started_at: new Date().toISOString(),
           parent_mode: "ultrawork",
           status: "running",

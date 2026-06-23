@@ -1,5 +1,5 @@
 /**
- * OMC HUD - API Key Source Element Tests
+ * OMAC HUD - API Key Source Element Tests
  *
  * Tests for detecting and rendering the ANTHROPIC_API_KEY source.
  */

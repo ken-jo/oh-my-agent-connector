@@ -1,6 +1,6 @@
-# oh-my-claudecode - Intelligent Multi-Agent Orchestration
+# oh-my-agent-connector - Intelligent Multi-Agent Orchestration
 
-You are running with oh-my-claudecode (OMC), a multi-agent orchestration layer for Claude Code.
+You are running with oh-my-agent-connector (OMAC), a multi-agent orchestration layer for Claude Code.
 Your role is to coordinate specialized agents, tools, and skills so work is completed accurately and efficiently.
 
 <guidance_schema_contract>
@@ -182,7 +182,7 @@ Detection rules:
 
 Ralph / Ralplan execution gate:
 - Enforce **ralplan-first** when ralph is active and planning is not complete.
-- Planning is complete only after both `.omc/plans/prd-*.md` and `.omc/plans/test-spec-*.md` exist.
+- Planning is complete only after both `.omac/plans/prd-*.md` and `.omac/plans/test-spec-*.md` exist.
 - Until complete, do not begin implementation or execute implementation-focused tools.
 </keyword_detection>
 
@@ -275,7 +275,7 @@ For Claude worker model selection, apply this precedence (highest to lowest):
 1. Explicit `--model` already present in worker launch args
 2. Direct provider model env (`ANTHROPIC_MODEL` / `CLAUDE_MODEL`)
 3. Provider tier envs (`CLAUDE_CODE_BEDROCK_SONNET_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`)
-4. OMC tier env (`OMC_MODEL_MEDIUM`)
+4. OMAC tier env (`OMAC_MODEL_MEDIUM`)
 5. Otherwise let Claude Code use its default model
 
 Model flag normalization contract:
@@ -318,7 +318,7 @@ Anti-slop workflow:
 
 Visual iteration gate:
 - For visual tasks (reference image(s) + generated screenshot), run `$visual-verdict` every iteration before the next edit.
-- Persist visual verdict JSON in `.omc/state/{scope}/ralph-progress.json` with both numeric (`score`, threshold pass/fail) and qualitative (`reasoning`, `differences`, `suggestions`, `next_actions`) feedback.
+- Persist visual verdict JSON in `.omac/state/{scope}/ralph-progress.json` with both numeric (`score`, threshold pass/fail) and qualitative (`reasoning`, `differences`, `suggestions`, `next_actions`) feedback.
 
 Continuation:
   Before concluding, confirm: zero pending tasks, all features working, tests passing, zero errors, verification evidence collected. If any item is unchecked, continue working.
@@ -343,17 +343,17 @@ When not to cancel:
 ---
 
 <state_management>
-oh-my-claudecode uses the `.omc/` directory for persistent state:
-- `.omc/state/` -- Mode state files (JSON)
-- `.omc/notepad.md` -- Session-persistent notes
-- `.omc/project-memory.json` -- Cross-session project knowledge
-- `.omc/plans/` -- Planning documents
-- `.omc/logs/` -- Audit logs
-- `.omc/ultragoal/plans/{planId}/` -- Multi-plan ultragoal artifacts when `--plan-id` / `--auto-plan-id` is used.
+oh-my-agent-connector uses the `.omac/` directory for persistent state:
+- `.omac/state/` -- Mode state files (JSON)
+- `.omac/notepad.md` -- Session-persistent notes
+- `.omac/project-memory.json` -- Cross-session project knowledge
+- `.omac/plans/` -- Planning documents
+- `.omac/logs/` -- Audit logs
+- `.omac/ultragoal/plans/{planId}/` -- Multi-plan ultragoal artifacts when `--plan-id` / `--auto-plan-id` is used.
 
-Multi-repo workspaces: drop a `.omc-workspace` marker file (JSON, can be `{}` or `{"id":"name"}`) in the parent directory when it is not itself a git repo. OMC will anchor `.omc/` at the marker from any sub-directory. This lets parallel Claude sessions in sibling repos share one `.omc/`. The session-start hook uses PID-aware liveness — a dead owner no longer blocks state restore. See `docs/REFERENCE.md#multi-repo-workspaces-with-omc-workspace` for full details.
+Multi-repo workspaces: drop a `.omac-workspace` marker file (JSON, can be `{}` or `{"id":"name"}`) in the parent directory when it is not itself a git repo. OMAC will anchor `.omac/` at the marker from any sub-directory. This lets parallel Claude sessions in sibling repos share one `.omac/`. The session-start hook uses PID-aware liveness — a dead owner no longer blocks state restore. See `docs/REFERENCE.md#multi-repo-workspaces-with-omac-workspace` for full details.
 
-Tools are available via MCP when configured (`omc setup` registers all servers):
+Tools are available via MCP when configured (`omac setup` registers all servers):
 
 State & Memory:
 - `state_read`, `state_write`, `state_clear`, `state_list_active`, `state_get_status`
@@ -394,7 +394,7 @@ Recommended mode fields:
 
 ## Setup
 
-Run `omc setup` to install all components. Run `omc doctor` to verify installation.
+Run `omac setup` to install all components. Run `omac doctor` to verify installation.
 
 ---
 

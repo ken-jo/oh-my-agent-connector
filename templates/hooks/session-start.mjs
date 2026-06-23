@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// OMC Session Start Hook (Node.js)
+// OMAC Session Start Hook (Node.js)
 // Restores persistent mode states when session starts
 // Cross-platform: Windows, macOS, Linux
 
@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const { getClaudeConfigDir, getUpdateCheckCachePath } = await import(pathToFileURL(join(__dirname, 'lib', 'config-dir.mjs')).href);
 const configDir = getClaudeConfigDir();
-const { resolveSessionStatePathsForHook, resolveOmcStateRoot } = await import(pathToFileURL(join(__dirname, 'lib', 'state-root.mjs')).href);
+const { resolveSessionStatePathsForHook, resolveOmacStateRoot } = await import(pathToFileURL(join(__dirname, 'lib', 'state-root.mjs')).href);
 
 // Import timeout-protected stdin reader (prevents hangs on Linux/Windows, see issue #240, #524)
 let readStdin;
@@ -94,7 +94,7 @@ async function checkForUpdates(currentVersion) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 2000);
   try {
-    const response = await fetch('https://registry.npmjs.org/oh-my-claude-sisyphus/latest', {
+    const response = await fetch('https://registry.npmjs.org/oh-my-agent-connector/latest', {
       signal: controller.signal
     });
 
@@ -134,12 +134,12 @@ function compareVersions(v1, v2) {
   return 0;
 }
 
-const OMC_STARTUP_COMPACTABLE_SECTIONS = [
+const OMAC_STARTUP_COMPACTABLE_SECTIONS = [
   'agent_catalog',
   'skills',
   'team_compositions',
 ];
-const OMC_STARTUP_GUIDANCE_MAX_CHARS = 8000;
+const OMAC_STARTUP_GUIDANCE_MAX_CHARS = 8000;
 const SESSION_START_CONTEXT_BUDGET = 6000;
 const SESSION_START_OMISSION_NOTICE = '[Additional SessionStart context omitted to preserve the 6000-character aggregate budget.]';
 
@@ -175,10 +175,10 @@ function isVertexSession() {
 }
 
 async function readRoutingForceInheritFromConfig(directory) {
-  const omcRoot = await resolveOmcStateRoot(directory);
+  const omacRoot = await resolveOmacStateRoot(directory);
   const configPaths = [
-    join(configDir, '.omc-config.json'),
-    join(omcRoot, 'config.json'),
+    join(configDir, '.omac-config.json'),
+    join(omacRoot, 'config.json'),
   ];
 
   for (const configPath of configPaths) {
@@ -190,8 +190,8 @@ async function readRoutingForceInheritFromConfig(directory) {
 }
 
 async function shouldEmitModelRoutingOverride(directory) {
-  if (process.env.OMC_ROUTING_FORCE_INHERIT === 'true') return true;
-  if (process.env.OMC_ROUTING_FORCE_INHERIT === 'false') return false;
+  if (process.env.OMAC_ROUTING_FORCE_INHERIT === 'true') return true;
+  if (process.env.OMAC_ROUTING_FORCE_INHERIT === 'false') return false;
   if (await readRoutingForceInheritFromConfig(directory)) return true;
 
   if (isBedrockSession() || isVertexSession()) return true;
@@ -213,24 +213,24 @@ function compactBudgetedText(text, maxChars) {
   return `${text.slice(0, maxChars - notice.length).trimEnd()}${notice}`;
 }
 
-function looksLikeOmcGuidance(content) {
+function looksLikeOmacGuidance(content) {
   return (
     typeof content === 'string' &&
     content.includes('<guidance_schema_contract>') &&
-    /oh-my-(claudecode|codex)/i.test(content) &&
-    OMC_STARTUP_COMPACTABLE_SECTIONS.some(
+    /(?:oh-my-agent-connector|oh-my-(claudecode|codex))/i.test(content) &&
+    OMAC_STARTUP_COMPACTABLE_SECTIONS.some(
       section => content.includes(`<${section}>`) && content.includes(`</${section}>`),
     )
   );
 }
 
-function compactOmcStartupGuidance(content) {
-  if (!looksLikeOmcGuidance(content)) return content;
+function compactOmacStartupGuidance(content) {
+  if (!looksLikeOmacGuidance(content)) return content;
 
   let compacted = content;
   let removedAny = false;
 
-  for (const section of OMC_STARTUP_COMPACTABLE_SECTIONS) {
+  for (const section of OMAC_STARTUP_COMPACTABLE_SECTIONS) {
     const pattern = new RegExp(`\n*<${section}>[\\s\\S]*?</${section}>\n*`, 'g');
     const next = compacted.replace(pattern, '\n\n');
     removedAny = removedAny || next !== compacted;
@@ -242,21 +242,21 @@ function compactOmcStartupGuidance(content) {
     .replace(/\n\n---\n\n---\n\n/g, '\n\n---\n\n')
     .trim();
 
-  if (normalized.length <= OMC_STARTUP_GUIDANCE_MAX_CHARS) {
+  if (normalized.length <= OMAC_STARTUP_GUIDANCE_MAX_CHARS) {
     return removedAny ? normalized : content;
   }
 
-  const notice = '\n\n[OMC startup guidance truncated to preserve an 8000-character budget. Read the source file directly for the full document.]';
-  return `${normalized.slice(0, OMC_STARTUP_GUIDANCE_MAX_CHARS - notice.length).trimEnd()}${notice}`;
+  const notice = '\n\n[OMAC startup guidance truncated to preserve an 8000-character budget. Read the source file directly for the full document.]';
+  return `${normalized.slice(0, OMAC_STARTUP_GUIDANCE_MAX_CHARS - notice.length).trimEnd()}${notice}`;
 }
 
 function formatUpdateNoticeForUser(updateInfo, options = {}) {
   const latestVersion = updateInfo?.latestVersion || 'latest';
   const currentVersion = updateInfo?.currentVersion || 'unknown';
   const action = options.autoUpgradePrompt === false
-    ? 'To update later, run: omc update'
-    : 'Run /update to upgrade now, or use /plugin install oh-my-claudecode';
-  return `[OMC UPDATE AVAILABLE] oh-my-claudecode v${latestVersion} is available (current: v${currentVersion}). ${action}`;
+    ? 'To update later, run: omac update'
+    : 'Run /update to upgrade now, or use /plugin install oh-my-agent-connector';
+  return `[OMAC UPDATE AVAILABLE] oh-my-agent-connector v${latestVersion} is available (current: v${currentVersion}). ${action}`;
 }
 
 function buildSessionStartAdditionalContext(messages) {
@@ -313,11 +313,11 @@ const PRIORITY_HEADER = '## Priority Context';
 const WORKING_MEMORY_HEADER = '## Working Memory';
 
 /**
- * Get notepad path in .omc directory
+ * Get notepad path in .omac directory
  */
 async function getNotepadPath(directory) {
-  const omcRoot = await resolveOmcStateRoot(directory);
-  return join(omcRoot, NOTEPAD_FILENAME);
+  const omacRoot = await resolveOmacStateRoot(directory);
+  return join(omacRoot, NOTEPAD_FILENAME);
 }
 
 /**
@@ -383,30 +383,30 @@ ${priorityContext}
 const STALE_STATE_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 /**
- * Validate that a candidate cwd is a real OMC workspace anchor.
+ * Validate that a candidate cwd is a real OMAC workspace anchor.
  * Returns the candidate unchanged if it is non-empty AND contains a
- * `.omc-workspace` marker OR a `.git` directory.
+ * `.omac-workspace` marker OR a `.git` directory.
  * Otherwise emits a one-line warning to stderr and returns null,
  * signalling the caller to skip all state mutations.
  */
 function validateCwd(candidate) {
   if (!candidate || typeof candidate !== 'string') {
     process.stderr.write(
-      `[OMC] session-start: refusing to use cwd '${candidate}' as workspace anchor (no .omc-workspace or .git marker)\n`
+      `[OMAC] session-start: refusing to use cwd '${candidate}' as workspace anchor (no .omac-workspace or .git marker)\n`
     );
     return null;
   }
   // cwd is commonly a subdirectory of the repo/workspace root, so walk up
-  // looking for a `.omc-workspace` marker or `.git` dir. Stop before scanning
+  // looking for a `.omac-workspace` marker or `.git` dir. Stop before scanning
   // $HOME (or above) so a stray marker/repo in $HOME cannot validate an
   // unrelated directory. Returns the original candidate so downstream root
-  // resolution (getOmcRoot/resolveOmcStateRoot) can anchor it.
+  // resolution (getOmacRoot/resolveOmacStateRoot) can anchor it.
   let home = null;
   try { home = homedir(); } catch { home = null; }
   let cursor = candidate;
   while (true) {
     if (home && cursor === home) break;
-    if (existsSync(join(cursor, '.omc-workspace')) || existsSync(join(cursor, '.git'))) {
+    if (existsSync(join(cursor, '.omac-workspace')) || existsSync(join(cursor, '.git'))) {
       return candidate;
     }
     const parent = dirname(cursor);
@@ -414,7 +414,7 @@ function validateCwd(candidate) {
     cursor = parent;
   }
   process.stderr.write(
-    `[OMC] session-start: refusing to use cwd '${candidate}' as workspace anchor (no .omc-workspace or .git marker)\n`
+    `[OMAC] session-start: refusing to use cwd '${candidate}' as workspace anchor (no .omac-workspace or .git marker)\n`
   );
   return null;
 }
@@ -481,7 +481,7 @@ function hasConflictingUltraworkRestore(state, sessionId, directory, source) {
 
 async function getUltraworkRestoreCandidate(directory, sessionId) {
   const { readPath: localPath } = await resolveSessionStatePathsForHook(directory, 'ultrawork', sessionId || undefined);
-  const globalPath = join(homedir(), '.omc', 'state', 'ultrawork-state.json');
+  const globalPath = join(homedir(), '.omac', 'state', 'ultrawork-state.json');
 
   const localState = readJsonFile(localPath);
   if (hasConflictingUltraworkRestore(localState, sessionId, directory, 'local')) {
@@ -514,7 +514,7 @@ Detected an active ultrawork session for ${scope}.
 Owner session: ${ownerSession}
 Started: ${startedAt}
 
-To avoid shared \.omc/state bleed across parallel sessions, OMC suppressed the restore for this session.
+To avoid shared \.omac/state bleed across parallel sessions, OMAC suppressed the restore for this session.
 Continue normally in this session, or use a separate worktree / close the other same-root session before resuming the prior ultrawork state.
 
 </session-restore>
@@ -540,12 +540,12 @@ async function main() {
     const userMessages = [];
 
     // Check for updates (non-blocking)
-    // Read version from OMC's own package.json, not the project's (fixes #516)
+    // Read version from OMAC's own package.json, not the project's (fixes #516)
     let currentVersion = null;
     for (let i = 1; i <= 4; i++) {
       const candidate = join(__dirname, ...Array(i).fill('..'), 'package.json');
       const pkg = readJsonFile(candidate);
-      if ((pkg?.name === 'oh-my-claude-sisyphus' || pkg?.name === 'oh-my-claudecode') && pkg?.version) {
+      if ((pkg?.name === 'oh-my-agent-connector' || pkg?.name === 'oh-my-agent-connector') && pkg?.version) {
         currentVersion = pkg.version;
         break;
       }
@@ -554,14 +554,14 @@ async function main() {
     // Template-version drift check: warn once per session if installed templates differ from plugin
     if (currentVersion) {
       try {
-        const omcRoot = await resolveOmcStateRoot(directory);
-        const stampPath = join(omcRoot, 'template-version.json');
-        const driftMarkerPath = join(omcRoot, 'state', `drift-warned-${sessionId || 'nosession'}.json`);
+        const omacRoot = await resolveOmacStateRoot(directory);
+        const stampPath = join(omacRoot, 'template-version.json');
+        const driftMarkerPath = join(omacRoot, 'state', `drift-warned-${sessionId || 'nosession'}.json`);
         if (existsSync(stampPath) && !existsSync(driftMarkerPath)) {
           const stamp = readJsonFile(stampPath);
           if (stamp?.version && stamp.version !== currentVersion) {
             process.stderr.write(
-              `[omc] template version drift: installed=${stamp.version}, plugin=${currentVersion} — run /oh-my-claudecode:omc-setup to refresh\n`
+              `[omac] template version drift: installed=${stamp.version}, plugin=${currentVersion} — run /oh-my-agent-connector:omac-setup to refresh\n`
             );
             mkdirSync(join(driftMarkerPath, '..'), { recursive: true });
             writeFileSync(driftMarkerPath, JSON.stringify({ warnedAt: new Date().toISOString() }));
@@ -572,10 +572,10 @@ async function main() {
 
     const updateInfo = currentVersion ? await checkForUpdates(currentVersion) : null;
     if (updateInfo) {
-      const configPath = join(getClaudeConfigDir(), '.omc-config.json');
-      const omcConfig = readJsonFile(configPath) || {};
+      const configPath = join(getClaudeConfigDir(), '.omac-config.json');
+      const omacConfig = readJsonFile(configPath) || {};
       userMessages.push(formatUpdateNoticeForUser(updateInfo, {
-        autoUpgradePrompt: omcConfig.autoUpgradePrompt !== false,
+        autoUpgradePrompt: omacConfig.autoUpgradePrompt !== false,
       }));
     }
 
@@ -615,9 +615,9 @@ Continue working in ultrawork mode until all tasks are complete.
     // [$CLAUDE_CONFIG_DIR|~/.claude]/todos/ directory.
     // That directory accumulates todo files from ALL past sessions across all
     // projects, causing phantom task counts in fresh sessions (see issue #354).
-    const omcRootForTodos = await resolveOmcStateRoot(directory);
+    const omacRootForTodos = await resolveOmacStateRoot(directory);
     const localTodoPaths = [
-      join(omcRootForTodos, 'todos.json'),
+      join(omacRootForTodos, 'todos.json'),
       join(directory, '.claude', 'todos.json')
     ];
     let incompleteCount = 0;
@@ -665,7 +665,7 @@ ${notepadContext}
     const agentsMdPath = join(directory, 'AGENTS.md');
     if (existsSync(agentsMdPath)) {
       try {
-        const agentsContent = compactOmcStartupGuidance(readFileSync(agentsMdPath, 'utf-8').trim());
+        const agentsContent = compactOmacStartupGuidance(readFileSync(agentsMdPath, 'utf-8').trim());
         if (agentsContent) {
           messages.push(`<session-restore>
 

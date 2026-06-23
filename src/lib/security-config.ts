@@ -1,17 +1,17 @@
 /**
  * Unified Security Configuration
  *
- * Single entry point for all OMC security settings.
+ * Single entry point for all OMAC security settings.
  * Two layers of configuration:
  *
- * 1. OMC_SECURITY env var — master switch
+ * 1. OMAC_SECURITY env var — master switch
  *    - "strict": all security features enabled
  *    - unset/other: per-feature defaults apply
  *
- * 2. Config file (.claude/omc.jsonc or ~/.config/claude-omc/config.jsonc)
+ * 2. Config file (.claude/omac.jsonc or ~/.config/claude-omac/config.jsonc)
  *    security section — granular overrides (highest precedence)
  *
- * Precedence: config file > OMC_SECURITY env var > defaults (all off)
+ * Precedence: config file > OMAC_SECURITY env var > defaults (all off)
  */
 
 import { existsSync, readFileSync } from "fs";
@@ -24,7 +24,7 @@ export interface SecurityConfig {
   restrictToolPaths: boolean;
   /** Sandbox python_repl with blocked modules/builtins */
   pythonSandbox: boolean;
-  /** Disable project-level .omc/skills/ loading */
+  /** Disable project-level .omac/skills/ loading */
   disableProjectSkills: boolean;
   /** Disable silent auto-update */
   disableAutoUpdate: boolean;
@@ -65,8 +65,8 @@ let cachedConfig: SecurityConfig | null = null;
  */
 function loadSecurityFromConfigFiles(): Partial<SecurityConfig> {
   const paths = [
-    join(process.cwd(), ".claude", "omc.jsonc"),
-    join(getConfigDir(), "claude-omc", "config.jsonc"),
+    join(process.cwd(), ".claude", "omac.jsonc"),
+    join(getConfigDir(), "claude-omac", "config.jsonc"),
   ];
 
   for (const configPath of paths) {
@@ -87,12 +87,12 @@ function loadSecurityFromConfigFiles(): Partial<SecurityConfig> {
 
 /**
  * Resolve the full security configuration.
- * Precedence: config file > OMC_SECURITY env > defaults
+ * Precedence: config file > OMAC_SECURITY env > defaults
  */
 export function getSecurityConfig(): SecurityConfig {
   if (cachedConfig) return cachedConfig;
 
-  const isStrict = process.env.OMC_SECURITY === "strict";
+  const isStrict = process.env.OMAC_SECURITY === "strict";
   const base = isStrict ? { ...STRICT_OVERRIDES } : { ...DEFAULTS };
   const fileOverrides = loadSecurityFromConfigFiles();
 

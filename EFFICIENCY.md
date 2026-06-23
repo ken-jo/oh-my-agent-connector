@@ -1,17 +1,17 @@
 # Efficiency — quantified
 
-Comparison between oh-my-claudecode's deployment plumbing
-(`Yeachan-Heo/oh-my-claudecode` @ v4.14.6 / deee3a4, ★36k) and this repo's
+Comparison between oh-my-agent-connector's deployment plumbing
+(`Yeachan-Heo/oh-my-agent-connector` @ v4.14.6 / deee3a4, ★36k) and this repo's
 agent-connector port. Methodology mirrors the context-mode migration
 (`/home/ubuntu/workspace/github/context-mode-with-agent-connector/EFFICIENCY.md`,
 20,322 → 76): `wc -l` over the exact file sets; "code lines" excludes comments
 and blanks. Every baseline figure below was re-measured against the upstream
-checkout before writing this file (commands inline). OMC functionality runs
+checkout before writing this file (commands inline). OMAC functionality runs
 UNCHANGED — only the deployment plumbing is replaced.
 
 ## Headline
 
-| Metric | OMC upstream (before) | this repo (after) | Δ |
+| Metric | OMAC upstream (before) | this repo (after) | Δ |
 |---|---:|---:|---|
 | **Deployment-plumbing bucket (BASELINE.md)** | **20,999** | **394 code** (584 with comments) | **−98.1% (53×)** |
 | Strictly eliminated layer only (honest subset, below) | 9,239 | 394 | −95.7% (23×) |
@@ -63,7 +63,7 @@ REPLACEMENT (this repo, total):
 | `bin.mjs` (branded CLI via createConnectorCli) | 31 | 15 |
 | **Total** | **584** | **394** |
 
-The port is ~5× larger than context-mode's 76 lines because OMC's surface is
+The port is ~5× larger than context-mode's 76 lines because OMAC's surface is
 ~5× bigger: 11 event chains × 23 scripts with per-script timeouts, deny/ask/
 context merge semantics (plus the PermissionRequest never-auto-grant merge),
 and a load-time compiler for 128 content files — still 23–53× smaller than
@@ -91,7 +91,7 @@ what it replaces.
   events — with exactly one honest warn (gemini has no Stop equivalent).
   Upstream's answer to each extra CLI was an entire sibling repo.
 - **Per-tool token telemetry** (sandbox NDJSON recorded every bridged event) —
-  something upstream OMC never had.
+  something upstream OMAC never had.
 
 ## Scope honesty
 
@@ -114,6 +114,6 @@ what it replaces.
   everywhere; hook *behavior* on codex/gemini/opencode is best-effort until
   live-verified (surface-map R3). The platform claim here is deployment, which
   is what the dry-run evidences.
-- The eliminated layer is deployment plumbing only. OMC's product logic
+- The eliminated layer is deployment plumbing only. OMAC's product logic
   (78k LOC `src/hooks/**`, 49-tool MCP bundle, 128 content files) was never the
   target and runs unchanged from the upstream checkout.

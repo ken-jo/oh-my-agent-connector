@@ -13,10 +13,10 @@ describe('session-start template guard for same-root parallel sessions (#1744)',
   let fakeProject: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-session-start-template-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-session-start-template-'));
     fakeHome = join(tempDir, 'home');
     fakeProject = join(tempDir, 'project');
-    mkdirSync(join(fakeProject, '.omc', 'state'), { recursive: true });
+    mkdirSync(join(fakeProject, '.omac', 'state'), { recursive: true });
     // Add .git so validateCwd accepts this directory as a valid workspace anchor
     mkdirSync(join(fakeProject, '.git'), { recursive: true });
   });
@@ -48,7 +48,7 @@ describe('session-start template guard for same-root parallel sessions (#1744)',
   it('warns and suppresses conflicting same-root restore for a different active session', () => {
     const now = new Date().toISOString();
     writeFileSync(
-      join(fakeProject, '.omc', 'state', 'ultrawork-state.json'),
+      join(fakeProject, '.omac', 'state', 'ultrawork-state.json'),
       JSON.stringify({
         active: true,
         session_id: 'session-a',
@@ -74,7 +74,7 @@ describe('session-start template guard for same-root parallel sessions (#1744)',
 
   it('keeps template session-start under budget when only a tiny omission remainder remains', () => {
     writeFileSync(
-      join(fakeProject, '.omc', 'state', 'ultrawork-state.json'),
+      join(fakeProject, '.omac', 'state', 'ultrawork-state.json'),
       JSON.stringify({
         active: true,
         session_id: 'session-budget-owner',
@@ -85,7 +85,7 @@ describe('session-start template guard for same-root parallel sessions (#1744)',
     );
     writeFileSync(
       join(fakeProject, 'AGENTS.md'),
-      `# oh-my-claudecode - Intelligent Multi-Agent Orchestration
+      `# oh-my-agent-connector - Intelligent Multi-Agent Orchestration
 
 <guidance_schema_contract>schema</guidance_schema_contract>
 
@@ -105,10 +105,10 @@ ${'- preserve this startup guidance\n'.repeat(400)}
     expect(context.length).toBeLessThanOrEqual(6000);
   });
 
-  it('compacts large OMC AGENTS guidance and caps aggregate session context', () => {
+  it('compacts large OMAC AGENTS guidance and caps aggregate session context', () => {
     mkdirSync(fakeProject, { recursive: true });
     const largeAgents = [
-      '# oh-my-claudecode - Intelligent Multi-Agent Orchestration',
+      '# oh-my-agent-connector - Intelligent Multi-Agent Orchestration',
       '<guidance_schema_contract>schema details</guidance_schema_contract>',
       '<operating_principles>keep this high value section</operating_principles>',
       '<agent_catalog>' + 'agent '.repeat(5000) + '</agent_catalog>',
@@ -136,7 +136,7 @@ ${'- preserve this startup guidance\n'.repeat(400)}
 
   it('still restores ultrawork for the owning session', () => {
     writeFileSync(
-      join(fakeProject, '.omc', 'state', 'ultrawork-state.json'),
+      join(fakeProject, '.omac', 'state', 'ultrawork-state.json'),
       JSON.stringify({
         active: true,
         session_id: 'session-owner',
@@ -160,9 +160,9 @@ ${'- preserve this startup guidance\n'.repeat(400)}
   });
 
   it('does not warn for global fallback state from a different normalized project path', () => {
-    mkdirSync(join(fakeHome, '.omc', 'state'), { recursive: true });
+    mkdirSync(join(fakeHome, '.omac', 'state'), { recursive: true });
     writeFileSync(
-      join(fakeHome, '.omc', 'state', 'ultrawork-state.json'),
+      join(fakeHome, '.omac', 'state', 'ultrawork-state.json'),
       JSON.stringify({
         active: true,
         session_id: 'session-a',
@@ -188,7 +188,7 @@ ${'- preserve this startup guidance\n'.repeat(400)}
   it('keeps model routing override under budget for non-standard providers', () => {
     writeFileSync(
       join(fakeProject, 'AGENTS.md'),
-      `# oh-my-claudecode - Intelligent Multi-Agent Orchestration
+      `# oh-my-agent-connector - Intelligent Multi-Agent Orchestration
 
 <guidance_schema_contract>schema</guidance_schema_contract>
 
@@ -216,10 +216,10 @@ ${'- oversized startup guidance\n'.repeat(700)}
   });
 
   it('surfaces update notices through systemMessage without injecting them into additionalContext', () => {
-    const omcDir = join(fakeHome, '.claude', '.omc');
-    mkdirSync(omcDir, { recursive: true });
+    const omacDir = join(fakeHome, '.claude', '.omac');
+    mkdirSync(omacDir, { recursive: true });
     writeFileSync(
-      join(omcDir, 'update-check.json'),
+      join(omacDir, 'update-check.json'),
       JSON.stringify({
         timestamp: Date.now(),
         latestVersion: '999.0.0',
@@ -251,19 +251,19 @@ ${'- oversized startup guidance\n'.repeat(700)}
       hookSpecificOutput?: { additionalContext?: string };
     };
     expect(output.continue).toBe(true);
-    expect(output.systemMessage).toContain('[OMC UPDATE AVAILABLE]');
+    expect(output.systemMessage).toContain('[OMAC UPDATE AVAILABLE]');
     expect(output.systemMessage).toContain('v999.0.0');
     expect(output.systemMessage).toContain('/update');
-    expect(output.hookSpecificOutput?.additionalContext ?? '').not.toContain('[OMC UPDATE AVAILABLE]');
+    expect(output.hookSpecificOutput?.additionalContext ?? '').not.toContain('[OMAC UPDATE AVAILABLE]');
     expect(output.hookSpecificOutput?.additionalContext ?? '').not.toContain('999.0.0');
   });
 
   it('honors autoUpgradePrompt=false with passive systemMessage wording', () => {
-    const omcDir = join(fakeHome, '.claude', '.omc');
-    mkdirSync(omcDir, { recursive: true });
-    writeFileSync(join(fakeHome, '.claude', '.omc-config.json'), JSON.stringify({ autoUpgradePrompt: false }));
+    const omacDir = join(fakeHome, '.claude', '.omac');
+    mkdirSync(omacDir, { recursive: true });
+    writeFileSync(join(fakeHome, '.claude', '.omac-config.json'), JSON.stringify({ autoUpgradePrompt: false }));
     writeFileSync(
-      join(omcDir, 'update-check.json'),
+      join(omacDir, 'update-check.json'),
       JSON.stringify({
         timestamp: Date.now(),
         latestVersion: '999.0.0',
@@ -288,7 +288,7 @@ ${'- oversized startup guidance\n'.repeat(700)}
     });
 
     const output = JSON.parse(result.stdout) as { systemMessage?: string };
-    expect(output.systemMessage).toContain('To update later, run: omc update');
+    expect(output.systemMessage).toContain('To update later, run: omac update');
     expect(output.systemMessage).not.toContain('Run /update to upgrade now');
   });
 
@@ -308,12 +308,12 @@ describe('session-start PID-aware liveness (#E2)', () => {
   const now = new Date().toISOString();
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-pid-liveness-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-pid-liveness-'));
     fakeHome = join(tempDir, 'home');
     fakeProject = join(tempDir, 'project');
-    // validateCwd in session-start.mjs requires .git or .omc-workspace
+    // validateCwd in session-start.mjs requires .git or .omac-workspace
     mkdirSync(join(fakeProject, '.git'), { recursive: true });
-    mkdirSync(join(fakeProject, '.omc', 'state'), { recursive: true });
+    mkdirSync(join(fakeProject, '.omac', 'state'), { recursive: true });
   });
 
   afterEach(() => {
@@ -342,7 +342,7 @@ describe('session-start PID-aware liveness (#E2)', () => {
   it('PID-dead-reclaim: dead owner PID allows new session to reclaim without PARALLEL SESSION WARNING', () => {
     // PID 999999 is virtually guaranteed to not exist
     writeFileSync(
-      join(fakeProject, '.omc', 'state', 'ultrawork-state.json'),
+      join(fakeProject, '.omac', 'state', 'ultrawork-state.json'),
       JSON.stringify({
         active: true,
         session_id: 'old-sid',
@@ -370,7 +370,7 @@ describe('session-start PID-aware liveness (#E2)', () => {
   it('owner PID alive: same-root different session emits PARALLEL SESSION WARNING', () => {
     // process.pid is definitely alive
     writeFileSync(
-      join(fakeProject, '.omc', 'state', 'ultrawork-state.json'),
+      join(fakeProject, '.omac', 'state', 'ultrawork-state.json'),
       JSON.stringify({
         active: true,
         session_id: 'owner-session',
@@ -395,7 +395,7 @@ describe('session-start PID-aware liveness (#E2)', () => {
   it('missing PID field: backward-compat assumes alive and emits PARALLEL SESSION WARNING', () => {
     // No owner_pid field — backward-compat path
     writeFileSync(
-      join(fakeProject, '.omc', 'state', 'ultrawork-state.json'),
+      join(fakeProject, '.omac', 'state', 'ultrawork-state.json'),
       JSON.stringify({
         active: true,
         session_id: 'legacy-session',
@@ -424,12 +424,12 @@ describe('session-start template cwd validation (Wave B1)', () => {
   let emptyCwd: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-session-start-cwdval-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-session-start-cwdval-'));
     fakeHome = join(tempDir, 'home');
     mkdirSync(fakeHome, { recursive: true });
-    // A truly empty directory with no .omc-workspace or .git marker.
+    // A truly empty directory with no .omac-workspace or .git marker.
     // Keep it under fakeHome so validateCwd stops before ambient /tmp markers.
-    emptyCwd = mkdtempSync(join(fakeHome, 'omc-empty-cwd-'));
+    emptyCwd = mkdtempSync(join(fakeHome, 'omac-empty-cwd-'));
   });
 
   afterEach(() => {
@@ -456,7 +456,7 @@ describe('session-start template cwd validation (Wave B1)', () => {
     };
   }
 
-  it('emits warning to stderr and outputs no-op JSON when cwd has no .omc-workspace or .git marker', () => {
+  it('emits warning to stderr and outputs no-op JSON when cwd has no .omac-workspace or .git marker', () => {
     // emptyCwd is a real temp dir with no markers — cross-platform guaranteed
     const { stdout, stderr } = runSessionStartRaw({
       hook_event_name: 'SessionStart',
@@ -465,8 +465,8 @@ describe('session-start template cwd validation (Wave B1)', () => {
     });
 
     // Must warn on stderr
-    expect(stderr).toContain('[OMC] session-start: refusing to use cwd');
-    expect(stderr).toContain('no .omc-workspace or .git marker');
+    expect(stderr).toContain('[OMAC] session-start: refusing to use cwd');
+    expect(stderr).toContain('no .omac-workspace or .git marker');
 
     // Output must be a valid JSON with continue:true and no hookSpecificOutput with state writes
     const parsed = JSON.parse(stdout) as { continue: boolean; hookSpecificOutput?: unknown };
@@ -474,14 +474,14 @@ describe('session-start template cwd validation (Wave B1)', () => {
     expect(parsed.hookSpecificOutput).toBeUndefined();
 
     // Must NOT have written any state files into the empty dir
-    expect(existsSync(join(emptyCwd, '.omc'))).toBe(false);
+    expect(existsSync(join(emptyCwd, '.omac'))).toBe(false);
   });
 
   it('does NOT warn or skip when cwd contains a .git directory', () => {
-    const gitProject = mkdtempSync(join(tmpdir(), 'omc-git-project-'));
+    const gitProject = mkdtempSync(join(tmpdir(), 'omac-git-project-'));
     try {
       mkdirSync(join(gitProject, '.git'), { recursive: true });
-      mkdirSync(join(gitProject, '.omc', 'state'), { recursive: true });
+      mkdirSync(join(gitProject, '.omac', 'state'), { recursive: true });
 
       const { stderr, stdout } = runSessionStartRaw({
         hook_event_name: 'SessionStart',
@@ -490,7 +490,7 @@ describe('session-start template cwd validation (Wave B1)', () => {
       });
 
       // Should NOT emit the warning
-      expect(stderr).not.toContain('[OMC] session-start: refusing to use cwd');
+      expect(stderr).not.toContain('[OMAC] session-start: refusing to use cwd');
 
       // Should produce normal hook output (continue: true)
       const parsed = JSON.parse(stdout) as { continue: boolean };
@@ -500,11 +500,11 @@ describe('session-start template cwd validation (Wave B1)', () => {
     }
   });
 
-  it('does NOT warn or skip when cwd contains a .omc-workspace marker', () => {
-    const wsProject = mkdtempSync(join(tmpdir(), 'omc-ws-project-'));
+  it('does NOT warn or skip when cwd contains a .omac-workspace marker', () => {
+    const wsProject = mkdtempSync(join(tmpdir(), 'omac-ws-project-'));
     try {
-      writeFileSync(join(wsProject, '.omc-workspace'), '{}');
-      mkdirSync(join(wsProject, '.omc', 'state'), { recursive: true });
+      writeFileSync(join(wsProject, '.omac-workspace'), '{}');
+      mkdirSync(join(wsProject, '.omac', 'state'), { recursive: true });
 
       const { stderr, stdout } = runSessionStartRaw({
         hook_event_name: 'SessionStart',
@@ -512,7 +512,7 @@ describe('session-start template cwd validation (Wave B1)', () => {
         cwd: wsProject,
       });
 
-      expect(stderr).not.toContain('[OMC] session-start: refusing to use cwd');
+      expect(stderr).not.toContain('[OMAC] session-start: refusing to use cwd');
 
       const parsed = JSON.parse(stdout) as { continue: boolean };
       expect(parsed.continue).toBe(true);
@@ -522,10 +522,10 @@ describe('session-start template cwd validation (Wave B1)', () => {
   });
 
   it('does NOT warn or skip when cwd is a SUBDIRECTORY of a .git repo (walks up)', () => {
-    const gitProject = mkdtempSync(join(tmpdir(), 'omc-git-subdir-'));
+    const gitProject = mkdtempSync(join(tmpdir(), 'omac-git-subdir-'));
     try {
       mkdirSync(join(gitProject, '.git'), { recursive: true });
-      mkdirSync(join(gitProject, '.omc', 'state'), { recursive: true });
+      mkdirSync(join(gitProject, '.omac', 'state'), { recursive: true });
       const nested = join(gitProject, 'packages', 'app', 'src');
       mkdirSync(nested, { recursive: true });
 
@@ -536,7 +536,7 @@ describe('session-start template cwd validation (Wave B1)', () => {
       });
 
       // A subdirectory of a real repo must be accepted, not rejected.
-      expect(stderr).not.toContain('[OMC] session-start: refusing to use cwd');
+      expect(stderr).not.toContain('[OMAC] session-start: refusing to use cwd');
 
       const parsed = JSON.parse(stdout) as { continue: boolean };
       expect(parsed.continue).toBe(true);
@@ -545,12 +545,12 @@ describe('session-start template cwd validation (Wave B1)', () => {
     }
   });
 
-  it('does NOT warn or skip when cwd is a nested SUBDIR whose only anchor is a .omc-workspace at an ancestor (no .git anywhere)', () => {
-    const wsRoot = mkdtempSync(join(tmpdir(), 'omc-ws-ancestor-'));
+  it('does NOT warn or skip when cwd is a nested SUBDIR whose only anchor is a .omac-workspace at an ancestor (no .git anywhere)', () => {
+    const wsRoot = mkdtempSync(join(tmpdir(), 'omac-ws-ancestor-'));
     try {
-      // Place .omc-workspace at the ancestor root (no .git anywhere)
-      writeFileSync(join(wsRoot, '.omc-workspace'), '{}');
-      // cwd is a deeply nested subdirectory — no .git, no .omc-workspace at this level
+      // Place .omac-workspace at the ancestor root (no .git anywhere)
+      writeFileSync(join(wsRoot, '.omac-workspace'), '{}');
+      // cwd is a deeply nested subdirectory — no .git, no .omac-workspace at this level
       const nested = join(wsRoot, 'packages', 'app', 'src');
       mkdirSync(nested, { recursive: true });
 
@@ -563,8 +563,8 @@ describe('session-start template cwd validation (Wave B1)', () => {
         { HOME: fakeHome, USERPROFILE: fakeHome },
       );
 
-      // validateCwd must walk up, find .omc-workspace at wsRoot, and accept
-      expect(stderr).not.toContain('[OMC] session-start: refusing to use cwd');
+      // validateCwd must walk up, find .omac-workspace at wsRoot, and accept
+      expect(stderr).not.toContain('[OMAC] session-start: refusing to use cwd');
 
       const parsed = JSON.parse(stdout) as { continue: boolean };
       expect(parsed.continue).toBe(true);

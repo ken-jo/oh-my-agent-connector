@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * OMC Code Simplifier Stop Hook (Node.js)
+ * OMAC Code Simplifier Stop Hook (Node.js)
  *
  * Intercepts Stop events to automatically delegate recently modified source files
  * to the code-simplifier agent for cleanup and simplification.
  *
- * Opt-in via ~/.omc/config.json: { "codeSimplifier": { "enabled": true } }
+ * Opt-in via ~/.omac/config.json: { "codeSimplifier": { "enabled": true } }
  * Default: disabled (must explicitly opt in)
  */
 
@@ -21,7 +21,7 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { execSync } from 'child_process';
 import { readStdin } from './lib/stdin.mjs';
-import { resolveOmcStateRoot } from './lib/state-root.mjs';
+import { resolveOmacStateRoot } from './lib/state-root.mjs';
 
 const DEFAULT_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.py', '.go', '.rs'];
 const DEFAULT_MAX_FILES = 10;
@@ -36,8 +36,8 @@ function readJsonFile(filePath) {
   }
 }
 
-function readOmcConfig() {
-  return readJsonFile(join(homedir(), '.omc', 'config.json'));
+function readOmacConfig() {
+  return readJsonFile(join(homedir(), '.omac', 'config.json'));
 }
 
 function isEnabled(config) {
@@ -72,7 +72,7 @@ function buildMessage(files) {
     `code-simplifier agent to simplify the following files for clarity, ` +
     `consistency, and maintainability (without changing behavior):\n\n` +
     `${fileList}\n\n` +
-    `Use: Task(subagent_type="oh-my-claudecode:code-simplifier", ` +
+    `Use: Task(subagent_type="oh-my-agent-connector:code-simplifier", ` +
     `prompt="Simplify the recently modified files:\\n${fileArgs}")`
   );
 }
@@ -89,8 +89,8 @@ async function main() {
     }
 
     const cwd = data.cwd || data.directory || process.cwd();
-    const stateDir = join(await resolveOmcStateRoot(cwd), 'state');
-    const config = readOmcConfig();
+    const stateDir = join(await resolveOmacStateRoot(cwd), 'state');
+    const config = readOmacConfig();
 
     if (!isEnabled(config)) {
       process.stdout.write(JSON.stringify({ continue: true }) + '\n');

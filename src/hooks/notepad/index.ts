@@ -10,7 +10,7 @@
  * Structure:
  * ```markdown
  * # Notepad
- * <!-- Auto-managed by OMC. Manual edits preserved in MANUAL section. -->
+ * <!-- Auto-managed by OMAC. Manual edits preserved in MANUAL section. -->
  *
  * ## Priority Context
  * <!-- ALWAYS loaded. Keep under 500 chars. Critical discoveries only. -->
@@ -25,7 +25,7 @@
 
 import { existsSync, readFileSync, mkdirSync } from "fs";
 import { join } from "path";
-import { getOmcRoot } from "../../lib/worktree-paths.js";
+import { getOmacRoot } from "../../lib/worktree-paths.js";
 import { atomicWriteFileSync } from "../../lib/atomic-write.js";
 import { lockPathFor, withFileLockSync } from "../../lib/file-lock.js";
 
@@ -114,20 +114,20 @@ function getSectionRegexSet(header: string): SectionRegexSet {
 // ============================================================================
 
 /**
- * Get the path to notepad.md in .omc subdirectory
+ * Get the path to notepad.md in .omac subdirectory
  */
 export function getNotepadPath(directory: string): string {
-  return join(getOmcRoot(directory), NOTEPAD_FILENAME);
+  return join(getOmacRoot(directory), NOTEPAD_FILENAME);
 }
 
 /**
  * Initialize notepad.md if it doesn't exist
  */
 export function initNotepad(directory: string): boolean {
-  const omcDir = getOmcRoot(directory);
-  if (!existsSync(omcDir)) {
+  const omacDir = getOmacRoot(directory);
+  if (!existsSync(omacDir)) {
     try {
-      mkdirSync(omcDir, { recursive: true });
+      mkdirSync(omacDir, { recursive: true });
     } catch {
       return false;
     }
@@ -139,7 +139,7 @@ export function initNotepad(directory: string): boolean {
   }
 
   const content = `# Notepad
-<!-- Auto-managed by OMC. Manual edits preserved in MANUAL section. -->
+<!-- Auto-managed by OMAC. Manual edits preserved in MANUAL section. -->
 
 ${PRIORITY_HEADER}
 <!-- ALWAYS loaded. Keep under 500 chars. Critical discoveries only. -->

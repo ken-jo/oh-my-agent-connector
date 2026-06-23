@@ -106,7 +106,7 @@ function writeAdvisorStub(dir: string): string {
       'const payload = {',
       '  provider: process.argv[2],',
       '  prompt: process.argv[3],',
-      '  originalTask: process.env.OMC_ASK_ORIGINAL_TASK ?? null,',
+      '  originalTask: process.env.OMAC_ASK_ORIGINAL_TASK ?? null,',
       '  passthrough: process.env.ASK_WRAPPER_TOKEN ?? null,',
       '};',
       'process.stdout.write(JSON.stringify(payload));',
@@ -295,15 +295,15 @@ describe('parseAskArgs', () => {
   });
 });
 
-describe('omc ask command', () => {
+describe('omac ask command', () => {
   it('accepts canonical advisor env and forwards prompt/task to advisor', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-canonical-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-canonical-'));
     try {
       const stubPath = writeAdvisorStub(wd);
       const result = runCli(
         ['ask', 'claude', '--print', 'hello world'],
         wd,
-        { OMC_ASK_ADVISOR_SCRIPT: stubPath },
+        { OMAC_ASK_ADVISOR_SCRIPT: stubPath },
       );
 
       expect(result.error).toBeUndefined();
@@ -323,7 +323,7 @@ describe('omc ask command', () => {
   });
 
   it('accepts OMX advisor env alias in Phase-1 and emits deprecation warning', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-alias-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-alias-'));
     try {
       const stubPath = writeAdvisorStub(wd);
       const result = runCli(
@@ -347,14 +347,14 @@ describe('omc ask command', () => {
   });
 
   it('allows codex ask inside a Claude Code session', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-cli-codex-nested-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-cli-codex-nested-'));
     try {
       const stubPath = writeAdvisorStub(wd);
       const result = runCli(
         ['ask', 'codex', '--prompt', 'cli nested codex prompt'],
         wd,
         {
-          OMC_ASK_ADVISOR_SCRIPT: stubPath,
+          OMAC_ASK_ADVISOR_SCRIPT: stubPath,
           CLAUDECODE: '1',
         },
         { preserveClaudeSessionEnv: true },
@@ -377,14 +377,14 @@ describe('omc ask command', () => {
   });
 
   it('allows gemini ask inside a Claude Code session', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-cli-gemini-nested-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-cli-gemini-nested-'));
     try {
       const stubPath = writeAdvisorStub(wd);
       const result = runCli(
         ['ask', 'gemini', '--prompt', 'cli nested gemini prompt'],
         wd,
         {
-          OMC_ASK_ADVISOR_SCRIPT: stubPath,
+          OMAC_ASK_ADVISOR_SCRIPT: stubPath,
           CLAUDECODE: '1',
         },
         { preserveClaudeSessionEnv: true },
@@ -405,7 +405,7 @@ describe('omc ask command', () => {
   });
 
   it('loads --agent-prompt role from resolved prompts dir and prepends role content', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-agent-prompt-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-agent-prompt-'));
     try {
       const stubPath = writeAdvisorStub(wd);
       mkdirSync(join(wd, '.omx'), { recursive: true });
@@ -416,7 +416,7 @@ describe('omc ask command', () => {
       const result = runCli(
         ['ask', 'claude', '--agent-prompt=executor', '--prompt', 'ship feature'],
         wd,
-        { OMC_ASK_ADVISOR_SCRIPT: stubPath },
+        { OMAC_ASK_ADVISOR_SCRIPT: stubPath },
       );
 
       expect(result.error).toBeUndefined();
@@ -433,8 +433,8 @@ describe('omc ask command', () => {
 });
 
 describe('run-provider-advisor script contract', () => {
-  it('writes artifact to .omc/artifacts/ask/{provider}-{slug}-{timestamp}.md', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-artifact-'));
+  it('writes artifact to .omac/artifacts/ask/{provider}-{slug}-{timestamp}.md', () => {
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-artifact-'));
     try {
       const binDir = writeFakeProviderBinary(wd, 'claude');
       const result = runAdvisorScript(
@@ -447,7 +447,7 @@ describe('run-provider-advisor script contract', () => {
       expect(result.status).toBe(0);
 
       const artifactPath = result.stdout.trim();
-      expect(artifactPath).toContain(join('.omc', 'artifacts', 'ask', 'claude-artifact-path-contract-'));
+      expect(artifactPath).toContain(join('.omac', 'artifacts', 'ask', 'claude-artifact-path-contract-'));
       expect(existsSync(artifactPath)).toBe(true);
 
       const artifact = readFileSync(artifactPath, 'utf8');
@@ -458,7 +458,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('accepts OMX original-task alias in Phase-1 with deprecation warning', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-original-alias-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-original-alias-'));
     try {
       const binDir = writeFakeProviderBinary(wd, 'gemini');
       const result = runAdvisorScript(
@@ -489,7 +489,7 @@ describe('run-provider-advisor script contract', () => {
     ['gemini', ['gemini', '--prompt', 'nested gemini prompt']],
     ['grok', ['grok', '--prompt', 'nested grok prompt']],
   ] as const)('strips Claude session env vars for %s advisor spawns', (provider, args) => {
-    const wd = mkdtempSync(join(tmpdir(), `omc-ask-${provider}-advisor-env-`));
+    const wd = mkdtempSync(join(tmpdir(), `omac-ask-${provider}-advisor-env-`));
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
       const preludePath = writeSpawnSyncCapturePrelude(wd);
@@ -537,7 +537,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('launches grok as `grok -p <prompt> --always-approve` and never pipes stdin', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-grok-args-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-grok-args-'));
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
       const preludePath = writeSpawnSyncCapturePrelude(wd);
@@ -572,7 +572,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('sanitizes Rust env vars for codex so artifacts do not capture Rust stderr logs', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-codex-rust-env-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-codex-rust-env-'));
     try {
       const binDir = writeFakeCodexBinary(wd);
       const result = runAdvisorScript(
@@ -600,7 +600,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('pipes the Windows codex prompt over stdin to avoid shell arg splitting', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-codex-win32-shell-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-codex-win32-shell-'));
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
       const preludePath = writeSpawnSyncCapturePrelude(wd);
@@ -637,7 +637,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('pipes the Windows gemini prompt over stdin to avoid --prompt conflicts and AttachConsole failures', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-gemini-win32-stdin-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-gemini-win32-stdin-'));
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
       const preludePath = writeSpawnSyncCapturePrelude(wd);
@@ -674,7 +674,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('pipes multiline codex prompts over stdin on non-Windows shells', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-codex-multiline-stdin-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-codex-multiline-stdin-'));
     const multilinePrompt = 'line one\nline two\nline three';
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
@@ -707,7 +707,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('pipes long gemini prompts over stdin on non-Windows shells', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-gemini-long-stdin-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-gemini-long-stdin-'));
     const longPrompt = `prefix ${'x'.repeat(520)}`;
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
@@ -740,7 +740,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('pipes multiline claude prompts over stdin so the prompt is never a raw argv value (#3221)', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-claude-multiline-stdin-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-claude-multiline-stdin-'));
     const multilinePrompt = 'line one\nline two\nline three';
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
@@ -773,7 +773,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('pipes frontmatter claude prompts over stdin so a leading dash is not parsed as a CLI option (#3221)', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-claude-frontmatter-stdin-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-claude-frontmatter-stdin-'));
     const frontmatterPrompt = '---\ntitle: Plan\n---\nDo the work';
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
@@ -806,7 +806,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('pipes a short claude prompt that begins with a dash over stdin instead of as argv (#3221)', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-claude-leading-dash-stdin-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-claude-leading-dash-stdin-'));
     const dashPrompt = '--help me design the API';
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
@@ -839,7 +839,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('keeps a short single-line claude prompt as a `-p <prompt>` argv without piping stdin', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-claude-short-argv-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-claude-short-argv-'));
     const shortPrompt = 'review this change';
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
@@ -873,7 +873,7 @@ describe('run-provider-advisor script contract', () => {
   });
 
   it('shows install guidance when a Windows codex binary is missing under shell:true', () => {
-    const wd = mkdtempSync(join(tmpdir(), 'omc-ask-codex-win32-missing-'));
+    const wd = mkdtempSync(join(tmpdir(), 'omac-ask-codex-win32-missing-'));
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
       const preludePath = writeSpawnSyncCapturePrelude(wd);
@@ -919,7 +919,7 @@ describe('run-provider-advisor script contract', () => {
     ['gemini', ['gemini', '--prompt', 'short prompt']],
     ['claude', ['claude', '--prompt', 'short prompt']],
   ] as const)('closes stdin for %s on non-Windows to prevent hang in piped environments', (provider, args) => {
-    const wd = mkdtempSync(join(tmpdir(), `omc-ask-${provider}-stdin-close-`));
+    const wd = mkdtempSync(join(tmpdir(), `omac-ask-${provider}-stdin-close-`));
     try {
       const capturePath = join(wd, 'spawn-sync-calls.json');
       const preludePath = writeSpawnSyncCapturePreludeNative(wd);
@@ -956,9 +956,9 @@ describe('run-provider-advisor script contract', () => {
 describe('resolveAskAdvisorScriptPath', () => {
   it('resolves canonical env and supports package-root relative paths', () => {
     const packageRoot = '/tmp/pkg-root';
-    expect(resolveAskAdvisorScriptPath(packageRoot, { OMC_ASK_ADVISOR_SCRIPT: 'scripts/custom.js' } as NodeJS.ProcessEnv))
+    expect(resolveAskAdvisorScriptPath(packageRoot, { OMAC_ASK_ADVISOR_SCRIPT: 'scripts/custom.js' } as NodeJS.ProcessEnv))
       .toBe('/tmp/pkg-root/scripts/custom.js');
-    expect(resolveAskAdvisorScriptPath(packageRoot, { OMC_ASK_ADVISOR_SCRIPT: '/opt/custom.js' } as NodeJS.ProcessEnv))
+    expect(resolveAskAdvisorScriptPath(packageRoot, { OMAC_ASK_ADVISOR_SCRIPT: '/opt/custom.js' } as NodeJS.ProcessEnv))
       .toBe('/opt/custom.js');
   });
 });

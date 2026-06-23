@@ -1,9 +1,9 @@
-# Baseline — oh-my-claudecode's deployment plumbing
+# Baseline — oh-my-agent-connector's deployment plumbing
 
-Measured from `Yeachan-Heo/oh-my-claudecode` @ v4.14.6 (deee3a4), 2026-06-10.
+Measured from `Yeachan-Heo/oh-my-agent-connector` @ v4.14.6 (deee3a4), 2026-06-10.
 
 **Purpose (the owner's actual question): apply agent-connector to the EXISTING
-OMC and measure the efficiency gain** — exactly the context-mode playbook
+OMAC and measure the efficiency gain** — exactly the context-mode playbook
 (20,322 LOC → 76, −99.6%), now on a ★36k real-world harness.
 
 ## Replacement target (deployment plumbing)
@@ -34,7 +34,7 @@ PostToolUseFailure, statusline HUD).
 ## Metrics to produce
 
 1. plumbing LOC replaced vs kept (claude-code parity)
-2. surface mapping coverage: which of OMC's 12 hook events map onto
+2. surface mapping coverage: which of OMAC's 12 hook events map onto
    agent-connector's 8 normalized events; residue enumerated
 3. platforms gained beyond claude-code for the mapped surfaces
 4. files-to-touch to add a platform: N → 0

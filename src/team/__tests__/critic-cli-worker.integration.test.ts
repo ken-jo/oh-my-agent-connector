@@ -28,10 +28,10 @@ const SHOULD_RUN = codexAvailable();
 
 describe.skipIf(!SHOULD_RUN)('critic CLI worker integration (AC-7)', () => {
   it('verdict.json from codex critic worker drives task to completed', async () => {
-    const cwd = mkdtempSync(join(tmpdir(), 'omc-critic-integration-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'omac-critic-integration-'));
     try {
       const teamName = 'critic-int';
-      const teamRoot = join(cwd, '.omc', 'state', 'team', teamName);
+      const teamRoot = join(cwd, '.omac', 'state', 'team', teamName);
       mkdirSync(join(teamRoot, 'tasks'), { recursive: true });
       mkdirSync(join(teamRoot, 'workers', 'worker-critic'), { recursive: true });
 

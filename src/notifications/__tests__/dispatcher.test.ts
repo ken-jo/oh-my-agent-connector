@@ -269,12 +269,12 @@ describe("sendDiscord", () => {
     const config: DiscordNotificationConfig = {
       enabled: true,
       webhookUrl: "https://discord.com/api/webhooks/123/abc",
-      username: "OMC Bot",
+      username: "OMAC Bot",
     };
     await sendDiscord(config, basePayload);
     const call = vi.mocked(fetch).mock.calls[0];
     const body = JSON.parse(call[1]!.body as string);
-    expect(body.username).toBe("OMC Bot");
+    expect(body.username).toBe("OMAC Bot");
   });
 
   it("returns error on HTTP failure", async () => {
@@ -756,13 +756,13 @@ describe("sendSlack", () => {
       enabled: true,
       webhookUrl: "https://hooks.slack.com/services/T00/B00/xxx",
       channel: "#alerts",
-      username: "OMC",
+      username: "OMAC",
     };
     await sendSlack(config, basePayload);
     const call = vi.mocked(fetch).mock.calls[0];
     const body = JSON.parse(call[1]!.body as string);
     expect(body.channel).toBe("#alerts");
-    expect(body.username).toBe("OMC");
+    expect(body.username).toBe("OMAC");
   });
 
   it("prepends user mention to message text", async () => {
@@ -998,12 +998,12 @@ describe("sendSlack input sanitization", () => {
     const config: SlackNotificationConfig = {
       enabled: true,
       webhookUrl: "https://hooks.slack.com/services/T00/B00/xxx",
-      username: "OMC Bot",
+      username: "OMAC Bot",
     };
     await sendSlack(config, basePayload);
     const call = vi.mocked(fetch).mock.calls[0];
     const body = JSON.parse(call[1]!.body as string);
-    expect(body.username).toBe("OMC Bot");
+    expect(body.username).toBe("OMAC Bot");
   });
 
   it("drops invalid mention and sends text without prefix", async () => {
@@ -1485,7 +1485,7 @@ describe("dispatcher mention separation", () => {
       "utf-8",
     );
     // Dispatcher should not read mention env vars; mention resolution is in config layer.
-    expect(dispatcherSource).not.toContain("OMC_DISCORD_MENTION");
+    expect(dispatcherSource).not.toContain("OMAC_DISCORD_MENTION");
   });
 
   it("sendDiscordBot uses config.mention directly without env lookup", async () => {
@@ -1494,7 +1494,7 @@ describe("dispatcher mention separation", () => {
       vi.fn().mockResolvedValue({ ok: true, status: 200 }),
     );
     // Set env var that should NOT be read by dispatcher
-    vi.stubEnv("OMC_DISCORD_MENTION", "<@99999999999999999>");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "<@99999999999999999>");
 
     const config: DiscordBotNotificationConfig = {
       enabled: true,
@@ -1520,7 +1520,7 @@ describe("dispatcher mention separation", () => {
       "fetch",
       vi.fn().mockResolvedValue({ ok: true, status: 200 }),
     );
-    vi.stubEnv("OMC_DISCORD_MENTION", "<@99999999999999999>");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "<@99999999999999999>");
 
     const config: DiscordNotificationConfig = {
       enabled: true,

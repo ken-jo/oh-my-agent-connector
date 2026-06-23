@@ -31,7 +31,7 @@ try {
 
 const {
   findWorkspaceRoot,
-  getOmcRoot,
+  getOmacRoot,
   getProjectIdentifier,
   resolveSessionStatePaths,
   clearWorktreeCache,
@@ -44,7 +44,7 @@ const { isProcessAlive } = processUtils;
 // --------------------------------------------------------------------------
 // Fixture setup
 // --------------------------------------------------------------------------
-const FIXTURE = join(tmpdir(), `omc-multirepo-smoke-${process.pid}`);
+const FIXTURE = join(tmpdir(), `omac-multirepo-smoke-${process.pid}`);
 const apiDir   = join(FIXTURE, 'api');
 const webDir   = join(FIXTURE, 'web');
 
@@ -83,7 +83,7 @@ mkdirSync(apiDir, { recursive: true });
 mkdirSync(webDir, { recursive: true });
 
 // Workspace marker with id at root (no git init at root)
-writeFileSync(join(FIXTURE, '.omc-workspace'), JSON.stringify({ id: 'smoke-test' }));
+writeFileSync(join(FIXTURE, '.omac-workspace'), JSON.stringify({ id: 'smoke-test' }));
 
 // Real git repos in sub-dirs
 execSync('git init -q', { cwd: apiDir, stdio: 'pipe' });
@@ -93,9 +93,9 @@ execSync('git init -q', { cwd: webDir, stdio: 'pipe' });
 clearWorktreeCache();
 
 // --------------------------------------------------------------------------
-// Step 1 — findWorkspaceRoot / getOmcRoot / getProjectIdentifier from api/
+// Step 1 — findWorkspaceRoot / getOmacRoot / getProjectIdentifier from api/
 // --------------------------------------------------------------------------
-console.log('\n=== STEP 1: API dir — workspace root + omc root + project identifier ===');
+console.log('\n=== STEP 1: API dir — workspace root + omac root + project identifier ===');
 
 const wsRoot = findWorkspaceRoot(apiDir);
 assert(
@@ -103,18 +103,18 @@ assert(
   'findWorkspaceRoot(apiDir) → fixture root',
   'findWorkspaceRoot(apiDir) → WRONG',
   `returned: ${wsRoot}  expected: ${FIXTURE}`,
-  'findWorkspaceRoot must walk up from sub-git-repo to .omc-workspace marker'
+  'findWorkspaceRoot must walk up from sub-git-repo to .omac-workspace marker'
 );
 
 clearWorktreeCache();
-const omcRoot = getOmcRoot(apiDir);
-const expectedOmcRoot = join(FIXTURE, '.omc');
+const omacRoot = getOmacRoot(apiDir);
+const expectedOmacRoot = join(FIXTURE, '.omac');
 assert(
-  resolve(omcRoot) === resolve(expectedOmcRoot),
-  'getOmcRoot(apiDir) → fixture/.omc',
-  'getOmcRoot(apiDir) → WRONG',
-  `returned: ${omcRoot}  expected: ${expectedOmcRoot}`,
-  'getOmcRoot must anchor to workspace marker dir, not api/ git root'
+  resolve(omacRoot) === resolve(expectedOmacRoot),
+  'getOmacRoot(apiDir) → fixture/.omac',
+  'getOmacRoot(apiDir) → WRONG',
+  `returned: ${omacRoot}  expected: ${expectedOmacRoot}`,
+  'getOmacRoot must anchor to workspace marker dir, not api/ git root'
 );
 
 clearWorktreeCache();
@@ -133,30 +133,30 @@ assert(
 // --------------------------------------------------------------------------
 clearWorktreeCache();
 const apiPaths = resolveSessionStatePaths('demo', 'session-api', apiDir);
-const expectedApiWrite = join(FIXTURE, '.omc', 'state', 'sessions', 'session-api', 'demo-state.json');
+const expectedApiWrite = join(FIXTURE, '.omac', 'state', 'sessions', 'session-api', 'demo-state.json');
 assert(
   resolve(apiPaths.effectiveWrite) === resolve(expectedApiWrite),
   `resolveSessionStatePaths api effectiveWrite → …sessions/session-api/demo-state.json`,
   'resolveSessionStatePaths api effectiveWrite → WRONG',
   `returned: ${apiPaths.effectiveWrite}\n        expected: ${expectedApiWrite}`,
-  'effectiveWrite must be session-scoped under shared .omc/'
+  'effectiveWrite must be session-scoped under shared .omac/'
 );
 
 // --------------------------------------------------------------------------
-// Step 2 — web/ paths same .omc, different session subdir
+// Step 2 — web/ paths same .omac, different session subdir
 // --------------------------------------------------------------------------
-console.log('\n=== STEP 2: WEB dir — same .omc, different session ===');
+console.log('\n=== STEP 2: WEB dir — same .omac, different session ===');
 
 clearWorktreeCache();
 const webPaths = resolveSessionStatePaths('demo', 'session-web', webDir);
-const expectedWebWrite = join(FIXTURE, '.omc', 'state', 'sessions', 'session-web', 'demo-state.json');
+const expectedWebWrite = join(FIXTURE, '.omac', 'state', 'sessions', 'session-web', 'demo-state.json');
 
 assert(
   resolve(webPaths.effectiveWrite) === resolve(expectedWebWrite),
   `resolveSessionStatePaths web effectiveWrite → …sessions/session-web/demo-state.json`,
   'resolveSessionStatePaths web effectiveWrite → WRONG',
   `returned: ${webPaths.effectiveWrite}\n        expected: ${expectedWebWrite}`,
-  'effectiveWrite must be under shared .omc/ with distinct session subdir'
+  'effectiveWrite must be under shared .omac/ with distinct session subdir'
 );
 
 assert(
@@ -186,10 +186,10 @@ console.log(`        web write path: ${webPaths.effectiveWrite}`);
 // --------------------------------------------------------------------------
 console.log('\n=== STEP 3: ultragoal create-goals (CLI, multi-plan) ===');
 
-// ultragoal/artifacts.ts uses getOmcRoot(cwd) — plans land in the shared
-// workspace-marker root when .omc-workspace is present (fixed in multi-repo
+// ultragoal/artifacts.ts uses getOmacRoot(cwd) — plans land in the shared
+// workspace-marker root when .omac-workspace is present (fixed in multi-repo
 // rollout). The CLI sets cwd = subprocess cwd; resolution flows through
-// getOmcRoot which honors OMC_STATE_DIR > .omc-workspace > git > cwd.
+// getOmacRoot which honors OMAC_STATE_DIR > .omac-workspace > git > cwd.
 
 function runUltragoal(cwd, sessionId, brief) {
   return spawnSync(
@@ -197,7 +197,7 @@ function runUltragoal(cwd, sessionId, brief) {
     [BRIDGE_CLI, 'ultragoal', 'create-goals', '--brief', brief, '--auto-plan-id', '--json'],
     {
       cwd,
-      env: { ...process.env, OMC_SESSION_ID: sessionId },
+      env: { ...process.env, OMAC_SESSION_ID: sessionId },
       encoding: 'utf-8',
       timeout: 30000,
     }
@@ -240,10 +240,10 @@ if (webResult.status === 0) {
   );
 }
 
-// Actual write locations: <subrepo>/.omc/ultragoal/plans/<planId>/
-const apiPlansDir = join(apiDir, '.omc', 'ultragoal', 'plans');
-const webPlansDir = join(webDir, '.omc', 'ultragoal', 'plans');
-const sharedPlansDir = join(FIXTURE, '.omc', 'ultragoal', 'plans');
+// Actual write locations: <subrepo>/.omac/ultragoal/plans/<planId>/
+const apiPlansDir = join(apiDir, '.omac', 'ultragoal', 'plans');
+const webPlansDir = join(webDir, '.omac', 'ultragoal', 'plans');
+const sharedPlansDir = join(FIXTURE, '.omac', 'ultragoal', 'plans');
 
 const apiPlanDirs = existsSync(apiPlansDir) ? readdirSync(apiPlansDir, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name) : [];
 const webPlanDirs = existsSync(webPlansDir) ? readdirSync(webPlansDir, { withFileTypes: true }).filter(e => e.isDirectory()).map(e => e.name) : [];
@@ -256,13 +256,13 @@ console.log(`        web plan IDs:     ${webPlanDirs.join(', ') || '(none)'}`);
 console.log(`        shared plans dir: ${sharedPlansDir}`);
 console.log(`        shared plan IDs:  ${sharedPlanDirs.join(', ') || '(none)'}`);
 
-// After multi-repo Wave A: ultragoal plans now land in the shared workspace .omc/
-// because artifacts.ts was updated to use getOmcRoot()/workspace-marker resolution.
-// Plans from BOTH subrepos go to the shared FIXTURE/.omc/ultragoal/plans/.
+// After multi-repo Wave A: ultragoal plans now land in the shared workspace .omac/
+// because artifacts.ts was updated to use getOmacRoot()/workspace-marker resolution.
+// Plans from BOTH subrepos go to the shared FIXTURE/.omac/ultragoal/plans/.
 const totalPlans = apiPlanDirs.length + webPlanDirs.length + sharedPlanDirs.length;
 if (sharedPlanDirs.length >= 2) {
   pass(
-    `ultragoal plans land in shared workspace .omc/ (${sharedPlanDirs.length} plans)`,
+    `ultragoal plans land in shared workspace .omac/ (${sharedPlanDirs.length} plans)`,
     `shared: ${sharedPlanDirs.join(', ')}`
   );
 } else if (apiPlanDirs.length >= 1 && webPlanDirs.length >= 1) {
@@ -298,7 +298,7 @@ if (apiPlanId && webPlanId) {
 console.log('\n=== STEP 4: PID liveness — dead PID 999999 ===');
 
 const fakeSid = 'fake-sid-dead-pid';
-const fakeStateDir = join(FIXTURE, '.omc', 'state', 'sessions', fakeSid);
+const fakeStateDir = join(FIXTURE, '.omac', 'state', 'sessions', fakeSid);
 mkdirSync(fakeStateDir, { recursive: true });
 const fakeStatePath = join(fakeStateDir, 'ultrawork-state.json');
 writeFileSync(fakeStatePath, JSON.stringify({ active: true, owner_pid: 999999 }));
@@ -325,8 +325,8 @@ assert(
 // --------------------------------------------------------------------------
 // Step 5 — Session subdir contents listing
 // --------------------------------------------------------------------------
-console.log('\n=== STEP 5: Session subdir contents (shared .omc/) ===');
-const sessionsDir = join(FIXTURE, '.omc', 'state', 'sessions');
+console.log('\n=== STEP 5: Session subdir contents (shared .omac/) ===');
+const sessionsDir = join(FIXTURE, '.omac', 'state', 'sessions');
 if (existsSync(sessionsDir)) {
   const sessionDirs = readdirSync(sessionsDir, { withFileTypes: true })
     .filter(e => e.isDirectory())
@@ -334,7 +334,7 @@ if (existsSync(sessionsDir)) {
       const files = readdirSync(join(sessionsDir, e.name)).join(', ');
       return `  ${e.name}/  →  ${files || '(empty)'}`;
     });
-  console.log('  Sessions in shared fixture .omc/:');
+  console.log('  Sessions in shared fixture .omac/:');
   sessionDirs.forEach(s => console.log(s));
 } else {
   console.log('  sessions dir not found (steps 1-2 must have failed)');
@@ -343,60 +343,60 @@ if (existsSync(sessionsDir)) {
 // --------------------------------------------------------------------------
 // Step 6 — Windows backslash path (platform-conditional)
 // --------------------------------------------------------------------------
-console.log('\n=== STEP 6: Windows backslash path with OMC_STATE_DIR ===');
+console.log('\n=== STEP 6: Windows backslash path with OMAC_STATE_DIR ===');
 
 if (process.platform === 'win32') {
   const winStateDir = join(FIXTURE, 'win-state');
   mkdirSync(winStateDir, { recursive: true });
-  const origStateDirEnv = process.env.OMC_STATE_DIR;
-  process.env.OMC_STATE_DIR = winStateDir;
+  const origStateDirEnv = process.env.OMAC_STATE_DIR;
+  process.env.OMAC_STATE_DIR = winStateDir;
   clearWorktreeCache();
 
   const winPaths = resolveSessionStatePaths('test', 'win-session', apiDir);
   const writePath = winPaths.effectiveWrite;
 
-  // Assert: no resolved write path contains \.omc\ OUTSIDE the configured OMC_STATE_DIR root
-  const containsOmcOutsideRoot =
-    writePath.includes('\\.omc\\') &&
+  // Assert: no resolved write path contains \.omac\ OUTSIDE the configured OMAC_STATE_DIR root
+  const containsOmacOutsideRoot =
+    writePath.includes('\\.omac\\') &&
     !writePath.startsWith(winStateDir);
 
   assert(
-    !containsOmcOutsideRoot,
-    'Windows: resolved write path does not contain \\.omc\\ outside configured OMC_STATE_DIR',
-    'Windows: resolved write path contains \\.omc\\ OUTSIDE OMC_STATE_DIR (path escape bug)',
+    !containsOmacOutsideRoot,
+    'Windows: resolved write path does not contain \\.omac\\ outside configured OMAC_STATE_DIR',
+    'Windows: resolved write path contains \\.omac\\ OUTSIDE OMAC_STATE_DIR (path escape bug)',
     `writePath=${writePath}  stateDir=${winStateDir}`,
-    'When OMC_STATE_DIR is set, no path should escape to a raw /.omc/ location'
+    'When OMAC_STATE_DIR is set, no path should escape to a raw /.omac/ location'
   );
   console.log(`        write path: ${writePath}`);
 
   // Restore
-  if (origStateDirEnv === undefined) delete process.env.OMC_STATE_DIR;
-  else process.env.OMC_STATE_DIR = origStateDirEnv;
+  if (origStateDirEnv === undefined) delete process.env.OMAC_STATE_DIR;
+  else process.env.OMAC_STATE_DIR = origStateDirEnv;
   clearWorktreeCache();
 } else {
   note('Step 6 skipped on non-win32 platform', `platform=${process.platform} — Windows backslash test only runs on win32`);
 }
 
 // --------------------------------------------------------------------------
-// Step 7 — Workspace-marker retrofit: pre-existing sibling .omc/state/
+// Step 7 — Workspace-marker retrofit: pre-existing sibling .omac/state/
 // --------------------------------------------------------------------------
 console.log('\n=== STEP 7: Workspace-marker retrofit sibling-scan warning ===');
 
-const retrofitFixture = join(tmpdir(), `omc-retrofit-smoke-${process.pid}`);
+const retrofitFixture = join(tmpdir(), `omac-retrofit-smoke-${process.pid}`);
 const retrofitApi = join(retrofitFixture, 'api');
 const retrofitWeb = join(retrofitFixture, 'web');
 mkdirSync(retrofitApi, { recursive: true });
 mkdirSync(retrofitWeb, { recursive: true });
 
-// Pre-create sibling .omc/state/ content BEFORE dropping workspace marker
-const legacyStateDir = join(retrofitApi, '.omc', 'state');
+// Pre-create sibling .omac/state/ content BEFORE dropping workspace marker
+const legacyStateDir = join(retrofitApi, '.omac', 'state');
 mkdirSync(legacyStateDir, { recursive: true });
 const legacyStateFile = join(legacyStateDir, 'ralph-state.json');
 const legacyContent = JSON.stringify({ active: true, mode: 'ralph', legacy: true });
 writeFileSync(legacyStateFile, legacyContent);
 
 // Drop workspace marker at fixture root
-writeFileSync(join(retrofitFixture, '.omc-workspace'), JSON.stringify({ id: 'retrofit-test' }));
+writeFileSync(join(retrofitFixture, '.omac-workspace'), JSON.stringify({ id: 'retrofit-test' }));
 execSync('git init -q', { cwd: retrofitApi, stdio: 'pipe' });
 
 // Capture stderr to detect warning
@@ -410,23 +410,23 @@ process.stderr.write = (chunk, ...args) => {
 clearWorktreeCache();
 // Clear in-memory + disk dedupe so the warning fires fresh in this test
 if (clearSiblingRetrofitWarnings) clearSiblingRetrofitWarnings();
-// Trigger via warnSiblingRetrofit directly (lifted off getOmcRoot hot path)
+// Trigger via warnSiblingRetrofit directly (lifted off getOmacRoot hot path)
 const retrofitAnchor = findWorkspaceRoot(retrofitApi);
 if (retrofitAnchor) warnSiblingRetrofit(retrofitAnchor);
 
 // Restore stderr
 process.stderr.write = origStderrWrite;
 
-// (i) Structured warning emitted listing sibling .omc/state dirs
+// (i) Structured warning emitted listing sibling .omac/state dirs
 assert(
-  retrofitStderr.includes('[omc] workspace-retrofit warning'),
+  retrofitStderr.includes('[omac] workspace-retrofit warning'),
   'Retrofit warning emitted to stderr',
   'Retrofit warning NOT emitted to stderr',
   `stderr captured: ${retrofitStderr.slice(0, 200)}`,
-  'warnSiblingRetrofit must fire when sibling has pre-existing .omc/state/'
+  'warnSiblingRetrofit must fire when sibling has pre-existing .omac/state/'
 );
 
-// (ii) Pre-existing api/.omc/state/ralph-state.json not overwritten or deleted
+// (ii) Pre-existing api/.omac/state/ralph-state.json not overwritten or deleted
 assert(
   existsSync(legacyStateFile),
   'Pre-existing ralph-state.json preserved (not deleted)',
@@ -445,9 +445,9 @@ assert(
 
 // (iii) Warning includes copy-pasteable migration command
 assert(
-  retrofitStderr.includes('OMC_MIGRATE_LEGACY_STATE=1'),
-  'Retrofit warning includes OMC_MIGRATE_LEGACY_STATE=1 migration command',
-  'Retrofit warning missing OMC_MIGRATE_LEGACY_STATE=1 migration hint',
+  retrofitStderr.includes('OMAC_MIGRATE_LEGACY_STATE=1'),
+  'Retrofit warning includes OMAC_MIGRATE_LEGACY_STATE=1 migration command',
+  'Retrofit warning missing OMAC_MIGRATE_LEGACY_STATE=1 migration hint',
   `stderr: ${retrofitStderr.slice(0, 300)}`,
   'Warning must guide user to migration path'
 );
@@ -456,16 +456,16 @@ rmSync(retrofitFixture, { recursive: true, force: true });
 clearWorktreeCache();
 
 // --------------------------------------------------------------------------
-// Step 8 — Template drift simulation: AST-grep gate red on raw .omc pattern
+// Step 8 — Template drift simulation: AST-grep gate red on raw .omac pattern
 // --------------------------------------------------------------------------
 console.log('\n=== STEP 8: AST-grep gate — drift fixture triggers non-zero exit ===');
 
-const driftFixtureDir = join(tmpdir(), `omc-drift-gate-${process.pid}`);
+const driftFixtureDir = join(tmpdir(), `omac-drift-gate-${process.pid}`);
 mkdirSync(driftFixtureDir, { recursive: true });
 const driftFixtureFile = join(driftFixtureDir, 'drift-fixture.mjs');
 writeFileSync(
   driftFixtureFile,
-  `import {join} from 'path'; const dir = '/tmp'; const p = join(dir, '.omc', 'state', 'foo');\n`
+  `import {join} from 'path'; const dir = '/tmp'; const p = join(dir, '.omac', 'state', 'foo');\n`
 );
 
 const gateScript = join(__dirname, 'ci', 'check-multirepo-paths.mjs');
@@ -478,9 +478,9 @@ const gateResult = spawnSync(
 assert(
   gateResult.status !== 0,
   'AST-grep gate exits non-zero on drift fixture',
-  'AST-grep gate exits ZERO on drift fixture (failed to detect raw .omc pattern)',
+  'AST-grep gate exits ZERO on drift fixture (failed to detect raw .omac pattern)',
   `exit=${gateResult.status}\nstdout=${gateResult.stdout?.slice(0, 300)}\nstderr=${gateResult.stderr?.slice(0, 300)}`,
-  'Gate must exit non-zero when raw join(...,.omc,...) is found outside whitelist'
+  'Gate must exit non-zero when raw join(...,.omac,...) is found outside whitelist'
 );
 
 assert(
@@ -492,7 +492,7 @@ assert(
 );
 
 assert(
-  gateResult.stderr?.includes("join(dir, '.omc'") || gateResult.stderr?.includes('.omc'),
+  gateResult.stderr?.includes("join(dir, '.omac'") || gateResult.stderr?.includes('.omac'),
   'AST-grep gate output includes matched pattern text',
   'AST-grep gate output missing matched pattern text',
   `stderr: ${gateResult.stderr?.slice(0, 300)}`
@@ -516,7 +516,7 @@ console.log(`  Passed: ${passed}   Failed: ${failed}`);
 if (failed === 0) {
   console.log('\n  multi-repo workspace works END-TO-END');
   console.log('  All subsystems (ultragoal, ralph, ultrawork, autopilot, hooks,');
-  console.log('  state) anchor to .omc-workspace marker when present.\n');
+  console.log('  state) anchor to .omac-workspace marker when present.\n');
 } else {
   console.log('\n  FAILING CONTRACTS (priority order):');
   issues.forEach((issue, i) => {

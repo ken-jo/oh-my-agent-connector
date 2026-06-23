@@ -19,7 +19,7 @@ export interface AgentConfig {
 export interface PluginConfig {
   // Agent model overrides
   agents?: {
-    omc?: { model?: string };
+    omac?: { model?: string };
     explore?: { model?: string };
     analyst?: { model?: string };
     planner?: { model?: string };
@@ -85,10 +85,10 @@ export interface PluginConfig {
     /** Default tier when no rules match */
     defaultTier?: "LOW" | "MEDIUM" | "HIGH";
     /**
-     * Force all agents to inherit the parent model instead of using OMC model routing.
+     * Force all agents to inherit the parent model instead of using OMAC model routing.
      * When true, the `model` parameter is stripped from all Task/Agent calls so agents use
      * the user's Claude Code model setting. Overrides all per-agent model recommendations.
-     * Env: OMC_ROUTING_FORCE_INHERIT=true
+     * Env: OMAC_ROUTING_FORCE_INHERIT=true
      */
     forceInherit?: boolean;
     /** Enable automatic escalation on failure */
@@ -121,7 +121,7 @@ export interface PluginConfig {
      *   (useful on non-Anthropic backends without the nuclear forceInherit)
      * - `{ haiku: 'sonnet' }` — promote all haiku agents to sonnet tier
      *
-     * Env: OMC_MODEL_ALIAS_HAIKU, OMC_MODEL_ALIAS_SONNET, OMC_MODEL_ALIAS_OPUS
+     * Env: OMAC_MODEL_ALIAS_HAIKU, OMAC_MODEL_ALIAS_SONNET, OMAC_MODEL_ALIAS_OPUS
      */
     modelAliases?: Partial<Record<"haiku" | "sonnet" | "opus", ModelType>>;
     /** Keywords that force escalation to higher tier */
@@ -141,7 +141,7 @@ export interface PluginConfig {
 
   // Plan output configuration (issue #1636)
   planOutput?: {
-    /** Relative directory for generated plan artifacts. Default: .omc/plans */
+    /** Relative directory for generated plan artifacts. Default: .omac/plans */
     directory?: string;
     /** Filename template. Supported tokens: {{name}}, {{kind}}. Default: {{name}}.md */
     filenameTemplate?: string;
@@ -422,7 +422,7 @@ export type TeamRoleTier = 'HIGH' | 'MEDIUM' | 'LOW';
 
 /** Known agent names derived from `buildDefaultConfig().agents` keys in src/config/loader.ts. */
 export const KNOWN_AGENT_NAMES = [
-  'omc',
+  'omac',
   'explore',
   'analyst',
   'planner',

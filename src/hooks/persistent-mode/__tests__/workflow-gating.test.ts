@@ -25,13 +25,13 @@ function writeWorkflowLedger(
       session_id: sessionId,
       mode_state_path: `${skill}-state.json`,
       initialized_mode: skill,
-      initialized_state_path: join(tempDir, '.omc', 'state', 'skill-active-state.json'),
-      initialized_session_state_path: join(tempDir, '.omc', 'state', 'sessions', sessionId, 'skill-active-state.json'),
+      initialized_state_path: join(tempDir, '.omac', 'state', 'skill-active-state.json'),
+      initialized_session_state_path: join(tempDir, '.omac', 'state', 'sessions', sessionId, 'skill-active-state.json'),
     };
   }
   const payload = JSON.stringify({ version: 2, active_skills }, null, 2);
 
-  const rootDir = join(tempDir, '.omc', 'state');
+  const rootDir = join(tempDir, '.omac', 'state');
   mkdirSync(rootDir, { recursive: true });
   writeFileSync(join(rootDir, 'skill-active-state.json'), payload);
 
@@ -41,7 +41,7 @@ function writeWorkflowLedger(
 }
 
 function writeRalphState(tempDir: string, sessionId: string): void {
-  const stateDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+  const stateDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
   mkdirSync(stateDir, { recursive: true });
   writeFileSync(
     join(stateDir, 'ralph-state.json'),
@@ -65,7 +65,7 @@ function writeModeState(
   mode: 'autopilot' | 'ralph' | 'ralplan',
   state: Record<string, unknown>,
 ): void {
-  const stateDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+  const stateDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
   mkdirSync(stateDir, { recursive: true });
   writeFileSync(join(stateDir, `${mode}-state.json`), JSON.stringify(state, null, 2));
 }
@@ -75,7 +75,7 @@ function readSessionWorkflowLedger(tempDir: string, sessionId: string): {
 } {
   return JSON.parse(
     readFileSync(
-      join(tempDir, '.omc', 'state', 'sessions', sessionId, 'skill-active-state.json'),
+      join(tempDir, '.omac', 'state', 'sessions', sessionId, 'skill-active-state.json'),
       'utf-8',
     ),
   );
@@ -85,60 +85,60 @@ function readRootWorkflowLedger(tempDir: string): {
   active_skills: Record<string, { completed_at?: string | null }>;
 } {
   return JSON.parse(
-    readFileSync(join(tempDir, '.omc', 'state', 'skill-active-state.json'), 'utf-8'),
+    readFileSync(join(tempDir, '.omac', 'state', 'skill-active-state.json'), 'utf-8'),
   );
 }
 
 describe('workflow-gating: kill switches (spec i)', () => {
-  let savedDisableOmc: string | undefined;
+  let savedDisableOmac: string | undefined;
   let savedSkipHooks: string | undefined;
 
   beforeEach(() => {
-    savedDisableOmc = process.env.DISABLE_OMC;
-    savedSkipHooks = process.env.OMC_SKIP_HOOKS;
+    savedDisableOmac = process.env.DISABLE_OMAC;
+    savedSkipHooks = process.env.OMAC_SKIP_HOOKS;
   });
 
   afterEach(() => {
-    if (savedDisableOmc === undefined) {
-      delete process.env.DISABLE_OMC;
+    if (savedDisableOmac === undefined) {
+      delete process.env.DISABLE_OMAC;
     } else {
-      process.env.DISABLE_OMC = savedDisableOmc;
+      process.env.DISABLE_OMAC = savedDisableOmac;
     }
     if (savedSkipHooks === undefined) {
-      delete process.env.OMC_SKIP_HOOKS;
+      delete process.env.OMAC_SKIP_HOOKS;
     } else {
-      process.env.OMC_SKIP_HOOKS = savedSkipHooks;
+      process.env.OMAC_SKIP_HOOKS = savedSkipHooks;
     }
   });
 
-  it('DISABLE_OMC=1 bypasses all stop gating', async () => {
-    process.env.DISABLE_OMC = '1';
+  it('DISABLE_OMAC=1 bypasses all stop gating', async () => {
+    process.env.DISABLE_OMAC = '1';
     const result = await checkPersistentModes('kill-sw-1', undefined);
     expect(result.shouldBlock).toBe(false);
     expect(result.mode).toBe('none');
   });
 
-  it('DISABLE_OMC=true bypasses all stop gating', async () => {
-    process.env.DISABLE_OMC = 'true';
+  it('DISABLE_OMAC=true bypasses all stop gating', async () => {
+    process.env.DISABLE_OMAC = 'true';
     const result = await checkPersistentModes('kill-sw-2', undefined);
     expect(result.shouldBlock).toBe(false);
   });
 
-  it('OMC_SKIP_HOOKS=persistent-mode bypasses stop gating', async () => {
-    process.env.OMC_SKIP_HOOKS = 'persistent-mode';
+  it('OMAC_SKIP_HOOKS=persistent-mode bypasses stop gating', async () => {
+    process.env.OMAC_SKIP_HOOKS = 'persistent-mode';
     const result = await checkPersistentModes('kill-sw-3', undefined);
     expect(result.shouldBlock).toBe(false);
     expect(result.mode).toBe('none');
   });
 
-  it('OMC_SKIP_HOOKS=stop-continuation bypasses stop gating', async () => {
-    process.env.OMC_SKIP_HOOKS = 'stop-continuation';
+  it('OMAC_SKIP_HOOKS=stop-continuation bypasses stop gating', async () => {
+    process.env.OMAC_SKIP_HOOKS = 'stop-continuation';
     const result = await checkPersistentModes('kill-sw-4', undefined);
     expect(result.shouldBlock).toBe(false);
   });
 
-  it('OMC_SKIP_HOOKS with comma-separated list bypasses when persistent-mode is included', async () => {
-    process.env.OMC_SKIP_HOOKS = 'some-hook,persistent-mode,other-hook';
+  it('OMAC_SKIP_HOOKS with comma-separated list bypasses when persistent-mode is included', async () => {
+    process.env.OMAC_SKIP_HOOKS = 'some-hook,persistent-mode,other-hook';
     const result = await checkPersistentModes('kill-sw-5', undefined);
     expect(result.shouldBlock).toBe(false);
   });
@@ -172,7 +172,7 @@ describe('workflow-gating: tombstoned slot suppresses stale mode files (spec j)'
 
     try {
       // Write autopilot-state.json in session state dir
-      const stateDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+      const stateDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
       mkdirSync(stateDir, { recursive: true });
       writeFileSync(
         join(stateDir, 'autopilot-state.json'),
@@ -206,7 +206,7 @@ describe('workflow-gating: tombstoned slot suppresses stale mode files (spec j)'
     const tempDir = makeTempProject();
 
     try {
-      const stateDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+      const stateDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
       mkdirSync(stateDir, { recursive: true });
       writeFileSync(
         join(stateDir, 'ralplan-state.json'),
@@ -236,7 +236,7 @@ describe('workflow-gating: tombstoned slot suppresses stale mode files (spec j)'
     const tempDir = makeTempProject();
 
     try {
-      const stateDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+      const stateDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
       mkdirSync(stateDir, { recursive: true });
       writeFileSync(
         join(stateDir, 'ultrawork-state.json'),

@@ -59,10 +59,10 @@ describe('Background Process Guard (issue #302)', () => {
   };
 
   beforeEach(() => {
-    claudeConfigDir = mkdtempSync(join(tmpdir(), 'omc-bg-perms-'));
+    claudeConfigDir = mkdtempSync(join(tmpdir(), 'omac-bg-perms-'));
     process.env = { ...originalEnv, CLAUDE_CONFIG_DIR: claudeConfigDir };
-    delete process.env.DISABLE_OMC;
-    delete process.env.OMC_SKIP_HOOKS;
+    delete process.env.DISABLE_OMAC;
+    delete process.env.OMAC_SKIP_HOOKS;
     resetSkipHooksCache();
     vi.clearAllMocks();
     mockedGetRunningTaskCount.mockReturnValue(0);
@@ -507,7 +507,7 @@ describe('Background Process Guard (issue #302)', () => {
     });
 
     it('should block repo-scoped inspection Bash commands from non-git temp dirs', async () => {
-      const nonGitDir = mkdtempSync(join(tmpdir(), 'omc-bg-readonly-non-git-'));
+      const nonGitDir = mkdtempSync(join(tmpdir(), 'omac-bg-readonly-non-git-'));
       mkdirSync(join(nonGitDir, 'src'), { recursive: true });
       writeFileSync(join(nonGitDir, 'src', 'sample.ts'), 'export const value = 1;\n');
 
@@ -556,7 +556,7 @@ describe('Background Process Guard (issue #302)', () => {
     });
 
     it('should block single-test Bash commands from non-git temp dirs', async () => {
-      const nonGitDir = mkdtempSync(join(tmpdir(), 'omc-bg-testcmd-non-git-'));
+      const nonGitDir = mkdtempSync(join(tmpdir(), 'omac-bg-testcmd-non-git-'));
       mkdirSync(join(nonGitDir, 'src', '__tests__'), { recursive: true });
       writeFileSync(join(nonGitDir, 'src', '__tests__', 'sample.test.ts'), 'test("x", () => {});\n');
 

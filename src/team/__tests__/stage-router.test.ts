@@ -9,9 +9,9 @@ type TeamRoleRoutingConfig = NonNullable<NonNullable<PluginConfig['team']>['role
 const EMPTY: PluginConfig = {};
 
 const ENV_KEYS = [
-  'OMC_MODEL_HIGH',
-  'OMC_MODEL_MEDIUM',
-  'OMC_MODEL_LOW',
+  'OMAC_MODEL_HIGH',
+  'OMAC_MODEL_MEDIUM',
+  'OMAC_MODEL_LOW',
   'CLAUDE_CODE_BEDROCK_OPUS_MODEL',
   'CLAUDE_CODE_BEDROCK_SONNET_MODEL',
   'CLAUDE_CODE_BEDROCK_HAIKU_MODEL',
@@ -40,7 +40,7 @@ afterAll(() => {
 });
 
 const EXPECTED_DEFAULTS: Record<CanonicalTeamRole, { model: string; agent: string }> = {
-  orchestrator: { model: CLAUDE_FAMILY_DEFAULTS.OPUS, agent: 'omc' },
+  orchestrator: { model: CLAUDE_FAMILY_DEFAULTS.OPUS, agent: 'omac' },
   planner: { model: CLAUDE_FAMILY_DEFAULTS.OPUS, agent: 'planner' },
   analyst: { model: CLAUDE_FAMILY_DEFAULTS.OPUS, agent: 'analyst' },
   architect: { model: CLAUDE_FAMILY_DEFAULTS.OPUS, agent: 'architect' },
@@ -177,7 +177,7 @@ describe('stage-router resolveRoleAssignment', () => {
       };
       const out = resolveRoleAssignment('orchestrator', cfg);
       expect(out.provider).toBe('claude');
-      expect(out.agent).toBe('omc');
+      expect(out.agent).toBe('omac');
     });
   });
 

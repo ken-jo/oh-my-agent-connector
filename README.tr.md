@@ -1,19 +1,19 @@
 [English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Tiếng Việt](README.vi.md) | [Português](README.pt.md) | [Русский](README.ru.md) | Türkçe | [Deutsch](README.de.md) | [Français](README.fr.md) | [Italiano](README.it.md)
 
-# oh-my-claudecode
+# oh-my-agent-connector
 
-[![npm version](https://img.shields.io/npm/v/oh-my-claude-sisyphus?color=cb3837)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
-[![npm downloads](https://img.shields.io/npm/dm/oh-my-claude-sisyphus?color=blue)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
-[![GitHub stars](https://img.shields.io/github/stars/Yeachan-Heo/oh-my-claudecode?style=flat&color=yellow)](https://github.com/Yeachan-Heo/oh-my-claudecode/stargazers)
+[![npm version](https://img.shields.io/npm/v/oh-my-agent-connector?color=cb3837)](https://www.npmjs.com/package/oh-my-agent-connector)
+[![npm downloads](https://img.shields.io/npm/dm/oh-my-agent-connector?color=blue)](https://www.npmjs.com/package/oh-my-agent-connector)
+[![GitHub stars](https://img.shields.io/github/stars/Yeachan-Heo/oh-my-agent-connector?style=flat&color=yellow)](https://github.com/Yeachan-Heo/oh-my-agent-connector/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/Yeachan-Heo)
 [![Discord](https://img.shields.io/discord/1452487457085063218?color=5865F2&logo=discord&logoColor=white&label=Discord)](https://discord.gg/sj4exxQ9v)
 
 **Claude Code için çoklu ajan orkestrasyonu. Sıfır öğrenme eğrisi.**
 
-_Claude Code'u öğrenmeyin. Sadece OMC kullanın._
+_Claude Code'u öğrenmeyin. Sadece OMAC kullanın._
 
-[Başlangıç](#hızlı-başlangıç) • [Dokümantasyon](https://yeachan-heo.github.io/oh-my-claudecode-website) • [Geçiş Rehberi](docs/MIGRATION.md) • [Discord](https://discord.gg/sj4exxQ9v)
+[Başlangıç](#hızlı-başlangıç) • [Dokümantasyon](https://yeachan-heo.github.io/oh-my-agent-connector-website) • [Geçiş Rehberi](docs/MIGRATION.md) • [Discord](https://discord.gg/sj4exxQ9v)
 
 ---
 
@@ -22,17 +22,17 @@ _Claude Code'u öğrenmeyin. Sadece OMC kullanın._
 **Adım 1: Kurulum**
 
 ```bash
-/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
-/plugin install oh-my-claudecode
+/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-agent-connector
+/plugin install oh-my-agent-connector
 ```
 
 **Adım 2: Yapılandırma**
 
 ```bash
-/oh-my-claudecode:omc-setup
+/oh-my-agent-connector:omac-setup
 ```
 
-OMC'yi `omc --plugin-dir <path>` veya `claude --plugin-dir <path>` aracılığıyla çalıştırıyorsanız, `omc setup`'a `--plugin-dir-mode` ekleyin (veya `OMC_PLUGIN_ROOT`'u önceden dışa aktarın) böylece plugin zaten çalışma zamanında sağlayan beceri/ajanları duplike etmez. Tam karar matrisi ve mevcut tüm bayraklar için [REFERENCE.md'deki Plugin directory flags bölümüne](./docs/REFERENCE.md#plugin-directory-flags) bakın.
+OMAC'yi `omac --plugin-dir <path>` veya `claude --plugin-dir <path>` aracılığıyla çalıştırıyorsanız, `omac setup`'a `--plugin-dir-mode` ekleyin (veya `OMAC_PLUGIN_ROOT`'u önceden dışa aktarın) böylece plugin zaten çalışma zamanında sağlayan beceri/ajanları duplike etmez. Tam karar matrisi ve mevcut tüm bayraklar için [REFERENCE.md'deki Plugin directory flags bölümüne](./docs/REFERENCE.md#plugin-directory-flags) bakın.
 
 <!-- TODO(i18n): verify translation -->
 
@@ -46,10 +46,10 @@ Bu kadar. Geri kalan her şey otomatik.
 
 ## Team Mode (Önerilen)
 
-**v4.1.7** sürümünden itibaren, **Team** OMC'deki kanonik orkestrasyon yüzeyidir. **swarm** ve **ultrapilot** gibi eski giriş noktaları hâlâ desteklenmektedir, ancak artık **arka planda Team'e yönlendirilmektedir**.
+**v4.1.7** sürümünden itibaren, **Team** OMAC'deki kanonik orkestrasyon yüzeyidir. **swarm** ve **ultrapilot** gibi eski giriş noktaları hâlâ desteklenmektedir, ancak artık **arka planda Team'e yönlendirilmektedir**.
 
 ```bash
-/oh-my-claudecode:team 3:executor "fix all TypeScript errors"
+/oh-my-agent-connector:team 3:executor "fix all TypeScript errors"
 ```
 
 Team aşamalı bir pipeline olarak çalışır:
@@ -66,35 +66,35 @@ Claude Code native teams'i `~/.claude/settings.json` dosyasında etkinleştirin:
 }
 ```
 
-> Teams devre dışıysa, OMC sizi uyaracak ve mümkün olduğunda Team olmadan çalışmaya geçecektir.
+> Teams devre dışıysa, OMAC sizi uyaracak ve mümkün olduğunda Team olmadan çalışmaya geçecektir.
 
-> **Not: Paket adlandırması** — Proje **oh-my-claudecode** markasını kullanır (repo, plugin, komutlar), ancak npm paketi [`oh-my-claude-sisyphus`](https://www.npmjs.com/package/oh-my-claude-sisyphus) olarak yayınlanmaktadır. CLI araçlarını npm/bun ile kuruyorsanız, `npm install -g oh-my-claude-sisyphus` kullanın.
+> **Not: Paket adlandırması** — Proje **oh-my-agent-connector** markasını kullanır (repo, plugin, komutlar), ancak npm paketi [`oh-my-agent-connector`](https://www.npmjs.com/package/oh-my-agent-connector) olarak yayınlanmaktadır. CLI araçlarını npm/bun ile kuruyorsanız, `npm install -g oh-my-agent-connector` kullanın.
 
 ### Güncelleme
 
 ```bash
 # 1. Plugin'i güncelleyin
-/plugin install oh-my-claudecode
+/plugin install oh-my-agent-connector
 
 # 2. Yapılandırmayı yenilemek için setup'ı tekrar çalıştırın
-/oh-my-claudecode:omc-setup
+/oh-my-agent-connector:omac-setup
 ```
 
 Güncellemeden sonra sorun yaşarsanız, eski plugin önbelleğini temizleyin:
 
 ```bash
-/oh-my-claudecode:omc-doctor
+/oh-my-agent-connector:omac-doctor
 ```
 
 <h1 align="center">Claude'unuz süper güçlere kavuştu.</h1>
 
 <p align="center">
-  <img src="assets/omc-character.jpg" alt="oh-my-claudecode" width="400" />
+  <img src="assets/omac-character.jpg" alt="oh-my-agent-connector" width="400" />
 </p>
 
 ---
 
-## Neden oh-my-claudecode?
+## Neden oh-my-agent-connector?
 
 - **Sıfır yapılandırma** — Akıllı varsayılanlarla kutudan çıktığı gibi çalışır
 - **Team-first orkestrasyon** — Team, kanonik çoklu ajan yüzeyidir (swarm/ultrapilot uyumluluk cephesidir)
@@ -111,7 +111,7 @@ Güncellemeden sonra sorun yaşarsanız, eski plugin önbelleğini temizleyin:
 
 ### Orkestrasyon Modları
 
-Farklı kullanım senaryoları için birden fazla strateji — Team destekli orkestrasyondan token-verimli yeniden düzenlemeye. [Daha fazla bilgi →](https://yeachan-heo.github.io/oh-my-claudecode-website/docs/#execution-modes)
+Farklı kullanım senaryoları için birden fazla strateji — Team destekli orkestrasyondan token-verimli yeniden düzenlemeye. [Daha fazla bilgi →](https://yeachan-heo.github.io/oh-my-agent-connector-website/docs/#execution-modes)
 
 | Mod                           | Nedir                                                                                  | Kullanım Alanı                                                    |
 | ----------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -133,7 +133,7 @@ Farklı kullanım senaryoları için birden fazla strateji — Team destekli ork
 
 - **Sihirli anahtar kelimeler** — Açık kontrol için `ralph`, `ulw`, `eco`, `plan`
 - **HUD statusline** — Durum çubuğunuzda gerçek zamanlı orkestrasyon metrikleri
-  - Claude Code'u doğrudan `claude --plugin-dir <path>` ile başlatıyorsanız (`omc` shim'i atlayarak), shell'de `OMC_PLUGIN_ROOT=<path>` dışa aktarın, böylece HUD paketi plugin yükleyici ile aynı checkout'a çözülür. Ayrıntılar için [REFERENCE.md'deki Plugin directory flags bölümüne](./docs/REFERENCE.md#plugin-directory-flags) bakın.
+  - Claude Code'u doğrudan `claude --plugin-dir <path>` ile başlatıyorsanız (`omac` shim'i atlayarak), shell'de `OMAC_PLUGIN_ROOT=<path>` dışa aktarın, böylece HUD paketi plugin yükleyici ile aynı checkout'a çözülür. Ayrıntılar için [REFERENCE.md'deki Plugin directory flags bölümüne](./docs/REFERENCE.md#plugin-directory-flags) bakın.
 
   <!-- TODO(i18n): verify translation -->
 - **Beceri öğrenimi** — Oturumlarınızdan yeniden kullanılabilir kalıplar çıkarın
@@ -141,22 +141,22 @@ Farklı kullanım senaryoları için birden fazla strateji — Team destekli ork
 
 ### Katkıda Bulunma
 
-OMC'ye katkıda bulunmak ister misiniz? Fork etme, yerel checkout kurma, etkin eklenti olarak bağlama, testleri çalıştırma ve PR gönderme dahil olmak üzere tam geliştirici kılavuzu için [CONTRIBUTING.md](./CONTRIBUTING.md)'ye bakın.
+OMAC'ye katkıda bulunmak ister misiniz? Fork etme, yerel checkout kurma, etkin eklenti olarak bağlama, testleri çalıştırma ve PR gönderme dahil olmak üzere tam geliştirici kılavuzu için [CONTRIBUTING.md](./CONTRIBUTING.md)'ye bakın.
 
 <!-- TODO(i18n): verify translation -->
 
 ### Özel Beceriler
 
-Bir kez öğrenin, sonsuza kadar yeniden kullanın. OMC, hata ayıklama sürecinde kazanılan değerli bilgiyi taşınabilir beceri dosyalarına çıkarır ve ilgili durumlarda otomatik olarak enjekte eder.
+Bir kez öğrenin, sonsuza kadar yeniden kullanın. OMAC, hata ayıklama sürecinde kazanılan değerli bilgiyi taşınabilir beceri dosyalarına çıkarır ve ilgili durumlarda otomatik olarak enjekte eder.
 
 | | Proje Kapsamı | Kullanıcı Kapsamı |
 |---|---|---|
-| **Yol** | `.omc/skills/` | `~/.omc/skills/` |
+| **Yol** | `.omac/skills/` | `~/.omac/skills/` |
 | **Paylaşım** | Takım (sürüm kontrollü) | Tüm projeleriniz |
 | **Öncelik** | Yüksek (kullanıcı kapsamını geçersiz kılar) | Düşük (yedek) |
 
 ```yaml
-# .omc/skills/fix-proxy-crash.md
+# .omac/skills/fix-proxy-crash.md
 ---
 name: Fix Proxy Crash
 description: aiohttp proxy crashes on ClientDisconnectedError
@@ -180,7 +180,7 @@ server.py:42'deki handler'ı try/except ClientDisconnectedError ile sarın...
 
 | Anahtar Kelime | Etki                                     | Örnek                                                           |
 | -------------- | ---------------------------------------- | --------------------------------------------------------------- |
-| `team`         | Kanonik Team orkestrasyonu               | `/oh-my-claudecode:team 3:executor "fix all TypeScript errors"` |
+| `team`         | Kanonik Team orkestrasyonu               | `/oh-my-agent-connector:team 3:executor "fix all TypeScript errors"` |
 | `autopilot`    | Tam otonom yürütme                       | `autopilot: build a todo app`                                   |
 | `ralph`        | Kalıcılık modu                           | `ralph: refactor auth`                                          |
 | `ulw`          | Maksimum paralellik                      | `ulw fix all errors`                                            |
@@ -202,9 +202,9 @@ server.py:42'deki handler'ı try/except ClientDisconnectedError ile sarın...
 Rate limitler sıfırlandığında Claude Code oturumlarını otomatik olarak devam ettirir.
 
 ```bash
-omc wait          # Durumu kontrol et, rehberlik al
-omc wait --start  # Otomatik devam daemon'ını etkinleştir
-omc wait --stop   # Daemon'ı devre dışı bırak
+omac wait          # Durumu kontrol et, rehberlik al
+omac wait --start  # Otomatik devam daemon'ını etkinleştir
+omac wait --stop   # Daemon'ı devre dışı bırak
 ```
 
 **Gereklidir:** tmux (oturum algılama için)
@@ -215,13 +215,13 @@ Stop callback'leri oturum özetlerini gönderdiğinde kimin etiketleneceğini ya
 
 ```bash
 # Etiket listesini ayarla/değiştir
-omc config-stop-callback telegram --enable --token <bot_token> --chat <chat_id> --tag-list "@alice,bob"
-omc config-stop-callback discord --enable --webhook <url> --tag-list "@here,123456789012345678,role:987654321098765432"
+omac config-stop-callback telegram --enable --token <bot_token> --chat <chat_id> --tag-list "@alice,bob"
+omac config-stop-callback discord --enable --webhook <url> --tag-list "@here,123456789012345678,role:987654321098765432"
 
 # Artımlı güncellemeler
-omc config-stop-callback telegram --add-tag charlie
-omc config-stop-callback discord --remove-tag @here
-omc config-stop-callback discord --clear-tags
+omac config-stop-callback telegram --add-tag charlie
+omac config-stop-callback discord --remove-tag @here
+omac config-stop-callback discord --clear-tags
 ```
 
 Etiket davranışı:
@@ -237,11 +237,11 @@ Claude Code oturum olaylarını bir [OpenClaw](https://openclaw.ai/) ağ geçidi
 **Hızlı kurulum (önerilen):**
 
 ```bash
-/oh-my-claudecode:configure-notifications
+/oh-my-agent-connector:configure-notifications
 # → İstendiğinde "openclaw" yazın → "OpenClaw Gateway" seçin
 ```
 
-**Manuel kurulum:** `~/.claude/omc_config.openclaw.json` dosyasını oluşturun:
+**Manuel kurulum:** `~/.claude/omac_config.openclaw.json` dosyasını oluşturun:
 
 ```json
 {
@@ -265,9 +265,9 @@ Claude Code oturum olaylarını bir [OpenClaw](https://openclaw.ai/) ağ geçidi
 
 | Değişken | Açıklama |
 |----------|----------|
-| `OMC_OPENCLAW=1` | OpenClaw'ı etkinleştir |
-| `OMC_OPENCLAW_DEBUG=1` | Hata ayıklama günlüklemesini etkinleştir |
-| `OMC_OPENCLAW_CONFIG=/path/to/config.json` | Yapılandırma dosyası yolunu değiştir |
+| `OMAC_OPENCLAW=1` | OpenClaw'ı etkinleştir |
+| `OMAC_OPENCLAW_DEBUG=1` | Hata ayıklama günlüklemesini etkinleştir |
+| `OMAC_OPENCLAW_CONFIG=/path/to/config.json` | Yapılandırma dosyası yolunu değiştir |
 
 **Desteklenen hook olayları (bridge.ts'de 6 aktif):**
 
@@ -296,7 +296,7 @@ OpenClaw yüklerini ClawdBot aracılığıyla Discord'a ileten bir referans gate
 
 - **[Tam Referans](docs/REFERENCE.md)** — Kapsamlı özellik dokümantasyonu
 - **[Performans İzleme](docs/PERFORMANCE-MONITORING.md)** — Ajan takibi, hata ayıklama ve optimizasyon
-- **[Web Sitesi](https://yeachan-heo.github.io/oh-my-claudecode-website)** — İnteraktif rehberler ve örnekler
+- **[Web Sitesi](https://yeachan-heo.github.io/oh-my-agent-connector-website)** — İnteraktif rehberler ve örnekler
 - **[Geçiş Rehberi](docs/MIGRATION.md)** — v2.x'den yükseltme
 - **[Mimari](docs/ARCHITECTURE.md)** — Arka planda nasıl çalıştığı
 
@@ -309,7 +309,7 @@ OpenClaw yüklerini ClawdBot aracılığıyla Discord'a ileten bir referans gate
 
 ### İsteğe Bağlı: Çoklu AI Orkestrasyonu
 
-OMC, çapraz doğrulama ve tasarım tutarlılığı için isteğe bağlı olarak harici AI sağlayıcılarını kullanabilir. Bunlar **zorunlu değildir** — OMC onlarsız da tam olarak çalışır.
+OMAC, çapraz doğrulama ve tasarım tutarlılığı için isteğe bağlı olarak harici AI sağlayıcılarını kullanabilir. Bunlar **zorunlu değildir** — OMAC onlarsız da tam olarak çalışır.
 
 | Sağlayıcı                                                 | Kurulum                             | Ne sağlar                                            |
 | --------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------- |
@@ -336,7 +336,7 @@ MIT
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)](https://www.star-history.com/#Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=Yeachan-Heo/oh-my-agent-connector&type=date&legend=top-left)](https://www.star-history.com/#Yeachan-Heo/oh-my-agent-connector&type=date&legend=top-left)
 
 ## 💖 Bu Projeyi Destekleyin
 

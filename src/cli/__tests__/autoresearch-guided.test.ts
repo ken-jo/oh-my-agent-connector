@@ -50,7 +50,7 @@ import {
 } from '../autoresearch-guided.js';
 
 async function initRepo(): Promise<string> {
-  const cwd = await mkdtemp(join(tmpdir(), 'omc-autoresearch-guided-test-'));
+  const cwd = await mkdtemp(join(tmpdir(), 'omac-autoresearch-guided-test-'));
   execFileSync('git', ['init'], { cwd, stdio: 'ignore' });
   execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd, stdio: 'ignore' });
   execFileSync('git', ['config', 'user.name', 'Test User'], { cwd, stdio: 'ignore' });
@@ -219,8 +219,8 @@ describe('runAutoresearchNoviceBridge', () => {
         ]),
       ));
 
-      const draftContent = await readFile(join(repo, '.omc', 'specs', 'deep-interview-autoresearch-ux-eval.md'), 'utf-8');
-      const resultContent = await readFile(join(repo, '.omc', 'specs', 'autoresearch-ux-eval', 'result.json'), 'utf-8');
+      const draftContent = await readFile(join(repo, '.omac', 'specs', 'deep-interview-autoresearch-ux-eval.md'), 'utf-8');
+      const resultContent = await readFile(join(repo, '.omac', 'specs', 'autoresearch-ux-eval', 'result.json'), 'utf-8');
       const missionContent = await readFile(join(result.missionDir, 'mission.md'), 'utf-8');
       const sandboxContent = await readFile(join(result.missionDir, 'sandbox.md'), 'utf-8');
 
@@ -356,8 +356,8 @@ describe('spawnAutoresearchTmux', () => {
         return '';
       }
       if (args[0] === 'new-session') {
-        expect(args.slice(0, 6)).toEqual(['new-session', '-d', '-s', 'omc-autoresearch-demo', '-c', '/repo']);
-        expect(args[6]).toBe('wrapped:' + `${process.execPath} ${process.cwd()}/bin/omc.js autoresearch /repo/missions/demo`);
+        expect(args.slice(0, 6)).toEqual(['new-session', '-d', '-s', 'omac-autoresearch-demo', '-c', '/repo']);
+        expect(args[6]).toBe('wrapped:' + `${process.execPath} ${process.cwd()}/bin/omac.js autoresearch /repo/missions/demo`);
         return '';
       }
       throw new Error(`unexpected tmuxExec call: ${String(args)}`);
@@ -365,12 +365,12 @@ describe('spawnAutoresearchTmux', () => {
 
     spawnAutoresearchTmux('/repo/missions/demo', 'demo');
 
-    expect(buildTmuxShellCommandMock).toHaveBeenCalledWith(process.execPath, [expect.stringMatching(/bin\/omc\.js$/), 'autoresearch', '/repo/missions/demo']);
-    expect(wrapWithLoginShellMock).toHaveBeenCalledWith(`${process.execPath} ${process.cwd()}/bin/omc.js autoresearch /repo/missions/demo`);
+    expect(buildTmuxShellCommandMock).toHaveBeenCalledWith(process.execPath, [expect.stringMatching(/bin\/omac\.js$/), 'autoresearch', '/repo/missions/demo']);
+    expect(wrapWithLoginShellMock).toHaveBeenCalledWith(`${process.execPath} ${process.cwd()}/bin/omac.js autoresearch /repo/missions/demo`);
     expect(logSpy).toHaveBeenCalledWith('\nAutoresearch launched in background tmux session.');
-    expect(tmuxExecMock).toHaveBeenCalledWith(['set-option', '-t', 'omc-autoresearch-demo', 'set-clipboard', 'on'], { stripTmux: true, stdio: 'ignore' });
-    expect(tmuxExecMock).toHaveBeenCalledWith(['set-option', '-at', 'omc-autoresearch-demo', 'terminal-features', ',*:clipboard'], { stripTmux: true, stdio: 'ignore' });
-    expect(logSpy).toHaveBeenCalledWith('  Attach:   tmux attach -t omc-autoresearch-demo');
+    expect(tmuxExecMock).toHaveBeenCalledWith(['set-option', '-t', 'omac-autoresearch-demo', 'set-clipboard', 'on'], { stripTmux: true, stdio: 'ignore' });
+    expect(tmuxExecMock).toHaveBeenCalledWith(['set-option', '-at', 'omac-autoresearch-demo', 'terminal-features', ',*:clipboard'], { stripTmux: true, stdio: 'ignore' });
+    expect(logSpy).toHaveBeenCalledWith('  Attach:   tmux attach -t omac-autoresearch-demo');
   });
 });
 
@@ -426,11 +426,11 @@ describe('spawnAutoresearchSetupTmux', () => {
       tmuxExecMock.mockImplementation((args: string[]) => {
         if (args[0] === 'new-session') {
           expect(args.slice(0, 9)).toEqual([
-            'new-session', '-d', '-P', '-F', '#{pane_id}', '-s', 'omc-autoresearch-setup-kf12oi', '-c', repo,
+            'new-session', '-d', '-P', '-F', '#{pane_id}', '-s', 'omac-autoresearch-setup-kf12oi', '-c', repo,
           ]);
           expect(typeof args[9]).toBe('string');
           expect(String(args[9])).toContain('wrapped:CODEX_HOME=');
-          expect(String(args[9])).toContain(`CODEX_HOME=${repo}/.omx/tmp/omc-autoresearch-setup-kf12oi/codex-home`);
+          expect(String(args[9])).toContain(`CODEX_HOME=${repo}/.omx/tmp/omac-autoresearch-setup-kf12oi/codex-home`);
           expect(String(args[9])).toContain('claude');
           expect(String(args[9])).toContain('--dangerously-skip-permissions');
           return '%42\n';
@@ -440,7 +440,7 @@ describe('spawnAutoresearchSetupTmux', () => {
         if (args[0] === 'set-option' && args.includes('terminal-features')) return '';
         if (args[0] === 'has-session') {
           hasSessionCalls += 1;
-          expect(args).toEqual(['has-session', '-t', 'omc-autoresearch-setup-kf12oi']);
+          expect(args).toEqual(['has-session', '-t', 'omac-autoresearch-setup-kf12oi']);
           return '';
         }
         if (args[0] === 'send-keys') {
@@ -454,18 +454,18 @@ describe('spawnAutoresearchSetupTmux', () => {
       expect(buildTmuxShellCommandWithEnvMock).toHaveBeenCalledWith(
         'claude',
         ['--dangerously-skip-permissions'],
-        { CODEX_HOME: `${repo}/.omx/tmp/omc-autoresearch-setup-kf12oi/codex-home` },
+        { CODEX_HOME: `${repo}/.omx/tmp/omac-autoresearch-setup-kf12oi/codex-home` },
       );
-      expect(wrapWithLoginShellMock).toHaveBeenCalledWith(`CODEX_HOME=${repo}/.omx/tmp/omc-autoresearch-setup-kf12oi/codex-home claude --dangerously-skip-permissions`);
+      expect(wrapWithLoginShellMock).toHaveBeenCalledWith(`CODEX_HOME=${repo}/.omx/tmp/omac-autoresearch-setup-kf12oi/codex-home claude --dangerously-skip-permissions`);
       expect(buildAutoresearchSetupSlashCommand()).toBe('/deep-interview --autoresearch');
       expect(tmuxExecMock).toHaveBeenCalledWith(
         ['send-keys', '-t', '%42', '-l', buildAutoresearchSetupSlashCommand()],
         expect.objectContaining({ stripTmux: true }),
       );
       expect(logSpy).toHaveBeenCalledWith('\nAutoresearch setup launched in background Claude session.');
-      expect(tmuxExecMock).toHaveBeenCalledWith(['set-option', '-t', 'omc-autoresearch-setup-kf12oi', 'set-clipboard', 'on'], { stripTmux: true, stdio: 'ignore' });
-      expect(tmuxExecMock).toHaveBeenCalledWith(['set-option', '-at', 'omc-autoresearch-setup-kf12oi', 'terminal-features', ',*:clipboard'], { stripTmux: true, stdio: 'ignore' });
-      expect(logSpy).toHaveBeenCalledWith('  Attach:   tmux attach -t omc-autoresearch-setup-kf12oi');
+      expect(tmuxExecMock).toHaveBeenCalledWith(['set-option', '-t', 'omac-autoresearch-setup-kf12oi', 'set-clipboard', 'on'], { stripTmux: true, stdio: 'ignore' });
+      expect(tmuxExecMock).toHaveBeenCalledWith(['set-option', '-at', 'omac-autoresearch-setup-kf12oi', 'terminal-features', ',*:clipboard'], { stripTmux: true, stdio: 'ignore' });
+      expect(logSpy).toHaveBeenCalledWith('  Attach:   tmux attach -t omac-autoresearch-setup-kf12oi');
       expect(hasSessionCalls).toBe(1);
     } finally {
       await rm(repo, { recursive: true, force: true });
@@ -493,10 +493,10 @@ describe('spawnAutoresearchSetupTmux', () => {
       expect(buildTmuxShellCommandWithEnvMock).toHaveBeenCalledWith(
         'claude',
         ['--dangerously-skip-permissions'],
-        { CODEX_HOME: `${repo}/.omx/tmp/omc-autoresearch-setup-kf12oi/codex-home` },
+        { CODEX_HOME: `${repo}/.omx/tmp/omac-autoresearch-setup-kf12oi/codex-home` },
       );
       expect(wrapWithLoginShellMock).toHaveBeenCalledWith(
-        `CODEX_HOME=${repo}/.omx/tmp/omc-autoresearch-setup-kf12oi/codex-home claude --dangerously-skip-permissions`,
+        `CODEX_HOME=${repo}/.omx/tmp/omac-autoresearch-setup-kf12oi/codex-home claude --dangerously-skip-permissions`,
       );
     } finally {
       Object.defineProperty(process, 'platform', { value: originalPlatform, configurable: true });

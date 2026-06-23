@@ -23,7 +23,7 @@ import { spawn } from 'child_process';
 import { tmuxExec } from '../cli/tmux-utils.js';
 import { request as httpsRequest } from 'https';
 import { resolveDaemonModulePath } from '../utils/daemon-module-path.js';
-import { getGlobalOmcStateRoot } from '../utils/paths.js';
+import { getGlobalOmacStateRoot } from '../utils/paths.js';
 import {
   capturePaneContent,
   sendToPane,
@@ -61,7 +61,7 @@ const MAX_LOG_SIZE_BYTES = 1 * 1024 * 1024;
 /**
  * Allowlist of environment variables safe to pass to daemon child process.
  * This prevents leaking sensitive variables like ANTHROPIC_API_KEY, GITHUB_TOKEN, etc.
- * OMC_* notification env vars are forwarded so the daemon can call getNotificationConfig().
+ * OMAC_* notification env vars are forwarded so the daemon can call getNotificationConfig().
  */
 const DAEMON_ENV_ALLOWLIST = [
   'PATH', 'HOME', 'USERPROFILE',
@@ -77,7 +77,7 @@ const DAEMON_ENV_ALLOWLIST = [
 ] as const;
 
 /** Default paths */
-const DEFAULT_STATE_DIR = getGlobalOmcStateRoot();
+const DEFAULT_STATE_DIR = getGlobalOmacStateRoot();
 const PID_FILE_PATH = join(DEFAULT_STATE_DIR, 'reply-listener.pid');
 const STATE_FILE_PATH = join(DEFAULT_STATE_DIR, 'reply-listener-state.json');
 const LOG_FILE_PATH = join(DEFAULT_STATE_DIR, 'reply-listener.log');
@@ -139,9 +139,9 @@ function createMinimalDaemonEnv(): NodeJS.ProcessEnv {
       env[key] = process.env[key];
     }
   }
-  // Forward OMC_* env vars so the daemon can call getNotificationConfig()
+  // Forward OMAC_* env vars so the daemon can call getNotificationConfig()
   for (const key of Object.keys(process.env)) {
-    if (key.startsWith('OMC_')) {
+    if (key.startsWith('OMAC_')) {
       env[key] = process.env[key];
     }
   }
@@ -957,7 +957,7 @@ async function pollLoop(): Promise<void> {
  * Start the reply listener daemon.
  *
  * Forks a daemon process that derives its config from getNotificationConfig().
- * OMC_* env vars are forwarded so the daemon can read both file and env config.
+ * OMAC_* env vars are forwarded so the daemon can read both file and env config.
  *
  * Idempotent: if daemon is already running, returns success.
  *

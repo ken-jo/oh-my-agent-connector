@@ -64,7 +64,7 @@ describe('claude goal snapshot reconciliation', () => {
   });
 
   it('reads inline JSON and path input but rejects malformed sources', async () => {
-    const cwd = await mkdtemp(join(tmpdir(), 'omc-claude-goal-snapshot-'));
+    const cwd = await mkdtemp(join(tmpdir(), 'omac-claude-goal-snapshot-'));
     try {
       const fromJson = await readClaudeGoalSnapshotInput('{"goal":{"objective":"A","status":"active"}}', cwd);
       expect(fromJson?.objective).toBe('A');

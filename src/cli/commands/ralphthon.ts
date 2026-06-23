@@ -1,12 +1,12 @@
 /**
- * omc ralphthon CLI subcommand
+ * omac ralphthon CLI subcommand
  *
  * Autonomous hackathon lifecycle:
- *   omc ralphthon "task"                  Start new ralphthon session
- *   omc ralphthon --resume                Resume existing session
- *   omc ralphthon --skip-interview "task" Skip deep-interview, use task directly
- *   omc ralphthon --max-waves 5           Set max hardening waves
- *   omc ralphthon --poll-interval 60      Set poll interval in seconds
+ *   omac ralphthon "task"                  Start new ralphthon session
+ *   omac ralphthon --resume                Resume existing session
+ *   omac ralphthon --skip-interview "task" Skip deep-interview, use task directly
+ *   omac ralphthon --max-waves 5           Set max hardening waves
+ *   omac ralphthon --poll-interval 60      Set poll interval in seconds
  */
 
 import chalk from "chalk";
@@ -38,7 +38,7 @@ import { RALPHTHON_DEFAULTS } from "../../ralphthon/types.js";
 // ============================================================================
 
 const RALPHTHON_HELP = `
-Usage: omc ralphthon [options] [task]
+Usage: omac ralphthon [options] [task]
 
 Autonomous hackathon lifecycle mode.
 Generates PRD via deep-interview, executes all tasks with ralph loop,
@@ -52,10 +52,10 @@ Options:
   --help, -h            Show this help
 
 Examples:
-  omc ralphthon "Build a REST API for user management"
-  omc ralphthon --skip-interview "Implement auth middleware"
-  omc ralphthon --resume
-  omc ralphthon --max-waves 5 --poll-interval 60 "Add caching layer"
+  omac ralphthon "Build a REST API for user management"
+  omac ralphthon --skip-interview "Implement auth middleware"
+  omac ralphthon --resume
+  omac ralphthon --max-waves 5 --poll-interval 60 "Add caching layer"
 `;
 
 // ============================================================================
@@ -136,7 +136,7 @@ export function buildRalphthonInterviewPrompt(
   const sanitizedTask = task.replace(/[\r\n\0]+/g, " ").trim();
   return `/deep-interview ${sanitizedTask}
 
-After the interview, generate a ralphthon-prd.json file in .omc/ with this structure:
+After the interview, generate a ralphthon-prd.json file in .omac/ with this structure:
 {
   "project": "<project name>",
   "branchName": "<branch>",
@@ -332,7 +332,7 @@ export async function ralphthonCommand(args: string[]): Promise<void> {
   // New session — need task description
   if (!options.task) {
     console.error(
-      chalk.red('Task description required. Usage: omc ralphthon "your task"'),
+      chalk.red('Task description required. Usage: omac ralphthon "your task"'),
     );
     console.log(RALPHTHON_HELP);
     process.exit(1);
@@ -342,7 +342,7 @@ export async function ralphthonCommand(args: string[]): Promise<void> {
   if (!isInsideTmux()) {
     console.error(
       chalk.red(
-        "Ralphthon requires tmux. Run inside a tmux session or use `omc` to launch one.",
+        "Ralphthon requires tmux. Run inside a tmux session or use `omac` to launch one.",
       ),
     );
     process.exit(1);

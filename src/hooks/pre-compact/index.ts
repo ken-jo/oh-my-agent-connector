@@ -19,7 +19,7 @@ import {
 } from "fs";
 import { promises as fsPromises } from "fs";
 import { join } from "path";
-import { getOmcRoot } from '../../lib/worktree-paths.js';
+import { getOmacRoot } from '../../lib/worktree-paths.js';
 import { initJobDb, getActiveJobs, getRecentJobs, getJobStats } from '../../lib/job-state-db.js';
 
 // ============================================================================
@@ -97,7 +97,7 @@ const compactionQueueDepth = new Map<string, number>();
  * Get the checkpoint directory path
  */
 export function getCheckpointPath(directory: string): string {
-  const checkpointDir = join(getOmcRoot(directory), "state", CHECKPOINT_DIR);
+  const checkpointDir = join(getOmacRoot(directory), "state", CHECKPOINT_DIR);
   if (!existsSync(checkpointDir)) {
     mkdirSync(checkpointDir, { recursive: true });
   }
@@ -110,7 +110,7 @@ export function getCheckpointPath(directory: string): string {
 export async function exportWisdomToNotepad(
   directory: string,
 ): Promise<{ wisdom: string; exported: boolean }> {
-  const notepadsDir = join(getOmcRoot(directory), "notepads");
+  const notepadsDir = join(getOmacRoot(directory), "notepads");
 
   if (!existsSync(notepadsDir)) {
     return { wisdom: "", exported: false };
@@ -164,7 +164,7 @@ export async function exportWisdomToNotepad(
 export async function saveModeSummary(
   directory: string,
 ): Promise<Record<string, unknown>> {
-  const stateDir = join(getOmcRoot(directory), "state");
+  const stateDir = join(getOmacRoot(directory), "state");
   const modes: Record<string, unknown> = {};
 
   const stateFiles = [
@@ -242,7 +242,7 @@ function readTodoSummary(directory: string): {
 } {
   const todoPaths = [
     join(directory, ".claude", "todos.json"),
-    join(getOmcRoot(directory), "state", "todos.json"),
+    join(getOmacRoot(directory), "state", "todos.json"),
   ];
 
   for (const todoPath of todoPaths) {
@@ -271,7 +271,7 @@ function readTodoSummary(directory: string): {
 
 /**
  * Get summary of active and recent background jobs from SQLite DB
- * Queries .omc/state/jobs.db for Codex/Gemini job statuses
+ * Queries .omac/state/jobs.db for Codex/Gemini job statuses
  */
 async function getActiveJobsSummary(directory: string): Promise<{
   activeJobs: Array<{ jobId: string; provider: string; model: string; agentRole: string; spawnedAt: string }>;

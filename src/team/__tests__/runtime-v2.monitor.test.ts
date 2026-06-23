@@ -62,7 +62,7 @@ describe('monitorTeamV2 pane-based stall inference', () => {
   });
 
   async function writeConfigAndTask(taskStatus: 'pending' | 'in_progress' = 'pending'): Promise<void> {
-    const teamRoot = join(cwd, '.omc', 'state', 'team', 'demo-team');
+    const teamRoot = join(cwd, '.omac', 'state', 'team', 'demo-team');
     await mkdir(join(teamRoot, 'tasks'), { recursive: true });
     await mkdir(join(teamRoot, 'workers', 'worker-1'), { recursive: true });
     await writeFile(join(teamRoot, 'config.json'), JSON.stringify({
@@ -87,7 +87,7 @@ describe('monitorTeamV2 pane-based stall inference', () => {
       resize_hook_name: null,
       resize_hook_target: null,
       next_task_id: 2,
-      team_state_root: join(cwd, '.omc', 'state', 'team', 'demo-team'),
+      team_state_root: join(cwd, '.omac', 'state', 'team', 'demo-team'),
       workspace_mode: 'single',
     }, null, 2), 'utf-8');
     await writeFile(join(teamRoot, 'tasks', '1.json'), JSON.stringify({
@@ -101,7 +101,7 @@ describe('monitorTeamV2 pane-based stall inference', () => {
   }
 
   it('flags pane-idle workers with assigned work but no work-start evidence', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-v2-monitor-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-v2-monitor-'));
     await writeConfigAndTask('pending');
 
     const { monitorTeamV2 } = await import('../runtime-v2.js');
@@ -114,9 +114,9 @@ describe('monitorTeamV2 pane-based stall inference', () => {
   });
 
   it('surfaces missing blocker task ids in monitor recommendations', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-v2-monitor-missing-blocker-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-v2-monitor-missing-blocker-'));
     await writeConfigAndTask('pending');
-    const teamRoot = join(cwd, '.omc', 'state', 'team', 'demo-team');
+    const teamRoot = join(cwd, '.omac', 'state', 'team', 'demo-team');
     await writeFile(join(teamRoot, 'tasks', '1.json'), JSON.stringify({
       id: '1',
       subject: 'Blocked task',
@@ -141,7 +141,7 @@ describe('monitorTeamV2 pane-based stall inference', () => {
   });
 
   it('does not flag a worker when pane evidence shows active work despite missing reports', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-v2-monitor-active-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-v2-monitor-active-'));
     await writeConfigAndTask('in_progress');
     mocks.execFile.mockImplementation((_cmd: string, args: string[], cb: (err: Error | null, stdout: string, stderr: string) => void) => {
       if (args[0] === 'capture-pane') {
@@ -166,9 +166,9 @@ describe('monitorTeamV2 pane-based stall inference', () => {
 
 
   it('does not mark unknown pane liveness as dead or recommend reassignment', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-v2-monitor-unknown-liveness-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-v2-monitor-unknown-liveness-'));
     await writeConfigAndTask('in_progress');
-    const teamRoot = join(cwd, '.omc', 'state', 'team', 'demo-team');
+    const teamRoot = join(cwd, '.omac', 'state', 'team', 'demo-team');
     await writeFile(join(teamRoot, 'monitor-snapshot.json'), JSON.stringify({
       taskStatusById: { 1: 'in_progress' },
       workerAliveByName: { 'worker-1': true },
@@ -193,7 +193,7 @@ describe('monitorTeamV2 pane-based stall inference', () => {
   });
 
   it('does not flag a worker when pane evidence shows startup bootstrapping instead of idle readiness', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-v2-monitor-bootstrap-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-v2-monitor-bootstrap-'));
     await writeConfigAndTask('pending');
     mocks.execFile.mockImplementation((_cmd: string, args: string[], cb: (err: Error | null, stdout: string, stderr: string) => void) => {
       if (args[0] === 'capture-pane') {
@@ -216,9 +216,9 @@ describe('monitorTeamV2 pane-based stall inference', () => {
   });
 
   it('deduplicates duplicate worker rows from persisted config during monitoring', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-v2-monitor-dedup-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-v2-monitor-dedup-'));
     await writeConfigAndTask('pending');
-    const root = join(cwd, '.omc', 'state', 'team', 'demo-team');
+    const root = join(cwd, '.omac', 'state', 'team', 'demo-team');
     await writeFile(join(root, 'config.json'), JSON.stringify({
       name: 'demo-team',
       task: 'demo',
@@ -237,7 +237,7 @@ describe('monitorTeamV2 pane-based stall inference', () => {
       resize_hook_name: null,
       resize_hook_target: null,
       next_task_id: 2,
-      team_state_root: join(cwd, '.omc', 'state', 'team', 'demo-team'),
+      team_state_root: join(cwd, '.omac', 'state', 'team', 'demo-team'),
       workspace_mode: 'single',
     }, null, 2), 'utf-8');
 

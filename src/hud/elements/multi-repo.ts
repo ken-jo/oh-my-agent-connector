@@ -1,12 +1,12 @@
 /**
- * OMC HUD - Multi-Repo Element
+ * OMAC HUD - Multi-Repo Element
  *
  * Renders a multi-repo workspace indicator when the cwd is a parent
  * directory holding multiple sibling git repos (e.g. `bidchex-repos/`
  * containing `bidchex-backend/`, `bidchex-frontend/`, …).
  *
  * Two modes:
- *  - Marker present (`.omc-workspace` at cwd): show
+ *  - Marker present (`.omac-workspace` at cwd): show
  *      mr:<parent> | repos:N | sessions:M
  *  - Marker missing: show a one-line suggestion to create it.
  *
@@ -18,7 +18,7 @@ import { execSync } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { cyan, dim, green, yellow } from '../colors.js';
-import { getOmcRoot } from '../../lib/worktree-paths.js';
+import { getOmacRoot } from '../../lib/worktree-paths.js';
 
 /**
  * Liveness window for the session counter. A session dir whose
@@ -88,7 +88,7 @@ function looksLikeRepo(entryPath: string): boolean {
 }
 
 /**
- * Count session directories under `<cwd>/.omc/state/sessions/`.
+ * Count session directories under `<cwd>/.omac/state/sessions/`.
  *
  * A session is "active" when both:
  *  1. The directory name matches a Claude Code session UUID — filters
@@ -103,9 +103,9 @@ function looksLikeRepo(entryPath: string): boolean {
  */
 function countActiveSessions(cwd: string): number {
   // cwd here is verified to be the workspace anchor (marker present),
-  // so getOmcRoot resolves to <cwd>/.omc. Route through the canonical
-  // helper so OMC_STATE_DIR and OMC_DISABLE_MULTIREPO are honored.
-  const sessionsDir = join(getOmcRoot(cwd), 'state', 'sessions');
+  // so getOmacRoot resolves to <cwd>/.omac. Route through the canonical
+  // helper so OMAC_STATE_DIR and OMAC_DISABLE_MULTIREPO are honored.
+  const sessionsDir = join(getOmacRoot(cwd), 'state', 'sessions');
   if (!existsSync(sessionsDir)) return 0;
 
   const now = Date.now();
@@ -186,7 +186,7 @@ export function detectMultiRepo(cwd?: string): MultiRepoInfo | null {
       return null;
     }
 
-    const hasMarker = existsSync(join(key, '.omc-workspace'));
+    const hasMarker = existsSync(join(key, '.omac-workspace'));
     const activeSessions = hasMarker ? countActiveSessions(key) : 0;
     result = {
       isMultiRepo: true,
@@ -209,7 +209,7 @@ export function detectMultiRepo(cwd?: string): MultiRepoInfo | null {
  *
  * Examples:
  *   mr:bidchex-repos repos:11 sessions:2
- *   multi-repo detected — create .omc-workspace to enable shared state
+ *   multi-repo detected — create .omac-workspace to enable shared state
  */
 export function renderMultiRepo(cwd?: string): string | null {
   const info = detectMultiRepo(cwd);
@@ -219,7 +219,7 @@ export function renderMultiRepo(cwd?: string): string | null {
     return (
       yellow('⚠ multi-repo detected') +
       dim(' — run: ') +
-      cyan(`echo {} > "${info.parentName}/.omc-workspace"`) +
+      cyan(`echo {} > "${info.parentName}/.omac-workspace"`) +
       dim(' to enable shared state')
     );
   }

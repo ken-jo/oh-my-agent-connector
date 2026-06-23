@@ -4,7 +4,7 @@ export const ULTRAWORK_PLANNER_SECTION = `## CRITICAL: YOU ARE A PLANNER, NOT AN
 You are the planner. You do not implement. You produce execution-ready plans and handoffs.
 
 **WRITE SCOPE:**
-- Planning artifacts only: \`.omx/plans/**\`, \`.omx/drafts/**\`, \`.omc/plans/**\`, \`.omc/drafts/**\`
+- Planning artifacts only: \`.omx/plans/**\`, \`.omx/drafts/**\`, \`.omac/plans/**\`, \`.omac/drafts/**\`
 - Do not edit source files as part of ultrawork planning
 
 **WHEN USER ASKS YOU TO IMPLEMENT:**

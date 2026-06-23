@@ -32,24 +32,24 @@ import {
   isJobTerminal,
 } from './team-job-convergence.js';
 import { isProcessAlive } from '../platform/index.js';
-import type { OmcTeamJob } from './team-job-convergence.js';
-import { getGlobalOmcStatePath } from '../utils/paths.js';
+import type { OmacTeamJob } from './team-job-convergence.js';
+import { getGlobalOmacStatePath } from '../utils/paths.js';
 
-const omcTeamJobs = new Map<string, OmcTeamJob>();
-const OMC_JOBS_DIR = process.env.OMC_JOBS_DIR || getGlobalOmcStatePath('team-jobs');
+const omacTeamJobs = new Map<string, OmacTeamJob>();
+const OMAC_JOBS_DIR = process.env.OMAC_JOBS_DIR || getGlobalOmacStatePath('team-jobs');
 const DEPRECATION_CODE = 'deprecated_cli_only' as const;
 
 type DeprecatedTeamToolName =
-  | 'omc_run_team_start'
-  | 'omc_run_team_status'
-  | 'omc_run_team_wait'
-  | 'omc_run_team_cleanup';
+  | 'omac_run_team_start'
+  | 'omac_run_team_status'
+  | 'omac_run_team_wait'
+  | 'omac_run_team_cleanup';
 
 const TEAM_CLI_REPLACEMENT_HINTS: Record<DeprecatedTeamToolName, string> = {
-  omc_run_team_start: 'omc team start',
-  omc_run_team_status: 'omc team status <job_id>',
-  omc_run_team_wait: 'omc team wait <job_id>',
-  omc_run_team_cleanup: 'omc team cleanup <job_id>',
+  omac_run_team_start: 'omac team start',
+  omac_run_team_status: 'omac team status <job_id>',
+  omac_run_team_wait: 'omac team wait <job_id>',
+  omac_run_team_cleanup: 'omac team cleanup <job_id>',
 };
 
 function isDeprecatedTeamToolName(name: string): name is DeprecatedTeamToolName {
@@ -75,7 +75,7 @@ function buildCliReplacement(toolName: DeprecatedTeamToolName, args: unknown): s
 
   const parsed = (typeof args === 'object' && args !== null) ? args as Record<string, unknown> : {};
 
-  if (toolName === 'omc_run_team_start') {
+  if (toolName === 'omac_run_team_start') {
     const teamName = typeof parsed.teamName === 'string' ? parsed.teamName.trim() : '';
     const cwd = typeof parsed.cwd === 'string' ? parsed.cwd.trim() : '';
     const newWindow = parsed.newWindow === true;
@@ -91,7 +91,7 @@ function buildCliReplacement(toolName: DeprecatedTeamToolName, args: unknown): s
         .filter(Boolean)
       : [];
 
-    const flags: string[] = ['omc', 'team', 'start'];
+    const flags: string[] = ['omac', 'team', 'start'];
     if (teamName) flags.push('--name', quoteCliValue(teamName));
     if (cwd) flags.push('--cwd', quoteCliValue(cwd));
     if (newWindow) flags.push('--new-window');
@@ -119,22 +119,22 @@ function buildCliReplacement(toolName: DeprecatedTeamToolName, args: unknown): s
   }
 
   const jobId = typeof parsed.job_id === 'string' ? parsed.job_id.trim() : '<job_id>';
-  if (toolName === 'omc_run_team_status') {
-    return `omc team status --job-id ${quoteCliValue(jobId)}`;
+  if (toolName === 'omac_run_team_status') {
+    return `omac team status --job-id ${quoteCliValue(jobId)}`;
   }
 
-  if (toolName === 'omc_run_team_wait') {
+  if (toolName === 'omac_run_team_wait') {
     const timeoutMs = typeof parsed.timeout_ms === 'number' && Number.isFinite(parsed.timeout_ms)
       ? ` --timeout-ms ${Math.floor(parsed.timeout_ms)}`
       : '';
-    return `omc team wait --job-id ${quoteCliValue(jobId)}${timeoutMs}`;
+    return `omac team wait --job-id ${quoteCliValue(jobId)}${timeoutMs}`;
   }
 
-  if (toolName === 'omc_run_team_cleanup') {
+  if (toolName === 'omac_run_team_cleanup') {
     const graceMs = typeof parsed.grace_ms === 'number' && Number.isFinite(parsed.grace_ms)
       ? ` --grace-ms ${Math.floor(parsed.grace_ms)}`
       : '';
-    return `omc team cleanup --job-id ${quoteCliValue(jobId)}${graceMs}`;
+    return `omac team cleanup --job-id ${quoteCliValue(jobId)}${graceMs}`;
   }
 
   return TEAM_CLI_REPLACEMENT_HINTS[toolName];
@@ -155,7 +155,7 @@ export function createDeprecatedCliOnlyEnvelopeWithArgs(
       text: JSON.stringify({
         code: DEPRECATION_CODE,
         tool: toolName,
-        message: 'Legacy team MCP runtime tools are deprecated. Use the omc team CLI instead.',
+        message: 'Legacy team MCP runtime tools are deprecated. Use the omac team CLI instead.',
         cli_replacement: cliReplacement,
       }),
     }],
@@ -163,29 +163,29 @@ export function createDeprecatedCliOnlyEnvelopeWithArgs(
   };
 }
 
-function persistJob(jobId: string, job: OmcTeamJob): void {
+function persistJob(jobId: string, job: OmacTeamJob): void {
   try {
-    if (!existsSync(OMC_JOBS_DIR)) mkdirSync(OMC_JOBS_DIR, { recursive: true });
-    writeFileSync(join(OMC_JOBS_DIR, `${jobId}.json`), JSON.stringify(job), 'utf-8');
+    if (!existsSync(OMAC_JOBS_DIR)) mkdirSync(OMAC_JOBS_DIR, { recursive: true });
+    writeFileSync(join(OMAC_JOBS_DIR, `${jobId}.json`), JSON.stringify(job), 'utf-8');
   } catch { /* best-effort */ }
 }
 
-function loadJobFromDisk(jobId: string): OmcTeamJob | undefined {
+function loadJobFromDisk(jobId: string): OmacTeamJob | undefined {
   try {
-    return JSON.parse(readFileSync(join(OMC_JOBS_DIR, `${jobId}.json`), 'utf-8')) as OmcTeamJob;
+    return JSON.parse(readFileSync(join(OMAC_JOBS_DIR, `${jobId}.json`), 'utf-8')) as OmacTeamJob;
   } catch {
     return undefined;
   }
 }
 
 async function loadPaneIds(jobId: string): Promise<{ paneIds: string[]; leaderPaneId: string; sessionName?: string; ownsWindow?: boolean } | null> {
-  const p = join(OMC_JOBS_DIR, `${jobId}-panes.json`);
+  const p = join(OMAC_JOBS_DIR, `${jobId}-panes.json`);
   try { return JSON.parse(await readFile(p, 'utf-8')); }
   catch { return null; }
 }
 
 
-async function resolveCleanupPaneEvidence(job: OmcTeamJob, jobId: string): Promise<{
+async function resolveCleanupPaneEvidence(job: OmacTeamJob, jobId: string): Promise<{
   panes: { paneIds: string[]; leaderPaneId: string; sessionName?: string; ownsWindow?: boolean } | null;
   livenessUnknownReason?: string;
 }> {
@@ -224,18 +224,18 @@ async function resolveCleanupPaneEvidence(job: OmcTeamJob, jobId: string): Promi
 }
 
 function validateJobId(job_id: string): void {
-  if (!/^omc-[a-z0-9]{1,16}$/.test(job_id)) {
-    throw new Error(`Invalid job_id: "${job_id}". Must match /^omc-[a-z0-9]{1,16}$/`);
+  if (!/^omac-[a-z0-9]{1,16}$/.test(job_id)) {
+    throw new Error(`Invalid job_id: "${job_id}". Must match /^omac-[a-z0-9]{1,16}$/`);
   }
 }
 
-function saveJobState(jobId: string, job: OmcTeamJob): OmcTeamJob {
-  omcTeamJobs.set(jobId, job);
+function saveJobState(jobId: string, job: OmacTeamJob): OmacTeamJob {
+  omacTeamJobs.set(jobId, job);
   persistJob(jobId, job);
   return job;
 }
 
-function makeJobResponse(jobId: string, job: OmcTeamJob, extra: Record<string, unknown> = {}): { content: Array<{ type: 'text'; text: string }> } {
+function makeJobResponse(jobId: string, job: OmacTeamJob, extra: Record<string, unknown> = {}): { content: Array<{ type: 'text'; text: string }> } {
   const elapsed = ((Date.now() - job.startedAt) / 1000).toFixed(1);
   const out: Record<string, unknown> = { jobId, status: job.status, elapsedSeconds: elapsed, ...extra };
   if (job.result) { try { out.result = JSON.parse(job.result) as unknown; } catch { out.result = job.result; } }
@@ -255,11 +255,11 @@ const startSchema = z.object({
 });
 
 const statusSchema = z.object({
-  job_id: z.string().describe('Job ID returned by omc_run_team_start'),
+  job_id: z.string().describe('Job ID returned by omac_run_team_start'),
 });
 
 const waitSchema = z.object({
-  job_id: z.string().describe('Job ID returned by omc_run_team_start'),
+  job_id: z.string().describe('Job ID returned by omac_run_team_start'),
   timeout_ms: z.number().optional().describe('Maximum wait time in ms (default: 300000, max: 3600000)'),
   nudge_delay_ms: z.number().optional().describe('Milliseconds a pane must be idle before nudging (default: 30000)'),
   nudge_max_count: z.number().optional().describe('Maximum nudges per pane (default: 3)'),
@@ -267,7 +267,7 @@ const waitSchema = z.object({
 });
 
 const cleanupSchema = z.object({
-  job_id: z.string().describe('Job ID returned by omc_run_team_start'),
+  job_id: z.string().describe('Job ID returned by omac_run_team_start'),
   grace_ms: z.number().optional().describe('Grace period in ms before force-killing panes (default: 10000)'),
 });
 
@@ -278,20 +278,20 @@ async function handleStart(args: unknown): Promise<{ content: Array<{ type: 'tex
     && Object.prototype.hasOwnProperty.call(args, 'timeoutSeconds')
   ) {
     throw new Error(
-      'omc_run_team_start no longer accepts timeoutSeconds. Remove timeoutSeconds and use omc_run_team_wait timeout_ms to limit the wait call only (workers keep running until completion or explicit omc_run_team_cleanup).',
+      'omac_run_team_start no longer accepts timeoutSeconds. Remove timeoutSeconds and use omac_run_team_wait timeout_ms to limit the wait call only (workers keep running until completion or explicit omac_run_team_cleanup).',
     );
   }
 
   const input = startSchema.parse(args);
   validateTeamName(input.teamName);
-  const jobId = `omc-${Date.now().toString(36)}${randomUUID().slice(0, 8)}`;
+  const jobId = `omac-${Date.now().toString(36)}${randomUUID().slice(0, 8)}`;
   const runtimeCliPath = join(__ownDir, 'runtime-cli.cjs');
 
-  const job: OmcTeamJob = { status: 'running', startedAt: Date.now(), teamName: input.teamName, cwd: input.cwd };
-  omcTeamJobs.set(jobId, job);
+  const job: OmacTeamJob = { status: 'running', startedAt: Date.now(), teamName: input.teamName, cwd: input.cwd };
+  omacTeamJobs.set(jobId, job);
 
   const child = spawn(process.execPath, [runtimeCliPath], {
-    env: { ...process.env, OMC_JOB_ID: jobId, OMC_JOBS_DIR },
+    env: { ...process.env, OMAC_JOB_ID: jobId, OMAC_JOBS_DIR },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
   job.pid = child.pid;
@@ -335,7 +335,7 @@ async function handleStart(args: unknown): Promise<{ content: Array<{ type: 'tex
   });
 
   return {
-    content: [{ type: 'text', text: JSON.stringify({ jobId, pid: job.pid, message: 'Team started. Poll with omc_run_team_status.' }) }],
+    content: [{ type: 'text', text: JSON.stringify({ jobId, pid: job.pid, message: 'Team started. Poll with omac_run_team_status.' }) }],
   };
 }
 
@@ -343,13 +343,13 @@ export async function handleStatus(args: unknown): Promise<{ content: Array<{ ty
   const { job_id } = statusSchema.parse(args);
   validateJobId(job_id);
 
-  let job = omcTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
+  let job = omacTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
   if (!job) {
     return { content: [{ type: 'text', text: JSON.stringify({ error: `No job found: ${job_id}` }) }] };
   }
 
   // Precedence: artifact terminal > job.status/result > pid liveness.
-  const artifactConvergence = convergeJobWithResultArtifact(job, job_id, OMC_JOBS_DIR);
+  const artifactConvergence = convergeJobWithResultArtifact(job, job_id, OMAC_JOBS_DIR);
   if (artifactConvergence.changed) {
     job = saveJobState(job_id, artifactConvergence.job);
     return makeJobResponse(job_id, job);
@@ -384,13 +384,13 @@ export async function handleWait(args: unknown): Promise<{ content: Array<{ type
   });
 
   while (Date.now() < deadline) {
-    let job = omcTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
+    let job = omacTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
     if (!job) {
       return { content: [{ type: 'text', text: JSON.stringify({ error: `No job found: ${job_id}` }) }] };
     }
 
     // Precedence: artifact terminal > job.status/result > pid liveness > timeout.
-    const artifactConvergence = convergeJobWithResultArtifact(job, job_id, OMC_JOBS_DIR);
+    const artifactConvergence = convergeJobWithResultArtifact(job, job_id, OMAC_JOBS_DIR);
     if (artifactConvergence.changed) {
       job = saveJobState(job_id, artifactConvergence.job);
       const out = makeJobResponse(job_id, job);
@@ -442,10 +442,10 @@ export async function handleWait(args: unknown): Promise<{ content: Array<{ type
     } catch { /* best-effort */ }
   }
 
-  const startedAt = omcTeamJobs.get(job_id)?.startedAt ?? Date.now();
+  const startedAt = omacTeamJobs.get(job_id)?.startedAt ?? Date.now();
   const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
   const timeoutOut: Record<string, unknown> = {
-    error: `Timed out waiting for job ${job_id} after ${(timeout_ms / 1000).toFixed(0)}s — workers are still running; call omc_run_team_wait again to keep waiting or omc_run_team_cleanup to stop them`,
+    error: `Timed out waiting for job ${job_id} after ${(timeout_ms / 1000).toFixed(0)}s — workers are still running; call omac_run_team_wait again to keep waiting or omac_run_team_cleanup to stop them`,
     jobId: job_id,
     status: 'running',
     elapsedSeconds: elapsed,
@@ -458,7 +458,7 @@ export async function handleCleanup(args: unknown): Promise<{ content: Array<{ t
   const { job_id, grace_ms } = cleanupSchema.parse(args);
   validateJobId(job_id);
 
-  const job = omcTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
+  const job = omacTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
   if (!job) return { content: [{ type: 'text', text: `Job ${job_id} not found` }] };
 
   const blockCleanup = (paneCleanupMessage: string, reason: string): { content: Array<{ type: 'text'; text: string }> } => {
@@ -546,8 +546,8 @@ export async function handleCleanup(args: unknown): Promise<{ content: Array<{ t
 
 const TOOLS = [
   {
-    name: 'omc_run_team_start',
-    description: '[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omc team start`.',
+    name: 'omac_run_team_start',
+    description: '[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omac team start`.',
     inputSchema: {
       type: 'object' as const,
       properties: {
@@ -572,23 +572,23 @@ const TOOLS = [
     },
   },
   {
-    name: 'omc_run_team_status',
-    description: '[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omc team status <job_id>`.',
+    name: 'omac_run_team_status',
+    description: '[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omac team status <job_id>`.',
     inputSchema: {
       type: 'object' as const,
       properties: {
-        job_id: { type: 'string', description: 'Job ID returned by omc_run_team_start' },
+        job_id: { type: 'string', description: 'Job ID returned by omac_run_team_start' },
       },
       required: ['job_id'],
     },
   },
   {
-    name: 'omc_run_team_wait',
-    description: '[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omc team wait <job_id>`.',
+    name: 'omac_run_team_wait',
+    description: '[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omac team wait <job_id>`.',
     inputSchema: {
       type: 'object' as const,
       properties: {
-        job_id: { type: 'string', description: 'Job ID returned by omc_run_team_start' },
+        job_id: { type: 'string', description: 'Job ID returned by omac_run_team_start' },
         timeout_ms: { type: 'number', description: 'Maximum wait time in ms (default: 300000, max: 3600000)' },
         nudge_delay_ms: { type: 'number', description: 'Milliseconds a pane must be idle before nudging (default: 30000)' },
         nudge_max_count: { type: 'number', description: 'Maximum nudges per pane (default: 3)' },
@@ -598,12 +598,12 @@ const TOOLS = [
     },
   },
   {
-    name: 'omc_run_team_cleanup',
-    description: '[DEPRECATED COMPAT] Prefer `omc team cleanup <job_id>`; this compatibility cleanup surface preserves team state when worker liveness or worktree cleanup is not proven safe.',
+    name: 'omac_run_team_cleanup',
+    description: '[DEPRECATED COMPAT] Prefer `omac team cleanup <job_id>`; this compatibility cleanup surface preserves team state when worker liveness or worktree cleanup is not proven safe.',
     inputSchema: {
       type: 'object' as const,
       properties: {
-        job_id: { type: 'string', description: 'Job ID returned by omc_run_team_start' },
+        job_id: { type: 'string', description: 'Job ID returned by omac_run_team_start' },
         grace_ms: { type: 'number', description: 'Grace period in ms before force-killing panes (default: 10000)' },
       },
       required: ['job_id'],
@@ -626,10 +626,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   // renames — if a tool name is removed from this dispatch block, the
   // deprecation guard will catch stale callers and return a migration hint.
   try {
-    if (name === 'omc_run_team_start') return await handleStart(args ?? {});
-    if (name === 'omc_run_team_status') return await handleStatus(args ?? {});
-    if (name === 'omc_run_team_wait') return await handleWait(args ?? {});
-    if (name === 'omc_run_team_cleanup') return await handleCleanup(args ?? {});
+    if (name === 'omac_run_team_start') return await handleStart(args ?? {});
+    if (name === 'omac_run_team_status') return await handleStatus(args ?? {});
+    if (name === 'omac_run_team_wait') return await handleWait(args ?? {});
+    if (name === 'omac_run_team_cleanup') return await handleCleanup(args ?? {});
   } catch (error) {
     return { content: [{ type: 'text', text: `Error: ${error instanceof Error ? error.message : String(error)}` }], isError: true };
   }
@@ -644,10 +644,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('OMC Team MCP Server running on stdio');
+  console.error('OMAC Team MCP Server running on stdio');
 }
 
-if (process.env.OMC_TEAM_SERVER_DISABLE_AUTOSTART !== '1' && process.env.NODE_ENV !== 'test') {
+if (process.env.OMAC_TEAM_SERVER_DISABLE_AUTOSTART !== '1' && process.env.NODE_ENV !== 'test') {
   main().catch((error) => {
     console.error('Failed to start server:', error);
     process.exit(1);

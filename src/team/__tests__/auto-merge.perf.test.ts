@@ -24,11 +24,11 @@ import {
 } from '../merge-orchestrator.js';
 
 beforeAll(() => {
-  process.env.OMC_RUNTIME_V2 = '1';
+  process.env.OMAC_RUNTIME_V2 = '1';
 });
 
 afterEach(() => {
-  process.env.OMC_RUNTIME_V2 = '1';
+  process.env.OMAC_RUNTIME_V2 = '1';
 });
 
 // ---------------------------------------------------------------------------
@@ -44,10 +44,10 @@ describe.skipIf(process.env.CI === '1')(
     beforeEach(async () => {
       fixture = await createGitFixture({
         workerCount: 1,
-        leaderBranchName: 'omc-team-test-leader',
+        leaderBranchName: 'omac-team-test-leader',
         teamName: 'perf-team',
       });
-      process.env.OMC_RUNTIME_V2 = '1';
+      process.env.OMAC_RUNTIME_V2 = '1';
 
       const config: OrchestratorConfig = {
         teamName: fixture.teamName,

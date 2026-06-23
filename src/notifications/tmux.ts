@@ -43,13 +43,13 @@ export function getCurrentTmuxSession(): string | null {
 }
 
 /**
- * List active omc-team tmux sessions for a given team.
+ * List active omac-team tmux sessions for a given team.
  */
 export function getTeamTmuxSessions(teamName: string): string[] {
   const sanitized = teamName.replace(/[^a-zA-Z0-9-]/g, "");
   if (!sanitized) return [];
 
-  const prefix = `omc-team-${sanitized}-`;
+  const prefix = `omac-team-${sanitized}-`;
   try {
     const output = tmuxShell("list-sessions -F '#{session_name}'", {
       timeout: 3000,

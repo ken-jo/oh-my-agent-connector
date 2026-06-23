@@ -139,29 +139,29 @@ function getClaudeConfigDir() {
 }
 
 // src/lib/worktree-paths.ts
-var WORKSPACE_MARKER = ".omc-workspace";
-var OmcPaths = {
-  ROOT: ".omc",
-  STATE: ".omc/state",
-  SESSIONS: ".omc/state/sessions",
-  PLANS: ".omc/plans",
-  RESEARCH: ".omc/research",
-  NOTEPAD: ".omc/notepad.md",
-  PROJECT_MEMORY: ".omc/project-memory.json",
-  DRAFTS: ".omc/drafts",
-  NOTEPADS: ".omc/notepads",
-  LOGS: ".omc/logs",
-  SCIENTIST: ".omc/scientist",
-  AUTOPILOT: ".omc/autopilot",
-  SKILLS: ".omc/skills",
-  SHARED_MEMORY: ".omc/state/shared-memory",
-  DEEPINIT_MANIFEST: ".omc/deepinit-manifest.json"
+var WORKSPACE_MARKER = ".omac-workspace";
+var OmacPaths = {
+  ROOT: ".omac",
+  STATE: ".omac/state",
+  SESSIONS: ".omac/state/sessions",
+  PLANS: ".omac/plans",
+  RESEARCH: ".omac/research",
+  NOTEPAD: ".omac/notepad.md",
+  PROJECT_MEMORY: ".omac/project-memory.json",
+  DRAFTS: ".omac/drafts",
+  NOTEPADS: ".omac/notepads",
+  LOGS: ".omac/logs",
+  SCIENTIST: ".omac/scientist",
+  AUTOPILOT: ".omac/autopilot",
+  SKILLS: ".omac/skills",
+  SHARED_MEMORY: ".omac/state/shared-memory",
+  DEEPINIT_MANIFEST: ".omac/deepinit-manifest.json"
 };
 var MAX_WORKTREE_CACHE_SIZE = 8;
 var worktreeCacheMap = /* @__PURE__ */ new Map();
 var workspaceCacheMap = /* @__PURE__ */ new Map();
 function findWorkspaceRoot(startDir) {
-  if (process.env.OMC_DISABLE_MULTIREPO === "1") return null;
+  if (process.env.OMAC_DISABLE_MULTIREPO === "1") return null;
   const effectiveStart = startDir || process.cwd();
   let current;
   try {
@@ -289,28 +289,28 @@ function getProjectIdentifier(worktreeRoot) {
   const dirName = (0, import_path3.basename)(primaryRoot).replace(/[^a-zA-Z0-9_-]/g, "_");
   return `${dirName}-${hash}`;
 }
-function getOmcRoot(worktreeRoot) {
-  const customDir = process.env.OMC_STATE_DIR;
+function getOmacRoot(worktreeRoot) {
+  const customDir = process.env.OMAC_STATE_DIR;
   if (customDir) {
     const root2 = worktreeRoot || getWorktreeRoot() || process.cwd();
     const projectId = getProjectIdentifier(root2);
     const centralizedPath = (0, import_path3.join)(customDir, projectId);
-    const legacyPath = (0, import_path3.join)(root2, OmcPaths.ROOT);
+    const legacyPath = (0, import_path3.join)(root2, OmacPaths.ROOT);
     const warningKey = `${legacyPath}:${centralizedPath}`;
     if (!dualDirWarnings.has(warningKey) && (0, import_fs2.existsSync)(legacyPath) && (0, import_fs2.existsSync)(centralizedPath)) {
       dualDirWarnings.add(warningKey);
       console.warn(
-        `[omc] Both legacy state dir (${legacyPath}) and centralized state dir (${centralizedPath}) exist. Using centralized dir. Consider migrating data from the legacy dir and removing it.`
+        `[omac] Both legacy state dir (${legacyPath}) and centralized state dir (${centralizedPath}) exist. Using centralized dir. Consider migrating data from the legacy dir and removing it.`
       );
     }
     return centralizedPath;
   }
   const workspaceAnchor = findWorkspaceRoot(worktreeRoot);
   if (workspaceAnchor) {
-    return (0, import_path3.join)(workspaceAnchor, OmcPaths.ROOT);
+    return (0, import_path3.join)(workspaceAnchor, OmacPaths.ROOT);
   }
   const root = worktreeRoot || getWorktreeRoot() || process.cwd();
-  return (0, import_path3.join)(root, OmcPaths.ROOT);
+  return (0, import_path3.join)(root, OmacPaths.ROOT);
 }
 
 // src/team/task-file-ops.ts
@@ -383,7 +383,7 @@ function resolveTmuxBinaryPath() {
 
 // src/team/tmux-session.ts
 var execFileAsync = (0, import_util2.promisify)(import_child_process3.execFile);
-var TMUX_SESSION_PREFIX = "omc-team";
+var TMUX_SESSION_PREFIX = "omac-team";
 function sanitizeName(name) {
   const sanitized = name.replace(/[^a-zA-Z0-9-]/g, "");
   if (sanitized.length === 0) {
@@ -439,36 +439,36 @@ function normalizeTaskFileStem(taskId) {
   return trimmed;
 }
 var TeamPaths = {
-  root: (teamName) => `.omc/state/team/${teamName}`,
-  config: (teamName) => `.omc/state/team/${teamName}/config.json`,
-  shutdown: (teamName) => `.omc/state/team/${teamName}/shutdown.json`,
-  tasks: (teamName) => `.omc/state/team/${teamName}/tasks`,
-  taskFile: (teamName, taskId) => `.omc/state/team/${teamName}/tasks/${normalizeTaskFileStem(taskId)}.json`,
-  workers: (teamName) => `.omc/state/team/${teamName}/workers`,
-  workerDir: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}`,
-  heartbeat: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/heartbeat.json`,
-  inbox: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/inbox.md`,
-  outbox: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/outbox.jsonl`,
-  ready: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/.ready`,
-  overlay: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/AGENTS.md`,
-  shutdownAck: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/shutdown-ack.json`,
-  mailbox: (teamName, workerName) => `.omc/state/team/${teamName}/mailbox/${workerName}.json`,
-  mailboxLockDir: (teamName, workerName) => `.omc/state/team/${teamName}/mailbox/.lock-${workerName}`,
-  dispatchRequests: (teamName) => `.omc/state/team/${teamName}/dispatch/requests.json`,
-  dispatchLockDir: (teamName) => `.omc/state/team/${teamName}/dispatch/.lock`,
-  workerStatus: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/status.json`,
-  workerIdleNotify: (teamName) => `.omc/state/team/${teamName}/worker-idle-notify.json`,
-  workerPrevNotifyState: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/prev-notify-state.json`,
-  events: (teamName) => `.omc/state/team/${teamName}/events.jsonl`,
-  approval: (teamName, taskId) => `.omc/state/team/${teamName}/approvals/${taskId}.json`,
-  manifest: (teamName) => `.omc/state/team/${teamName}/manifest.json`,
-  monitorSnapshot: (teamName) => `.omc/state/team/${teamName}/monitor-snapshot.json`,
-  summarySnapshot: (teamName) => `.omc/state/team/${teamName}/summary-snapshot.json`,
-  phaseState: (teamName) => `.omc/state/team/${teamName}/phase-state.json`,
-  scalingLock: (teamName) => `.omc/state/team/${teamName}/.scaling-lock`,
-  workerIdentity: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/identity.json`,
-  workerAgentsMd: (teamName) => `.omc/state/team/${teamName}/worker-agents.md`,
-  shutdownRequest: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/shutdown-request.json`
+  root: (teamName) => `.omac/state/team/${teamName}`,
+  config: (teamName) => `.omac/state/team/${teamName}/config.json`,
+  shutdown: (teamName) => `.omac/state/team/${teamName}/shutdown.json`,
+  tasks: (teamName) => `.omac/state/team/${teamName}/tasks`,
+  taskFile: (teamName, taskId) => `.omac/state/team/${teamName}/tasks/${normalizeTaskFileStem(taskId)}.json`,
+  workers: (teamName) => `.omac/state/team/${teamName}/workers`,
+  workerDir: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}`,
+  heartbeat: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/heartbeat.json`,
+  inbox: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/inbox.md`,
+  outbox: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/outbox.jsonl`,
+  ready: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/.ready`,
+  overlay: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/AGENTS.md`,
+  shutdownAck: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/shutdown-ack.json`,
+  mailbox: (teamName, workerName) => `.omac/state/team/${teamName}/mailbox/${workerName}.json`,
+  mailboxLockDir: (teamName, workerName) => `.omac/state/team/${teamName}/mailbox/.lock-${workerName}`,
+  dispatchRequests: (teamName) => `.omac/state/team/${teamName}/dispatch/requests.json`,
+  dispatchLockDir: (teamName) => `.omac/state/team/${teamName}/dispatch/.lock`,
+  workerStatus: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/status.json`,
+  workerIdleNotify: (teamName) => `.omac/state/team/${teamName}/worker-idle-notify.json`,
+  workerPrevNotifyState: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/prev-notify-state.json`,
+  events: (teamName) => `.omac/state/team/${teamName}/events.jsonl`,
+  approval: (teamName, taskId) => `.omac/state/team/${teamName}/approvals/${taskId}.json`,
+  manifest: (teamName) => `.omac/state/team/${teamName}/manifest.json`,
+  monitorSnapshot: (teamName) => `.omac/state/team/${teamName}/monitor-snapshot.json`,
+  summarySnapshot: (teamName) => `.omac/state/team/${teamName}/summary-snapshot.json`,
+  phaseState: (teamName) => `.omac/state/team/${teamName}/phase-state.json`,
+  scalingLock: (teamName) => `.omac/state/team/${teamName}/.scaling-lock`,
+  workerIdentity: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/identity.json`,
+  workerAgentsMd: (teamName) => `.omac/state/team/${teamName}/worker-agents.md`,
+  shutdownRequest: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/shutdown-request.json`
 };
 function getTaskStoragePath(cwd, teamName, taskId) {
   if (taskId !== void 0) {
@@ -551,7 +551,7 @@ function sanitizeTaskId(taskId) {
 function canonicalTasksDir(teamName, cwd) {
   const root = cwd ?? process.cwd();
   const dir = getTaskStoragePath(root, sanitizeName(teamName));
-  validateResolvedPath(dir, (0, import_path7.join)(getOmcRoot(root), "state", "team"));
+  validateResolvedPath(dir, (0, import_path7.join)(getOmacRoot(root), "state", "team"));
   return dir;
 }
 function legacyTasksDir(teamName) {
@@ -1030,8 +1030,8 @@ function configPath(teamName) {
   return result;
 }
 function shadowRegistryPath(workingDirectory) {
-  const result = (0, import_path9.join)(getOmcRoot(workingDirectory), "state", "team-mcp-workers.json");
-  validateResolvedPath(result, (0, import_path9.join)(getOmcRoot(workingDirectory), "state"));
+  const result = (0, import_path9.join)(getOmacRoot(workingDirectory), "state", "team-mcp-workers.json");
+  validateResolvedPath(result, (0, import_path9.join)(getOmacRoot(workingDirectory), "state"));
   return result;
 }
 function unregisterMcpWorker(teamName, workerName, workingDirectory) {
@@ -1097,7 +1097,7 @@ function listMcpWorkers(teamName, workingDirectory) {
 var import_fs9 = require("fs");
 var import_path10 = require("path");
 function heartbeatPath(workingDirectory, teamName, workerName) {
-  return (0, import_path10.join)(getOmcRoot(workingDirectory), "state", "team-bridge", sanitizeName(teamName), `${sanitizeName(workerName)}.heartbeat.json`);
+  return (0, import_path10.join)(getOmacRoot(workingDirectory), "state", "team-bridge", sanitizeName(teamName), `${sanitizeName(workerName)}.heartbeat.json`);
 }
 function writeHeartbeat(workingDirectory, data) {
   const filePath = heartbeatPath(workingDirectory, data.teamName, data.workerName);
@@ -1138,11 +1138,11 @@ function deleteHeartbeat(workingDirectory, teamName, workerName) {
 var import_node_path = require("node:path");
 var DEFAULT_MAX_LOG_SIZE = 5 * 1024 * 1024;
 function getLogPath(workingDirectory, teamName) {
-  return (0, import_node_path.join)(getOmcRoot(workingDirectory), "logs", `team-bridge-${teamName}.jsonl`);
+  return (0, import_node_path.join)(getOmacRoot(workingDirectory), "logs", `team-bridge-${teamName}.jsonl`);
 }
 function logAuditEvent(workingDirectory, event) {
   const logPath = getLogPath(workingDirectory, event.teamName);
-  const dir = (0, import_node_path.join)(getOmcRoot(workingDirectory), "logs");
+  const dir = (0, import_node_path.join)(getOmacRoot(workingDirectory), "logs");
   validateResolvedPath(logPath, dir);
   ensureDirWithMode(dir);
   const line = JSON.stringify(event) + "\n";
@@ -1369,11 +1369,11 @@ var import_path13 = require("path");
 var import_node_fs = require("node:fs");
 var import_node_path3 = require("node:path");
 function getUsageLogPath(workingDirectory, teamName) {
-  return (0, import_node_path3.join)(getOmcRoot(workingDirectory), "logs", `team-usage-${teamName}.jsonl`);
+  return (0, import_node_path3.join)(getOmacRoot(workingDirectory), "logs", `team-usage-${teamName}.jsonl`);
 }
 function recordTaskUsage(workingDirectory, teamName, record) {
   const logPath = getUsageLogPath(workingDirectory, teamName);
-  const dir = (0, import_node_path3.join)(getOmcRoot(workingDirectory), "logs");
+  const dir = (0, import_node_path3.join)(getOmacRoot(workingDirectory), "logs");
   validateResolvedPath(logPath, dir);
   ensureDirWithMode(dir);
   appendFileWithMode(logPath, JSON.stringify(record) + "\n");
@@ -1726,7 +1726,7 @@ function buildTaskPrompt(task, messages, config) {
   return result;
 }
 function writePromptFile(config, taskId, prompt) {
-  const dir = (0, import_path14.join)(getOmcRoot(config.workingDirectory), "prompts");
+  const dir = (0, import_path14.join)(getOmacRoot(config.workingDirectory), "prompts");
   ensureDirWithMode(dir);
   const filename = `team-${config.teamName}-task-${taskId}-${Date.now()}.md`;
   const filePath = (0, import_path14.join)(dir, filename);
@@ -1734,7 +1734,7 @@ function writePromptFile(config, taskId, prompt) {
   return filePath;
 }
 function getOutputPath(config, taskId) {
-  const dir = (0, import_path14.join)(getOmcRoot(config.workingDirectory), "outputs");
+  const dir = (0, import_path14.join)(getOmacRoot(config.workingDirectory), "outputs");
   ensureDirWithMode(dir);
   const suffix = Math.random().toString(36).slice(2, 8);
   return (0, import_path14.join)(
@@ -2317,9 +2317,9 @@ function validateConfigPath(configPath2, homeDir, claudeConfigDir) {
   const resolved = (0, import_path15.resolve)(configPath2);
   const isUnderHome = resolved.startsWith(homeDir + "/") || resolved === homeDir;
   const normalizedConfigDir = (0, import_path15.resolve)(claudeConfigDir);
-  const normalizedOmcDir = (0, import_path15.resolve)(homeDir, ".omc");
-  const hasOmcComponent = resolved.includes("/.omc/") || resolved.endsWith("/.omc");
-  const isTrustedSubpath = resolved === normalizedConfigDir || resolved.startsWith(normalizedConfigDir + "/") || resolved === normalizedOmcDir || resolved.startsWith(normalizedOmcDir + "/") || hasOmcComponent;
+  const normalizedOmacDir = (0, import_path15.resolve)(homeDir, ".omac");
+  const hasOmacComponent = resolved.includes("/.omac/") || resolved.endsWith("/.omac");
+  const isTrustedSubpath = resolved === normalizedConfigDir || resolved.startsWith(normalizedConfigDir + "/") || resolved === normalizedOmacDir || resolved.startsWith(normalizedOmacDir + "/") || hasOmacComponent;
   if (!isUnderHome || !isTrustedSubpath) return false;
   try {
     const parentDir = (0, import_path15.resolve)(resolved, "..");
@@ -2361,7 +2361,7 @@ function main() {
   const home = (0, import_os3.homedir)();
   const claudeConfigDir = getClaudeConfigDir();
   if (!validateConfigPath(configPath2, home, claudeConfigDir)) {
-    console.error(`Config path must be under ~/ with ${claudeConfigDir} or ~/.omc/ subpath: ${configPath2}`);
+    console.error(`Config path must be under ~/ with ${claudeConfigDir} or ~/.omac/ subpath: ${configPath2}`);
     process.exit(1);
   }
   let config;

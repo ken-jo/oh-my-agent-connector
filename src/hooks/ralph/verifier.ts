@@ -8,15 +8,15 @@
  * 1. Ralph claims task is complete
  * 2. System enters verification mode
  * 3. Architect agent is invoked to verify the work
- * 4. If architect approves -> truly complete, use /oh-my-claudecode:cancel to exit
+ * 4. If architect approves -> truly complete, use /oh-my-agent-connector:cancel to exit
  * 5. If architect finds flaws -> continue ralph with architect feedback
  */
 
 import { randomUUID } from 'crypto';
 import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { resolveSessionStatePath, ensureSessionStateDir, getOmcRoot } from '../../lib/worktree-paths.js';
-import { formatOmcCliInvocation } from '../../utils/omc-cli-rendering.js';
+import { resolveSessionStatePath, ensureSessionStateDir, getOmacRoot } from '../../lib/worktree-paths.js';
+import { formatOmacCliInvocation } from '../../utils/omac-cli-rendering.js';
 import type { UserStory } from './prd.js';
 import type { RalphCriticMode } from './loop.js';
 
@@ -79,7 +79,7 @@ function getVerificationAgentStep(mode?: RalphCriticMode): string {
     case 'codex':
       return `1. **Run an external Codex critic review**:
    \`\`\`
-   ${formatOmcCliInvocation('ask codex --agent-prompt critic "<verification prompt covering the task, completion claim, and acceptance criteria>"')}
+   ${formatOmacCliInvocation('ask codex --agent-prompt critic "<verification prompt covering the task, completion claim, and acceptance criteria>"')}
    \`\`\`
    Use the Codex output as the reviewer verdict before deciding pass/fix.`;
     default:
@@ -98,7 +98,7 @@ function getVerificationStatePath(directory: string, sessionId?: string): string
   if (sessionId) {
     return resolveSessionStatePath('ralph-verification', sessionId, directory);
   }
-  return join(getOmcRoot(directory), 'ralph-verification.json');
+  return join(getOmacRoot(directory), 'ralph-verification.json');
 }
 
 /**
@@ -131,7 +131,7 @@ export function writeVerificationState(directory: string, state: VerificationSta
   if (sessionId) {
     ensureSessionStateDir(sessionId, directory);
   } else {
-    const stateDir = getOmcRoot(directory);
+    const stateDir = getOmacRoot(directory);
     if (!existsSync(stateDir)) {
       try {
         mkdirSync(stateDir, { recursive: true });
@@ -275,7 +275,7 @@ ${getVerificationAgentStep(state.critic_mode)}
    - Return ONLY a concise review summary under 100 words with verdict, evidence highlights, files checked, and blockers. Do not paste long logs inline.
 
 3. **Based on ${criticLabel}'s response:**
-   - If APPROVED: Output the exact correlated approval tag \`${approvalTag}\`, then run \`/oh-my-claudecode:cancel\` to cleanly exit
+   - If APPROVED: Output the exact correlated approval tag \`${approvalTag}\`, then run \`/oh-my-agent-connector:cancel\` to cleanly exit
    - If REJECTED: Continue working on the identified issues
 
 </ralph-verification>
@@ -307,7 +307,7 @@ ${state.original_task}
 1. Address ALL issues identified by ${criticLabel}
 2. Do NOT claim completion again until issues are fixed${state.story_id ? `, and do not progress story ${state.story_id} until it passes review` : ''}
 3. When truly done, another ${criticLabel} verification will be triggered
-4. After ${criticLabel} approves, run \`/oh-my-claudecode:cancel\` to cleanly exit
+4. After ${criticLabel} approves, run \`/oh-my-agent-connector:cancel\` to cleanly exit
 
 Continue working now.
 

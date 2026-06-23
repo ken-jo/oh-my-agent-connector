@@ -2,8 +2,8 @@
  * Configuration Loader
  *
  * Handles loading and merging configuration from multiple sources:
- * - User config: ~/.config/claude-omc/config.jsonc
- * - Project config: .claude/omc.jsonc
+ * - User config: ~/.config/claude-omac/config.jsonc
+ * - Project config: .claude/omac.jsonc
  * - Environment variables
  */
 
@@ -32,12 +32,12 @@ import { isDeprecatedMcpProvider } from "../features/delegation-routing/index.js
 /**
  * Default configuration.
  *
- * Model IDs are resolved from environment variables (OMC_MODEL_HIGH,
- * OMC_MODEL_MEDIUM, OMC_MODEL_LOW) with built-in fallbacks.
+ * Model IDs are resolved from environment variables (OMAC_MODEL_HIGH,
+ * OMAC_MODEL_MEDIUM, OMAC_MODEL_LOW) with built-in fallbacks.
  * User/project config files can further override via deepMerge.
  *
- * Note: env vars for external model defaults (OMC_CODEX_DEFAULT_MODEL,
- * OMC_GEMINI_DEFAULT_MODEL) are read lazily in loadEnvConfig() to avoid
+ * Note: env vars for external model defaults (OMAC_CODEX_DEFAULT_MODEL,
+ * OMAC_GEMINI_DEFAULT_MODEL) are read lazily in loadEnvConfig() to avoid
  * capturing stale values at module load time.
  */
 export function buildDefaultConfig(): PluginConfig {
@@ -45,7 +45,7 @@ export function buildDefaultConfig(): PluginConfig {
 
   return {
     agents: {
-      omc: { model: defaultTierModels.HIGH },
+      omac: { model: defaultTierModels.HIGH },
       explore: { model: defaultTierModels.LOW },
       analyst: { model: defaultTierModels.HIGH },
       planner: { model: defaultTierModels.HIGH },
@@ -167,7 +167,7 @@ export function buildDefaultConfig(): PluginConfig {
       roleRouting: {},
     },
     planOutput: {
-      directory: ".omc/plans",
+      directory: ".omac/plans",
       filenameTemplate: "{{name}}.md",
     },
     teleport: {
@@ -207,8 +207,8 @@ export function getConfigPaths(): { user: string; project: string } {
   const userConfigDir = getConfigDir();
 
   return {
-    user: join(userConfigDir, "claude-omc", "config.jsonc"),
-    project: join(process.cwd(), ".claude", "omc.jsonc"),
+    user: join(userConfigDir, "claude-omac", "config.jsonc"),
+    project: join(process.cwd(), ".claude", "omac.jsonc"),
   };
 }
 
@@ -279,22 +279,22 @@ export function loadEnvConfig(): Partial<PluginConfig> {
   }
 
   // Feature flags from environment
-  if (process.env.OMC_PARALLEL_EXECUTION !== undefined) {
+  if (process.env.OMAC_PARALLEL_EXECUTION !== undefined) {
     config.features = {
       ...config.features,
-      parallelExecution: process.env.OMC_PARALLEL_EXECUTION === "true",
+      parallelExecution: process.env.OMAC_PARALLEL_EXECUTION === "true",
     };
   }
 
-  if (process.env.OMC_LSP_TOOLS !== undefined) {
+  if (process.env.OMAC_LSP_TOOLS !== undefined) {
     config.features = {
       ...config.features,
-      lspTools: process.env.OMC_LSP_TOOLS === "true",
+      lspTools: process.env.OMAC_LSP_TOOLS === "true",
     };
   }
 
-  if (process.env.OMC_MAX_BACKGROUND_TASKS) {
-    const maxTasks = parseInt(process.env.OMC_MAX_BACKGROUND_TASKS, 10);
+  if (process.env.OMAC_MAX_BACKGROUND_TASKS) {
+    const maxTasks = parseInt(process.env.OMAC_MAX_BACKGROUND_TASKS, 10);
     if (!isNaN(maxTasks)) {
       config.permissions = {
         ...config.permissions,
@@ -304,22 +304,22 @@ export function loadEnvConfig(): Partial<PluginConfig> {
   }
 
   // Routing configuration from environment
-  if (process.env.OMC_ROUTING_ENABLED !== undefined) {
+  if (process.env.OMAC_ROUTING_ENABLED !== undefined) {
     config.routing = {
       ...config.routing,
-      enabled: process.env.OMC_ROUTING_ENABLED === "true",
+      enabled: process.env.OMAC_ROUTING_ENABLED === "true",
     };
   }
 
-  if (process.env.OMC_ROUTING_FORCE_INHERIT !== undefined) {
+  if (process.env.OMAC_ROUTING_FORCE_INHERIT !== undefined) {
     config.routing = {
       ...config.routing,
-      forceInherit: process.env.OMC_ROUTING_FORCE_INHERIT === "true",
+      forceInherit: process.env.OMAC_ROUTING_FORCE_INHERIT === "true",
     };
   }
 
-  if (process.env.OMC_ROUTING_DEFAULT_TIER) {
-    const tier = process.env.OMC_ROUTING_DEFAULT_TIER.toUpperCase();
+  if (process.env.OMAC_ROUTING_DEFAULT_TIER) {
+    const tier = process.env.OMAC_ROUTING_DEFAULT_TIER.toUpperCase();
     if (tier === "LOW" || tier === "MEDIUM" || tier === "HIGH") {
       config.routing = {
         ...config.routing,
@@ -332,7 +332,7 @@ export function loadEnvConfig(): Partial<PluginConfig> {
   const aliasKeys = ["HAIKU", "SONNET", "OPUS"] as const;
   const modelAliases: Record<string, string> = {};
   for (const key of aliasKeys) {
-    const envVal = process.env[`OMC_MODEL_ALIAS_${key}`];
+    const envVal = process.env[`OMAC_MODEL_ALIAS_${key}`];
     if (envVal) {
       const lower = key.toLowerCase();
       modelAliases[lower] = envVal.toLowerCase();
@@ -348,53 +348,53 @@ export function loadEnvConfig(): Partial<PluginConfig> {
     };
   }
 
-  if (process.env.OMC_ESCALATION_ENABLED !== undefined) {
+  if (process.env.OMAC_ESCALATION_ENABLED !== undefined) {
     config.routing = {
       ...config.routing,
-      escalationEnabled: process.env.OMC_ESCALATION_ENABLED === "true",
+      escalationEnabled: process.env.OMAC_ESCALATION_ENABLED === "true",
     };
   }
 
   // External models configuration from environment
   const externalModelsDefaults: ExternalModelsConfig["defaults"] = {};
 
-  if (process.env.OMC_EXTERNAL_MODELS_DEFAULT_PROVIDER) {
-    const provider = process.env.OMC_EXTERNAL_MODELS_DEFAULT_PROVIDER;
+  if (process.env.OMAC_EXTERNAL_MODELS_DEFAULT_PROVIDER) {
+    const provider = process.env.OMAC_EXTERNAL_MODELS_DEFAULT_PROVIDER;
     if (provider === "codex" || provider === "gemini") {
       externalModelsDefaults.provider = provider;
     }
   }
 
-  if (process.env.OMC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL) {
+  if (process.env.OMAC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL) {
     externalModelsDefaults.codexModel =
-      process.env.OMC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL;
-  } else if (process.env.OMC_CODEX_DEFAULT_MODEL) {
+      process.env.OMAC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL;
+  } else if (process.env.OMAC_CODEX_DEFAULT_MODEL) {
     // Legacy fallback
-    externalModelsDefaults.codexModel = process.env.OMC_CODEX_DEFAULT_MODEL;
+    externalModelsDefaults.codexModel = process.env.OMAC_CODEX_DEFAULT_MODEL;
   }
 
-  if (process.env.OMC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL) {
+  if (process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL) {
     externalModelsDefaults.geminiModel =
-      process.env.OMC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL;
-  } else if (process.env.OMC_GEMINI_DEFAULT_MODEL) {
+      process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL;
+  } else if (process.env.OMAC_GEMINI_DEFAULT_MODEL) {
     // Legacy fallback
-    externalModelsDefaults.geminiModel = process.env.OMC_GEMINI_DEFAULT_MODEL;
+    externalModelsDefaults.geminiModel = process.env.OMAC_GEMINI_DEFAULT_MODEL;
   }
 
-  if (process.env.OMC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL) {
+  if (process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL) {
     externalModelsDefaults.grokModel =
-      process.env.OMC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL;
-  } else if (process.env.OMC_GROK_DEFAULT_MODEL) {
+      process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL;
+  } else if (process.env.OMAC_GROK_DEFAULT_MODEL) {
     // Legacy fallback
-    externalModelsDefaults.grokModel = process.env.OMC_GROK_DEFAULT_MODEL;
+    externalModelsDefaults.grokModel = process.env.OMAC_GROK_DEFAULT_MODEL;
   }
 
   const externalModelsFallback: ExternalModelsConfig["fallbackPolicy"] = {
     onModelFailure: "provider_chain",
   };
 
-  if (process.env.OMC_EXTERNAL_MODELS_FALLBACK_POLICY) {
-    const policy = process.env.OMC_EXTERNAL_MODELS_FALLBACK_POLICY;
+  if (process.env.OMAC_EXTERNAL_MODELS_FALLBACK_POLICY) {
+    const policy = process.env.OMAC_EXTERNAL_MODELS_FALLBACK_POLICY;
     if (
       policy === "provider_chain" ||
       policy === "cross_provider" ||
@@ -416,15 +416,15 @@ export function loadEnvConfig(): Partial<PluginConfig> {
   }
 
   // Delegation routing configuration from environment
-  if (process.env.OMC_DELEGATION_ROUTING_ENABLED !== undefined) {
+  if (process.env.OMAC_DELEGATION_ROUTING_ENABLED !== undefined) {
     config.delegationRouting = {
       ...config.delegationRouting,
-      enabled: process.env.OMC_DELEGATION_ROUTING_ENABLED === "true",
+      enabled: process.env.OMAC_DELEGATION_ROUTING_ENABLED === "true",
     };
   }
 
-  if (process.env.OMC_DELEGATION_ROUTING_DEFAULT_PROVIDER) {
-    const provider = process.env.OMC_DELEGATION_ROUTING_DEFAULT_PROVIDER;
+  if (process.env.OMAC_DELEGATION_ROUTING_DEFAULT_PROVIDER) {
+    const provider = process.env.OMAC_DELEGATION_ROUTING_DEFAULT_PROVIDER;
     if (["claude", "codex", "gemini"].includes(provider)) {
       config.delegationRouting = {
         ...config.delegationRouting,
@@ -433,7 +433,7 @@ export function loadEnvConfig(): Partial<PluginConfig> {
     }
   }
 
-  // /team role routing env override (OMC_TEAM_ROLE_OVERRIDES — single JSON var).
+  // /team role routing env override (OMAC_TEAM_ROLE_OVERRIDES — single JSON var).
   // Best-effort: invalid JSON logs and is ignored (no throw on env path).
   const teamRoleOverrides = parseTeamRoleOverridesFromEnv();
   if (teamRoleOverrides) {
@@ -472,7 +472,7 @@ function warnOnDeprecatedDelegationRouting(config: PluginConfig): void {
   }
 
   console.warn(
-    "[OMC] delegationRouting to Codex/Gemini is deprecated and falls back to Claude Task. Use /team for Codex/Gemini CLI workers instead.",
+    "[OMAC] delegationRouting to Codex/Gemini is deprecated and falls back to Claude Task. Use /team for Codex/Gemini CLI workers instead.",
   );
 }
 
@@ -502,7 +502,7 @@ export function validateTeamConfig(config: PluginConfig): void {
         !TEAM_ROLE_PROVIDERS.has(ops.defaultAgentType)
       ) {
         throw new Error(
-          `[OMC] team.ops.defaultAgentType: invalid value "${String(ops.defaultAgentType)}". Allowed: ${[...TEAM_ROLE_PROVIDERS].join(", ")}`,
+          `[OMAC] team.ops.defaultAgentType: invalid value "${String(ops.defaultAgentType)}". Allowed: ${[...TEAM_ROLE_PROVIDERS].join(", ")}`,
         );
       }
     }
@@ -510,7 +510,7 @@ export function validateTeamConfig(config: PluginConfig): void {
       const allowed = new Set(["disabled", "off", "detached", "branch", "named"]);
       if (typeof ops.worktreeMode !== "string" || !allowed.has(ops.worktreeMode)) {
         throw new Error(
-          `[OMC] team.ops.worktreeMode: invalid value "${String(ops.worktreeMode)}". Allowed: ${[...allowed].join(", ")}`,
+          `[OMAC] team.ops.worktreeMode: invalid value "${String(ops.worktreeMode)}". Allowed: ${[...allowed].join(", ")}`,
         );
       }
     }
@@ -523,13 +523,13 @@ export function validateTeamConfig(config: PluginConfig): void {
     const normalized = normalizeDelegationRole(rawRoleKey);
     if (!CANONICAL_TEAM_ROLE_SET.has(normalized)) {
       throw new Error(
-        `[OMC] team.roleRouting: unknown role "${rawRoleKey}". Allowed roles: ${[...CANONICAL_TEAM_ROLE_SET].join(", ")}`,
+        `[OMAC] team.roleRouting: unknown role "${rawRoleKey}". Allowed roles: ${[...CANONICAL_TEAM_ROLE_SET].join(", ")}`,
       );
     }
 
     if (!rawSpec || typeof rawSpec !== "object" || Array.isArray(rawSpec)) {
       throw new Error(
-        `[OMC] team.roleRouting.${rawRoleKey}: must be an object, got ${Array.isArray(rawSpec) ? "array" : typeof rawSpec}`,
+        `[OMAC] team.roleRouting.${rawRoleKey}: must be an object, got ${Array.isArray(rawSpec) ? "array" : typeof rawSpec}`,
       );
     }
     const spec = rawSpec as Record<string, unknown>;
@@ -539,13 +539,13 @@ export function validateTeamConfig(config: PluginConfig): void {
       for (const key of Object.keys(spec)) {
         if (key !== "model") {
           throw new Error(
-            `[OMC] team.roleRouting.orchestrator: key "${key}" is not allowed (orchestrator is pinned to claude; only "model" is configurable)`,
+            `[OMAC] team.roleRouting.orchestrator: key "${key}" is not allowed (orchestrator is pinned to claude; only "model" is configurable)`,
           );
         }
       }
       if (spec.model !== undefined && !isValidModelValue(spec.model)) {
         throw new Error(
-          `[OMC] team.roleRouting.orchestrator.model: must be a tier name (HIGH|MEDIUM|LOW) or model ID string, got ${typeof spec.model}`,
+          `[OMAC] team.roleRouting.orchestrator.model: must be a tier name (HIGH|MEDIUM|LOW) or model ID string, got ${typeof spec.model}`,
         );
       }
       continue;
@@ -554,21 +554,21 @@ export function validateTeamConfig(config: PluginConfig): void {
     if (spec.provider !== undefined) {
       if (typeof spec.provider !== "string" || !TEAM_ROLE_PROVIDERS.has(spec.provider)) {
         throw new Error(
-          `[OMC] team.roleRouting.${rawRoleKey}.provider: invalid value "${String(spec.provider)}". Allowed: ${[...TEAM_ROLE_PROVIDERS].join(", ")}`,
+          `[OMAC] team.roleRouting.${rawRoleKey}.provider: invalid value "${String(spec.provider)}". Allowed: ${[...TEAM_ROLE_PROVIDERS].join(", ")}`,
         );
       }
     }
 
     if (spec.model !== undefined && !isValidModelValue(spec.model)) {
       throw new Error(
-        `[OMC] team.roleRouting.${rawRoleKey}.model: must be a tier name (HIGH|MEDIUM|LOW) or a non-empty model ID string`,
+        `[OMAC] team.roleRouting.${rawRoleKey}.model: must be a tier name (HIGH|MEDIUM|LOW) or a non-empty model ID string`,
       );
     }
 
     if (spec.agent !== undefined) {
       if (typeof spec.agent !== "string" || !KNOWN_AGENT_NAME_SET.has(spec.agent)) {
         throw new Error(
-          `[OMC] team.roleRouting.${rawRoleKey}.agent: unknown agent "${String(spec.agent)}". Allowed: ${[...KNOWN_AGENT_NAME_SET].join(", ")}`,
+          `[OMAC] team.roleRouting.${rawRoleKey}.agent: unknown agent "${String(spec.agent)}". Allowed: ${[...KNOWN_AGENT_NAME_SET].join(", ")}`,
         );
       }
     }
@@ -584,20 +584,20 @@ function isValidModelValue(value: unknown): value is string {
 }
 
 function parseTeamRoleOverridesFromEnv(): Record<string, TeamRoleAssignmentSpec> | undefined {
-  const raw = process.env.OMC_TEAM_ROLE_OVERRIDES;
+  const raw = process.env.OMAC_TEAM_ROLE_OVERRIDES;
   if (!raw) return undefined;
   try {
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       console.warn(
-        "[OMC] OMC_TEAM_ROLE_OVERRIDES: expected a JSON object; ignoring.",
+        "[OMAC] OMAC_TEAM_ROLE_OVERRIDES: expected a JSON object; ignoring.",
       );
       return undefined;
     }
     return parsed as Record<string, TeamRoleAssignmentSpec>;
   } catch (err) {
     console.warn(
-      `[OMC] OMC_TEAM_ROLE_OVERRIDES: invalid JSON, ignoring (${(err as Error).message})`,
+      `[OMAC] OMAC_TEAM_ROLE_OVERRIDES: invalid JSON, ignoring (${(err as Error).message})`,
     );
     return undefined;
   }
@@ -633,7 +633,7 @@ export function loadConfig(): PluginConfig {
   // tier names (sonnet/opus/haiku) causes 400 errors on these platforms.
   if (
     config.routing?.forceInherit !== true &&
-    process.env.OMC_ROUTING_FORCE_INHERIT === undefined &&
+    process.env.OMAC_ROUTING_FORCE_INHERIT === undefined &&
     shouldAutoForceInherit()
   ) {
     config.routing = {
@@ -651,13 +651,13 @@ export function loadConfig(): PluginConfig {
   return config;
 }
 
-const OMC_STARTUP_COMPACTABLE_SECTIONS = [
+const OMAC_STARTUP_COMPACTABLE_SECTIONS = [
   "agent_catalog",
   "skills",
   "team_compositions",
 ] as const;
-const OMC_STARTUP_GUIDANCE_MAX_CHARS = 8000;
-const OMC_CONTEXT_FILES_MAX_CHARS = 12000;
+const OMAC_STARTUP_GUIDANCE_MAX_CHARS = 8000;
+const OMAC_CONTEXT_FILES_MAX_CHARS = 12000;
 
 function compactBudgetedText(text: string, maxChars: number): string {
   if (!text || maxChars <= 0) return "";
@@ -667,26 +667,26 @@ function compactBudgetedText(text: string, maxChars: number): string {
   return `${text.slice(0, maxChars - notice.length).trimEnd()}${notice}`;
 }
 
-function looksLikeOmcGuidance(content: string): boolean {
+function looksLikeOmacGuidance(content: string): boolean {
   return (
     content.includes("<guidance_schema_contract>") &&
-    /oh-my-(claudecode|codex)/i.test(content) &&
-    OMC_STARTUP_COMPACTABLE_SECTIONS.some(
+    /(?:oh-my-agent-connector|oh-my-(claudecode|codex))/i.test(content) &&
+    OMAC_STARTUP_COMPACTABLE_SECTIONS.some(
       (section) =>
         content.includes(`<${section}>`) && content.includes(`</${section}>`),
     )
   );
 }
 
-export function compactOmcStartupGuidance(content: string): string {
-  if (!looksLikeOmcGuidance(content)) {
+export function compactOmacStartupGuidance(content: string): string {
+  if (!looksLikeOmacGuidance(content)) {
     return content;
   }
 
   let compacted = content;
   let removedAny = false;
 
-  for (const section of OMC_STARTUP_COMPACTABLE_SECTIONS) {
+  for (const section of OMAC_STARTUP_COMPACTABLE_SECTIONS) {
     const pattern = new RegExp(
       `\n*<${section}>[\\s\\S]*?</${section}>\n*`,
       "g",
@@ -701,12 +701,12 @@ export function compactOmcStartupGuidance(content: string): string {
     .replace(/\n\n---\n\n---\n\n/g, "\n\n---\n\n")
     .trim();
 
-  if (normalized.length <= OMC_STARTUP_GUIDANCE_MAX_CHARS) {
+  if (normalized.length <= OMAC_STARTUP_GUIDANCE_MAX_CHARS) {
     return removedAny ? normalized : content;
   }
 
-  const notice = "\n\n[OMC startup guidance truncated to preserve an 8000-character budget. Read the source file directly for the full document.]";
-  return `${normalized.slice(0, OMC_STARTUP_GUIDANCE_MAX_CHARS - notice.length).trimEnd()}${notice}`;
+  const notice = "\n\n[OMAC startup guidance truncated to preserve an 8000-character budget. Read the source file directly for the full document.]";
+  return `${normalized.slice(0, OMAC_STARTUP_GUIDANCE_MAX_CHARS - notice.length).trimEnd()}${notice}`;
 }
 
 /**
@@ -756,10 +756,10 @@ export function loadContextFromFiles(files: string[]): string {
 
   for (const file of files) {
     try {
-      const content = compactOmcStartupGuidance(readFileSync(file, "utf-8"));
+      const content = compactOmacStartupGuidance(readFileSync(file, "utf-8"));
       const contextBlock = `## Context from ${file}\n\n${content}`;
       const separatorLength = contexts.length > 0 ? separator.length : 0;
-      const remainingBudget = OMC_CONTEXT_FILES_MAX_CHARS - used - separatorLength;
+      const remainingBudget = OMAC_CONTEXT_FILES_MAX_CHARS - used - separatorLength;
 
       if (remainingBudget <= 0) break;
       if (contextBlock.length > remainingBudget) {
@@ -790,7 +790,7 @@ export function generateConfigSchema(): object {
         type: "object",
         description: "Agent model and feature configuration",
         properties: {
-          omc: {
+          omac: {
             type: "object",
             properties: {
               model: {
@@ -976,7 +976,7 @@ export function generateConfigSchema(): object {
             type: "boolean",
             default: false,
             description:
-              "Force all agents to inherit the parent model, bypassing OMC model routing. When true, no model parameter is passed to Task/Agent calls, so agents use the user's Claude Code model setting. Auto-enabled for non-Claude providers (CC Switch, custom ANTHROPIC_BASE_URL), AWS Bedrock, and Google Vertex AI.",
+              "Force all agents to inherit the parent model, bypassing OMAC model routing. When true, no model parameter is passed to Task/Agent calls, so agents use the user's Claude Code model setting. Auto-enabled for non-Claude providers (CC Switch, custom ANTHROPIC_BASE_URL), AWS Bedrock, and Google Vertex AI.",
           },
         },
       },

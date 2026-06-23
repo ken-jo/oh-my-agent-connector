@@ -27,17 +27,17 @@ import { getNotificationConfig } from "../config.js";
 describe("getNotificationConfig - named profiles", () => {
   beforeEach(() => {
     // Clear all env vars
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "");
-    vi.stubEnv("OMC_DISCORD_WEBHOOK_URL", "");
-    vi.stubEnv("OMC_DISCORD_MENTION", "");
-    vi.stubEnv("OMC_TELEGRAM_BOT_TOKEN", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_BOT_TOKEN", "");
-    vi.stubEnv("OMC_TELEGRAM_CHAT_ID", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_CHAT_ID", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_UID", "");
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "");
-    vi.stubEnv("OMC_NOTIFY_PROFILE", "");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "");
+    vi.stubEnv("OMAC_DISCORD_WEBHOOK_URL", "");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "");
+    vi.stubEnv("OMAC_TELEGRAM_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_TELEGRAM_CHAT_ID", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_CHAT_ID", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_UID", "");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "");
+    vi.stubEnv("OMAC_NOTIFY_PROFILE", "");
     // Default: no config file
     vi.mocked(existsSync).mockReturnValue(false);
   });
@@ -73,8 +73,8 @@ describe("getNotificationConfig - named profiles", () => {
     expect(config!.slack).toBeUndefined();
   });
 
-  it("returns named profile when OMC_NOTIFY_PROFILE env var is set", () => {
-    vi.stubEnv("OMC_NOTIFY_PROFILE", "ops");
+  it("returns named profile when OMAC_NOTIFY_PROFILE env var is set", () => {
+    vi.stubEnv("OMAC_NOTIFY_PROFILE", "ops");
     vi.mocked(existsSync).mockReturnValue(true);
     vi.mocked(readFileSync).mockReturnValue(
       JSON.stringify({
@@ -97,8 +97,8 @@ describe("getNotificationConfig - named profiles", () => {
     expect(config!.slack).toBeUndefined();
   });
 
-  it("profileName argument takes precedence over OMC_NOTIFY_PROFILE env var", () => {
-    vi.stubEnv("OMC_NOTIFY_PROFILE", "env-profile");
+  it("profileName argument takes precedence over OMAC_NOTIFY_PROFILE env var", () => {
+    vi.stubEnv("OMAC_NOTIFY_PROFILE", "env-profile");
     vi.mocked(existsSync).mockReturnValue(true);
     vi.mocked(readFileSync).mockReturnValue(
       JSON.stringify({
@@ -151,7 +151,7 @@ describe("getNotificationConfig - named profiles", () => {
 
   it("falls back to default when profile env var set but no profiles exist", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    vi.stubEnv("OMC_NOTIFY_PROFILE", "missing");
+    vi.stubEnv("OMAC_NOTIFY_PROFILE", "missing");
     vi.mocked(existsSync).mockReturnValue(true);
     vi.mocked(readFileSync).mockReturnValue(
       JSON.stringify({
@@ -186,8 +186,8 @@ describe("getNotificationConfig - named profiles", () => {
   });
 
   it("merges env platforms into profile config", () => {
-    vi.stubEnv("OMC_TELEGRAM_BOT_TOKEN", "env-tg-token");
-    vi.stubEnv("OMC_TELEGRAM_CHAT_ID", "env-tg-chat");
+    vi.stubEnv("OMAC_TELEGRAM_BOT_TOKEN", "env-tg-token");
+    vi.stubEnv("OMAC_TELEGRAM_CHAT_ID", "env-tg-chat");
     vi.mocked(existsSync).mockReturnValue(true);
     vi.mocked(readFileSync).mockReturnValue(
       JSON.stringify({
@@ -211,7 +211,7 @@ describe("getNotificationConfig - named profiles", () => {
   });
 
   it("applies env mention to profile discord config", () => {
-    vi.stubEnv("OMC_DISCORD_MENTION", "<@12345678901234567>");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "<@12345678901234567>");
     vi.mocked(existsSync).mockReturnValue(true);
     vi.mocked(readFileSync).mockReturnValue(
       JSON.stringify({

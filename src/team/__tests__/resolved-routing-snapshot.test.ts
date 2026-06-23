@@ -7,9 +7,9 @@ import { CLAUDE_FAMILY_DEFAULTS, BUILTIN_EXTERNAL_MODEL_DEFAULTS } from '../../c
 type TeamRoleRoutingConfig = NonNullable<NonNullable<PluginConfig['team']>['roleRouting']>;
 
 const ENV_KEYS = [
-  'OMC_MODEL_HIGH',
-  'OMC_MODEL_MEDIUM',
-  'OMC_MODEL_LOW',
+  'OMAC_MODEL_HIGH',
+  'OMAC_MODEL_MEDIUM',
+  'OMAC_MODEL_LOW',
   'CLAUDE_CODE_BEDROCK_OPUS_MODEL',
   'CLAUDE_CODE_BEDROCK_SONNET_MODEL',
   'CLAUDE_CODE_BEDROCK_HAIKU_MODEL',
@@ -105,7 +105,7 @@ describe('buildResolvedRoutingSnapshot', () => {
     const snap = buildResolvedRoutingSnapshot(cfg);
     expect(snap.orchestrator.primary.provider).toBe('claude');
     expect(snap.orchestrator.fallback.provider).toBe('claude');
-    expect(snap.orchestrator.primary.agent).toBe('omc');
+    expect(snap.orchestrator.primary.agent).toBe('omac');
   });
 
   it('snapshot is a plain object — JSON-roundtrip-safe for TeamConfig persistence', () => {

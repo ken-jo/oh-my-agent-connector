@@ -83,7 +83,7 @@ World`);
       const result = sanitizeForKeywordDetection(`Investigate why this pasted transcript branched sessions:
 
 [MAGIC KEYWORD: RALPH]
-Skill: oh-my-claudecode:ralph
+Skill: oh-my-agent-connector:ralph
 User request:
 ralph fix parser
 
@@ -92,7 +92,7 @@ Summarize the failure mode only.`);
       expect(result).toContain('Investigate why this pasted transcript branched sessions:');
       expect(result).toContain('Summarize the failure mode only.');
       expect(result).not.toContain('[MAGIC KEYWORD: RALPH]');
-      expect(result).not.toContain('Skill: oh-my-claudecode:ralph');
+      expect(result).not.toContain('Skill: oh-my-agent-connector:ralph');
       expect(result).not.toContain('ralph fix parser');
     });
 
@@ -117,14 +117,14 @@ What actually caused the regression?`);
       const result = sanitizeForKeywordDetection(`Please explain this transcript:
 <assistant>
 [MAGIC KEYWORD: AUTOPILOT]
-Skill: oh-my-claudecode:autopilot
+Skill: oh-my-agent-connector:autopilot
 </assistant>
 Why did this happen?`);
 
       expect(result).toContain('Please explain this transcript:');
       expect(result).toContain('Why did this happen?');
       expect(result).not.toContain('AUTOPILOT');
-      expect(result).not.toContain('Skill: oh-my-claudecode:autopilot');
+      expect(result).not.toContain('Skill: oh-my-agent-connector:autopilot');
     });
 
     it('should strip XML tag blocks', () => {
@@ -499,17 +499,17 @@ Final draft.`);
       });
 
       it('should NOT detect explanatory comparison prose from issue #2474', () => {
-        const result = detectKeywordsWithType(`🦌 DeerFlow vs ⚡ OMC Ultrawork - 완전 비교!
+        const result = detectKeywordsWithType(`🦌 DeerFlow vs ⚡ OMAC Ultrawork - 완전 비교!
 ...
-OMC Ultrawork = "특수부대 작전 반"
+OMAC Ultrawork = "특수부대 작전 반"
 ...
-결론: "순식간에 많은 작업" → OMC Ultrawork ⚡
+결론: "순식간에 많은 작업" → OMAC Ultrawork ⚡
 이런대화가 한번이라면 몇번할수있을까 오픈라우터 20달러 결제기준 api로`);
         expect(result).toEqual([]);
       });
 
       it('should NOT detect quoted follow-up references after a bad activation', () => {
-        const result = detectKeywordsWithType('The article said "OMC Ultrawork", but why is the answer the same?');
+        const result = detectKeywordsWithType('The article said "OMAC Ultrawork", but why is the answer the same?');
         expect(result).toEqual([]);
       });
 
@@ -533,13 +533,13 @@ OMC Ultrawork = "특수부대 작전 반"
       });
 
       it('should NOT detect single-mode explanatory definitions followed by an unrelated question', () => {
-        const result = detectKeywordsWithType('OMC Ultrawork = "special ops". how much would it cost?');
+        const result = detectKeywordsWithType('OMAC Ultrawork = "special ops". how much would it cost?');
         expect(result).toEqual([]);
       });
 
       it('should still detect explicit activation after a single-mode explanatory definition', () => {
         const result = detectKeywordsWithType(
-          'OMC Ultrawork = "special ops". then use ultrawork on issue #2474 in src/hooks/keyword-detector/index.ts',
+          'OMAC Ultrawork = "special ops". then use ultrawork on issue #2474 in src/hooks/keyword-detector/index.ts',
         );
         expect(result.find((r) => r.type === 'ultrawork')).toBeDefined();
       });
@@ -555,7 +555,7 @@ OMC Ultrawork = "특수부대 작전 반"
         const result = detectKeywordsWithType(`Investigate why this pasted transcript branched sessions:
 
 [MAGIC KEYWORD: RALPH]
-Skill: oh-my-claudecode:ralph
+Skill: oh-my-agent-connector:ralph
 User request:
 ralph fix parser`);
 
@@ -1079,7 +1079,7 @@ This article argues that fake popularity signals damage trust in open source.`;
 
     describe('multiple keyword conflict resolution', () => {
       it('should return cancel over everything', () => {
-        const result = getPrimaryKeyword('cancelomc ralph ultrawork');
+        const result = getPrimaryKeyword('cancelomac ralph ultrawork');
         expect(result?.type).toBe('cancel');
       });
 
@@ -1137,7 +1137,7 @@ This article argues that fake popularity signals damage trust in open source.`;
     });
 
     it('should return cancel exclusively when present', () => {
-      expect(getAllKeywords('cancelomc ralph ultrawork')).toEqual(['cancel']);
+      expect(getAllKeywords('cancelomac ralph ultrawork')).toEqual(['cancel']);
     });
 
     it('should not detect deprecated ultrapilot keyword (#1131)', () => {
@@ -1194,7 +1194,7 @@ This article argues that fake popularity signals damage trust in open source.`;
     });
 
     it('should not return ccg when cancel is present', () => {
-      const result = getAllKeywords('cancelomc ccg build');
+      const result = getAllKeywords('cancelomac ccg build');
       expect(result).toEqual(['cancel']);
       expect(result).not.toContain('ccg');
     });
@@ -1205,7 +1205,7 @@ This article argues that fake popularity signals damage trust in open source.`;
     });
 
     it('should return cancel over codex/gemini', () => {
-      expect(getAllKeywords('cancelomc ask codex')).toEqual(['cancel']);
+      expect(getAllKeywords('cancelomac ask codex')).toEqual(['cancel']);
     });
 
     it('should return empty array for no keywords', () => {
@@ -1276,7 +1276,7 @@ This article argues that fake popularity signals damage trust in open source.`;
     });
 
     it('should not detect cancel alongside team', () => {
-      const result = getAllKeywords('cancelomc team');
+      const result = getAllKeywords('cancelomac team');
       expect(result).toEqual(['cancel']);
       expect(result).not.toContain('team');
     });
@@ -1485,7 +1485,7 @@ This article argues that fake popularity signals damage trust in open source.`;
     });
 
     it('should not gate when cancel is present', () => {
-      const result = applyRalplanGate(['cancel'], 'cancelomc ralph fix this');
+      const result = applyRalplanGate(['cancel'], 'cancelomac ralph fix this');
       expect(result.gateApplied).toBe(false);
     });
 
@@ -2198,8 +2198,8 @@ This article argues that fake popularity signals damage trust in open source.`;
         expect(match).toBeDefined();
       });
 
-      it('should detect "cancelomc" as cancel (unchanged)', () => {
-        const result = detectKeywordsWithType('cancelomc');
+      it('should detect "cancelomac" as cancel (unchanged)', () => {
+        const result = detectKeywordsWithType('cancelomac');
         const match = result.find((r) => r.type === 'cancel');
         expect(match).toBeDefined();
       });
@@ -2261,8 +2261,8 @@ This article argues that fake popularity signals damage trust in open source.`;
     });
 
     describe('Korean priority ordering', () => {
-      it('should return cancel over autopilot when "cancelomc 오토파일럿"', () => {
-        const result = getPrimaryKeyword('cancelomc 오토파일럿');
+      it('should return cancel over autopilot when "cancelomac 오토파일럿"', () => {
+        const result = getPrimaryKeyword('cancelomac 오토파일럿');
         expect(result?.type).toBe('cancel');
       });
 
@@ -2284,8 +2284,8 @@ This article argues that fake popularity signals damage trust in open source.`;
     });
 
     describe('Korean + English mixed keywords', () => {
-      it('should return cancel as primary for "ralph cancelomc"', () => {
-        const result = getPrimaryKeyword('ralph cancelomc');
+      it('should return cancel as primary for "ralph cancelomac"', () => {
+        const result = getPrimaryKeyword('ralph cancelomac');
         expect(result?.type).toBe('cancel');
       });
 
@@ -2482,8 +2482,8 @@ This article argues that fake popularity signals damage trust in open source.`;
       expect(result.find((r) => r.type === 'ralph')).toBeUndefined();
     });
 
-    it('inline backtick `/oh-my-claudecode:ralph` does NOT detect ralph', () => {
-      const result = detectKeywordsWithType('run `/oh-my-claudecode:ralph` if needed');
+    it('inline backtick `/oh-my-agent-connector:ralph` does NOT detect ralph', () => {
+      const result = detectKeywordsWithType('run `/oh-my-agent-connector:ralph` if needed');
       expect(result.find((r) => r.type === 'ralph')).toBeUndefined();
     });
 
@@ -2499,28 +2499,28 @@ This article argues that fake popularity signals damage trust in open source.`;
   });
 
   // -------------------------------------------------------------------------
-  // Unified prefix detector (spec g) — /skill, /omc:skill, /oh-my-claudecode:skill
+  // Unified prefix detector (spec g) — /skill, /omac:skill, /oh-my-agent-connector:skill
   // all seed the same canonical state (T3 implementation required)
   // -------------------------------------------------------------------------
 
-  describe('unified prefix detector: /omc: and /oh-my-claudecode: forms (spec g)', () => {
-    it('/omc:ralph fix auth detects ralph', () => {
-      const result = detectKeywordsWithType('/omc:ralph fix auth');
+  describe('unified prefix detector: /omac: and /oh-my-agent-connector: forms (spec g)', () => {
+    it('/omac:ralph fix auth detects ralph', () => {
+      const result = detectKeywordsWithType('/omac:ralph fix auth');
       expect(result.find((r) => r.type === 'ralph')).toBeDefined();
     });
 
-    it('/oh-my-claudecode:ralph fix auth detects ralph', () => {
-      const result = detectKeywordsWithType('/oh-my-claudecode:ralph fix auth');
+    it('/oh-my-agent-connector:ralph fix auth detects ralph', () => {
+      const result = detectKeywordsWithType('/oh-my-agent-connector:ralph fix auth');
       expect(result.find((r) => r.type === 'ralph')).toBeDefined();
     });
 
-    it('/omc:autopilot implement feature detects autopilot', () => {
-      const result = detectKeywordsWithType('/omc:autopilot implement feature');
+    it('/omac:autopilot implement feature detects autopilot', () => {
+      const result = detectKeywordsWithType('/omac:autopilot implement feature');
       expect(result.find((r) => r.type === 'autopilot')).toBeDefined();
     });
 
-    it('/omc:ultrawork search codebase detects ultrawork', () => {
-      const result = detectKeywordsWithType('/omc:ultrawork search codebase');
+    it('/omac:ultrawork search codebase detects ultrawork', () => {
+      const result = detectKeywordsWithType('/omac:ultrawork search codebase');
       expect(result.find((r) => r.type === 'ultrawork')).toBeDefined();
     });
 
@@ -2575,14 +2575,14 @@ This article argues that fake popularity signals damage trust in open source.`;
       expect(result!.args).toBe('fix the auth flow');
     });
 
-    it('parses /omc:ralph and normalizes skill name', () => {
-      const result = parseExplicitWorkflowSlashInvocation('/omc:ralph debug this');
+    it('parses /omac:ralph and normalizes skill name', () => {
+      const result = parseExplicitWorkflowSlashInvocation('/omac:ralph debug this');
       expect(result).not.toBeNull();
       expect(result!.skill).toBe('ralph');
     });
 
-    it('parses /oh-my-claudecode:ralph and normalizes skill name', () => {
-      const result = parseExplicitWorkflowSlashInvocation('/oh-my-claudecode:ralph debug this');
+    it('parses /oh-my-agent-connector:ralph and normalizes skill name', () => {
+      const result = parseExplicitWorkflowSlashInvocation('/oh-my-agent-connector:ralph debug this');
       expect(result).not.toBeNull();
       expect(result!.skill).toBe('ralph');
     });
@@ -2634,10 +2634,10 @@ This article argues that fake popularity signals damage trust in open source.`;
 
     it('all three prefix forms produce the same skill name for autopilot', () => {
       const bare = parseExplicitWorkflowSlashInvocation('/autopilot go');
-      const omc = parseExplicitWorkflowSlashInvocation('/omc:autopilot go');
-      const full = parseExplicitWorkflowSlashInvocation('/oh-my-claudecode:autopilot go');
+      const omac = parseExplicitWorkflowSlashInvocation('/omac:autopilot go');
+      const full = parseExplicitWorkflowSlashInvocation('/oh-my-agent-connector:autopilot go');
       expect(bare!.skill).toBe('autopilot');
-      expect(omc!.skill).toBe('autopilot');
+      expect(omac!.skill).toBe('autopilot');
       expect(full!.skill).toBe('autopilot');
     });
   });

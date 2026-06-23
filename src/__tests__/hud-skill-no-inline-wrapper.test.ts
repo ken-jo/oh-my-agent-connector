@@ -17,7 +17,7 @@ describe('HUD skill — no inline wrapper', () => {
     // The skill must copy from there, not embed its own version.
     // Match signatures unique to the wrapper body that should never appear inline.
     expect(content).not.toMatch(/async function main\(\)\s*\{/);
-    expect(content).not.toMatch(/OMC_DEV.*===.*"1"/);
+    expect(content).not.toMatch(/OMAC_DEV.*===.*"1"/);
     expect(content).not.toMatch(/import.*from\s*["']node:fs["']/);
   });
 

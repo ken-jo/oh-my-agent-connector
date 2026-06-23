@@ -3,7 +3,7 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { resolveOmcStateRoot } from '../../../scripts/lib/state-root.mjs';
+import { resolveOmacStateRoot } from '../../../scripts/lib/state-root.mjs';
 
 const DEFAULT_TOPIC_SLUG = 'default';
 const TOPICS_DIR = 'topics';
@@ -131,8 +131,8 @@ function ensureDirs(paths) {
 
 export async function resolveSelfImprovePaths({ projectRoot = process.cwd(), topic = '', slug = '', sessionId = '' } = {}) {
   const resolvedProjectRoot = resolve(projectRoot);
-  const omcRoot = await resolveOmcStateRoot(resolvedProjectRoot);
-  const baseRoot = join(omcRoot, 'self-improve');
+  const omacRoot = await resolveOmacStateRoot(resolvedProjectRoot);
+  const baseRoot = join(omacRoot, 'self-improve');
   const explicitSlug = slugify(slug || topic);
   const legacyLayout = hasLegacyLayout(baseRoot);
   const shouldUseLegacyRoot = !slug && !topic && legacyLayout;
@@ -140,12 +140,12 @@ export async function resolveSelfImprovePaths({ projectRoot = process.cwd(), top
 
   // When a sessionId is provided, scope beneath topics/<slug>/sessions/<sid>/
   // so concurrent runs sharing the same topic slug don't collide.
-  // Falls back to OMC_SESSION_ID env var when explicit arg is absent.
-  // Legacy layout (no topic/slug supplied, flat .omc/self-improve/ exists) is
+  // Falls back to OMAC_SESSION_ID env var when explicit arg is absent.
+  // Legacy layout (no topic/slug supplied, flat .omac/self-improve/ exists) is
   // preserved as-is — session scoping only applies to the topic-scoped layout.
   const rawSessionId = sessionId && sessionId.trim()
     ? sessionId.trim()
-    : (process.env.OMC_SESSION_ID && process.env.OMC_SESSION_ID.trim() ? process.env.OMC_SESSION_ID.trim() : '');
+    : (process.env.OMAC_SESSION_ID && process.env.OMAC_SESSION_ID.trim() ? process.env.OMAC_SESSION_ID.trim() : '');
   const effectiveSessionId = shouldUseLegacyRoot ? '' : rawSessionId;
   const root = shouldUseLegacyRoot
     ? baseRoot
@@ -173,9 +173,9 @@ function printHelp() {
       'Usage: node resolve-paths.mjs [--project-root PATH] [--topic TEXT | --slug SLUG] [--session-id SID] [--ensure-dirs] [--format json|shell]',
       '',
       'Resolves self-improve artifact paths.',
-      '- New runs default to .omc/self-improve/topics/<topic-slug>/',
-      '- Pass --session-id to isolate parallel runs: .omc/self-improve/topics/<slug>/sessions/<sid>/',
-      '- Legacy flat .omc/self-improve/ is preserved only when no topic/slug is supplied and a flat layout already exists',
+      '- New runs default to .omac/self-improve/topics/<topic-slug>/',
+      '- Pass --session-id to isolate parallel runs: .omac/self-improve/topics/<slug>/sessions/<sid>/',
+      '- Legacy flat .omac/self-improve/ is preserved only when no topic/slug is supplied and a flat layout already exists',
       '',
     ].join('\n'),
   );

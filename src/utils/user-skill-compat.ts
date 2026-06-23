@@ -12,7 +12,7 @@ import { basename, join } from 'path';
 import { getClaudeConfigDir } from './config-dir.js';
 
 const CLAUDE_SKILLS_DIR = join(getClaudeConfigDir(), 'skills');
-const OMC_LEARNED_DIR = join(CLAUDE_SKILLS_DIR, 'omc-learned');
+const OMAC_LEARNED_DIR = join(CLAUDE_SKILLS_DIR, 'omac-learned');
 const CLAUDE_SKILL_FILENAME = 'SKILL.md';
 
 export interface UserSkillCompatEntry {
@@ -88,18 +88,18 @@ export function ensureClaudeCodeUserSkillCompat(
   }
 }
 
-export function listOmcLearnedUserSkills(): UserSkillCompatEntry[] {
-  if (!existsSync(OMC_LEARNED_DIR)) {
+export function listOmacLearnedUserSkills(): UserSkillCompatEntry[] {
+  if (!existsSync(OMAC_LEARNED_DIR)) {
     return [];
   }
 
   const entries: UserSkillCompatEntry[] = [];
 
-  for (const entry of readdirSync(OMC_LEARNED_DIR, { withFileTypes: true })) {
+  for (const entry of readdirSync(OMAC_LEARNED_DIR, { withFileTypes: true })) {
     if (entry.isFile() && entry.name.endsWith('.md')) {
       entries.push({
         skillName: basename(entry.name, '.md'),
-        sourceSkillPath: join(OMC_LEARNED_DIR, entry.name),
+        sourceSkillPath: join(OMAC_LEARNED_DIR, entry.name),
       });
       continue;
     }
@@ -108,7 +108,7 @@ export function listOmcLearnedUserSkills(): UserSkillCompatEntry[] {
       continue;
     }
 
-    const sourceSkillPath = join(OMC_LEARNED_DIR, entry.name, CLAUDE_SKILL_FILENAME);
+    const sourceSkillPath = join(OMAC_LEARNED_DIR, entry.name, CLAUDE_SKILL_FILENAME);
     if (!existsSync(sourceSkillPath)) {
       continue;
     }
@@ -122,10 +122,10 @@ export function listOmcLearnedUserSkills(): UserSkillCompatEntry[] {
   return entries;
 }
 
-export function syncOmcLearnedUserSkillsForClaudeCode(): string[] {
+export function syncOmacLearnedUserSkillsForClaudeCode(): string[] {
   const synced: string[] = [];
 
-  for (const entry of listOmcLearnedUserSkills()) {
+  for (const entry of listOmacLearnedUserSkills()) {
     if (ensureClaudeCodeUserSkillCompat(entry.skillName, entry.sourceSkillPath)) {
       synced.push(entry.skillName);
     }

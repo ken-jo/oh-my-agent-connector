@@ -14,7 +14,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { dirname, join } from 'path';
-import { ensureSessionStateDir, getOmcRoot, getSessionStateDir } from '../../lib/worktree-paths.js';
+import { ensureSessionStateDir, getOmacRoot, getSessionStateDir } from '../../lib/worktree-paths.js';
 
 // ============================================================================
 // Types
@@ -174,10 +174,10 @@ export function getPrdPath(directory: string): string {
 }
 
 /**
- * Get the path to the prd.json in .omc subdirectory
+ * Get the path to the prd.json in .omac subdirectory
  */
-export function getOmcPrdPath(directory: string): string {
-  return join(getOmcRoot(directory), PRD_FILENAME);
+export function getOmacPrdPath(directory: string): string {
+  return join(getOmacRoot(directory), PRD_FILENAME);
 }
 
 /**
@@ -191,7 +191,7 @@ export function getSessionPrdPath(directory: string, sessionId: string): string 
  * Get the legacy state-manager PRD path used by older builds.
  */
 export function getLegacyStatePrdPath(directory: string): string {
-  return join(getOmcRoot(directory), 'state', PRD_FILENAME);
+  return join(getOmacRoot(directory), 'state', PRD_FILENAME);
 }
 
 /**
@@ -213,9 +213,9 @@ export function findPrdPath(directory: string, sessionId?: string): string | nul
     return rootPath;
   }
 
-  const omcPath = getOmcPrdPath(directory);
-  if (existsSync(omcPath)) {
-    return omcPath;
+  const omacPath = getOmacPrdPath(directory);
+  if (existsSync(omacPath)) {
+    return omacPath;
   }
 
   const legacyStatePath = getLegacyStatePrdPath(directory);
@@ -253,8 +253,8 @@ export function writePrd(directory: string, prd: PRD, sessionId?: string): boole
     prdPath = getSessionPrdPath(directory, sessionId);
   } else {
     // Backward compatibility for direct callers without a session ID:
-    // prefer writing to an existing legacy location, or .omc by default.
-    prdPath = findPrdPath(directory) ?? getOmcPrdPath(directory);
+    // prefer writing to an existing legacy location, or .omac by default.
+    prdPath = findPrdPath(directory) ?? getOmacPrdPath(directory);
   }
 
   try {
@@ -665,7 +665,7 @@ ${prdPath ? `**Active PRD file:** ${prdPath}\n\n` : ''}**Instructions:**
 2. Verify ALL acceptance criteria are met
 3. Run quality checks (tests, typecheck, lint)
 4. When complete, mark story as passes: true in the active PRD file
-5. If ALL stories are done, run \`/oh-my-claudecode:cancel\` to cleanly exit ralph mode and clean up all state files
+5. If ALL stories are done, run \`/oh-my-agent-connector:cancel\` to cleanly exit ralph mode and clean up all state files
 
 </current-story>
 

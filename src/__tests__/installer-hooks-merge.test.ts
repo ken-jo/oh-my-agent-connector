@@ -1,17 +1,17 @@
 /**
- * Tests for omc update --force-hooks protection (issue #722)
+ * Tests for omac update --force-hooks protection (issue #722)
  *
  * Verifies that the hook merge logic in install() correctly:
- *   - merges OMC hooks with existing non-OMC hooks during `omc update` (force=true)
- *   - warns when non-OMC hooks are present
+ *   - merges OMAC hooks with existing non-OMAC hooks during `omac update` (force=true)
+ *   - warns when non-OMAC hooks are present
  *   - only fully replaces when --force-hooks is explicitly set
  *
- * Tests exercise isOmcHook() and the merge logic via unit-level helpers
+ * Tests exercise isOmacHook() and the merge logic via unit-level helpers
  * to avoid filesystem side-effects.
  */
 
 import { describe, it, expect } from 'vitest';
-import { isOmcHook } from '../installer/index.js';
+import { isOmacHook } from '../installer/index.js';
 
 // ---------------------------------------------------------------------------
 // Shared types mirroring installer internals
@@ -26,7 +26,7 @@ type HookGroup = { hooks: HookEntry[] };
 // ---------------------------------------------------------------------------
 function mergeEventHooks(
   existingGroups: HookGroup[],
-  newOmcGroups: HookGroup[],
+  newOmacGroups: HookGroup[],
   options: { force?: boolean; forceHooks?: boolean; allowPluginHookRefresh?: boolean }
 ): {
   merged: HookGroup[];
@@ -37,35 +37,35 @@ function mergeEventHooks(
   const logMessages: string[] = [];
   const eventType = 'TestEvent';
 
-  const nonOmcGroups = existingGroups.filter(group =>
-    group.hooks.some(h => h.type === 'command' && !isOmcHook(h.command))
+  const nonOmacGroups = existingGroups.filter(group =>
+    group.hooks.some(h => h.type === 'command' && !isOmacHook(h.command))
   );
-  const hasNonOmcHook = nonOmcGroups.length > 0;
-  const nonOmcCommand = hasNonOmcHook
-    ? nonOmcGroups[0].hooks.find(h => h.type === 'command' && !isOmcHook(h.command))?.command ?? ''
+  const hasNonOmacHook = nonOmacGroups.length > 0;
+  const nonOmacCommand = hasNonOmacHook
+    ? nonOmacGroups[0].hooks.find(h => h.type === 'command' && !isOmacHook(h.command))?.command ?? ''
     : '';
 
   let merged: HookGroup[];
 
   if (options.forceHooks && !options.allowPluginHookRefresh) {
-    if (hasNonOmcHook) {
-      logMessages.push(`Warning: Overwriting non-OMC ${eventType} hook with --force-hooks: ${nonOmcCommand}`);
-      conflicts.push({ eventType, existingCommand: nonOmcCommand });
+    if (hasNonOmacHook) {
+      logMessages.push(`Warning: Overwriting non-OMAC ${eventType} hook with --force-hooks: ${nonOmacCommand}`);
+      conflicts.push({ eventType, existingCommand: nonOmacCommand });
     }
-    merged = newOmcGroups;
+    merged = newOmacGroups;
     logMessages.push(`Updated ${eventType} hook (--force-hooks)`);
   } else if (options.force) {
-    merged = [...nonOmcGroups, ...newOmcGroups];
-    if (hasNonOmcHook) {
-      logMessages.push(`Merged ${eventType} hooks (updated OMC hooks, preserved non-OMC hook: ${nonOmcCommand})`);
-      conflicts.push({ eventType, existingCommand: nonOmcCommand });
+    merged = [...nonOmacGroups, ...newOmacGroups];
+    if (hasNonOmacHook) {
+      logMessages.push(`Merged ${eventType} hooks (updated OMAC hooks, preserved non-OMAC hook: ${nonOmacCommand})`);
+      conflicts.push({ eventType, existingCommand: nonOmacCommand });
     } else {
       logMessages.push(`Updated ${eventType} hook (--force)`);
     }
   } else {
-    if (hasNonOmcHook) {
-      logMessages.push(`Warning: ${eventType} hook has non-OMC hook. Skipping. Use --force-hooks to override.`);
-      conflicts.push({ eventType, existingCommand: nonOmcCommand });
+    if (hasNonOmacHook) {
+      logMessages.push(`Warning: ${eventType} hook has non-OMAC hook. Skipping. Use --force-hooks to override.`);
+      conflicts.push({ eventType, existingCommand: nonOmacCommand });
     } else {
       logMessages.push(`${eventType} hook already configured, skipping`);
     }
@@ -78,7 +78,7 @@ function mergeEventHooks(
 // ---------------------------------------------------------------------------
 // Fixture builders
 // ---------------------------------------------------------------------------
-function omcGroup(command: string): HookGroup {
+function omacGroup(command: string): HookGroup {
   return { hooks: [{ type: 'command', command }] };
 }
 
@@ -86,197 +86,197 @@ function userGroup(command: string): HookGroup {
   return { hooks: [{ type: 'command', command }] };
 }
 
-const OMC_CMD = 'node "$HOME/.claude/hooks/keyword-detector.mjs"';
+const OMAC_CMD = 'node "$HOME/.claude/hooks/keyword-detector.mjs"';
 const USER_CMD = '/usr/local/bin/my-custom-hook.sh';
-const NEW_OMC_CMD = 'node "$HOME/.claude/hooks/session-start.mjs"';
+const NEW_OMAC_CMD = 'node "$HOME/.claude/hooks/session-start.mjs"';
 
 // ---------------------------------------------------------------------------
-// isOmcHook unit tests
+// isOmacHook unit tests
 // ---------------------------------------------------------------------------
-describe('isOmcHook()', () => {
-  it('recognises OMC keyword-detector command', () => {
-    expect(isOmcHook('node "$HOME/.claude/hooks/keyword-detector.mjs"')).toBe(true);
+describe('isOmacHook()', () => {
+  it('recognises OMAC keyword-detector command', () => {
+    expect(isOmacHook('node "$HOME/.claude/hooks/keyword-detector.mjs"')).toBe(true);
   });
 
-  it('recognises OMC session-start command', () => {
-    expect(isOmcHook('node "$HOME/.claude/hooks/session-start.mjs"')).toBe(true);
+  it('recognises OMAC session-start command', () => {
+    expect(isOmacHook('node "$HOME/.claude/hooks/session-start.mjs"')).toBe(true);
   });
 
-  it('recognises OMC pre-tool-use command', () => {
-    expect(isOmcHook('node "$HOME/.claude/hooks/pre-tool-use.mjs"')).toBe(true);
+  it('recognises OMAC pre-tool-use command', () => {
+    expect(isOmacHook('node "$HOME/.claude/hooks/pre-tool-use.mjs"')).toBe(true);
   });
 
-  it('recognises OMC post-tool-use command', () => {
-    expect(isOmcHook('node "$HOME/.claude/hooks/post-tool-use.mjs"')).toBe(true);
+  it('recognises OMAC post-tool-use command', () => {
+    expect(isOmacHook('node "$HOME/.claude/hooks/post-tool-use.mjs"')).toBe(true);
   });
 
-  it('recognises OMC persistent-mode command', () => {
-    expect(isOmcHook('node "$HOME/.claude/hooks/persistent-mode.mjs"')).toBe(true);
+  it('recognises OMAC persistent-mode command', () => {
+    expect(isOmacHook('node "$HOME/.claude/hooks/persistent-mode.mjs"')).toBe(true);
   });
 
-  it('recognises OMC code-simplifier command', () => {
-    expect(isOmcHook('node "$HOME/.claude/hooks/code-simplifier.mjs"')).toBe(true);
+  it('recognises OMAC code-simplifier command', () => {
+    expect(isOmacHook('node "$HOME/.claude/hooks/code-simplifier.mjs"')).toBe(true);
   });
 
-  it('recognises Windows-style OMC path', () => {
-    expect(isOmcHook('node "%USERPROFILE%\\.claude\\hooks\\keyword-detector.mjs"')).toBe(true);
+  it('recognises Windows-style OMAC path', () => {
+    expect(isOmacHook('node "%USERPROFILE%\\.claude\\hooks\\keyword-detector.mjs"')).toBe(true);
   });
 
   it('recognises custom-profile hook paths by known filename', () => {
-    expect(isOmcHook('node "/tmp/custom-claude/hooks/keyword-detector.mjs"')).toBe(true);
+    expect(isOmacHook('node "/tmp/custom-claude/hooks/keyword-detector.mjs"')).toBe(true);
   });
 
   it('recognises CLAUDE_CONFIG_DIR-aware hook commands', () => {
-    expect(isOmcHook('node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/keyword-detector.mjs"')).toBe(true);
-    expect(isOmcHook('node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/persistent-mode.mjs"')).toBe(true);
+    expect(isOmacHook('node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/keyword-detector.mjs"')).toBe(true);
+    expect(isOmacHook('node "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/persistent-mode.mjs"')).toBe(true);
   });
 
-  it('recognises oh-my-claudecode in command path', () => {
-    expect(isOmcHook('/path/to/oh-my-claudecode/hook.mjs')).toBe(true);
+  it('recognises oh-my-agent-connector in command path', () => {
+    expect(isOmacHook('/path/to/oh-my-agent-connector/hook.mjs')).toBe(true);
   });
 
-  it('recognises omc as a path segment', () => {
-    expect(isOmcHook('/usr/local/bin/omc-hook.sh')).toBe(true);
+  it('recognises omac as a path segment', () => {
+    expect(isOmacHook('/usr/local/bin/omac-hook.sh')).toBe(true);
   });
 
   it('does not recognise a plain user command', () => {
-    expect(isOmcHook('/usr/local/bin/my-custom-hook.sh')).toBe(false);
+    expect(isOmacHook('/usr/local/bin/my-custom-hook.sh')).toBe(false);
   });
 
   it('does not recognise a random shell script', () => {
-    expect(isOmcHook('bash /home/user/scripts/notify.sh')).toBe(false);
+    expect(isOmacHook('bash /home/user/scripts/notify.sh')).toBe(false);
   });
 
-  it('does not match "omc" inside an unrelated word', () => {
-    // "nomc" or "omcr" should NOT match the omc path-segment pattern
-    expect(isOmcHook('/usr/bin/nomc-thing')).toBe(false);
+  it('does not match "omac" inside an unrelated word', () => {
+    // "nomac" or "omacr" should NOT match the omac path-segment pattern
+    expect(isOmacHook('/usr/bin/nomac-thing')).toBe(false);
   });
 });
 
 // ---------------------------------------------------------------------------
 // Hook merge logic tests
 // ---------------------------------------------------------------------------
-describe('Hook merge during omc update', () => {
+describe('Hook merge during omac update', () => {
   describe('no force flags — skip behaviour', () => {
-    it('skips an already-configured OMC-only event type', () => {
-      const existing = [omcGroup(OMC_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { merged, conflicts, logMessages } = mergeEventHooks(existing, newOmc, {});
+    it('skips an already-configured OMAC-only event type', () => {
+      const existing = [omacGroup(OMAC_CMD)];
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { merged, conflicts, logMessages } = mergeEventHooks(existing, newOmac, {});
 
       expect(merged).toEqual(existing); // unchanged
       expect(conflicts).toHaveLength(0);
       expect(logMessages[0]).toMatch(/already configured/);
     });
 
-    it('records conflict but does not overwrite when non-OMC hook exists', () => {
+    it('records conflict but does not overwrite when non-OMAC hook exists', () => {
       const existing = [userGroup(USER_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { merged, conflicts, logMessages } = mergeEventHooks(existing, newOmc, {});
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { merged, conflicts, logMessages } = mergeEventHooks(existing, newOmac, {});
 
       expect(merged).toEqual(existing); // unchanged
       expect(conflicts).toHaveLength(1);
       expect(conflicts[0].existingCommand).toBe(USER_CMD);
-      expect(logMessages[0]).toMatch(/non-OMC hook/);
+      expect(logMessages[0]).toMatch(/non-OMAC hook/);
       expect(logMessages[0]).toMatch(/--force-hooks/);
     });
   });
 
-  describe('force=true — merge behaviour (omc update path)', () => {
-    it('replaces OMC hooks when event type has only OMC hooks', () => {
-      const existing = [omcGroup(OMC_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { merged, conflicts } = mergeEventHooks(existing, newOmc, { force: true });
+  describe('force=true — merge behaviour (omac update path)', () => {
+    it('replaces OMAC hooks when event type has only OMAC hooks', () => {
+      const existing = [omacGroup(OMAC_CMD)];
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { merged, conflicts } = mergeEventHooks(existing, newOmac, { force: true });
 
-      // Non-OMC groups: none → merged = newOmc only
+      // Non-OMAC groups: none → merged = newOmac only
       expect(merged).toHaveLength(1);
-      expect(merged[0].hooks[0].command).toBe(NEW_OMC_CMD);
+      expect(merged[0].hooks[0].command).toBe(NEW_OMAC_CMD);
       expect(conflicts).toHaveLength(0);
     });
 
-    it('preserves non-OMC hook and adds updated OMC hook', () => {
-      const existing = [userGroup(USER_CMD), omcGroup(OMC_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { merged, conflicts, logMessages } = mergeEventHooks(existing, newOmc, { force: true });
+    it('preserves non-OMAC hook and adds updated OMAC hook', () => {
+      const existing = [userGroup(USER_CMD), omacGroup(OMAC_CMD)];
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { merged, conflicts, logMessages } = mergeEventHooks(existing, newOmac, { force: true });
 
-      // non-OMC groups come first, then new OMC groups
+      // non-OMAC groups come first, then new OMAC groups
       expect(merged).toHaveLength(2);
       expect(merged[0].hooks[0].command).toBe(USER_CMD);
-      expect(merged[1].hooks[0].command).toBe(NEW_OMC_CMD);
+      expect(merged[1].hooks[0].command).toBe(NEW_OMAC_CMD);
       expect(conflicts).toHaveLength(1);
       expect(conflicts[0].existingCommand).toBe(USER_CMD);
       expect(logMessages[0]).toMatch(/Merged/);
-      expect(logMessages[0]).toMatch(/preserved non-OMC hook/);
+      expect(logMessages[0]).toMatch(/preserved non-OMAC hook/);
     });
 
-    it('preserves multiple non-OMC hook groups', () => {
+    it('preserves multiple non-OMAC hook groups', () => {
       const userCmd2 = '/usr/local/bin/another-hook.sh';
-      const existing = [userGroup(USER_CMD), userGroup(userCmd2), omcGroup(OMC_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { merged } = mergeEventHooks(existing, newOmc, { force: true });
+      const existing = [userGroup(USER_CMD), userGroup(userCmd2), omacGroup(OMAC_CMD)];
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { merged } = mergeEventHooks(existing, newOmac, { force: true });
 
-      expect(merged).toHaveLength(3); // 2 user groups + 1 new OMC group
+      expect(merged).toHaveLength(3); // 2 user groups + 1 new OMAC group
       expect(merged[0].hooks[0].command).toBe(USER_CMD);
       expect(merged[1].hooks[0].command).toBe(userCmd2);
-      expect(merged[2].hooks[0].command).toBe(NEW_OMC_CMD);
+      expect(merged[2].hooks[0].command).toBe(NEW_OMAC_CMD);
     });
 
-    it('does not carry over old OMC hook groups', () => {
-      const existing = [omcGroup(OMC_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { merged } = mergeEventHooks(existing, newOmc, { force: true });
+    it('does not carry over old OMAC hook groups', () => {
+      const existing = [omacGroup(OMAC_CMD)];
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { merged } = mergeEventHooks(existing, newOmac, { force: true });
 
       const commands = merged.flatMap(g => g.hooks.map(h => h.command));
-      expect(commands).not.toContain(OMC_CMD);
-      expect(commands).toContain(NEW_OMC_CMD);
+      expect(commands).not.toContain(OMAC_CMD);
+      expect(commands).toContain(NEW_OMAC_CMD);
     });
 
-    it('records a conflict when non-OMC hook is preserved', () => {
+    it('records a conflict when non-OMAC hook is preserved', () => {
       const existing = [userGroup(USER_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { conflicts } = mergeEventHooks(existing, newOmc, { force: true });
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { conflicts } = mergeEventHooks(existing, newOmac, { force: true });
 
       expect(conflicts).toHaveLength(1);
       expect(conflicts[0].existingCommand).toBe(USER_CMD);
     });
 
-    it('records no conflict when only OMC hooks existed', () => {
-      const existing = [omcGroup(OMC_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { conflicts } = mergeEventHooks(existing, newOmc, { force: true });
+    it('records no conflict when only OMAC hooks existed', () => {
+      const existing = [omacGroup(OMAC_CMD)];
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { conflicts } = mergeEventHooks(existing, newOmac, { force: true });
 
       expect(conflicts).toHaveLength(0);
     });
   });
 
   describe('forceHooks=true — replace-all behaviour', () => {
-    it('replaces OMC-only hooks', () => {
-      const existing = [omcGroup(OMC_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { merged, conflicts } = mergeEventHooks(existing, newOmc, { forceHooks: true });
+    it('replaces OMAC-only hooks', () => {
+      const existing = [omacGroup(OMAC_CMD)];
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { merged, conflicts } = mergeEventHooks(existing, newOmac, { forceHooks: true });
 
-      expect(merged).toEqual(newOmc);
+      expect(merged).toEqual(newOmac);
       expect(conflicts).toHaveLength(0);
     });
 
-    it('replaces non-OMC hook and warns', () => {
+    it('replaces non-OMAC hook and warns', () => {
       const existing = [userGroup(USER_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { merged, conflicts, logMessages } = mergeEventHooks(existing, newOmc, { forceHooks: true });
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { merged, conflicts, logMessages } = mergeEventHooks(existing, newOmac, { forceHooks: true });
 
-      expect(merged).toEqual(newOmc);
+      expect(merged).toEqual(newOmac);
       expect(conflicts).toHaveLength(1);
       expect(conflicts[0].existingCommand).toBe(USER_CMD);
-      expect(logMessages[0]).toMatch(/Overwriting non-OMC/);
+      expect(logMessages[0]).toMatch(/Overwriting non-OMAC/);
       expect(logMessages[0]).toMatch(/--force-hooks/);
     });
 
     it('replaces mixed hooks entirely', () => {
-      const existing = [userGroup(USER_CMD), omcGroup(OMC_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { merged } = mergeEventHooks(existing, newOmc, { forceHooks: true });
+      const existing = [userGroup(USER_CMD), omacGroup(OMAC_CMD)];
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { merged } = mergeEventHooks(existing, newOmac, { forceHooks: true });
 
       expect(merged).toHaveLength(1);
-      expect(merged[0].hooks[0].command).toBe(NEW_OMC_CMD);
+      expect(merged[0].hooks[0].command).toBe(NEW_OMAC_CMD);
     });
 
     it('does NOT replace when allowPluginHookRefresh is true (plugin safety)', () => {
@@ -284,9 +284,9 @@ describe('Hook merge during omc update', () => {
       // not clobber user hooks — falls through to the force=true merge path
       // (since allowPluginHookRefresh=true disables the forceHooks branch).
       // This test exercises the guard: forceHooks && !allowPluginHookRefresh.
-      const existing = [userGroup(USER_CMD), omcGroup(OMC_CMD)];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { merged } = mergeEventHooks(existing, newOmc, {
+      const existing = [userGroup(USER_CMD), omacGroup(OMAC_CMD)];
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { merged } = mergeEventHooks(existing, newOmac, {
         forceHooks: true,
         allowPluginHookRefresh: true,
         // Note: force is not set, so falls to "no force" branch
@@ -301,21 +301,21 @@ describe('Hook merge during omc update', () => {
     it('handles event type with no existing hooks (empty array)', () => {
       // When existingHooks[eventType] exists but is empty
       const existing: HookGroup[] = [];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { merged, conflicts } = mergeEventHooks(existing, newOmc, { force: true });
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { merged, conflicts } = mergeEventHooks(existing, newOmac, { force: true });
 
-      // nonOmcGroups will be empty, so merged = [] + newOmcGroups
-      expect(merged).toEqual(newOmc);
+      // nonOmacGroups will be empty, so merged = [] + newOmacGroups
+      expect(merged).toEqual(newOmac);
       expect(conflicts).toHaveLength(0);
     });
 
-    it('handles hook group with non-command type (should not be treated as non-OMC)', () => {
-      // A hook group with type != 'command' should not count as non-OMC
+    it('handles hook group with non-command type (should not be treated as non-OMAC)', () => {
+      // A hook group with type != 'command' should not count as non-OMAC
       const existing: HookGroup[] = [{ hooks: [{ type: 'webhook', command: '' }] }];
-      const newOmc = [omcGroup(NEW_OMC_CMD)];
-      const { conflicts } = mergeEventHooks(existing, newOmc, { force: true });
+      const newOmac = [omacGroup(NEW_OMAC_CMD)];
+      const { conflicts } = mergeEventHooks(existing, newOmac, { force: true });
 
-      // The webhook group has no command-type hooks → nonOmcGroups is empty
+      // The webhook group has no command-type hooks → nonOmacGroups is empty
       expect(conflicts).toHaveLength(0);
     });
   });

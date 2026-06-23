@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Call Counts Element
+ * OMAC HUD - Call Counts Element
  *
  * Renders real-time counts of tool calls, agent invocations, and skill usages
  * on the right side of the HUD status line. (Issue #710)

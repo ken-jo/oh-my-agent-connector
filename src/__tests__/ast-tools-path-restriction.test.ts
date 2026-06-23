@@ -4,21 +4,21 @@ import { validateToolPath } from '../tools/ast-tools.js';
 import { clearSecurityConfigCache } from '../lib/security-config.js';
 
 describe('validateToolPath', () => {
-  const originalSecurity = process.env.OMC_SECURITY;
+  const originalSecurity = process.env.OMAC_SECURITY;
 
   afterEach(() => {
     if (originalSecurity === undefined) {
-      delete process.env.OMC_SECURITY;
+      delete process.env.OMAC_SECURITY;
     } else {
-      process.env.OMC_SECURITY = originalSecurity;
+      process.env.OMAC_SECURITY = originalSecurity;
     }
     clearSecurityConfigCache();
     vi.restoreAllMocks();
   });
 
-  describe('when OMC_SECURITY is not set (default)', () => {
+  describe('when OMAC_SECURITY is not set (default)', () => {
     beforeEach(() => {
-      delete process.env.OMC_SECURITY;
+      delete process.env.OMAC_SECURITY;
       clearSecurityConfigCache();
     });
 
@@ -33,9 +33,9 @@ describe('validateToolPath', () => {
     });
   });
 
-  describe('when OMC_SECURITY=strict', () => {
+  describe('when OMAC_SECURITY=strict', () => {
     beforeEach(() => {
-      process.env.OMC_SECURITY = 'strict';
+      process.env.OMAC_SECURITY = 'strict';
       clearSecurityConfigCache();
     });
 
@@ -62,7 +62,7 @@ describe('validateToolPath', () => {
     });
 
     it('includes helpful message in error', () => {
-      expect(() => validateToolPath('/etc')).toThrow('OMC_SECURITY');
+      expect(() => validateToolPath('/etc')).toThrow('OMAC_SECURITY');
     });
   });
 });

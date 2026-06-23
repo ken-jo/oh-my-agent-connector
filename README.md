@@ -1,7 +1,7 @@
 # oh-my-agent-connector
 
 Apply **[`@ken-jo/agent-connector`](../agent-connector)** to the EXISTING
-**oh-my-claudecode** (OMC, MIT, ★36k — this fork, with the upstream runtime files in-repo) and measure the efficiency: OMC
+**oh-my-agent-connector** (OMAC, MIT, ★36k — this fork, with the upstream runtime files in-repo) and measure the efficiency: OMAC
 functionality runs UNCHANGED; only its deployment plumbing (installer /
 44-script hook entrypoint layer / hooks.json / plugin manifests) is replaced by
 one `defineConnector()`. Same playbook as the proven
@@ -27,14 +27,14 @@ reused/dropped split in [`EFFICIENCY.md`](./EFFICIENCY.md).**
 
 ## Key documents
 
-- [`BASELINE.md`](./BASELINE.md) — what upstream OMC spends on deployment plumbing.
+- [`BASELINE.md`](./BASELINE.md) — what upstream OMAC spends on deployment plumbing.
 - [`docs/surface-map.md`](./docs/surface-map.md) — exact per-event mapping + the honest residue list.
 - [`VERIFICATION.md`](./VERIFICATION.md) — isolated-home evidence (install / parity / probe / live bridge / dry-run).
 - [`EFFICIENCY.md`](./EFFICIENCY.md) — the quantified before/after with the reused-vs-replaced split.
 
 ## Safety
 
-The OMC marketplace plugin is **LIVE** in this machine's real `~/.claude`.
+The OMAC marketplace plugin is **LIVE** in this machine's real `~/.claude`.
 Never `install` into the real home (double-fired hooks would corrupt live
 sessions): all verification runs in an isolated HOME (mkdtemp +
 `HOME`/`USERPROFILE`/`AGENT_CONNECTOR_DATA_DIR` overrides); multi-platform
@@ -42,5 +42,5 @@ checks are `--dry-run` only. Post-run audits confirmed the real home untouched.
 
 ## Licensing
 
-OMC is MIT and reference-permitted; this repo imports/spawns its files
+OMAC is MIT and reference-permitted; this repo imports/spawns its files
 unchanged from the upstream checkout. agent-connector is ours.

@@ -17,21 +17,21 @@ describe("reply config", () => {
     vi.resetModules();
     vi.restoreAllMocks();
     process.env = { ...ORIGINAL_ENV };
-    delete process.env.OMC_REPLY_ENABLED;
-    delete process.env.OMC_REPLY_POLL_INTERVAL_MS;
-    delete process.env.OMC_REPLY_RATE_LIMIT;
-    delete process.env.OMC_REPLY_DISCORD_USER_IDS;
-    delete process.env.OMC_REPLY_INCLUDE_PREFIX;
-    delete process.env.OMC_DISCORD_NOTIFIER_BOT_TOKEN;
-    delete process.env.OMC_DISCORD_NOTIFIER_CHANNEL;
-    delete process.env.OMC_DISCORD_WEBHOOK_URL;
-    delete process.env.OMC_DISCORD_MENTION;
-    delete process.env.OMC_TELEGRAM_BOT_TOKEN;
-    delete process.env.OMC_TELEGRAM_NOTIFIER_BOT_TOKEN;
-    delete process.env.OMC_TELEGRAM_CHAT_ID;
-    delete process.env.OMC_TELEGRAM_NOTIFIER_CHAT_ID;
-    delete process.env.OMC_TELEGRAM_NOTIFIER_UID;
-    delete process.env.OMC_SLACK_WEBHOOK_URL;
+    delete process.env.OMAC_REPLY_ENABLED;
+    delete process.env.OMAC_REPLY_POLL_INTERVAL_MS;
+    delete process.env.OMAC_REPLY_RATE_LIMIT;
+    delete process.env.OMAC_REPLY_DISCORD_USER_IDS;
+    delete process.env.OMAC_REPLY_INCLUDE_PREFIX;
+    delete process.env.OMAC_DISCORD_NOTIFIER_BOT_TOKEN;
+    delete process.env.OMAC_DISCORD_NOTIFIER_CHANNEL;
+    delete process.env.OMAC_DISCORD_WEBHOOK_URL;
+    delete process.env.OMAC_DISCORD_MENTION;
+    delete process.env.OMAC_TELEGRAM_BOT_TOKEN;
+    delete process.env.OMAC_TELEGRAM_NOTIFIER_BOT_TOKEN;
+    delete process.env.OMAC_TELEGRAM_CHAT_ID;
+    delete process.env.OMAC_TELEGRAM_NOTIFIER_CHAT_ID;
+    delete process.env.OMAC_TELEGRAM_NOTIFIER_UID;
+    delete process.env.OMAC_SLACK_WEBHOOK_URL;
   });
 
   afterEach(() => {
@@ -120,10 +120,10 @@ describe("reply config", () => {
   });
 
   it("applies environment overrides for reply settings and discord user IDs", async () => {
-    process.env.OMC_REPLY_POLL_INTERVAL_MS = "5000";
-    process.env.OMC_REPLY_RATE_LIMIT = "20";
-    process.env.OMC_REPLY_INCLUDE_PREFIX = "false";
-    process.env.OMC_REPLY_DISCORD_USER_IDS = `${VALID_DISCORD_USER_ID},invalid-id`;
+    process.env.OMAC_REPLY_POLL_INTERVAL_MS = "5000";
+    process.env.OMAC_REPLY_RATE_LIMIT = "20";
+    process.env.OMAC_REPLY_INCLUDE_PREFIX = "false";
+    process.env.OMAC_REPLY_DISCORD_USER_IDS = `${VALID_DISCORD_USER_ID},invalid-id`;
 
     mockConfigFile({
       notifications: {
@@ -180,10 +180,10 @@ describe("reply config", () => {
     expect(runtime.discordMention).toBe("<@123456789012345678>");
   });
 
-  it("returns discordMention from env var OMC_DISCORD_MENTION", async () => {
-    process.env.OMC_DISCORD_NOTIFIER_BOT_TOKEN = "env-token";
-    process.env.OMC_DISCORD_NOTIFIER_CHANNEL = "env-channel";
-    process.env.OMC_DISCORD_MENTION = "<@987654321098765432>";
+  it("returns discordMention from env var OMAC_DISCORD_MENTION", async () => {
+    process.env.OMAC_DISCORD_NOTIFIER_BOT_TOKEN = "env-token";
+    process.env.OMAC_DISCORD_NOTIFIER_CHANNEL = "env-channel";
+    process.env.OMAC_DISCORD_MENTION = "<@987654321098765432>";
 
     mockConfigFile(null);
 

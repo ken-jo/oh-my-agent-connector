@@ -173,11 +173,11 @@ function defaultHappyPath(_repoRoot: string, leaderBranch: string): void {
 
 beforeEach(() => {
   mocks.reset();
-  process.env.OMC_RUNTIME_V2 = '1';
+  process.env.OMAC_RUNTIME_V2 = '1';
 });
 
 afterEach(() => {
-  delete process.env.OMC_RUNTIME_V2;
+  delete process.env.OMAC_RUNTIME_V2;
 });
 
 // ---------------------------------------------------------------------------
@@ -270,8 +270,8 @@ describe('validateBranchName guard', () => {
 // ---------------------------------------------------------------------------
 
 describe('M5 v2 gate', () => {
-  it('allows unset OMC_RUNTIME_V2 because runtime v2 is default-on', async () => {
-    delete process.env.OMC_RUNTIME_V2;
+  it('allows unset OMAC_RUNTIME_V2 because runtime v2 is default-on', async () => {
+    delete process.env.OMAC_RUNTIME_V2;
     const repoRoot = makeRepoRoot();
     try {
       const cfg = defaultConfig(repoRoot);
@@ -283,8 +283,8 @@ describe('M5 v2 gate', () => {
     }
   });
 
-  it('throws when OMC_RUNTIME_V2=0', async () => {
-    process.env.OMC_RUNTIME_V2 = '0';
+  it('throws when OMAC_RUNTIME_V2=0', async () => {
+    process.env.OMAC_RUNTIME_V2 = '0';
     const repoRoot = makeRepoRoot();
     try {
       const cfg = defaultConfig(repoRoot);
@@ -309,7 +309,7 @@ describe('commit watcher + auto-merge', () => {
       // Seed: worker branch HEAD reads as sha-A initially, then sha-B on the
       // next call.
       const workerName = 'alice';
-      const branchName = `omc-team/demo-team/${sanitizeName(workerName)}`;
+      const branchName = `omac-team/demo-team/${sanitizeName(workerName)}`;
       let revParseCount = 0;
       on(
         (args) => args[0] === 'rev-parse' && args[1] === `refs/heads/${branchName}`,
@@ -348,7 +348,7 @@ describe('commit watcher + auto-merge', () => {
       defaultHappyPath(repoRoot, cfg.leaderBranch);
 
       const workerName = 'bob';
-      const branchName = `omc-team/demo-team/${sanitizeName(workerName)}`;
+      const branchName = `omac-team/demo-team/${sanitizeName(workerName)}`;
       let revParseCount = 0;
       on(
         (args) => args[0] === 'rev-parse' && args[1] === `refs/heads/${branchName}`,
@@ -369,7 +369,7 @@ describe('commit watcher + auto-merge', () => {
 
       const persistedPath = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'state',
         'team',
         sanitizeName(cfg.teamName),
@@ -393,8 +393,8 @@ describe('commit watcher + auto-merge', () => {
       const cfg = defaultConfig(repoRoot);
       defaultHappyPath(repoRoot, cfg.leaderBranch);
 
-      const branchA = `omc-team/demo-team/${sanitizeName('alice')}`;
-      const branchB = `omc-team/demo-team/${sanitizeName('bob')}`;
+      const branchA = `omac-team/demo-team/${sanitizeName('alice')}`;
+      const branchB = `omac-team/demo-team/${sanitizeName('bob')}`;
       let aCount = 0;
       let bCount = 0;
       on(
@@ -446,7 +446,7 @@ describe('commit watcher + auto-merge', () => {
       const cfg = defaultConfig(repoRoot);
       defaultHappyPath(repoRoot, cfg.leaderBranch);
 
-      const branchName = `omc-team/demo-team/${sanitizeName('alice')}`;
+      const branchName = `omac-team/demo-team/${sanitizeName('alice')}`;
       let count = 0;
       on(
         (args) => args[0] === 'rev-parse' && args[1] === `refs/heads/${branchName}`,
@@ -484,8 +484,8 @@ describe('commit watcher + auto-merge', () => {
 
       // Both workers advance concurrently. Merges must not interleave —
       // each merge sequence is preflight-reset → merge-tree → checkout → merge.
-      const branchA = `omc-team/demo-team/${sanitizeName('alice')}`;
-      const branchB = `omc-team/demo-team/${sanitizeName('bob')}`;
+      const branchA = `omac-team/demo-team/${sanitizeName('alice')}`;
+      const branchB = `omac-team/demo-team/${sanitizeName('bob')}`;
       let aCount = 0;
       let bCount = 0;
       on(
@@ -538,7 +538,7 @@ describe('commit watcher + auto-merge', () => {
       const cfg = defaultConfig(repoRoot);
       defaultHappyPath(repoRoot, cfg.leaderBranch);
 
-      const branchName = `omc-team/demo-team/${sanitizeName('alice')}`;
+      const branchName = `omac-team/demo-team/${sanitizeName('alice')}`;
       let count = 0;
       on(
         (args) => args[0] === 'rev-parse' && args[1] === `refs/heads/${branchName}`,
@@ -563,7 +563,7 @@ describe('commit watcher + auto-merge', () => {
 
       const eventLog = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'state',
         'team',
         sanitizeName(cfg.teamName),
@@ -595,7 +595,7 @@ describe('commit watcher + auto-merge', () => {
       const cfg = defaultConfig(repoRoot);
       defaultHappyPath(repoRoot, cfg.leaderBranch);
 
-      const branchName = `omc-team/demo-team/${sanitizeName('alice')}`;
+      const branchName = `omac-team/demo-team/${sanitizeName('alice')}`;
       let count = 0;
       // Throw on every rev-parse for the worker branch.
       on(
@@ -640,7 +640,7 @@ describe('M1 existing-rebase short-circuit', () => {
       // Create a fake worktree dir with .git/rebase-merge for "bob".
       const bobWtPath = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'team',
         sanitizeName(cfg.teamName),
         'worktrees',
@@ -648,8 +648,8 @@ describe('M1 existing-rebase short-circuit', () => {
       );
       mkdirSync(join(bobWtPath, '.git', 'rebase-merge'), { recursive: true });
 
-      const branchA = `omc-team/demo-team/${sanitizeName('alice')}`;
-      const branchB = `omc-team/demo-team/${sanitizeName('bob')}`;
+      const branchA = `omac-team/demo-team/${sanitizeName('alice')}`;
+      const branchB = `omac-team/demo-team/${sanitizeName('bob')}`;
       let aCount = 0;
       on(
         (args) => args[0] === 'rev-parse' && args[1] === `refs/heads/${branchA}`,
@@ -682,7 +682,7 @@ describe('M1 existing-rebase short-circuit', () => {
       // The skip event should be in the orchestrator event log.
       const eventLog = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'state',
         'team',
         sanitizeName(cfg.teamName),
@@ -726,7 +726,7 @@ describe('M4 dirty-tree audit', () => {
       // simulate the worker resolving it. The status mock returns dirty files.
       const bobWtPath = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'team',
         sanitizeName(cfg.teamName),
         'worktrees',
@@ -734,8 +734,8 @@ describe('M4 dirty-tree audit', () => {
       );
       mkdirSync(bobWtPath, { recursive: true });
 
-      const branchA = `omc-team/demo-team/${sanitizeName('alice')}`;
-      const branchB = `omc-team/demo-team/${sanitizeName('bob')}`;
+      const branchA = `omac-team/demo-team/${sanitizeName('alice')}`;
+      const branchB = `omac-team/demo-team/${sanitizeName('bob')}`;
       let aCount = 0;
       on(
         (args) => args[0] === 'rev-parse' && args[1] === `refs/heads/${branchA}`,
@@ -797,7 +797,7 @@ describe('M4 dirty-tree audit', () => {
       // Inbox should contain the audit message.
       const inboxPath = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'state',
         'team',
         cfg.teamName,
@@ -830,13 +830,13 @@ describe('M6 recoverFromRestart', () => {
       // Seed persisted state.
       const persistedPath = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'state',
         'team',
         sanitizeName(cfg.teamName),
         'auto-merge-state.json',
       );
-      mkdirSync(join(repoRoot, '.omc', 'state', 'team', sanitizeName(cfg.teamName)), {
+      mkdirSync(join(repoRoot, '.omac', 'state', 'team', sanitizeName(cfg.teamName)), {
         recursive: true,
       });
       atomicWriteJson(persistedPath, { lastShas: { alice: 'sha-1', bob: 'sha-2' } });
@@ -844,7 +844,7 @@ describe('M6 recoverFromRestart', () => {
       // Seed worktrees.json metadata.
       const worktreesMetaPath = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'state',
         'team',
         sanitizeName(cfg.teamName),
@@ -852,7 +852,7 @@ describe('M6 recoverFromRestart', () => {
       );
       const aliceWtPath = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'team',
         sanitizeName(cfg.teamName),
         'worktrees',
@@ -860,7 +860,7 @@ describe('M6 recoverFromRestart', () => {
       );
       const bobWtPath = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'team',
         sanitizeName(cfg.teamName),
         'worktrees',
@@ -874,14 +874,14 @@ describe('M6 recoverFromRestart', () => {
       atomicWriteJson(worktreesMetaPath, [
         {
           path: aliceWtPath,
-          branch: 'omc-team/demo-team/alice',
+          branch: 'omac-team/demo-team/alice',
           workerName: 'alice',
           teamName: cfg.teamName,
           createdAt: new Date().toISOString(),
         },
         {
           path: bobWtPath,
-          branch: 'omc-team/demo-team/bob',
+          branch: 'omac-team/demo-team/bob',
           workerName: 'bob',
           teamName: cfg.teamName,
           createdAt: new Date().toISOString(),
@@ -895,7 +895,7 @@ describe('M6 recoverFromRestart', () => {
       // Bob should have received the recovery message.
       const bobInbox = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'state',
         'team',
         cfg.teamName,
@@ -937,7 +937,7 @@ describe('drainAndStop', () => {
       const cfg = { ...defaultConfig(repoRoot), drainTimeoutMs: 50 };
       defaultHappyPath(repoRoot, cfg.leaderBranch);
 
-      const branchName = `omc-team/demo-team/${sanitizeName('alice')}`;
+      const branchName = `omac-team/demo-team/${sanitizeName('alice')}`;
       // Alice has a SHA change on first poll, but the merge will conflict.
       let count = 0;
       on(
@@ -970,7 +970,7 @@ describe('drainAndStop', () => {
       // Teardown audit row should have been written.
       const auditPath = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'state',
         'team',
         sanitizeName(cfg.teamName),
@@ -997,7 +997,7 @@ describe('worker registration', () => {
       const cfg = defaultConfig(repoRoot);
       defaultHappyPath(repoRoot, cfg.leaderBranch);
 
-      const branchName = `omc-team/demo-team/${sanitizeName('alice')}`;
+      const branchName = `omac-team/demo-team/${sanitizeName('alice')}`;
       on(
         (args) => args[0] === 'rev-parse' && args[1] === `refs/heads/${branchName}`,
         () => 'seeded-sha\n',
@@ -1022,7 +1022,7 @@ describe('worker registration', () => {
       defaultHappyPath(repoRoot, cfg.leaderBranch);
 
       on(
-        (args) => args[0] === 'rev-parse' && args[1].startsWith('refs/heads/omc-team'),
+        (args) => args[0] === 'rev-parse' && args[1].startsWith('refs/heads/omac-team'),
         () => 'sha\n',
       );
 
@@ -1044,7 +1044,7 @@ describe('worker registration', () => {
       defaultHappyPath(repoRoot, cfg.leaderBranch);
 
       on(
-        (args) => args[0] === 'rev-parse' && args[1].startsWith('refs/heads/omc-team'),
+        (args) => args[0] === 'rev-parse' && args[1].startsWith('refs/heads/omac-team'),
         () => 'sha\n',
       );
 
@@ -1071,8 +1071,8 @@ describe('drainAndStop suppresses fan-out rebase', () => {
       const cfg = { ...defaultConfig(repoRoot), drainTimeoutMs: 500 };
       defaultHappyPath(repoRoot, cfg.leaderBranch);
 
-      const branchA = `omc-team/demo-team/${sanitizeName('alice')}`;
-      const branchB = `omc-team/demo-team/${sanitizeName('bob')}`;
+      const branchA = `omac-team/demo-team/${sanitizeName('alice')}`;
+      const branchB = `omac-team/demo-team/${sanitizeName('bob')}`;
       // Alice's branch advances during drain (lastObservedSha != lastMergedSha
       // when we call drainAndStop).
       let aliceCount = 0;
@@ -1110,7 +1110,7 @@ describe('drainAndStop suppresses fan-out rebase', () => {
       // rebase_succeeded events emitted (fan-out is suppressed after stop).
       const eventLog = join(
         repoRoot,
-        '.omc',
+        '.omac',
         'state',
         'team',
         sanitizeName(cfg.teamName),

@@ -14,12 +14,12 @@ export {
 
 export type { McpServerConfig, McpServersConfig } from './servers.js';
 
-// OMC Tools Server - in-process MCP server for custom tools
+// OMAC Tools Server - in-process MCP server for custom tools
 export {
-  omcToolsServer,
-  omcToolNames,
-  getOmcToolNames
-} from './omc-tools-server.js';
+  omacToolsServer,
+  omacToolNames,
+  getOmacToolNames
+} from './omac-tools-server.js';
 
 // Prompt injection helper for system prompt support
 export {

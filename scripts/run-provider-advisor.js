@@ -3,7 +3,7 @@ import { spawnSync } from 'child_process';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import process from 'process';
-import { resolveOmcStateRoot } from './lib/state-root.mjs';
+import { resolveOmacStateRoot } from './lib/state-root.mjs';
 
 const PROVIDER_BINARIES = {
   claude: 'claude',
@@ -63,11 +63,11 @@ function shouldPipePromptViaStdin(provider, prompt) {
   return false;
 }
 
-const ASK_ORIGINAL_TASK_ENV = 'OMC_ASK_ORIGINAL_TASK';
+const ASK_ORIGINAL_TASK_ENV = 'OMAC_ASK_ORIGINAL_TASK';
 const ASK_ORIGINAL_TASK_ENV_ALIAS = 'OMX_ASK_ORIGINAL_TASK';
 
 function usage() {
-  console.error('Usage: omc ask <claude|codex|gemini|grok> "<prompt>"');
+  console.error('Usage: omac ask <claude|codex|gemini|grok> "<prompt>"');
   console.error('Legacy direct usage: node scripts/run-provider-advisor.js <claude|codex|gemini|grok> <prompt...>');
   console.error('                 or: node scripts/run-provider-advisor.js claude --print "<prompt>"');
   console.error('                 or: node scripts/run-provider-advisor.js gemini --prompt "<prompt>"');
@@ -202,7 +202,7 @@ function resolveOriginalTask(prompt) {
 
 async function writeArtifact({ provider, originalTask, finalPrompt, rawOutput, exitCode }) {
   const root = process.cwd();
-  const artifactDir = join(await resolveOmcStateRoot(root), 'artifacts', 'ask');
+  const artifactDir = join(await resolveOmacStateRoot(root), 'artifacts', 'ask');
   const slug = slugify(originalTask);
   const timestamp = timestampToken();
   const artifactPath = join(artifactDir, `${provider}-${slug}-${timestamp}.md`);

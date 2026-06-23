@@ -40,11 +40,11 @@ describe('Consolidation contracts', () => {
       expect(swarm).toBeUndefined();
     });
 
-    it('keeps native-command collisions prefixed to omc-* names', () => {
+    it('keeps native-command collisions prefixed to omac-* names', () => {
       const names = listBuiltinSkillNames();
 
-      expect(names).toContain('omc-plan');
-      expect(names).toContain('omc-doctor');
+      expect(names).toContain('omac-plan');
+      expect(names).toContain('omac-doctor');
       expect(names).not.toContain('plan');
       expect(names).not.toContain('doctor');
       expect(names).not.toContain('help');
@@ -57,7 +57,7 @@ describe('Consolidation contracts', () => {
       expect(names).not.toContain('build-fix');
       expect(names).not.toContain('tdd');
       expect(names).not.toContain('code-review');
-      expect(names).not.toContain('omc-security-review');
+      expect(names).not.toContain('omac-security-review');
     });
 
     it('hides deprecated compatibility aliases from default listings', () => {

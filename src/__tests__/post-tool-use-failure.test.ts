@@ -49,7 +49,7 @@ describe('post-tool-use-failure.mjs', () => {
 
   it('suppresses optional omx startup read method-not-found noise', () => {
     const cwd = makeRepoLocalTempDir();
-    const errorPath = join(cwd, '.omc', 'state', 'last-tool-error.json');
+    const errorPath = join(cwd, '.omac', 'state', 'last-tool-error.json');
 
     const result = runHook({
       tool_name: 'mcp__omx_state__state_read',
@@ -64,7 +64,7 @@ describe('post-tool-use-failure.mjs', () => {
 
   it('preserves real failures for the same optional startup reads', () => {
     const cwd = makeRepoLocalTempDir();
-    const errorPath = join(cwd, '.omc', 'state', 'last-tool-error.json');
+    const errorPath = join(cwd, '.omac', 'state', 'last-tool-error.json');
 
     const result = runHook({
       tool_name: 'mcp__omx_state__state_read',
@@ -93,7 +93,7 @@ describe('post-tool-use-failure.mjs', () => {
 
   it('suppresses broad AGENTS scan permission-denied noise for Bash', () => {
     const cwd = makeRepoLocalTempDir();
-    const errorPath = join(cwd, '.omc', 'state', 'last-tool-error.json');
+    const errorPath = join(cwd, '.omac', 'state', 'last-tool-error.json');
 
     const result = runHook({
       tool_name: 'Bash',
@@ -114,7 +114,7 @@ describe('post-tool-use-failure.mjs', () => {
 
   it('does not suppress Bash permission-denied errors with actionable non-scan content', () => {
     const cwd = makeRepoLocalTempDir();
-    const errorPath = join(cwd, '.omc', 'state', 'last-tool-error.json');
+    const errorPath = join(cwd, '.omac', 'state', 'last-tool-error.json');
 
     const result = runHook({
       tool_name: 'Bash',
@@ -136,8 +136,8 @@ describe('post-tool-use-failure.mjs', () => {
   it('writes to session-scoped path when session_id is provided in payload', () => {
     const cwd = makeRepoLocalTempDir();
     const sessionId = 'abc';
-    const sessionPath = join(cwd, '.omc', 'state', 'sessions', sessionId, 'last-tool-error-state.json');
-    const legacyPath = join(cwd, '.omc', 'state', 'last-tool-error.json');
+    const sessionPath = join(cwd, '.omac', 'state', 'sessions', sessionId, 'last-tool-error-state.json');
+    const legacyPath = join(cwd, '.omac', 'state', 'last-tool-error.json');
 
     const result = runHook({
       tool_name: 'Bash',
@@ -163,7 +163,7 @@ describe('post-tool-use-failure.mjs', () => {
 
   it('writes to legacy path when no session_id is present (back-compat)', () => {
     const cwd = makeRepoLocalTempDir();
-    const legacyPath = join(cwd, '.omc', 'state', 'last-tool-error.json');
+    const legacyPath = join(cwd, '.omac', 'state', 'last-tool-error.json');
 
     const result = runHook({
       tool_name: 'Bash',
@@ -176,14 +176,14 @@ describe('post-tool-use-failure.mjs', () => {
     expect(result.continue).toBe(true);
     expect(existsSync(legacyPath)).toBe(true);
     // session subdir should NOT be created
-    expect(existsSync(join(cwd, '.omc', 'state', 'sessions'))).toBe(false);
+    expect(existsSync(join(cwd, '.omac', 'state', 'sessions'))).toBe(false);
   });
 
-  it('uses OMC_SESSION_ID env var as fallback when payload has no session_id', () => {
+  it('uses OMAC_SESSION_ID env var as fallback when payload has no session_id', () => {
     const cwd = makeRepoLocalTempDir();
     const sessionId = 'env-session-1';
-    const sessionPath = join(cwd, '.omc', 'state', 'sessions', sessionId, 'last-tool-error-state.json');
-    const legacyPath = join(cwd, '.omc', 'state', 'last-tool-error.json');
+    const sessionPath = join(cwd, '.omac', 'state', 'sessions', sessionId, 'last-tool-error-state.json');
+    const legacyPath = join(cwd, '.omac', 'state', 'last-tool-error.json');
 
     runHook(
       {
@@ -193,19 +193,19 @@ describe('post-tool-use-failure.mjs', () => {
         cwd,
         // no session_id in payload
       },
-      { OMC_SESSION_ID: sessionId },
+      { OMAC_SESSION_ID: sessionId },
     );
 
     expect(existsSync(sessionPath)).toBe(true);
     expect(existsSync(legacyPath)).toBe(false);
   });
 
-  it('payload session_id takes priority over OMC_SESSION_ID env var', () => {
+  it('payload session_id takes priority over OMAC_SESSION_ID env var', () => {
     const cwd = makeRepoLocalTempDir();
     const payloadSessionId = 'payload-session';
     const envSessionId = 'env-session';
-    const payloadPath = join(cwd, '.omc', 'state', 'sessions', payloadSessionId, 'last-tool-error-state.json');
-    const envPath = join(cwd, '.omc', 'state', 'sessions', envSessionId, 'last-tool-error-state.json');
+    const payloadPath = join(cwd, '.omac', 'state', 'sessions', payloadSessionId, 'last-tool-error-state.json');
+    const envPath = join(cwd, '.omac', 'state', 'sessions', envSessionId, 'last-tool-error-state.json');
 
     runHook(
       {
@@ -215,7 +215,7 @@ describe('post-tool-use-failure.mjs', () => {
         cwd,
         session_id: payloadSessionId,
       },
-      { OMC_SESSION_ID: envSessionId },
+      { OMAC_SESSION_ID: envSessionId },
     );
 
     expect(existsSync(payloadPath)).toBe(true);
@@ -226,8 +226,8 @@ describe('post-tool-use-failure.mjs', () => {
     const cwd = makeRepoLocalTempDir();
     const sessionA = 'session-alpha';
     const sessionB = 'session-beta';
-    const pathA = join(cwd, '.omc', 'state', 'sessions', sessionA, 'last-tool-error-state.json');
-    const pathB = join(cwd, '.omc', 'state', 'sessions', sessionB, 'last-tool-error-state.json');
+    const pathA = join(cwd, '.omac', 'state', 'sessions', sessionA, 'last-tool-error-state.json');
+    const pathB = join(cwd, '.omac', 'state', 'sessions', sessionB, 'last-tool-error-state.json');
 
     // First invocation
     runHook({

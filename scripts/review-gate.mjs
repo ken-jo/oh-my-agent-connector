@@ -12,8 +12,8 @@ function parseArgs(argv) {
     else if (arg === '--cwd') options.cwd = argv[++index];
     else if (arg === '--json') options.json = true;
   }
-  if (!options.context && process.env.OMC_REVIEW_GATE_CONTEXT) {
-    options.context = process.env.OMC_REVIEW_GATE_CONTEXT;
+  if (!options.context && process.env.OMAC_REVIEW_GATE_CONTEXT) {
+    options.context = process.env.OMAC_REVIEW_GATE_CONTEXT;
   }
   if (options.context === 'commit') options.stagedOnly = true;
   return options;

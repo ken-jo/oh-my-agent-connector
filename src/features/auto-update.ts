@@ -1,7 +1,7 @@
 /**
  * Auto-Update System
  *
- * Provides version checking and auto-update functionality for oh-my-claudecode.
+ * Provides version checking and auto-update functionality for oh-my-agent-connector.
  *
  * Features:
  * - Check for new versions from GitHub releases
@@ -15,7 +15,7 @@ import { join, dirname } from 'path';
 import { execSync, execFileSync } from 'child_process';
 import { TaskTool } from '../hooks/beads-context/types.js';
 import {
-  install as installOmc,
+  install as installOmac,
   HOOKS_DIR,
   isProjectScopedPlugin,
   isRunningAsPlugin,
@@ -26,11 +26,11 @@ import { getClaudeConfigDir } from '../utils/config-dir.js';
 import { purgeStalePluginCacheVersions } from '../utils/paths.js';
 import type { NotificationConfig } from '../notifications/types.js';
 import { isAutoUpdateDisabled } from '../lib/security-config.js';
-import { OMC_CONFIG_FILE_REL } from '../lib/paths.js';
+import { OMAC_CONFIG_FILE_REL } from '../lib/paths.js';
 
 /** GitHub repository information */
 export const REPO_OWNER = 'Yeachan-Heo';
-export const REPO_NAME = 'oh-my-claudecode';
+export const REPO_NAME = 'oh-my-agent-connector';
 export const GITHUB_API_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 export const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}`;
 
@@ -215,7 +215,7 @@ function restoreGlobalClaudeCodeIfNeeded(
   const packageSpec = `${CLAUDE_CODE_NPM_PACKAGE}${versionSuffix}`;
 
   if (verbose) {
-    console.log(`[omc update] Restoring global ${packageSpec} after npm update...`);
+    console.log(`[omac update] Restoring global ${packageSpec} after npm update...`);
   }
 
   npmInstallGlobalPackage(packageSpec, verbose);
@@ -226,7 +226,7 @@ function restoreGlobalClaudeCodeIfNeeded(
   }
 
   if (verbose) {
-    console.log(`[omc update] Restored global ${CLAUDE_CODE_NPM_PACKAGE}`);
+    console.log(`[omac update] Restored global ${CLAUDE_CODE_NPM_PACKAGE}`);
   }
 
   return { restored: true };
@@ -234,12 +234,12 @@ function restoreGlobalClaudeCodeIfNeeded(
 
 /**
  * Best-effort sync of the Claude Code marketplace clone.
- * The marketplace clone at ~/.claude/plugins/marketplaces/omc/ is used by
+ * The marketplace clone at ~/.claude/plugins/marketplaces/omac/ is used by
  * Claude Code to populate the plugin cache. If it's stale, `/plugin install`
  * and cache rebuilds reinstall old versions. (See #506)
  */
 function syncMarketplaceClone(verbose: boolean = false): { ok: boolean; message: string } {
-  const marketplacePath = join(getClaudeConfigDir(), 'plugins', 'marketplaces', 'omc');
+  const marketplacePath = join(getClaudeConfigDir(), 'plugins', 'marketplaces', 'omac');
   if (!existsSync(marketplacePath)) {
     return { ok: true, message: 'Marketplace clone not found; skipping' };
   }
@@ -349,7 +349,7 @@ function deriveUpdatedPluginInstallPath(
 ): string {
   if (existingInstallPath?.trim()) {
     const normalized = existingInstallPath.replace(/\\/g, '/').toLowerCase();
-    if (normalized.includes('/plugins/cache/') && normalized.includes('/oh-my-claudecode/')) {
+    if (normalized.includes('/plugins/cache/') && normalized.includes('/oh-my-agent-connector/')) {
       return replaceLastPathSegmentPreservingSeparators(existingInstallPath, newVersion);
     }
   }
@@ -399,9 +399,9 @@ function syncInstalledPluginRegistryVersion(
 
     for (const [pluginId, entriesValue] of Object.entries(plugins)) {
       const normalizedPluginId = pluginId.toLowerCase();
-      const isOmcPlugin = normalizedPluginId === 'oh-my-claudecode@omc'
-        || normalizedPluginId === 'oh-my-claudecode';
-      if (!isOmcPlugin || !Array.isArray(entriesValue)) {
+      const isOmacPlugin = normalizedPluginId === 'oh-my-agent-connector@omac'
+        || normalizedPluginId === 'oh-my-agent-connector';
+      if (!isOmacPlugin || !Array.isArray(entriesValue)) {
         continue;
       }
 
@@ -435,7 +435,7 @@ function syncActivePluginCache(): { synced: boolean; errors: string[] } {
   const result = syncInstalledPluginPayload();
 
   if (result.synced) {
-    console.log('[omc update] Synced plugin cache');
+    console.log('[omac update] Synced plugin cache');
   }
 
   return result;
@@ -460,7 +460,7 @@ export function shouldBlockStandaloneUpdateInCurrentSession(): boolean {
 }
 
 export function syncPluginCache(verbose: boolean = false): { synced: boolean; skipped: boolean; errors: string[] } {
-  const pluginCacheRoot = join(getClaudeConfigDir(), 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+  const pluginCacheRoot = join(getClaudeConfigDir(), 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
   if (!existsSync(pluginCacheRoot)) {
     return { synced: false, skipped: true, errors: [] };
   }
@@ -477,7 +477,7 @@ export function syncPluginCache(verbose: boolean = false): { synced: boolean; sk
       throw new Error('npm root -g returned an empty path');
     }
 
-    const sourceRoot = join(npmRoot, 'oh-my-claude-sisyphus');
+    const sourceRoot = join(npmRoot, 'oh-my-agent-connector');
     const packageJsonPath = join(sourceRoot, 'package.json');
     const packageJsonRaw = String(readFileSync(packageJsonPath, 'utf-8') ?? '');
     const packageMetadata = JSON.parse(packageJsonRaw) as { version?: unknown };
@@ -493,7 +493,7 @@ export function syncPluginCache(verbose: boolean = false): { synced: boolean; sk
 
     if (result.errors.length > 0) {
       for (const error of result.errors) {
-        console.warn(`[omc update] Plugin cache sync warning: ${error}`);
+        console.warn(`[omac update] Plugin cache sync warning: ${error}`);
       }
     }
 
@@ -504,21 +504,21 @@ export function syncPluginCache(verbose: boolean = false): { synced: boolean; sk
       const registryResult = syncInstalledPluginRegistryVersion(version, versionedPluginCacheRoot);
       result.errors.push(...registryResult.errors);
       if (registryResult.updated && verbose) {
-        console.log('[omc update] Updated Claude plugin registry');
+        console.log('[omac update] Updated Claude plugin registry');
       }
     }
 
     if (result.synced) {
-      console.log('[omc update] Plugin cache synced');
+      console.log('[omac update] Plugin cache synced');
     }
 
     return { ...result, skipped: false };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (verbose) {
-      console.warn(`[omc update] Plugin cache sync warning: ${message}`);
+      console.warn(`[omac update] Plugin cache sync warning: ${message}`);
     } else {
-      console.warn('[omc update] Plugin cache sync warning:', message);
+      console.warn('[omac update] Plugin cache sync warning:', message);
     }
     return { synced: false, skipped: false, errors: [message] };
   }
@@ -526,8 +526,8 @@ export function syncPluginCache(verbose: boolean = false): { synced: boolean; sk
 
 /** Installation paths (respects CLAUDE_CONFIG_DIR env var) */
 export const CLAUDE_CONFIG_DIR = getClaudeConfigDir();
-export const VERSION_FILE = join(CLAUDE_CONFIG_DIR, '.omc-version.json');
-export const CONFIG_FILE = join(CLAUDE_CONFIG_DIR, OMC_CONFIG_FILE_REL);
+export const VERSION_FILE = join(CLAUDE_CONFIG_DIR, '.omac-version.json');
+export const CONFIG_FILE = join(CLAUDE_CONFIG_DIR, OMAC_CONFIG_FILE_REL);
 
 /**
  * Stop hook callback configuration for file logging
@@ -586,9 +586,9 @@ export interface StopHookCallbacksConfig {
 }
 
 /**
- * OMC configuration (stored in .omc-config.json)
+ * OMAC configuration (stored in .omac-config.json)
  */
-export interface OMCConfig {
+export interface OMACConfig {
   /** Whether silent auto-updates are enabled (opt-in for security) */
   silentAutoUpdate: boolean;
   /** When the configuration was set */
@@ -625,9 +625,9 @@ export interface OMCConfig {
 }
 
 /**
- * Read the OMC configuration
+ * Read the OMAC configuration
  */
-export function getOMCConfig(): OMCConfig {
+export function getOMACConfig(): OMACConfig {
   if (!existsSync(CONFIG_FILE)) {
     // No config file = disabled by default for security
     return { silentAutoUpdate: false };
@@ -635,7 +635,7 @@ export function getOMCConfig(): OMCConfig {
 
   try {
     const content = readFileSync(CONFIG_FILE, 'utf-8');
-    const config = JSON.parse(content) as OMCConfig;
+    const config = JSON.parse(content) as OMACConfig;
     return {
       silentAutoUpdate: config.silentAutoUpdate ?? false,
       configuredAt: config.configuredAt,
@@ -662,7 +662,7 @@ export function getOMCConfig(): OMCConfig {
  */
 export function isSilentAutoUpdateEnabled(): boolean {
   if (isAutoUpdateDisabled()) return false;
-  return getOMCConfig().silentAutoUpdate;
+  return getOMACConfig().silentAutoUpdate;
 }
 
 /**
@@ -670,7 +670,7 @@ export function isSilentAutoUpdateEnabled(): boolean {
  * Returns true by default - users must explicitly opt out
  */
 export function isAutoUpgradePromptEnabled(): boolean {
-  return getOMCConfig().autoUpgradePrompt !== false;
+  return getOMACConfig().autoUpgradePrompt !== false;
 }
 
 /**
@@ -760,15 +760,15 @@ export function getInstalledVersion(): VersionMetadata | null {
     // Try to detect version from package.json if installed via npm
     try {
       // Check if we can find the package in node_modules
-      const result = execSync('npm list -g oh-my-claude-sisyphus --json', {
+      const result = execSync('npm list -g oh-my-agent-connector --json', {
         encoding: 'utf-8',
         timeout: 5000,
         stdio: 'pipe'
       });
       const data = JSON.parse(result);
-      if (data.dependencies?.['oh-my-claude-sisyphus']?.version) {
+      if (data.dependencies?.['oh-my-agent-connector']?.version) {
         return {
-          version: data.dependencies['oh-my-claude-sisyphus'].version,
+          version: data.dependencies['oh-my-agent-connector'].version,
           installedAt: new Date().toISOString(),
           installMethod: 'npm'
         };
@@ -818,7 +818,7 @@ function getGitHubUpdateToken(): string | null {
 function getGitHubReleaseHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     'Accept': 'application/vnd.github.v3+json',
-    'User-Agent': 'oh-my-claudecode-updater'
+    'User-Agent': 'oh-my-agent-connector-updater'
   };
 
   const token = getGitHubUpdateToken();
@@ -886,7 +886,7 @@ export async function fetchLatestRelease(): Promise<ReleaseInfo> {
     // No releases found - try to get version from package.json in repo
     const pkgResponse = await fetch(`${GITHUB_RAW_URL}/main/package.json`, {
       headers: {
-        'User-Agent': 'oh-my-claudecode-updater'
+        'User-Agent': 'oh-my-agent-connector-updater'
       }
     });
 
@@ -973,7 +973,7 @@ export function reconcileUpdateRuntime(options?: { verbose?: boolean; skipGraceP
 
   const projectScopedPlugin = isProjectScopedPlugin();
   // Plugin installs execute hooks from <pluginRoot>/hooks/hooks.json. Re-running
-  // the standalone settings.json hook merge during `omc update` re-injects the
+  // the standalone settings.json hook merge during `omac update` re-injects the
   // legacy ~/.claude/hooks/* entries and causes duplicate hook execution.
   //
   // Reconciliation should still refresh shared installer artifacts (CLAUDE.md,
@@ -994,7 +994,7 @@ export function reconcileUpdateRuntime(options?: { verbose?: boolean; skipGraceP
   }
 
   try {
-    const installResult = installOmc({
+    const installResult = installOmac({
       force: true,
       verbose: options?.verbose ?? false,
       skipClaudeCheck: true,
@@ -1016,7 +1016,7 @@ export function reconcileUpdateRuntime(options?: { verbose?: boolean; skipGraceP
       errors.push(...pluginSyncResult.errors.map(err => `Plugin cache sync failed: ${err}`));
       if (options?.verbose) {
         for (const err of pluginSyncResult.errors) {
-          console.warn(`[omc] Plugin cache sync error: ${err}`);
+          console.warn(`[omac] Plugin cache sync error: ${err}`);
         }
       }
     }
@@ -1024,7 +1024,7 @@ export function reconcileUpdateRuntime(options?: { verbose?: boolean; skipGraceP
     const message = error instanceof Error ? error.message : String(error);
     errors.push(`Plugin cache sync failed: ${message}`);
     if (options?.verbose) {
-      console.warn(`[omc] Plugin cache sync error: ${message}`);
+      console.warn(`[omac] Plugin cache sync error: ${message}`);
     }
   }
 
@@ -1032,11 +1032,11 @@ export function reconcileUpdateRuntime(options?: { verbose?: boolean; skipGraceP
   try {
     const purgeResult = purgeStalePluginCacheVersions({ skipGracePeriod: options?.skipGracePeriod });
     if (purgeResult.removed > 0 && options?.verbose) {
-      console.log(`[omc] Purged ${purgeResult.removed} stale plugin cache version(s)`);
+      console.log(`[omac] Purged ${purgeResult.removed} stale plugin cache version(s)`);
     }
     if (purgeResult.errors.length > 0 && options?.verbose) {
       for (const err of purgeResult.errors) {
-        console.warn(`[omc] Cache purge warning: ${err}`);
+        console.warn(`[omac] Cache purge warning: ${err}`);
       }
     }
   } catch {
@@ -1057,21 +1057,21 @@ export function reconcileUpdateRuntime(options?: { verbose?: boolean; skipGraceP
   };
 }
 
-function resolveOmcBinaryPath(): string {
+function resolveOmacBinaryPath(): string {
   if (process.platform === 'win32') {
-    return getFirstResolvedBinaryPath(execFileSync('where.exe', ['omc.cmd'], {
+    return getFirstResolvedBinaryPath(execFileSync('where.exe', ['omac.cmd'], {
       encoding: 'utf-8',
       stdio: 'pipe',
       timeout: 5000,
       windowsHide: true,
-    }), 'omc');
+    }), 'omac');
   }
 
-  return getFirstResolvedBinaryPath(execSync('which omc 2>/dev/null || where omc 2>NUL', {
+  return getFirstResolvedBinaryPath(execSync('which omac 2>/dev/null || where omac 2>NUL', {
     encoding: 'utf-8',
     stdio: 'pipe',
     timeout: 5000,
-  }), 'omc');
+  }), 'omac');
 }
 
 /**
@@ -1094,7 +1094,7 @@ export async function performUpdate(options?: {
         success: false,
         previousVersion,
         newVersion: 'unknown',
-        message: 'Running inside an active Claude Code plugin session. Use "/plugin install oh-my-claudecode" to update, or pass --standalone to force npm update.',
+        message: 'Running inside an active Claude Code plugin session. Use "/plugin install oh-my-agent-connector" to update, or pass --standalone to force npm update.',
       };
     }
 
@@ -1105,7 +1105,7 @@ export async function performUpdate(options?: {
 
     // Use npm for updates on all platforms (install.sh was removed)
     try {
-      execSync('npm install -g oh-my-claude-sisyphus@latest', npmExecOptions(options?.verbose ?? false));
+      execSync('npm install -g oh-my-agent-connector@latest', npmExecOptions(options?.verbose ?? false));
 
       try {
         restoreGlobalClaudeCodeIfNeeded(claudeCodeBeforeUpdate, options?.verbose ?? false);
@@ -1122,33 +1122,33 @@ export async function performUpdate(options?: {
       // Sync Claude Code marketplace clone so plugin cache picks up new version (#506)
       const marketplaceSync = syncMarketplaceClone(options?.verbose ?? false);
       if (!marketplaceSync.ok && options?.verbose) {
-        console.warn(`[omc update] ${marketplaceSync.message}`);
+        console.warn(`[omac update] ${marketplaceSync.message}`);
       }
 
       const pluginCacheSync = syncPluginCache(options?.verbose ?? false);
       if (pluginCacheSync.errors.length > 0 && options?.verbose) {
         for (const error of pluginCacheSync.errors) {
-          console.warn(`[omc update] Plugin cache sync warning: ${error}`);
+          console.warn(`[omac update] Plugin cache sync warning: ${error}`);
         }
       }
 
       // CRITICAL FIX: After npm updates the global package, the current process
       // still has OLD code loaded in memory. We must re-exec to run reconciliation
-      // with the NEW code. Otherwise, installOmc() runs OLD logic against NEW files.
-      if (!process.env.OMC_UPDATE_RECONCILE) {
+      // with the NEW code. Otherwise, installOmac() runs OLD logic against NEW files.
+      if (!process.env.OMAC_UPDATE_RECONCILE) {
         // Set flag to prevent infinite loop
-        process.env.OMC_UPDATE_RECONCILE = '1';
+        process.env.OMAC_UPDATE_RECONCILE = '1';
 
-        // Find the omc binary path
-        const omcPath = resolveOmcBinaryPath();
+        // Find the omac binary path
+        const omacPath = resolveOmacBinaryPath();
 
         // Re-exec with reconcile subcommand
         try {
-          execFileSync(omcPath, ['update-reconcile', ...(options?.clean ? ['--skip-grace-period'] : [])], {
+          execFileSync(omacPath, ['update-reconcile', ...(options?.clean ? ['--skip-grace-period'] : [])], {
             encoding: 'utf-8',
             stdio: options?.verbose ? 'inherit' : 'pipe',
             timeout: 60000,
-            env: { ...process.env, OMC_UPDATE_RECONCILE: '1' },
+            env: { ...process.env, OMAC_UPDATE_RECONCILE: '1' },
             ...(process.platform === 'win32' ? { windowsHide: true, shell: true } : {}),
           });
         } catch (reconcileError) {
@@ -1197,8 +1197,8 @@ export async function performUpdate(options?: {
     } catch (npmError) {
       throw new Error(
         'Auto-update via npm failed. Please run manually:\n' +
-        '  npm install -g oh-my-claude-sisyphus@latest\n' +
-        'Or use: /plugin install oh-my-claudecode\n' +
+        '  npm install -g oh-my-agent-connector@latest\n' +
+        'Or use: /plugin install oh-my-agent-connector\n' +
         `Error: ${npmError instanceof Error ? npmError.message : npmError}`
       );
     }
@@ -1219,19 +1219,19 @@ export async function performUpdate(options?: {
  */
 export function formatUpdateNotification(checkResult: UpdateCheckResult): string {
   if (!checkResult.updateAvailable) {
-    return `oh-my-claudecode is up to date (v${checkResult.currentVersion ?? 'unknown'})`;
+    return `oh-my-agent-connector is up to date (v${checkResult.currentVersion ?? 'unknown'})`;
   }
 
   const lines = [
     '╔═══════════════════════════════════════════════════════════╗',
-    '║           oh-my-claudecode Update Available!              ║',
+    '║           oh-my-agent-connector Update Available!              ║',
     '╚═══════════════════════════════════════════════════════════╝',
     '',
     `  Current version: ${checkResult.currentVersion ?? 'unknown'}`,
     `  Latest version:  ${checkResult.latestVersion}`,
     '',
     '  To update, run: /update',
-    '  Or reinstall via: /plugin install oh-my-claudecode',
+    '  Or reinstall via: /plugin install oh-my-agent-connector',
     ''
   ];
 
@@ -1286,7 +1286,7 @@ export function backgroundUpdateCheck(callback?: (result: UpdateCheckResult) => 
     })
     .catch(error => {
       // Silently ignore errors in background checks
-      if (process.env.OMC_DEBUG) {
+      if (process.env.OMAC_DEBUG) {
         console.error('Background update check failed:', error);
       }
     });
@@ -1342,7 +1342,7 @@ export interface SilentUpdateConfig {
 }
 
 /** State file for tracking silent update status */
-const SILENT_UPDATE_STATE_FILE = join(CLAUDE_CONFIG_DIR, '.omc-silent-update.json');
+const SILENT_UPDATE_STATE_FILE = join(CLAUDE_CONFIG_DIR, '.omac-silent-update.json');
 
 interface SilentUpdateState {
   lastAttempt?: string;
@@ -1417,7 +1417,7 @@ export async function silentAutoUpdate(config: SilentUpdateConfig = {}): Promise
   const {
     checkIntervalHours = 24,
     autoApply = true,
-    logFile = join(CLAUDE_CONFIG_DIR, '.omc-update.log'),
+    logFile = join(CLAUDE_CONFIG_DIR, '.omac-update.log'),
     maxRetries = 3
   } = config;
 

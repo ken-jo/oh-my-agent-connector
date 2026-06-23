@@ -231,7 +231,7 @@ describe('runtime-cli terminal preservation helper', () => {
     const cwd = mkdtempSync(join(tmpdir(), 'runtime-cli-terminal-complete-'));
     try {
       const teamName = 'runtime-cli-preserve-complete';
-      const stateRoot = join(cwd, '.omc', 'state', 'team', teamName);
+      const stateRoot = join(cwd, '.omac', 'state', 'team', teamName);
       const tasksDir = join(stateRoot, 'tasks');
       mkdirSync(tasksDir, { recursive: true });
       writeFileSync(
@@ -258,7 +258,7 @@ describe('runtime-cli terminal preservation helper', () => {
         },
       ]);
       expect(result.notice).toContain('preserving team state');
-      expect(result.notice).toContain(`omc team shutdown ${teamName}`);
+      expect(result.notice).toContain(`omac team shutdown ${teamName}`);
     } finally {
       rmSync(cwd, { recursive: true, force: true });
     }
@@ -268,7 +268,7 @@ describe('runtime-cli terminal preservation helper', () => {
     const cwd = mkdtempSync(join(tmpdir(), 'runtime-cli-terminal-cancelled-'));
     try {
       const teamName = 'runtime-cli-preserve-cancelled';
-      const stateRoot = join(cwd, '.omc', 'state', 'team', teamName);
+      const stateRoot = join(cwd, '.omac', 'state', 'team', teamName);
       const tasksDir = join(stateRoot, 'tasks');
       mkdirSync(tasksDir, { recursive: true });
       writeFileSync(
@@ -295,7 +295,7 @@ describe('runtime-cli terminal preservation helper', () => {
         },
       ]);
       expect(result.notice).toContain('phase=cancelled');
-      expect(result.notice).toContain(`omc team shutdown ${teamName}`);
+      expect(result.notice).toContain(`omac team shutdown ${teamName}`);
     } finally {
       rmSync(cwd, { recursive: true, force: true });
     }
@@ -308,7 +308,7 @@ describe('runtime-cli terse-final output fallback', () => {
     teamName: string,
     task: { id: string; status?: string; result?: string; summary?: string },
   ): string {
-    const stateRoot = join(cwd, '.omc', 'state', 'team', teamName);
+    const stateRoot = join(cwd, '.omac', 'state', 'team', teamName);
     const tasksDir = join(stateRoot, 'tasks');
     mkdirSync(tasksDir, { recursive: true });
     writeFileSync(
@@ -320,7 +320,7 @@ describe('runtime-cli terse-final output fallback', () => {
   }
 
   function writeOutputFile(cwd: string, teamName: string, taskId: string, content: string): void {
-    const outputsDir = join(cwd, '.omc', 'outputs');
+    const outputsDir = join(cwd, '.omac', 'outputs');
     mkdirSync(outputsDir, { recursive: true });
     const suffix = Math.random().toString(36).slice(2, 8);
     writeFileSync(
@@ -354,7 +354,7 @@ describe('runtime-cli terse-final output fallback', () => {
       const cwd = mkdtempSync(join(tmpdir(), 'runtime-cli-fallback-none-'));
       try {
         expect(
-          readTaskOutputFallback(join(cwd, '.omc', 'outputs'), 'team-x', '1'),
+          readTaskOutputFallback(join(cwd, '.omac', 'outputs'), 'team-x', '1'),
         ).toBeNull();
       } finally {
         rmSync(cwd, { recursive: true, force: true });
@@ -366,7 +366,7 @@ describe('runtime-cli terse-final output fallback', () => {
       try {
         writeOutputFile(cwd, 'team-x', '10', 'output for task ten');
         expect(
-          readTaskOutputFallback(join(cwd, '.omc', 'outputs'), 'team-x', '1'),
+          readTaskOutputFallback(join(cwd, '.omac', 'outputs'), 'team-x', '1'),
         ).toBeNull();
       } finally {
         rmSync(cwd, { recursive: true, force: true });

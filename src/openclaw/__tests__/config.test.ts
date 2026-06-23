@@ -53,51 +53,51 @@ describe("getOpenClawConfig", () => {
     resetOpenClawConfigCache();
   });
 
-  it("returns null when OMC_OPENCLAW is not set", () => {
-    vi.stubEnv("OMC_OPENCLAW", "");
+  it("returns null when OMAC_OPENCLAW is not set", () => {
+    vi.stubEnv("OMAC_OPENCLAW", "");
     expect(getOpenClawConfig()).toBeNull();
   });
 
-  it("returns null when OMC_OPENCLAW is not '1'", () => {
-    vi.stubEnv("OMC_OPENCLAW", "true");
+  it("returns null when OMAC_OPENCLAW is not '1'", () => {
+    vi.stubEnv("OMAC_OPENCLAW", "true");
     expect(getOpenClawConfig()).toBeNull();
   });
 
   it("returns null when config file is missing", () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+    vi.stubEnv("OMAC_OPENCLAW", "1");
     vi.mocked(existsSync).mockReturnValue(false);
     expect(getOpenClawConfig()).toBeNull();
   });
 
   it("returns null when config has enabled: false", () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+    vi.stubEnv("OMAC_OPENCLAW", "1");
     const disabledConfig = { ...validConfig, enabled: false };
     vi.mocked(readFileSync).mockReturnValue(JSON.stringify(disabledConfig));
     expect(getOpenClawConfig()).toBeNull();
   });
 
   it("returns null when config has invalid JSON", () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+    vi.stubEnv("OMAC_OPENCLAW", "1");
     vi.mocked(readFileSync).mockReturnValue("not valid json {{");
     expect(getOpenClawConfig()).toBeNull();
   });
 
   it("returns null when config is missing gateways", () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+    vi.stubEnv("OMAC_OPENCLAW", "1");
     const noGateways = { enabled: true, hooks: {} };
     vi.mocked(readFileSync).mockReturnValue(JSON.stringify(noGateways));
     expect(getOpenClawConfig()).toBeNull();
   });
 
   it("returns null when config is missing hooks", () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+    vi.stubEnv("OMAC_OPENCLAW", "1");
     const noHooks = { enabled: true, gateways: {} };
     vi.mocked(readFileSync).mockReturnValue(JSON.stringify(noHooks));
     expect(getOpenClawConfig()).toBeNull();
   });
 
-  it("returns valid config when file exists and OMC_OPENCLAW=1", () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+  it("returns valid config when file exists and OMAC_OPENCLAW=1", () => {
+    vi.stubEnv("OMAC_OPENCLAW", "1");
     const config = getOpenClawConfig();
     expect(config).not.toBeNull();
     expect(config!.enabled).toBe(true);
@@ -105,7 +105,7 @@ describe("getOpenClawConfig", () => {
   });
 
   it("caches config after first read", () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+    vi.stubEnv("OMAC_OPENCLAW", "1");
     getOpenClawConfig();
     getOpenClawConfig();
     getOpenClawConfig();
@@ -114,7 +114,7 @@ describe("getOpenClawConfig", () => {
   });
 
   it("resetOpenClawConfigCache clears the cache", () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
+    vi.stubEnv("OMAC_OPENCLAW", "1");
     getOpenClawConfig();
     expect(readFileSync).toHaveBeenCalledTimes(1);
     resetOpenClawConfigCache();
@@ -122,9 +122,9 @@ describe("getOpenClawConfig", () => {
     expect(readFileSync).toHaveBeenCalledTimes(2);
   });
 
-  it("respects OMC_OPENCLAW_CONFIG env var for custom config path", () => {
-    vi.stubEnv("OMC_OPENCLAW", "1");
-    vi.stubEnv("OMC_OPENCLAW_CONFIG", "/custom/path/config.json");
+  it("respects OMAC_OPENCLAW_CONFIG env var for custom config path", () => {
+    vi.stubEnv("OMAC_OPENCLAW", "1");
+    vi.stubEnv("OMAC_OPENCLAW_CONFIG", "/custom/path/config.json");
     // The config file path is resolved at module load time, so we just verify
     // that readFileSync is called (the path is set at import time)
     getOpenClawConfig();

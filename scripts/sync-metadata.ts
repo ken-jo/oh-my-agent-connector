@@ -72,7 +72,7 @@ function loadMetadata(): Metadata {
     keywords: packageJson.keywords || [],
     repository: packageJson.repository?.url?.replace(/^git\+/, '').replace(/\.git$/, '') || '',
     homepage: packageJson.homepage || '',
-    npmPackage: packageJson.name || 'oh-my-claude-sisyphus',
+    npmPackage: packageJson.name || 'oh-my-agent-connector',
   };
 }
 
@@ -170,8 +170,8 @@ function getFileSyncConfigs(): FileSync[] {
       path: 'docs/CLAUDE.md',
       replacements: [
         {
-          pattern: /<!-- OMC:VERSION:[^\s]*? -->/g,
-          replacement: (m) => `<!-- OMC:VERSION:${m.version} -->`,
+          pattern: /<!-- OMAC:VERSION:[^\s]*? -->/g,
+          replacement: (m) => `<!-- OMAC:VERSION:${m.version} -->`,
           description: 'CLAUDE.md version marker',
         },
       ],

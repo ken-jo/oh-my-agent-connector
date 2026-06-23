@@ -4045,7 +4045,7 @@ var require_core = __commonJS({
       constructor(opts = {}) {
         this.schemas = {};
         this.refs = {};
-        this.formats = {};
+        this.formats = /* @__PURE__ */ Object.create(null);
         this._compilations = /* @__PURE__ */ new Set();
         this._loading = {};
         this._cache = /* @__PURE__ */ new Map();
@@ -14742,10 +14742,9 @@ var ProgressTokenSchema = union([string2(), number2().int()]);
 var CursorSchema = string2();
 var TaskCreationParamsSchema = looseObject({
   /**
-   * Time in milliseconds to keep task results available after completion.
-   * If null, the task has unlimited lifetime until manually cleaned up.
+   * Requested duration in milliseconds to retain task from creation.
    */
-  ttl: union([number2(), _null3()]).optional(),
+  ttl: number2().optional(),
   /**
    * Time in milliseconds to wait between task status requests.
    */
@@ -15045,7 +15044,11 @@ var ClientCapabilitiesSchema = object2({
   /**
    * Present if the client supports task creation.
    */
-  tasks: ClientTasksCapabilitySchema.optional()
+  tasks: ClientTasksCapabilitySchema.optional(),
+  /**
+   * Extensions that the client supports. Keys are extension identifiers (vendor-prefix/extension-name).
+   */
+  extensions: record(string2(), AssertObjectSchema).optional()
 });
 var InitializeRequestParamsSchema = BaseRequestParamsSchema.extend({
   /**
@@ -15106,7 +15109,11 @@ var ServerCapabilitiesSchema = object2({
   /**
    * Present if the server supports task creation.
    */
-  tasks: ServerTasksCapabilitySchema.optional()
+  tasks: ServerTasksCapabilitySchema.optional(),
+  /**
+   * Extensions that the server supports. Keys are extension identifiers (vendor-prefix/extension-name).
+   */
+  extensions: record(string2(), AssertObjectSchema).optional()
 });
 var InitializeResultSchema = ResultSchema.extend({
   /**
@@ -15298,6 +15305,12 @@ var ResourceSchema = object2({
    * The MIME type of this resource, if known.
    */
   mimeType: optional(string2()),
+  /**
+   * The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.
+   *
+   * This can be used by Hosts to display file sizes and estimate context window usage.
+   */
+  size: optional(number2()),
   /**
    * Optional annotations for the client.
    */
@@ -16479,6 +16492,10 @@ var Protocol = class {
     this._progressHandlers.clear();
     this._taskProgressTokens.clear();
     this._pendingDebouncedNotifications.clear();
+    for (const info of this._timeoutInfo.values()) {
+      clearTimeout(info.timeoutId);
+    }
+    this._timeoutInfo.clear();
     for (const controller of this._requestHandlerAbortControllers.values()) {
       controller.abort();
     }
@@ -16609,7 +16626,9 @@ var Protocol = class {
         await capturedTransport?.send(errorResponse2);
       }
     }).catch((error2) => this._onerror(new Error(`Failed to send response: ${error2}`))).finally(() => {
-      this._requestHandlerAbortControllers.delete(request.id);
+      if (this._requestHandlerAbortControllers.get(request.id) === abortController) {
+        this._requestHandlerAbortControllers.delete(request.id);
+      }
     });
   }
   _onprogress(notification) {
@@ -17306,6 +17325,147 @@ var ExperimentalServerTasks = class {
     return this._server.requestStream(request, resultSchema, options);
   }
   /**
+   * Sends a sampling request and returns an AsyncGenerator that yields response messages.
+   * The generator is guaranteed to end with either a 'result' or 'error' message.
+   *
+   * For task-augmented requests, yields 'taskCreated' and 'taskStatus' messages
+   * before the final result.
+   *
+   * @example
+   * ```typescript
+   * const stream = server.experimental.tasks.createMessageStream({
+   *     messages: [{ role: 'user', content: { type: 'text', text: 'Hello' } }],
+   *     maxTokens: 100
+   * }, {
+   *     onprogress: (progress) => {
+   *         // Handle streaming tokens via progress notifications
+   *         console.log('Progress:', progress.message);
+   *     }
+   * });
+   *
+   * for await (const message of stream) {
+   *     switch (message.type) {
+   *         case 'taskCreated':
+   *             console.log('Task created:', message.task.taskId);
+   *             break;
+   *         case 'taskStatus':
+   *             console.log('Task status:', message.task.status);
+   *             break;
+   *         case 'result':
+   *             console.log('Final result:', message.result);
+   *             break;
+   *         case 'error':
+   *             console.error('Error:', message.error);
+   *             break;
+   *     }
+   * }
+   * ```
+   *
+   * @param params - The sampling request parameters
+   * @param options - Optional request options (timeout, signal, task creation params, onprogress, etc.)
+   * @returns AsyncGenerator that yields ResponseMessage objects
+   *
+   * @experimental
+   */
+  createMessageStream(params, options) {
+    const clientCapabilities = this._server.getClientCapabilities();
+    if ((params.tools || params.toolChoice) && !clientCapabilities?.sampling?.tools) {
+      throw new Error("Client does not support sampling tools capability.");
+    }
+    if (params.messages.length > 0) {
+      const lastMessage = params.messages[params.messages.length - 1];
+      const lastContent = Array.isArray(lastMessage.content) ? lastMessage.content : [lastMessage.content];
+      const hasToolResults = lastContent.some((c) => c.type === "tool_result");
+      const previousMessage = params.messages.length > 1 ? params.messages[params.messages.length - 2] : void 0;
+      const previousContent = previousMessage ? Array.isArray(previousMessage.content) ? previousMessage.content : [previousMessage.content] : [];
+      const hasPreviousToolUse = previousContent.some((c) => c.type === "tool_use");
+      if (hasToolResults) {
+        if (lastContent.some((c) => c.type !== "tool_result")) {
+          throw new Error("The last message must contain only tool_result content if any is present");
+        }
+        if (!hasPreviousToolUse) {
+          throw new Error("tool_result blocks are not matching any tool_use from the previous message");
+        }
+      }
+      if (hasPreviousToolUse) {
+        const toolUseIds = new Set(previousContent.filter((c) => c.type === "tool_use").map((c) => c.id));
+        const toolResultIds = new Set(lastContent.filter((c) => c.type === "tool_result").map((c) => c.toolUseId));
+        if (toolUseIds.size !== toolResultIds.size || ![...toolUseIds].every((id) => toolResultIds.has(id))) {
+          throw new Error("ids of tool_result blocks and tool_use blocks from previous message do not match");
+        }
+      }
+    }
+    return this.requestStream({
+      method: "sampling/createMessage",
+      params
+    }, CreateMessageResultSchema, options);
+  }
+  /**
+   * Sends an elicitation request and returns an AsyncGenerator that yields response messages.
+   * The generator is guaranteed to end with either a 'result' or 'error' message.
+   *
+   * For task-augmented requests (especially URL-based elicitation), yields 'taskCreated'
+   * and 'taskStatus' messages before the final result.
+   *
+   * @example
+   * ```typescript
+   * const stream = server.experimental.tasks.elicitInputStream({
+   *     mode: 'url',
+   *     message: 'Please authenticate',
+   *     elicitationId: 'auth-123',
+   *     url: 'https://example.com/auth'
+   * }, {
+   *     task: { ttl: 300000 } // Task-augmented for long-running auth flow
+   * });
+   *
+   * for await (const message of stream) {
+   *     switch (message.type) {
+   *         case 'taskCreated':
+   *             console.log('Task created:', message.task.taskId);
+   *             break;
+   *         case 'taskStatus':
+   *             console.log('Task status:', message.task.status);
+   *             break;
+   *         case 'result':
+   *             console.log('User action:', message.result.action);
+   *             break;
+   *         case 'error':
+   *             console.error('Error:', message.error);
+   *             break;
+   *     }
+   * }
+   * ```
+   *
+   * @param params - The elicitation request parameters
+   * @param options - Optional request options (timeout, signal, task creation params, etc.)
+   * @returns AsyncGenerator that yields ResponseMessage objects
+   *
+   * @experimental
+   */
+  elicitInputStream(params, options) {
+    const clientCapabilities = this._server.getClientCapabilities();
+    const mode = params.mode ?? "form";
+    switch (mode) {
+      case "url": {
+        if (!clientCapabilities?.elicitation?.url) {
+          throw new Error("Client does not support url elicitation.");
+        }
+        break;
+      }
+      case "form": {
+        if (!clientCapabilities?.elicitation?.form) {
+          throw new Error("Client does not support form elicitation.");
+        }
+        break;
+      }
+    }
+    const normalizedParams = mode === "form" && params.mode === void 0 ? { ...params, mode: "form" } : params;
+    return this.requestStream({
+      method: "elicitation/create",
+      params: normalizedParams
+    }, ElicitResultSchema, options);
+  }
+  /**
    * Gets the current status of a task.
    *
    * @param taskId - The task identifier
@@ -17981,18 +18141,18 @@ function isSecureRuntimeDir(dir) {
 function getRuntimeDir() {
   const xdgRuntime = process.env.XDG_RUNTIME_DIR;
   if (xdgRuntime && isSecureRuntimeDir(xdgRuntime)) {
-    return path.join(xdgRuntime, "omc");
+    return path.join(xdgRuntime, "omac");
   }
   const platform = process.platform;
   if (platform === "darwin") {
-    return path.join(os.homedir(), "Library", "Caches", "omc", "runtime");
+    return path.join(os.homedir(), "Library", "Caches", "omac", "runtime");
   } else if (platform === "linux") {
-    return path.join("/tmp", "omc", "runtime");
+    return path.join("/tmp", "omac", "runtime");
   } else if (platform === "win32") {
     const localAppData = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
-    return path.join(localAppData, "omc", "runtime");
+    return path.join(localAppData, "omac", "runtime");
   }
-  return path.join(os.tmpdir(), "omc", "runtime");
+  return path.join(os.tmpdir(), "omac", "runtime");
 }
 function shortenSessionId(sessionId) {
   return crypto.createHash("sha256").update(sessionId).digest("hex").slice(0, SHORT_SESSION_ID_LENGTH);
@@ -18155,8 +18315,8 @@ var STRICT_OVERRIDES = {
 var cachedConfig = null;
 function loadSecurityFromConfigFiles() {
   const paths = [
-    (0, import_path3.join)(process.cwd(), ".claude", "omc.jsonc"),
-    (0, import_path3.join)(getConfigDir(), "claude-omc", "config.jsonc")
+    (0, import_path3.join)(process.cwd(), ".claude", "omac.jsonc"),
+    (0, import_path3.join)(getConfigDir(), "claude-omac", "config.jsonc")
   ];
   for (const configPath of paths) {
     if (!(0, import_fs2.existsSync)(configPath)) continue;
@@ -18173,7 +18333,7 @@ function loadSecurityFromConfigFiles() {
 }
 function getSecurityConfig() {
   if (cachedConfig) return cachedConfig;
-  const isStrict = process.env.OMC_SECURITY === "strict";
+  const isStrict = process.env.OMAC_SECURITY === "strict";
   const base = isStrict ? { ...STRICT_OVERRIDES } : { ...DEFAULTS };
   const fileOverrides = loadSecurityFromConfigFiles();
   if (isStrict) {
@@ -18463,14 +18623,14 @@ function trackOwnedBridgeSession(sessionId) {
   }
 }
 function getBridgeScriptPath() {
-  if (process.env.OMC_BRIDGE_SCRIPT) {
-    const override = path4.resolve(process.env.OMC_BRIDGE_SCRIPT);
+  if (process.env.OMAC_BRIDGE_SCRIPT) {
+    const override = path4.resolve(process.env.OMAC_BRIDGE_SCRIPT);
     const overrideBasename = path4.basename(override);
     if (overrideBasename !== "gyoshu_bridge.py") {
-      throw new Error(`OMC_BRIDGE_SCRIPT must point to gyoshu_bridge.py, got: ${overrideBasename}`);
+      throw new Error(`OMAC_BRIDGE_SCRIPT must point to gyoshu_bridge.py, got: ${overrideBasename}`);
     }
     if (!fs3.existsSync(override)) {
-      throw new Error(`OMC_BRIDGE_SCRIPT file not found: ${override}`);
+      throw new Error(`OMAC_BRIDGE_SCRIPT file not found: ${override}`);
     }
     return override;
   }
@@ -18631,8 +18791,8 @@ async function spawnBridgeServer(sessionId, projectDir) {
     env: {
       ...process.env,
       PYTHONUNBUFFERED: "1",
-      OMC_PARENT_PID: String(process.pid),
-      ...isPythonSandboxEnabled() ? { OMC_PYTHON_SANDBOX: "1" } : {}
+      OMAC_PARENT_PID: String(process.pid),
+      ...isPythonSandboxEnabled() ? { OMAC_PYTHON_SANDBOX: "1" } : {}
     },
     detached: true
   });
@@ -18897,7 +19057,7 @@ function resolveDevContainerContext(workspaceRoot) {
   const hostWorkspaceRoot = (0, import_path4.resolve)(workspaceRoot);
   const configFilePath = resolveDevContainerConfigPath(hostWorkspaceRoot);
   const config2 = readDevContainerConfig(configFilePath);
-  const overrideContainerId = process.env.OMC_LSP_CONTAINER_ID?.trim();
+  const overrideContainerId = process.env.OMAC_LSP_CONTAINER_ID?.trim();
   if (overrideContainerId) {
     return buildContextFromContainer(overrideContainerId, hostWorkspaceRoot, configFilePath, config2);
   }
@@ -19309,7 +19469,7 @@ function getAllServers() {
 
 // src/tools/lsp/client.ts
 var DEFAULT_LSP_REQUEST_TIMEOUT_MS = (() => {
-  return readPositiveIntEnv("OMC_LSP_TIMEOUT_MS", 15e3);
+  return readPositiveIntEnv("OMAC_LSP_TIMEOUT_MS", 15e3);
 })();
 function getLspRequestTimeout(serverConfig, method, baseTimeout = DEFAULT_LSP_REQUEST_TIMEOUT_MS) {
   if (method === "initialize" && serverConfig.initializeTimeoutMs) {
@@ -19881,8 +20041,8 @@ ${content}`;
     return Object.fromEntries(translatedEntries);
   }
 };
-var IDLE_TIMEOUT_MS = readPositiveIntEnv("OMC_LSP_IDLE_TIMEOUT_MS", 5 * 60 * 1e3);
-var IDLE_CHECK_INTERVAL_MS = readPositiveIntEnv("OMC_LSP_IDLE_CHECK_INTERVAL_MS", 60 * 1e3);
+var IDLE_TIMEOUT_MS = readPositiveIntEnv("OMAC_LSP_IDLE_TIMEOUT_MS", 5 * 60 * 1e3);
+var IDLE_CHECK_INTERVAL_MS = readPositiveIntEnv("OMAC_LSP_IDLE_CHECK_INTERVAL_MS", 60 * 1e3);
 var LspClientManager = class {
   clients = /* @__PURE__ */ new Map();
   lastUsed = /* @__PURE__ */ new Map();
@@ -20131,7 +20291,7 @@ var LspClientManager = class {
     this.evictIdleClients();
   }
 };
-var LSP_CLIENT_MANAGER_KEY = "__omcLspClientManager";
+var LSP_CLIENT_MANAGER_KEY = "__omacLspClientManager";
 var globalWithLspClientManager = globalThis;
 var lspClientManager = globalWithLspClientManager[LSP_CLIENT_MANAGER_KEY] ?? (globalWithLspClientManager[LSP_CLIENT_MANAGER_KEY] = new LspClientManager());
 async function disconnectAll() {
@@ -20953,29 +21113,29 @@ var import_child_process8 = require("child_process");
 var import_fs10 = require("fs");
 var import_os3 = require("os");
 var import_path11 = require("path");
-var WORKSPACE_MARKER = ".omc-workspace";
-var OmcPaths = {
-  ROOT: ".omc",
-  STATE: ".omc/state",
-  SESSIONS: ".omc/state/sessions",
-  PLANS: ".omc/plans",
-  RESEARCH: ".omc/research",
-  NOTEPAD: ".omc/notepad.md",
-  PROJECT_MEMORY: ".omc/project-memory.json",
-  DRAFTS: ".omc/drafts",
-  NOTEPADS: ".omc/notepads",
-  LOGS: ".omc/logs",
-  SCIENTIST: ".omc/scientist",
-  AUTOPILOT: ".omc/autopilot",
-  SKILLS: ".omc/skills",
-  SHARED_MEMORY: ".omc/state/shared-memory",
-  DEEPINIT_MANIFEST: ".omc/deepinit-manifest.json"
+var WORKSPACE_MARKER = ".omac-workspace";
+var OmacPaths = {
+  ROOT: ".omac",
+  STATE: ".omac/state",
+  SESSIONS: ".omac/state/sessions",
+  PLANS: ".omac/plans",
+  RESEARCH: ".omac/research",
+  NOTEPAD: ".omac/notepad.md",
+  PROJECT_MEMORY: ".omac/project-memory.json",
+  DRAFTS: ".omac/drafts",
+  NOTEPADS: ".omac/notepads",
+  LOGS: ".omac/logs",
+  SCIENTIST: ".omac/scientist",
+  AUTOPILOT: ".omac/autopilot",
+  SKILLS: ".omac/skills",
+  SHARED_MEMORY: ".omac/state/shared-memory",
+  DEEPINIT_MANIFEST: ".omac/deepinit-manifest.json"
 };
 var MAX_WORKTREE_CACHE_SIZE = 8;
 var worktreeCacheMap = /* @__PURE__ */ new Map();
 var workspaceCacheMap = /* @__PURE__ */ new Map();
 function findWorkspaceRoot(startDir) {
-  if (process.env.OMC_DISABLE_MULTIREPO === "1") return null;
+  if (process.env.OMAC_DISABLE_MULTIREPO === "1") return null;
   const effectiveStart = startDir || process.cwd();
   let current;
   try {
@@ -21111,45 +21271,45 @@ function getProjectIdentifier(worktreeRoot) {
   const dirName = (0, import_path11.basename)(primaryRoot).replace(/[^a-zA-Z0-9_-]/g, "_");
   return `${dirName}-${hash}`;
 }
-function getOmcRoot(worktreeRoot) {
-  const customDir = process.env.OMC_STATE_DIR;
+function getOmacRoot(worktreeRoot) {
+  const customDir = process.env.OMAC_STATE_DIR;
   if (customDir) {
     const root2 = worktreeRoot || getWorktreeRoot() || process.cwd();
     const projectId = getProjectIdentifier(root2);
     const centralizedPath = (0, import_path11.join)(customDir, projectId);
-    const legacyPath = (0, import_path11.join)(root2, OmcPaths.ROOT);
+    const legacyPath = (0, import_path11.join)(root2, OmacPaths.ROOT);
     const warningKey = `${legacyPath}:${centralizedPath}`;
     if (!dualDirWarnings.has(warningKey) && (0, import_fs10.existsSync)(legacyPath) && (0, import_fs10.existsSync)(centralizedPath)) {
       dualDirWarnings.add(warningKey);
       console.warn(
-        `[omc] Both legacy state dir (${legacyPath}) and centralized state dir (${centralizedPath}) exist. Using centralized dir. Consider migrating data from the legacy dir and removing it.`
+        `[omac] Both legacy state dir (${legacyPath}) and centralized state dir (${centralizedPath}) exist. Using centralized dir. Consider migrating data from the legacy dir and removing it.`
       );
     }
     return centralizedPath;
   }
   const workspaceAnchor = findWorkspaceRoot(worktreeRoot);
   if (workspaceAnchor) {
-    return (0, import_path11.join)(workspaceAnchor, OmcPaths.ROOT);
+    return (0, import_path11.join)(workspaceAnchor, OmacPaths.ROOT);
   }
   const root = worktreeRoot || getWorktreeRoot() || process.cwd();
-  return (0, import_path11.join)(root, OmcPaths.ROOT);
+  return (0, import_path11.join)(root, OmacPaths.ROOT);
 }
-function resolveOmcPath(relativePath, worktreeRoot) {
+function resolveOmacPath(relativePath, worktreeRoot) {
   validatePath(relativePath);
-  const omcDir = getOmcRoot(worktreeRoot);
-  const fullPath = (0, import_path11.normalize)((0, import_path11.resolve)(omcDir, relativePath));
-  const relativeToOmc = (0, import_path11.relative)(omcDir, fullPath);
-  if (relativeToOmc.startsWith("..") || relativeToOmc.startsWith(import_path11.sep + "..")) {
-    throw new Error(`Path escapes omc boundary: ${relativePath}`);
+  const omacDir = getOmacRoot(worktreeRoot);
+  const fullPath = (0, import_path11.normalize)((0, import_path11.resolve)(omacDir, relativePath));
+  const relativeToOmac = (0, import_path11.relative)(omacDir, fullPath);
+  if (relativeToOmac.startsWith("..") || relativeToOmac.startsWith(import_path11.sep + "..")) {
+    throw new Error(`Path escapes omac boundary: ${relativePath}`);
   }
   return fullPath;
 }
 function resolveStatePath(stateName, worktreeRoot) {
   const normalizedName = stateName.endsWith("-state") ? stateName : `${stateName}-state`;
-  return resolveOmcPath(`state/${normalizedName}.json`, worktreeRoot);
+  return resolveOmacPath(`state/${normalizedName}.json`, worktreeRoot);
 }
-function ensureOmcDir(relativePath, worktreeRoot) {
-  const fullPath = resolveOmcPath(relativePath, worktreeRoot);
+function ensureOmacDir(relativePath, worktreeRoot) {
+  const fullPath = resolveOmacPath(relativePath, worktreeRoot);
   if (!(0, import_fs10.existsSync)(fullPath)) {
     try {
       (0, import_fs10.mkdirSync)(fullPath, { recursive: true });
@@ -21160,10 +21320,10 @@ function ensureOmcDir(relativePath, worktreeRoot) {
   return fullPath;
 }
 function getWorktreeNotepadPath(worktreeRoot) {
-  return (0, import_path11.join)(getOmcRoot(worktreeRoot), "notepad.md");
+  return (0, import_path11.join)(getOmacRoot(worktreeRoot), "notepad.md");
 }
 function getWorktreeProjectMemoryPath(worktreeRoot) {
-  return (0, import_path11.join)(getOmcRoot(worktreeRoot), "project-memory.json");
+  return (0, import_path11.join)(getOmacRoot(worktreeRoot), "project-memory.json");
 }
 var SESSION_ID_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,255}$/;
 function validateSessionId(sessionId) {
@@ -21180,14 +21340,14 @@ function validateSessionId(sessionId) {
 function resolveSessionStatePath(stateName, sessionId, worktreeRoot) {
   validateSessionId(sessionId);
   const normalizedName = stateName.endsWith("-state") ? stateName : `${stateName}-state`;
-  return resolveOmcPath(`state/sessions/${sessionId}/${normalizedName}.json`, worktreeRoot);
+  return resolveOmacPath(`state/sessions/${sessionId}/${normalizedName}.json`, worktreeRoot);
 }
 function getSessionStateDir(sessionId, worktreeRoot) {
   validateSessionId(sessionId);
-  return (0, import_path11.join)(getOmcRoot(worktreeRoot), "state", "sessions", sessionId);
+  return (0, import_path11.join)(getOmacRoot(worktreeRoot), "state", "sessions", sessionId);
 }
 function listSessionIds(worktreeRoot) {
-  const sessionsDir = (0, import_path11.join)(getOmcRoot(worktreeRoot), "state", "sessions");
+  const sessionsDir = (0, import_path11.join)(getOmacRoot(worktreeRoot), "state", "sessions");
   if (!(0, import_fs10.existsSync)(sessionsDir)) {
     return [];
   }
@@ -21359,7 +21519,7 @@ function validateToolPath(inputPath) {
   const rel = (0, import_path12.relative)(normalizedRoot, normalizedPath);
   if (rel.startsWith("..") || (0, import_path12.isAbsolute)(rel)) {
     throw new Error(
-      `Path restricted: '${inputPath}' is outside the project root '${projectRoot}'. Disable via security.restrictToolPaths in .claude/omc.jsonc or unset OMC_SECURITY.`
+      `Path restricted: '${inputPath}' is outside the project root '${projectRoot}'. Disable via security.restrictToolPaths in .claude/omac.jsonc or unset OMAC_SECURITY.`
     );
   }
   return resolved;
@@ -21804,6 +21964,9 @@ var LockTimeoutError = class extends Error {
     this.lastHolder = lastHolder;
     this.name = "LockTimeoutError";
   }
+  lockPath;
+  timeout;
+  lastHolder;
 };
 var LockError = class extends Error {
   constructor(message) {
@@ -22108,6 +22271,8 @@ var SocketConnectionError = class extends Error {
     this.originalError = originalError;
     this.name = "SocketConnectionError";
   }
+  socketPath;
+  originalError;
 };
 var SocketTimeoutError = class extends Error {
   constructor(message, timeoutMs) {
@@ -22115,6 +22280,7 @@ var SocketTimeoutError = class extends Error {
     this.timeoutMs = timeoutMs;
     this.name = "SocketTimeoutError";
   }
+  timeoutMs;
 };
 var JsonRpcError = class extends Error {
   constructor(message, code, data) {
@@ -22123,6 +22289,8 @@ var JsonRpcError = class extends Error {
     this.data = data;
     this.name = "JsonRpcError";
   }
+  code;
+  data;
 };
 async function sendSocketRequest(socketPath, method, params, timeout = 6e4) {
   return new Promise((resolve9, reject) => {
@@ -22703,7 +22871,7 @@ var import_path15 = require("path");
 
 // src/lib/session-id.ts
 function readEnv() {
-  const value = process.env.OMC_SESSION_ID;
+  const value = process.env.OMAC_SESSION_ID;
   return value && value.trim() ? value.trim() : void 0;
 }
 function readPayload(payload) {
@@ -22803,7 +22971,7 @@ function resolveStateRoot(directory) {
   return getWorktreeRoot(baseDir) || baseDir;
 }
 function hasSessionEndSummary(baseDir, sessionId) {
-  return (0, import_fs12.existsSync)((0, import_path13.join)(getOmcRoot(baseDir), "sessions", `${sessionId}.json`));
+  return (0, import_fs12.existsSync)((0, import_path13.join)(getOmacRoot(baseDir), "sessions", `${sessionId}.json`));
 }
 function findSessionOwnedStateFiles(mode, sessionId, directory) {
   const matches = /* @__PURE__ */ new Set();
@@ -22962,7 +23130,7 @@ var MODE_CONFIGS = {
 };
 var EXCLUSIVE_MODES = [MODE_NAMES.AUTOPILOT, MODE_NAMES.AUTORESEARCH];
 function getStateDir(cwd) {
-  return (0, import_path14.join)(getOmcRoot(cwd), "state");
+  return (0, import_path14.join)(getOmacRoot(cwd), "state");
 }
 function getStateFilePath(cwd, mode, sessionId) {
   const config2 = MODE_CONFIGS[mode];
@@ -23171,10 +23339,10 @@ var EXECUTION_MODES = [
 var STATE_TOOL_MODES = [
   ...EXECUTION_MODES,
   "ralplan",
-  "omc-teams",
+  "omac-teams",
   "skill-active"
 ];
-var EXTRA_STATE_ONLY_MODES = ["ralplan", "omc-teams", "skill-active"];
+var EXTRA_STATE_ONLY_MODES = ["ralplan", "omac-teams", "skill-active"];
 var CANCEL_SIGNAL_TTL_MS = 3e4;
 var OWNER_SESSION_FALLBACK_MODES = /* @__PURE__ */ new Set(["ralph"]);
 function readTeamNamesFromStateFile(statePath) {
@@ -23188,7 +23356,7 @@ function readTeamNamesFromStateFile(statePath) {
   }
 }
 function pruneMissionBoardTeams(root, teamNames) {
-  const missionStatePath = (0, import_path15.join)(getOmcRoot(root), "state", "mission-state.json");
+  const missionStatePath = (0, import_path15.join)(getOmacRoot(root), "state", "mission-state.json");
   if (!(0, import_fs14.existsSync)(missionStatePath)) return 0;
   try {
     const parsed = JSON.parse((0, import_fs14.readFileSync)(missionStatePath, "utf-8"));
@@ -23215,7 +23383,7 @@ function pruneMissionBoardTeams(root, teamNames) {
   }
 }
 function cleanupTeamRuntimeState(root, teamNames) {
-  const teamStateRoot = (0, import_path15.join)(getOmcRoot(root), "state", "team");
+  const teamStateRoot = (0, import_path15.join)(getOmacRoot(root), "state", "team");
   if (!(0, import_fs14.existsSync)(teamStateRoot)) return 0;
   const shouldRemoveAll = teamNames == null;
   let removed = 0;
@@ -23247,25 +23415,25 @@ function getLegacyStateFileCandidates(mode, root) {
   const normalizedName = mode.endsWith("-state") ? mode : `${mode}-state`;
   const candidates = [
     getStatePath(mode, root),
-    (0, import_path15.join)(getOmcRoot(root), `${normalizedName}.json`)
+    (0, import_path15.join)(getOmacRoot(root), `${normalizedName}.json`)
   ];
   return [...new Set(candidates)];
 }
-function getWorkingDirectoryLocalOmcRoot(root) {
-  return (0, import_path15.join)(root, OmcPaths.ROOT);
+function getWorkingDirectoryLocalOmacRoot(root) {
+  return (0, import_path15.join)(root, OmacPaths.ROOT);
 }
 function shouldCheckWorkingDirectoryLocalState(root) {
-  return getWorkingDirectoryLocalOmcRoot(root) !== getOmcRoot(root);
+  return getWorkingDirectoryLocalOmacRoot(root) !== getOmacRoot(root);
 }
 function getWorkingDirectoryLocalSessionStatePath(mode, root, sessionId) {
   const normalizedName = mode.endsWith("-state") ? mode : `${mode}-state`;
-  return (0, import_path15.join)(getWorkingDirectoryLocalOmcRoot(root), "state", "sessions", sessionId, `${normalizedName}.json`);
+  return (0, import_path15.join)(getWorkingDirectoryLocalOmacRoot(root), "state", "sessions", sessionId, `${normalizedName}.json`);
 }
 function getWorkingDirectoryLocalLegacyStateFileCandidates(mode, root) {
   const normalizedName = mode.endsWith("-state") ? mode : `${mode}-state`;
   return [
-    (0, import_path15.join)(getWorkingDirectoryLocalOmcRoot(root), "state", `${normalizedName}.json`),
-    (0, import_path15.join)(getWorkingDirectoryLocalOmcRoot(root), `${normalizedName}.json`)
+    (0, import_path15.join)(getWorkingDirectoryLocalOmacRoot(root), "state", `${normalizedName}.json`),
+    (0, import_path15.join)(getWorkingDirectoryLocalOmacRoot(root), `${normalizedName}.json`)
   ];
 }
 function getWorkingDirectoryLocalStateClearCandidates(mode, root, sessionId) {
@@ -23392,7 +23560,7 @@ function getModeRuntimeArtifactNames(mode) {
 function clearModeRuntimeArtifacts(mode, root, sessionId) {
   let cleared = 0;
   let hadFailure = false;
-  const stateRoot = (0, import_path15.join)(getOmcRoot(root), "state");
+  const stateRoot = (0, import_path15.join)(getOmacRoot(root), "state");
   const candidateDirs = /* @__PURE__ */ new Set([stateRoot]);
   if (sessionId) {
     candidateDirs.add((0, import_path15.join)(stateRoot, "sessions", sessionId));
@@ -23658,7 +23826,7 @@ var stateWriteTool = {
         ensureSessionStateDir(sessionId, root);
         statePath = MODE_CONFIGS[mode] ? getStateFilePath(root, mode, sessionId) : resolveSessionStatePath(mode, sessionId, root);
       } else {
-        ensureOmcDir("state", root);
+        ensureOmacDir("state", root);
         statePath = getStatePath(mode, root);
       }
       const builtState = {};
@@ -23907,7 +24075,7 @@ var stateClearTool = {
           mode,
           source: "state_clear"
         };
-        const legacySignalPath = (0, import_path15.join)(getOmcRoot(root), "state", "cancel-signal-state.json");
+        const legacySignalPath = (0, import_path15.join)(getOmacRoot(root), "state", "cancel-signal-state.json");
         try {
           atomicWriteJsonSync(legacySignalPath, cancelSignalPayload);
         } catch {
@@ -24023,11 +24191,11 @@ var stateClearTool = {
 };
 var stateListActiveTool = {
   name: "state_list_active",
-  description: "List all currently active modes. By default, scopes to the current session (OMC_SESSION_ID). Pass all:true to list active modes across all sessions.",
+  description: "List all currently active modes. By default, scopes to the current session (OMAC_SESSION_ID). Pass all:true to list active modes across all sessions.",
   annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   schema: {
     workingDirectory: external_exports.string().optional().describe("Working directory (defaults to cwd)"),
-    session_id: external_exports.string().optional().describe("Explicit session ID to scope the listing. Overrides OMC_SESSION_ID when provided."),
+    session_id: external_exports.string().optional().describe("Explicit session ID to scope the listing. Overrides OMAC_SESSION_ID when provided."),
     all: external_exports.boolean().optional().describe("When true, list active modes across all sessions (legacy + every session-scoped dir). Overrides the default current-session scope.")
   },
   handler: async (args) => {
@@ -24492,13 +24660,13 @@ function getSectionRegexSet(header) {
   return SECTION_REGEXES[header] ?? createSectionRegexSet(header);
 }
 function getNotepadPath(directory) {
-  return (0, import_path16.join)(getOmcRoot(directory), NOTEPAD_FILENAME);
+  return (0, import_path16.join)(getOmacRoot(directory), NOTEPAD_FILENAME);
 }
 function initNotepad(directory) {
-  const omcDir = getOmcRoot(directory);
-  if (!(0, import_fs16.existsSync)(omcDir)) {
+  const omacDir = getOmacRoot(directory);
+  if (!(0, import_fs16.existsSync)(omacDir)) {
     try {
-      (0, import_fs16.mkdirSync)(omcDir, { recursive: true });
+      (0, import_fs16.mkdirSync)(omacDir, { recursive: true });
     } catch {
       return false;
     }
@@ -24508,7 +24676,7 @@ function initNotepad(directory) {
     return true;
   }
   const content = `# Notepad
-<!-- Auto-managed by OMC. Manual edits preserved in MANUAL section. -->
+<!-- Auto-managed by OMAC. Manual edits preserved in MANUAL section. -->
 
 ${PRIORITY_HEADER}
 <!-- ALWAYS loaded. Keep under 500 chars. Critical discoveries only. -->
@@ -24825,7 +24993,7 @@ var notepadWritePriorityTool = {
     const { content, workingDirectory } = args;
     try {
       const root = validateWorkingDirectory(workingDirectory);
-      ensureOmcDir("", root);
+      ensureOmacDir("", root);
       const result = setPriorityContext(root, content);
       if (!result.success) {
         return {
@@ -24868,7 +25036,7 @@ var notepadWriteWorkingTool = {
     const { content, workingDirectory } = args;
     try {
       const root = validateWorkingDirectory(workingDirectory);
-      ensureOmcDir("", root);
+      ensureOmacDir("", root);
       const success = addWorkingMemoryEntry(root, content);
       if (!success) {
         return {
@@ -24905,7 +25073,7 @@ var notepadWriteManualTool = {
     const { content, workingDirectory } = args;
     try {
       const root = validateWorkingDirectory(workingDirectory);
-      ensureOmcDir("", root);
+      ensureOmacDir("", root);
       const success = addManualEntry(root, content);
       if (!success) {
         return {
@@ -25132,8 +25300,8 @@ var import_path18 = require("path");
 // src/hooks/rules-injector/constants.ts
 var import_path17 = require("path");
 var import_os4 = require("os");
-var OMC_STORAGE_DIR = (0, import_path17.join)((0, import_os4.homedir)(), ".omc");
-var RULES_INJECTOR_STORAGE = (0, import_path17.join)(OMC_STORAGE_DIR, "rules-injector");
+var OMAC_STORAGE_DIR = (0, import_path17.join)((0, import_os4.homedir)(), ".omac");
+var RULES_INJECTOR_STORAGE = (0, import_path17.join)(OMAC_STORAGE_DIR, "rules-injector");
 
 // src/hooks/project-memory/storage.ts
 var import_promises = __toESM(require("fs/promises"), 1);
@@ -25169,9 +25337,9 @@ async function loadProjectMemory(projectRoot) {
 }
 async function saveProjectMemory(projectRoot, memory) {
   const memoryPath = getMemoryPath(projectRoot);
-  const omcDir = import_path19.default.dirname(memoryPath);
+  const omacDir = import_path19.default.dirname(memoryPath);
   try {
-    await import_promises.default.mkdir(omcDir, { recursive: true });
+    await import_promises.default.mkdir(omacDir, { recursive: true });
     await atomicWriteJson(memoryPath, memory);
   } catch (error2) {
     console.error("Failed to save project memory:", error2);
@@ -25445,7 +25613,7 @@ var projectMemoryWriteTool = {
     const { memory, merge: merge2 = false, workingDirectory } = args;
     try {
       const root = validateWorkingDirectory(workingDirectory);
-      ensureOmcDir("", root);
+      ensureOmacDir("", root);
       let finalMemory;
       if (merge2) {
         const existing = await loadProjectMemory(root);
@@ -25587,7 +25755,7 @@ var import_path25 = require("path");
 var REPLAY_PREFIX = "agent-replay-";
 var MAX_REPLAY_SIZE_BYTES = 5 * 1024 * 1024;
 function getReplayFilePath(directory, sessionId) {
-  const stateDir = (0, import_path25.join)(getOmcRoot(directory), "state");
+  const stateDir = (0, import_path25.join)(getOmacRoot(directory), "state");
   if (!(0, import_fs18.existsSync)(stateDir)) {
     (0, import_fs18.mkdirSync)(stateDir, { recursive: true });
   }
@@ -25884,16 +26052,16 @@ function buildCurrentProjectTargets(projectRoot) {
   for (const filePath of listJsonlFiles(legacyTranscriptsDir)) {
     targets.push({ filePath, sourceType: "legacy-transcript" });
   }
-  const omcRoot = getOmcRoot(projectRoot);
-  const sessionSummariesDir = (0, import_path26.join)(omcRoot, "sessions");
+  const omacRoot = getOmacRoot(projectRoot);
+  const sessionSummariesDir = (0, import_path26.join)(omacRoot, "sessions");
   for (const filePath of listJsonlFiles(sessionSummariesDir)) {
-    targets.push({ filePath, sourceType: "omc-session-summary" });
+    targets.push({ filePath, sourceType: "omac-session-summary" });
   }
-  const replayDir = (0, import_path26.join)(omcRoot, "state");
+  const replayDir = (0, import_path26.join)(omacRoot, "state");
   if ((0, import_fs19.existsSync)(replayDir)) {
     for (const filePath of listJsonlFiles(replayDir)) {
       if (filePath.includes("agent-replay-") && filePath.endsWith(".jsonl")) {
-        targets.push({ filePath, sourceType: "omc-session-replay" });
+        targets.push({ filePath, sourceType: "omac-session-replay" });
       }
     }
   }
@@ -26011,7 +26179,7 @@ function buildJsonArtifactEntry(entry, sourceType) {
     return null;
   }
   const timestamp = typeof entry.ended_at === "string" ? entry.ended_at : typeof entry.started_at === "string" ? entry.started_at : typeof entry.timestamp === "string" ? entry.timestamp : void 0;
-  const entryType = sourceType === "omc-session-summary" ? "session-summary" : "session-replay";
+  const entryType = sourceType === "omac-session-summary" ? "session-summary" : "session-replay";
   return {
     sessionId,
     timestamp,
@@ -26021,10 +26189,10 @@ function buildJsonArtifactEntry(entry, sourceType) {
   };
 }
 function buildSearchableEntry(entry, sourceType) {
-  if (sourceType === "project-transcript" || sourceType === "legacy-transcript" || sourceType === "omc-session-replay") {
-    return buildTranscriptEntry(entry) ?? (sourceType === "omc-session-replay" ? buildJsonArtifactEntry(entry, sourceType) : null);
+  if (sourceType === "project-transcript" || sourceType === "legacy-transcript" || sourceType === "omac-session-replay") {
+    return buildTranscriptEntry(entry) ?? (sourceType === "omac-session-replay" ? buildJsonArtifactEntry(entry, sourceType) : null);
   }
-  if (sourceType === "omc-session-summary") {
+  if (sourceType === "omac-session-summary") {
     return buildJsonArtifactEntry(entry, sourceType);
   }
   return null;
@@ -26063,7 +26231,7 @@ function buildScopeMode(project) {
 async function collectMatchesFromFile(target, options) {
   const matches = [];
   const fileMtime = (0, import_fs19.existsSync)(target.filePath) ? (0, import_fs19.statSync)(target.filePath).mtimeMs : 0;
-  if (target.sourceType === "omc-session-summary" && target.filePath.endsWith(".json")) {
+  if (target.sourceType === "omac-session-summary" && target.filePath.endsWith(".json")) {
     try {
       const payload = JSON.parse(await import("fs/promises").then((fs8) => fs8.readFile(target.filePath, "utf-8")));
       const entry = buildSearchableEntry(payload, target.sourceType);
@@ -26231,7 +26399,7 @@ var sessionSearchTool = {
 // src/tools/trace-tools.ts
 var REPLAY_PREFIX2 = "agent-replay-";
 function findLatestSessionId(directory) {
-  const stateDir = (0, import_path27.join)(getOmcRoot(directory), "state");
+  const stateDir = (0, import_path27.join)(getOmacRoot(directory), "state");
   try {
     const files = (0, import_fs20.readdirSync)(stateDir).filter((f) => f.startsWith(REPLAY_PREFIX2) && f.endsWith(".jsonl")).map((f) => ({
       name: f,
@@ -26582,7 +26750,7 @@ var traceTools = [traceTimelineTool, traceSummaryTool, sessionSearchTool];
 // src/lib/shared-memory.ts
 var import_fs21 = require("fs");
 var import_path28 = require("path");
-var CONFIG_FILE_NAME = ".omc-config.json";
+var CONFIG_FILE_NAME = ".omac-config.json";
 function isSharedMemoryEnabled() {
   try {
     const configPath = (0, import_path28.join)(getClaudeConfigDir(), CONFIG_FILE_NAME);
@@ -26620,8 +26788,8 @@ function validateKey(key) {
 }
 function getNamespaceDir(namespace, worktreeRoot) {
   validateNamespace(namespace);
-  const omcRoot = getOmcRoot(worktreeRoot);
-  return (0, import_path28.join)(omcRoot, SHARED_MEMORY_DIR, namespace);
+  const omacRoot = getOmacRoot(worktreeRoot);
+  return (0, import_path28.join)(omacRoot, SHARED_MEMORY_DIR, namespace);
 }
 function getEntryPath(namespace, key, worktreeRoot) {
   validateKey(key);
@@ -26736,8 +26904,8 @@ function deleteEntry(namespace, key, worktreeRoot) {
   }
 }
 function cleanupExpired(namespace, worktreeRoot) {
-  const omcRoot = getOmcRoot(worktreeRoot);
-  const sharedMemDir = (0, import_path28.join)(omcRoot, SHARED_MEMORY_DIR);
+  const omacRoot = getOmacRoot(worktreeRoot);
+  const sharedMemDir = (0, import_path28.join)(omacRoot, SHARED_MEMORY_DIR);
   if (!(0, import_fs21.existsSync)(sharedMemDir)) return { removed: 0, namespaces: [] };
   const namespacesToClean = [];
   if (namespace) {
@@ -26784,8 +26952,8 @@ function cleanupExpired(namespace, worktreeRoot) {
   return { removed, namespaces: cleanedNamespaces };
 }
 function listNamespaces(worktreeRoot) {
-  const omcRoot = getOmcRoot(worktreeRoot);
-  const sharedMemDir = (0, import_path28.join)(omcRoot, SHARED_MEMORY_DIR);
+  const omacRoot = getOmacRoot(worktreeRoot);
+  const sharedMemDir = (0, import_path28.join)(omacRoot, SHARED_MEMORY_DIR);
   if (!(0, import_fs21.existsSync)(sharedMemDir)) return [];
   try {
     const entries = (0, import_fs21.readdirSync)(sharedMemDir, { withFileTypes: true });
@@ -26796,7 +26964,7 @@ function listNamespaces(worktreeRoot) {
 }
 
 // src/tools/shared-memory-tools.ts
-var DISABLED_MSG = `Shared memory is disabled. Set agents.sharedMemory.enabled = true in ${getClaudeConfigDir()}/.omc-config.json to enable.`;
+var DISABLED_MSG = `Shared memory is disabled. Set agents.sharedMemory.enabled = true in ${getClaudeConfigDir()}/.omac-config.json to enable.`;
 function disabledResponse() {
   return {
     content: [{ type: "text", text: DISABLED_MSG }],
@@ -27208,7 +27376,7 @@ function computeDiff(previous, current) {
   return { entries: sorted, summary };
 }
 function resolveManifestPath(root) {
-  return (0, import_node_path.join)(getOmcRoot(root), "deepinit-manifest.json");
+  return (0, import_node_path.join)(getOmacRoot(root), "deepinit-manifest.json");
 }
 function handleDiff(root, mode) {
   const current = scanDirectories(root);
@@ -27347,15 +27515,15 @@ var LOG_FILE = "log.md";
 var ENVIRONMENT_FILE = "environment.md";
 var RESERVED_FILES = /* @__PURE__ */ new Set([INDEX_FILE, LOG_FILE, ENVIRONMENT_FILE]);
 function getWikiDir(root) {
-  return (0, import_path29.join)(getOmcRoot(root), WIKI_DIR);
+  return (0, import_path29.join)(getOmacRoot(root), WIKI_DIR);
 }
 function ensureWikiDir(root) {
   const wikiDir = getWikiDir(root);
   if (!(0, import_fs22.existsSync)(wikiDir)) {
     (0, import_fs22.mkdirSync)(wikiDir, { recursive: true });
   }
-  const omcRoot = getOmcRoot(root);
-  const gitignorePath = (0, import_path29.join)(omcRoot, ".gitignore");
+  const omacRoot = getOmacRoot(root);
+  const gitignorePath = (0, import_path29.join)(omacRoot, ".gitignore");
   if ((0, import_fs22.existsSync)(gitignorePath)) {
     const content = (0, import_fs22.readFileSync)(gitignorePath, "utf-8");
     if (!content.includes("wiki/")) {
@@ -28052,7 +28220,7 @@ var wikiAddTool = {
         content: [{
           type: "text",
           text: `Wiki page created: ${result.created[0]}
-Path: .omc/wiki/${result.created[0]}`
+Path: .omac/wiki/${result.created[0]}`
         }]
       };
     } catch (error2) {
@@ -28229,13 +28397,13 @@ var import_path31 = require("path");
 // src/hooks/learner/constants.ts
 var import_path30 = require("path");
 var import_os5 = require("os");
-var USER_SKILLS_DIR = (0, import_path30.join)(getClaudeConfigDir(), "skills", "omc-learned");
-var GLOBAL_SKILLS_DIR = (0, import_path30.join)((0, import_os5.homedir)(), ".omc", "skills");
-var PROJECT_SKILLS_SUBDIR = OmcPaths.SKILLS;
+var USER_SKILLS_DIR = (0, import_path30.join)(getClaudeConfigDir(), "skills", "omac-learned");
+var GLOBAL_SKILLS_DIR = (0, import_path30.join)((0, import_os5.homedir)(), ".omac", "skills");
+var PROJECT_SKILLS_SUBDIR = OmacPaths.SKILLS;
 var PROJECT_AGENT_SKILLS_SUBDIR = (0, import_path30.join)(".agents", "skills");
 var MAX_RECURSION_DEPTH = 10;
 var SKILL_EXTENSION = ".md";
-var DEBUG_ENABLED = process.env.OMC_DEBUG === "1";
+var DEBUG_ENABLED = process.env.OMAC_DEBUG === "1";
 
 // src/hooks/learner/finder.ts
 function findSkillFilesRecursive(dir, results, depth = 0) {
@@ -28560,8 +28728,8 @@ function formatSkillOutput(skills) {
   return lines.join("\n");
 }
 var loadLocalTool = {
-  name: "load_omc_skills_local",
-  description: "Load and list skills from the project-local .omc/skills/ directory. Returns skill metadata (id, name, description, triggers, tags) for all discovered project-scoped skills.",
+  name: "load_omac_skills_local",
+  description: "Load and list skills from the project-local .omac/skills/ directory. Returns skill metadata (id, name, description, triggers, tags) for all discovered project-scoped skills.",
   schema: loadLocalSchema,
   handler: async (args) => {
     const projectRoot = args.projectRoot ? validateProjectRoot(args.projectRoot) : process.cwd();
@@ -28578,8 +28746,8 @@ ${formatSkillOutput(projectSkills)}`
   }
 };
 var loadGlobalTool = {
-  name: "load_omc_skills_global",
-  description: "Load and list skills from global user directories (~/.omc/skills/ and [$CLAUDE_CONFIG_DIR|~/.claude]/skills/omc-learned/). Returns skill metadata for all discovered user-scoped skills.",
+  name: "load_omac_skills_global",
+  description: "Load and list skills from global user directories (~/.omac/skills/ and [$CLAUDE_CONFIG_DIR|~/.claude]/skills/omac-learned/). Returns skill metadata for all discovered user-scoped skills.",
   schema: loadGlobalSchema,
   handler: async (_args) => {
     const allSkills = loadAllSkills(null);
@@ -28595,7 +28763,7 @@ ${formatSkillOutput(userSkills)}`
   }
 };
 var listSkillsTool = {
-  name: "list_omc_skills",
+  name: "list_omac_skills",
   description: "List all available skills (both project-local and global user skills). Project skills take priority over user skills with the same ID.",
   schema: listSkillsSchema,
   handler: async (args) => {
@@ -28623,9 +28791,9 @@ ${formatSkillOutput(userSkills)}`;
 No skill files were discovered in any searched directories.
 
 Searched:
-- Project: .omc/skills/
-- Global: ~/.omc/skills/
-- Claude config: ${getClaudeConfigDir()}/skills/omc-learned/`;
+- Project: .omac/skills/
+- Global: ~/.omac/skills/
+- Claude config: ${getClaudeConfigDir()}/skills/omac-learned/`;
     }
     return {
       content: [{
@@ -28757,7 +28925,7 @@ setStandaloneCallToolRequestHandler(CallToolRequestSchema, async (request) => {
 async function gracefulShutdown(signal) {
   const forceExitTimer = setTimeout(() => process.exit(1), 5e3);
   forceExitTimer.unref();
-  console.error(`OMC MCP Server: received ${signal}, disconnecting LSP servers...`);
+  console.error(`OMAC MCP Server: received ${signal}, disconnecting LSP servers...`);
   try {
     await cleanupOwnedBridgeSessions();
   } catch {
@@ -28778,7 +28946,7 @@ registerStandaloneShutdownHandlers({
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("OMC Tools MCP Server running on stdio");
+  console.error("OMAC Tools MCP Server running on stdio");
 }
 main().catch((error2) => {
   console.error("Failed to start server:", error2);

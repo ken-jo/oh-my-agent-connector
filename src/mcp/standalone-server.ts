@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Standalone MCP Server for OMC Tools
+ * Standalone MCP Server for OMAC Tools
  *
  * This server exposes LSP, AST, and Python REPL tools via stdio transport
  * for discovery by Claude Code's MCP management system.
@@ -83,7 +83,7 @@ async function gracefulShutdown(signal: string): Promise<void> {
   const forceExitTimer = setTimeout(() => process.exit(1), 5_000);
   forceExitTimer.unref();
 
-  console.error(`OMC MCP Server: received ${signal}, disconnecting LSP servers...`);
+  console.error(`OMAC MCP Server: received ${signal}, disconnecting LSP servers...`);
 
   try {
     await cleanupOwnedBridgeSessions();
@@ -111,7 +111,7 @@ registerStandaloneShutdownHandlers({
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('OMC Tools MCP Server running on stdio');
+  console.error('OMAC Tools MCP Server running on stdio');
 }
 
 main().catch((error) => {

@@ -7,12 +7,12 @@ import { fileURLToPath } from 'url';
 import { isExternalLLMDisabled } from '../lib/security-config.js';
 
 export const ASK_USAGE = [
-  'Usage: omc ask <claude|codex|gemini|grok> <question or task>',
-  '   or: omc ask <claude|codex|gemini|grok> -p "<prompt>"',
-  '   or: omc ask <claude|codex|gemini|grok> --print "<prompt>"',
-  '   or: omc ask <claude|codex|gemini|grok> --prompt "<prompt>"',
-  '   or: omc ask <claude|codex|gemini|grok> --agent-prompt <role> "<prompt>"',
-  '   or: omc ask <claude|codex|gemini|grok> --agent-prompt=<role> --prompt "<prompt>"',
+  'Usage: omac ask <claude|codex|gemini|grok> <question or task>',
+  '   or: omac ask <claude|codex|gemini|grok> -p "<prompt>"',
+  '   or: omac ask <claude|codex|gemini|grok> --print "<prompt>"',
+  '   or: omac ask <claude|codex|gemini|grok> --prompt "<prompt>"',
+  '   or: omac ask <claude|codex|gemini|grok> --agent-prompt <role> "<prompt>"',
+  '   or: omac ask <claude|codex|gemini|grok> --agent-prompt=<role> --prompt "<prompt>"',
 ].join('\n');
 
 const ASK_PROVIDERS = ['claude', 'codex', 'gemini', 'grok'] as const;
@@ -21,9 +21,9 @@ const ASK_PROVIDER_SET = new Set<string>(ASK_PROVIDERS);
 
 const ASK_AGENT_PROMPT_FLAG = '--agent-prompt';
 const SAFE_ROLE_PATTERN = /^[a-z][a-z0-9-]*$/;
-const ASK_ADVISOR_SCRIPT_ENV = 'OMC_ASK_ADVISOR_SCRIPT';
+const ASK_ADVISOR_SCRIPT_ENV = 'OMAC_ASK_ADVISOR_SCRIPT';
 const ASK_ADVISOR_SCRIPT_ENV_ALIAS = 'OMX_ASK_ADVISOR_SCRIPT';
-const ASK_ORIGINAL_TASK_ENV = 'OMC_ASK_ORIGINAL_TASK';
+const ASK_ORIGINAL_TASK_ENV = 'OMAC_ASK_ORIGINAL_TASK';
 
 export interface ParsedAskArgs {
   provider: AskProvider;

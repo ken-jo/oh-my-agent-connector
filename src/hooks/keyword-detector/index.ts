@@ -42,7 +42,7 @@ export interface DetectedKeyword {
  * Keyword patterns for each mode
  */
 const KEYWORD_PATTERNS: Record<KeywordType, RegExp> = {
-  cancel: /\b(cancelomc|stopomc)\b/i,
+  cancel: /\b(cancelomac|stopomac)\b/i,
   ralph: /\b(ralph)\b(?!-)|(랄프)(?!로렌)|(ラルフ)(?!・?ローレン)/i,
   autopilot: /\b(autopilot|auto[\s-]?pilot|fullsend|full\s+auto)\b|(오토파일럿)|(オートパイロット)/i,
   ultrawork: /\b(ultrawork|ulw)\b|(울트라워크)|(ウルトラワーク)/i,
@@ -66,7 +66,7 @@ const KEYWORD_PATTERNS: Record<KeywordType, RegExp> = {
  * Matches the upstream Ouroboros CLI invocation form at the start of the
  * prompt: `ouroboros <sub>`, `ooo <sub>`, or `/ouroboros:<sub>`. Used as a
  * skip predicate for the deep-interview trigger so direct CLI calls are
- * not rerouted into the OMC skill.
+ * not rerouted into the OMAC skill.
  */
 const OUROBOROS_BRAND_AT_START = /^\s*\/?(?:ouroboros|ooo)\b/i;
 
@@ -132,7 +132,7 @@ const SLASH_SKILL_TO_KEYWORD_TYPE: Partial<
 };
 
 const WORKFLOW_SLASH_PATTERN = new RegExp(
-  '^\\s*/(?:oh-my-claudecode:|omc:)?(' +
+  '^\\s*/(?:oh-my-agent-connector:|omac:)?(' +
     CANONICAL_WORKFLOW_SLASH_SKILLS
       .map((skill) => skill.replace(/-/g, '\\-'))
       .join('|') +
@@ -141,7 +141,7 @@ const WORKFLOW_SLASH_PATTERN = new RegExp(
 );
 
 export interface ExplicitWorkflowSlashInvocation {
-  /** Canonical workflow skill name (lowercase, no `oh-my-claudecode:` prefix). */
+  /** Canonical workflow skill name (lowercase, no `oh-my-agent-connector:` prefix). */
   skill: CanonicalWorkflowSlashSkill;
   /** Trailing arguments after the slash command. */
   args: string;
@@ -152,7 +152,7 @@ export interface ExplicitWorkflowSlashInvocation {
 /**
  * Parse an explicit workflow slash invocation at the start of a prompt.
  *
- * Recognizes `/<skill>`, `/omc:<skill>`, and `/oh-my-claudecode:<skill>` for
+ * Recognizes `/<skill>`, `/omac:<skill>`, and `/oh-my-agent-connector:<skill>` for
  * the canonical workflow skill list. Code fences and inline backticks are
  * stripped first so quoted commands do not match. The trailing lookahead
  * (whitespace, end-of-text, or punctuation) prevents file paths like
@@ -703,8 +703,8 @@ export function detectKeywordsWithType(
   // Check for an explicit canonical workflow slash invocation BEFORE sanitization.
   // The general sanitizer strips bare `/word` tokens as file paths, so bare
   // commands like `/ralph fix auth` would otherwise never match. This must be
-  // robust to surrounding whitespace, namespace prefixes (`/omc:`,
-  // `/oh-my-claudecode:`), and code-fence/backtick wrapping (handled inside
+  // robust to surrounding whitespace, namespace prefixes (`/omac:`,
+  // `/oh-my-agent-connector:`), and code-fence/backtick wrapping (handled inside
   // the parser via removeCodeBlocks).
   const explicitSlash = parseExplicitWorkflowSlashInvocation(text);
   const explicitSlashType = explicitSlash

@@ -1,16 +1,16 @@
 # Setup Hook
 
-Handles OMC initialization and maintenance tasks.
+Handles OMAC initialization and maintenance tasks.
 
 ## Triggers
 
 ### `init`
-Initializes OMC directory structure and environment on first run or explicit setup.
+Initializes OMAC directory structure and environment on first run or explicit setup.
 
 **What it does:**
-- Creates required directories: `.omc/state/`, `.omc/logs/`, `.omc/notepads/`, `.omc/state/checkpoints/`, `.omc/plans/`
-- Validates existing config files (`.omc-config.json`)
-- Sets environment variables (`OMC_INITIALIZED=true`) if `CLAUDE_ENV_FILE` is available
+- Creates required directories: `.omac/state/`, `.omac/logs/`, `.omac/notepads/`, `.omac/state/checkpoints/`, `.omac/plans/`
+- Validates existing config files (`.omac-config.json`)
+- Sets environment variables (`OMAC_INITIALIZED=true`) if `CLAUDE_ENV_FILE` is available
 
 **Example Input:**
 ```json
@@ -30,13 +30,13 @@ Initializes OMC directory structure and environment on first run or explicit set
   "continue": true,
   "hookSpecificOutput": {
     "hookEventName": "Setup",
-    "additionalContext": "OMC initialized:\n- 5 directories created\n- 1 configs validated\n- Environment variables set: OMC_INITIALIZED"
+    "additionalContext": "OMAC initialized:\n- 5 directories created\n- 1 configs validated\n- Environment variables set: OMAC_INITIALIZED"
   }
 }
 ```
 
 ### `maintenance`
-Performs periodic maintenance tasks to keep OMC state clean.
+Performs periodic maintenance tasks to keep OMAC state clean.
 
 **What it does:**
 - Prunes old state files (default: 7 days old)
@@ -68,7 +68,7 @@ Performs periodic maintenance tasks to keep OMC state clean.
   "continue": true,
   "hookSpecificOutput": {
     "hookEventName": "Setup",
-    "additionalContext": "OMC maintenance completed:\n- 3 old state files pruned\n- 1 orphaned state files cleaned\n- Swarm database vacuumed"
+    "additionalContext": "OMAC maintenance completed:\n- 3 old state files pruned\n- 1 orphaned state files cleaned\n- Swarm database vacuumed"
   }
 }
 ```
@@ -78,13 +78,13 @@ Performs periodic maintenance tasks to keep OMC state clean.
 ### Directory Management
 
 #### `ensureDirectoryStructure(directory: string): string[]`
-Creates all required OMC directories.
+Creates all required OMAC directories.
 
 **Returns:** Array of created directory paths.
 
 ```typescript
 const created = ensureDirectoryStructure('/path/to/project');
-// => ['/path/to/project/.omc/state', '/path/to/project/.omc/logs', ...]
+// => ['/path/to/project/.omac/state', '/path/to/project/.omac/logs', ...]
 ```
 
 #### `validateConfigFiles(directory: string): string[]`
@@ -94,13 +94,13 @@ Validates that config files exist and are readable.
 
 ```typescript
 const validated = validateConfigFiles('/path/to/project');
-// => ['/path/to/project/.omc-config.json']
+// => ['/path/to/project/.omac-config.json']
 ```
 
 ### Environment Variables
 
 #### `setEnvironmentVariables(): string[]`
-Sets environment variables for OMC initialization.
+Sets environment variables for OMAC initialization.
 
 **Returns:** Array of environment variable names set.
 
@@ -108,7 +108,7 @@ Sets environment variables for OMC initialization.
 
 ```typescript
 const envVars = setEnvironmentVariables();
-// => ['OMC_INITIALIZED']
+// => ['OMAC_INITIALIZED']
 ```
 
 ### Maintenance
@@ -214,7 +214,7 @@ interface HookOutput {
 ```typescript
 import { processSetup } from './hooks/setup';
 
-// Initialize OMC
+// Initialize OMAC
 const initResult = await processSetup({
   session_id: 'session-123',
   transcript_path: '/tmp/transcript.md',
@@ -244,7 +244,7 @@ console.log(maintenanceResult.hookSpecificOutput.additionalContext);
 ```bash
 #!/bin/bash
 
-# Initialize OMC
+# Initialize OMAC
 INPUT=$(cat <<EOF
 {
   "session_id": "session-123",

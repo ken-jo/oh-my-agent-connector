@@ -10,8 +10,8 @@ const cliIndexSource = readFileSync(
 
 describe('session search help text', () => {
   it('documents the session search command examples', () => {
-    expect(cliIndexSource).toContain('omc session search "team leader stale"');
-    expect(cliIndexSource).toContain('omc session search notify-hook --since 7d');
-    expect(cliIndexSource).toContain('omc session search provider-routing --project all --json');
+    expect(cliIndexSource).toContain('omac session search "team leader stale"');
+    expect(cliIndexSource).toContain('omac session search notify-hook --since 7d');
+    expect(cliIndexSource).toContain('omac session search provider-routing --project all --json');
   });
 });

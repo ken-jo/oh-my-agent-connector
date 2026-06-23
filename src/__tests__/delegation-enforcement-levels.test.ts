@@ -15,8 +15,8 @@ import {
   isWriteEditTool,
   clearEnforcementCache,
   type ToolExecuteInput,
-} from '../hooks/omc-orchestrator/index.js';
-import type { AuditEntry } from '../hooks/omc-orchestrator/audit.js';
+} from '../hooks/omac-orchestrator/index.js';
+import type { AuditEntry } from '../hooks/omac-orchestrator/audit.js';
 
 // Mock fs module
 vi.mock('fs', async () => {
@@ -155,16 +155,16 @@ describe('delegation-enforcement-levels', () => {
       // Local config exists with 'off', global has 'strict'
       mockExistsSync.mockImplementation((p: unknown) => {
         const s = String(p);
-        if (/[\\/]tmp[\\/]test-project[\\/]\.omc[\\/]config\.json$/.test(s)) return true;
-        if (/[\\/]mock[\\/]home[\\/]\.claude[\\/]\.omc-config\.json$/.test(s)) return true;
+        if (/[\\/]tmp[\\/]test-project[\\/]\.omac[\\/]config\.json$/.test(s)) return true;
+        if (/[\\/]mock[\\/]home[\\/]\.claude[\\/]\.omac-config\.json$/.test(s)) return true;
         return false;
       });
       mockReadFileSync.mockImplementation((p: unknown) => {
         const s = String(p);
-        if (/[\\/]tmp[\\/]test-project[\\/]\.omc[\\/]config\.json$/.test(s)) {
+        if (/[\\/]tmp[\\/]test-project[\\/]\.omac[\\/]config\.json$/.test(s)) {
           return JSON.stringify({ delegationEnforcementLevel: 'off' });
         }
-        if (/[\\/]mock[\\/]home[\\/]\.claude[\\/]\.omc-config\.json$/.test(s)) {
+        if (/[\\/]mock[\\/]home[\\/]\.claude[\\/]\.omac-config\.json$/.test(s)) {
           return JSON.stringify({ delegationEnforcementLevel: 'strict' });
         }
         return '';
@@ -179,12 +179,12 @@ describe('delegation-enforcement-levels', () => {
     it('falls back to global config when no local config', () => {
       mockExistsSync.mockImplementation((p: unknown) => {
         const s = String(p);
-        if (/[\\/]mock[\\/]home[\\/]\.claude[\\/]\.omc-config\.json$/.test(s)) return true;
+        if (/[\\/]mock[\\/]home[\\/]\.claude[\\/]\.omac-config\.json$/.test(s)) return true;
         return false;
       });
       mockReadFileSync.mockImplementation((p: unknown) => {
         const s = String(p);
-        if (/[\\/]mock[\\/]home[\\/]\.claude[\\/]\.omc-config\.json$/.test(s)) {
+        if (/[\\/]mock[\\/]home[\\/]\.claude[\\/]\.omac-config\.json$/.test(s)) {
           return JSON.stringify({ delegationEnforcementLevel: 'strict' });
         }
         return '';
@@ -199,7 +199,7 @@ describe('delegation-enforcement-levels', () => {
     it('falls back to warn on invalid enforcement level in config', () => {
       mockExistsSync.mockImplementation((p: unknown) => {
         const s = String(p);
-        if (/[\\/]tmp[\\/]test-project[\\/]\.omc[\\/]config\.json$/.test(s)) return true;
+        if (/[\\/]tmp[\\/]test-project[\\/]\.omac[\\/]config\.json$/.test(s)) return true;
         return false;
       });
       mockReadFileSync.mockImplementation(() => {
@@ -215,7 +215,7 @@ describe('delegation-enforcement-levels', () => {
     it('falls back to warn on malformed JSON config', () => {
       mockExistsSync.mockImplementation((p: unknown) => {
         const s = String(p);
-        if (/[\\/]tmp[\\/]test-project[\\/]\.omc[\\/]config\.json$/.test(s)) return true;
+        if (/[\\/]tmp[\\/]test-project[\\/]\.omac[\\/]config\.json$/.test(s)) return true;
         return false;
       });
       mockReadFileSync.mockImplementation(() => {
@@ -231,7 +231,7 @@ describe('delegation-enforcement-levels', () => {
     it('supports enforcementLevel key as alternative', () => {
       mockExistsSync.mockImplementation((p: unknown) => {
         const s = String(p);
-        if (/[\\/]tmp[\\/]test-project[\\/]\.omc[\\/]config\.json$/.test(s)) return true;
+        if (/[\\/]tmp[\\/]test-project[\\/]\.omac[\\/]config\.json$/.test(s)) return true;
         return false;
       });
       mockReadFileSync.mockImplementation(() => {
@@ -250,7 +250,7 @@ describe('delegation-enforcement-levels', () => {
     function setEnforcement(level: string) {
       mockExistsSync.mockImplementation((p: unknown) => {
         const s = String(p);
-        if (/[\\/]\.omc[\\/]config\.json$/.test(s)) return true;
+        if (/[\\/]\.omac[\\/]config\.json$/.test(s)) return true;
         return false;
       });
       mockReadFileSync.mockImplementation(() => {
@@ -306,7 +306,7 @@ describe('delegation-enforcement-levels', () => {
 
     describe('allowed paths always continue', () => {
       const allowedPaths = [
-        '.omc/plans/test.md',
+        '.omac/plans/test.md',
         '.claude/settings.json',
         'docs/CLAUDE.md',
         'AGENTS.md',
@@ -421,7 +421,7 @@ describe('delegation-enforcement-levels', () => {
       const entry: AuditEntry = {
         timestamp: new Date().toISOString(),
         tool: 'Write',
-        filePath: '.omc/plans/test.md',
+        filePath: '.omac/plans/test.md',
         decision: 'allowed',
         reason: 'allowed_path',
       };
@@ -510,7 +510,7 @@ describe('delegation-enforcement-levels', () => {
       // before any HUD tracking happens
       mockExistsSync.mockImplementation((p: unknown) => {
         const s = String(p);
-        if (/[\\/]\.omc[\\/]config\.json$/.test(s)) return true;
+        if (/[\\/]\.omac[\\/]config\.json$/.test(s)) return true;
         return false;
       });
       mockReadFileSync.mockImplementation(() => {
@@ -530,7 +530,7 @@ describe('delegation-enforcement-levels', () => {
     it('blocks propagated from enforcement', async () => {
       mockExistsSync.mockImplementation((p: unknown) => {
         const s = String(p);
-        if (/[\\/]\.omc[\\/]config\.json$/.test(s)) return true;
+        if (/[\\/]\.omac[\\/]config\.json$/.test(s)) return true;
         return false;
       });
       mockReadFileSync.mockImplementation(() => {
@@ -591,8 +591,8 @@ describe('delegation-enforcement-levels', () => {
   // ─── Helper function unit tests ───
 
   describe('isAllowedPath', () => {
-    it('returns true for .omc/ paths', () => {
-      expect(isAllowedPath('.omc/plans/test.md')).toBe(true);
+    it('returns true for .omac/ paths', () => {
+      expect(isAllowedPath('.omac/plans/test.md')).toBe(true);
     });
 
     it('returns true for .claude/ paths', () => {
@@ -647,8 +647,8 @@ describe('delegation-enforcement-levels', () => {
     });
 
     // Traversal bypass prevention
-    it('rejects .omc/../src/file.ts traversal', () => {
-      expect(isAllowedPath('.omc/../src/file.ts')).toBe(false);
+    it('rejects .omac/../src/file.ts traversal', () => {
+      expect(isAllowedPath('.omac/../src/file.ts')).toBe(false);
     });
 
     it('rejects .claude/../src/file.ts traversal', () => {
@@ -660,34 +660,34 @@ describe('delegation-enforcement-levels', () => {
     });
 
     // Windows backslash paths
-    it('handles Windows-style .omc paths', () => {
-      expect(isAllowedPath('.omc\\plans\\test.md')).toBe(true);
+    it('handles Windows-style .omac paths', () => {
+      expect(isAllowedPath('.omac\\plans\\test.md')).toBe(true);
     });
 
-    it('rejects Windows traversal .omc\\..\\src\\file.ts', () => {
-      expect(isAllowedPath('.omc\\..\\src\\file.ts')).toBe(false);
+    it('rejects Windows traversal .omac\\..\\src\\file.ts', () => {
+      expect(isAllowedPath('.omac\\..\\src\\file.ts')).toBe(false);
     });
 
-    // Nested .omc in non-root position (should be rejected for relative paths)
-    it('rejects foo/.omc/bar.ts as relative path', () => {
-      expect(isAllowedPath('foo/.omc/bar.ts')).toBe(false);
+    // Nested .omac in non-root position (should be rejected for relative paths)
+    it('rejects foo/.omac/bar.ts as relative path', () => {
+      expect(isAllowedPath('foo/.omac/bar.ts')).toBe(false);
     });
 
     // Windows mixed-separator edge cases
-    it('rejects mixed separator traversal .omc\\..\\..\\secret', () => {
-      expect(isAllowedPath('.omc\\..\\..\\secret')).toBe(false);
+    it('rejects mixed separator traversal .omac\\..\\..\\secret', () => {
+      expect(isAllowedPath('.omac\\..\\..\\secret')).toBe(false);
     });
 
-    it('rejects double-dot with mixed separators .omc/..\\src', () => {
-      expect(isAllowedPath('.omc/..\\src')).toBe(false);
+    it('rejects double-dot with mixed separators .omac/..\\src', () => {
+      expect(isAllowedPath('.omac/..\\src')).toBe(false);
     });
 
     it('rejects UNC paths as not relative to project', () => {
-      expect(isAllowedPath('\\\\server\\share\\.omc\\file')).toBe(false);
+      expect(isAllowedPath('\\\\server\\share\\.omac\\file')).toBe(false);
     });
 
     it('rejects absolute Windows drive paths without worktree root', () => {
-      expect(isAllowedPath('C:\\repo\\.omc\\file')).toBe(false);
+      expect(isAllowedPath('C:\\repo\\.omac\\file')).toBe(false);
     });
   });
 

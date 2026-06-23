@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-  compactOmcStartupGuidance,
+  compactOmacStartupGuidance,
   generateConfigSchema,
   loadConfig,
   loadContextFromFiles,
@@ -16,18 +16,18 @@ const ALL_KEYS = [
   "CLAUDE_MODEL",
   "ANTHROPIC_MODEL",
   "ANTHROPIC_BASE_URL",
-  "OMC_ROUTING_FORCE_INHERIT",
-  "OMC_MODEL_HIGH",
-  "OMC_MODEL_MEDIUM",
-  "OMC_MODEL_LOW",
+  "OMAC_ROUTING_FORCE_INHERIT",
+  "OMAC_MODEL_HIGH",
+  "OMAC_MODEL_MEDIUM",
+  "OMAC_MODEL_LOW",
   "CLAUDE_CODE_BEDROCK_OPUS_MODEL",
   "CLAUDE_CODE_BEDROCK_SONNET_MODEL",
   "CLAUDE_CODE_BEDROCK_HAIKU_MODEL",
   "ANTHROPIC_DEFAULT_OPUS_MODEL",
   "ANTHROPIC_DEFAULT_SONNET_MODEL",
   "ANTHROPIC_DEFAULT_HAIKU_MODEL",
-  "OMC_DELEGATION_ROUTING_ENABLED",
-  "OMC_DELEGATION_ROUTING_DEFAULT_PROVIDER",
+  "OMAC_DELEGATION_ROUTING_ENABLED",
+  "OMAC_DELEGATION_ROUTING_DEFAULT_PROVIDER",
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -81,8 +81,8 @@ describe("loadConfig() — auto-forceInherit for non-standard providers", () => 
     expect(config.agents?.executor?.model).toBe("kimi-k2.6:cloud");
   });
 
-  it("does NOT auto-enable forceInherit for non-Claude OMC tier env vars", () => {
-    process.env.OMC_MODEL_MEDIUM = "glm-5.1:cloud";
+  it("does NOT auto-enable forceInherit for non-Claude OMAC tier env vars", () => {
+    process.env.OMAC_MODEL_MEDIUM = "glm-5.1:cloud";
     const config = loadConfig();
     expect(config.routing?.forceInherit).toBe(false);
     expect(config.agents?.executor?.model).toBe("glm-5.1:cloud");
@@ -95,16 +95,16 @@ describe("loadConfig() — auto-forceInherit for non-standard providers", () => 
     expect(config.routing?.forceInherit).toBe(false);
   });
 
-  it("does NOT auto-enable forceInherit when direct Claude CLAUDE_MODEL beats stale OMC tier env vars", () => {
+  it("does NOT auto-enable forceInherit when direct Claude CLAUDE_MODEL beats stale OMAC tier env vars", () => {
     process.env.CLAUDE_MODEL = "claude-sonnet-4-6";
-    process.env.OMC_MODEL_MEDIUM = "glm-5.1:cloud";
+    process.env.OMAC_MODEL_MEDIUM = "glm-5.1:cloud";
     const config = loadConfig();
     expect(config.routing?.forceInherit).toBe(false);
   });
 
-  it("does NOT auto-enable forceInherit when direct Claude ANTHROPIC_MODEL beats stale OMC tier env vars", () => {
+  it("does NOT auto-enable forceInherit when direct Claude ANTHROPIC_MODEL beats stale OMAC tier env vars", () => {
     process.env.ANTHROPIC_MODEL = "claude-sonnet-4-6";
-    process.env.OMC_MODEL_MEDIUM = "glm-5.1:cloud";
+    process.env.OMAC_MODEL_MEDIUM = "glm-5.1:cloud";
     const config = loadConfig();
     expect(config.routing?.forceInherit).toBe(false);
   });
@@ -120,11 +120,11 @@ describe("loadConfig() — auto-forceInherit for non-standard providers", () => 
     expect(config.routing?.forceInherit).toBe(false);
   });
 
-  it("respects explicit OMC_ROUTING_FORCE_INHERIT=false even on Bedrock", () => {
+  it("respects explicit OMAC_ROUTING_FORCE_INHERIT=false even on Bedrock", () => {
     // When user explicitly sets the var (even to false), auto-detection is skipped.
-    // This matches the guard: process.env.OMC_ROUTING_FORCE_INHERIT === undefined
+    // This matches the guard: process.env.OMAC_ROUTING_FORCE_INHERIT === undefined
     process.env.ANTHROPIC_MODEL = "global.anthropic.claude-sonnet-4-6[1m]";
-    process.env.OMC_ROUTING_FORCE_INHERIT = "false";
+    process.env.OMAC_ROUTING_FORCE_INHERIT = "false";
     const config = loadConfig();
     // env var is defined → auto-detection skipped → remains at default (false)
     expect(config.routing?.forceInherit).toBe(false);
@@ -174,12 +174,12 @@ describe("loadConfig() — auto-forceInherit for non-standard providers", () => 
 });
 
 describe("startup context compaction", () => {
-  it("compacts only OMC-style guidance in loadContextFromFiles while preserving key sections", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-loader-context-"));
+  it("compacts only OMAC-style guidance in loadContextFromFiles while preserving key sections", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-loader-context-"));
 
     try {
-      const omcAgentsPath = join(tempDir, "AGENTS.md");
-      const omcGuidance = `# oh-my-claudecode - Intelligent Multi-Agent Orchestration
+      const omacAgentsPath = join(tempDir, "AGENTS.md");
+      const omacGuidance = `# oh-my-agent-connector - Intelligent Multi-Agent Orchestration
 
 <guidance_schema_contract>
 schema
@@ -207,9 +207,9 @@ schema
 - verify this stays
 </verification>`;
 
-      writeFileSync(omcAgentsPath, omcGuidance);
+      writeFileSync(omacAgentsPath, omacGuidance);
 
-      const loaded = loadContextFromFiles([omcAgentsPath]);
+      const loaded = loadContextFromFiles([omacAgentsPath]);
 
       expect(loaded).toContain("<operating_principles>");
       expect(loaded).toContain("<verification>");
@@ -217,7 +217,7 @@ schema
       expect(loaded).not.toContain("<skills>");
       expect(loaded).not.toContain("<team_compositions>");
       expect(loaded.length).toBeLessThan(
-        omcGuidance.length + `## Context from ${omcAgentsPath}\n\n`.length - 40,
+        omacGuidance.length + `## Context from ${omacAgentsPath}\n\n`.length - 40,
       );
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -225,13 +225,13 @@ schema
   });
 
   it("caps aggregated context across multiple files", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-loader-context-aggregate-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-loader-context-aggregate-"));
 
     try {
       const fileA = join(tempDir, "AGENTS.md");
       const fileB = join(tempDir, "nested", "CLAUDE.md");
       require("node:fs").mkdirSync(join(tempDir, "nested"), { recursive: true });
-      const largeSection = `# oh-my-claudecode - Intelligent Multi-Agent Orchestration
+      const largeSection = `# oh-my-agent-connector - Intelligent Multi-Agent Orchestration
 
 <guidance_schema_contract>schema</guidance_schema_contract>
 
@@ -255,8 +255,8 @@ ${"- keep this\n".repeat(900)}
     }
   });
 
-  it("caps very large OMC guidance after preserving high-value sections", () => {
-    const largeOmc = `# oh-my-claudecode - Intelligent Multi-Agent Orchestration
+  it("caps very large OMAC guidance after preserving high-value sections", () => {
+    const largeOmac = `# oh-my-agent-connector - Intelligent Multi-Agent Orchestration
 
 <guidance_schema_contract>
 schema
@@ -274,22 +274,22 @@ ${"- drop catalog\n".repeat(1000)}
 - verify this stays before truncation
 </verification>`;
 
-    const compacted = compactOmcStartupGuidance(largeOmc);
+    const compacted = compactOmacStartupGuidance(largeOmac);
 
     expect(compacted.length).toBeLessThanOrEqual(8000);
     expect(compacted).toContain("<operating_principles>");
     expect(compacted).not.toContain("<agent_catalog>");
-    expect(compacted).toContain("OMC startup guidance truncated");
+    expect(compacted).toContain("OMAC startup guidance truncated");
   });
 
-  it("leaves non-OMC guidance unchanged even if it uses similar tags", () => {
-    const nonOmc = `# Project guide
+  it("leaves non-OMAC guidance unchanged even if it uses similar tags", () => {
+    const nonOmac = `# Project guide
 
 <skills>
 Keep this custom section.
 </skills>`;
 
-    expect(compactOmcStartupGuidance(nonOmc)).toBe(nonOmc);
+    expect(compactOmacStartupGuidance(nonOmac)).toBe(nonOmac);
   });
 });
 
@@ -310,7 +310,7 @@ describe("plan output configuration", () => {
   it("includes plan output defaults", () => {
     const config = loadConfig();
     expect(config.planOutput).toEqual({
-      directory: ".omc/plans",
+      directory: ".omac/plans",
       filenameTemplate: "{{name}}.md",
     });
   });
@@ -323,13 +323,13 @@ describe("plan output configuration", () => {
   });
 
   it("loads plan output overrides from project config", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-plan-output-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-plan-output-"));
 
     try {
       const claudeDir = join(tempDir, ".claude");
       require("node:fs").mkdirSync(claudeDir, { recursive: true });
       writeFileSync(
-        join(claudeDir, "omc.jsonc"),
+        join(claudeDir, "omac.jsonc"),
         JSON.stringify({
           planOutput: {
             directory: "docs/plans",
@@ -373,13 +373,13 @@ describe("company context configuration", () => {
   });
 
   it("loads company context overrides from project config", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-company-context-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-company-context-"));
 
     try {
       const claudeDir = join(tempDir, ".claude");
       require("node:fs").mkdirSync(claudeDir, { recursive: true });
       writeFileSync(
-        join(claudeDir, "omc.jsonc"),
+        join(claudeDir, "omac.jsonc"),
         JSON.stringify({
           companyContext: {
             tool: "mcp__vendor__get_company_context",
@@ -416,7 +416,7 @@ describe("team.roleRouting (Option E)", () => {
   let originalCwd: string;
 
   beforeEach(() => {
-    saved = saveAndClear([...ALL_KEYS, "OMC_TEAM_ROLE_OVERRIDES"] as const);
+    saved = saveAndClear([...ALL_KEYS, "OMAC_TEAM_ROLE_OVERRIDES"] as const);
     originalCwd = process.cwd();
   });
 
@@ -433,12 +433,12 @@ describe("team.roleRouting (Option E)", () => {
   });
 
   it("merges per-role file overrides into team.roleRouting", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-team-routing-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-team-routing-"));
     try {
       const claudeDir = join(tempDir, ".claude");
       require("node:fs").mkdirSync(claudeDir, { recursive: true });
       writeFileSync(
-        join(claudeDir, "omc.jsonc"),
+        join(claudeDir, "omac.jsonc"),
         JSON.stringify({
           team: {
             roleRouting: {
@@ -462,18 +462,18 @@ describe("team.roleRouting (Option E)", () => {
     }
   });
 
-  it("OMC_TEAM_ROLE_OVERRIDES env wins over file config", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-team-routing-env-"));
+  it("OMAC_TEAM_ROLE_OVERRIDES env wins over file config", () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-team-routing-env-"));
     try {
       const claudeDir = join(tempDir, ".claude");
       require("node:fs").mkdirSync(claudeDir, { recursive: true });
       writeFileSync(
-        join(claudeDir, "omc.jsonc"),
+        join(claudeDir, "omac.jsonc"),
         JSON.stringify({
           team: { roleRouting: { critic: { provider: "claude", model: "HIGH" } } },
         }),
       );
-      process.env.OMC_TEAM_ROLE_OVERRIDES = JSON.stringify({
+      process.env.OMAC_TEAM_ROLE_OVERRIDES = JSON.stringify({
         critic: { provider: "codex" },
       });
       process.chdir(tempDir);
@@ -484,14 +484,14 @@ describe("team.roleRouting (Option E)", () => {
     }
   });
 
-  it("OMC_TEAM_ROLE_OVERRIDES with invalid JSON is ignored with warning", () => {
+  it("OMAC_TEAM_ROLE_OVERRIDES with invalid JSON is ignored with warning", () => {
     const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
-      process.env.OMC_TEAM_ROLE_OVERRIDES = "{not valid json";
+      process.env.OMAC_TEAM_ROLE_OVERRIDES = "{not valid json";
       const config = loadConfig();
       expect(config.team?.roleRouting).toEqual({});
       expect(consoleWarnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("OMC_TEAM_ROLE_OVERRIDES"),
+        expect.stringContaining("OMAC_TEAM_ROLE_OVERRIDES"),
       );
     } finally {
       consoleWarnSpy.mockRestore();
@@ -499,12 +499,12 @@ describe("team.roleRouting (Option E)", () => {
   });
 
   it("rejects invalid provider value with descriptive error", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-team-bad-provider-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-team-bad-provider-"));
     try {
       const claudeDir = join(tempDir, ".claude");
       require("node:fs").mkdirSync(claudeDir, { recursive: true });
       writeFileSync(
-        join(claudeDir, "omc.jsonc"),
+        join(claudeDir, "omac.jsonc"),
         JSON.stringify({
           team: { roleRouting: { critic: { provider: "openai" } } },
         }),
@@ -517,12 +517,12 @@ describe("team.roleRouting (Option E)", () => {
   });
 
   it("rejects orchestrator.provider override (orchestrator is pinned to claude)", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-team-orch-pin-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-team-orch-pin-"));
     try {
       const claudeDir = join(tempDir, ".claude");
       require("node:fs").mkdirSync(claudeDir, { recursive: true });
       writeFileSync(
-        join(claudeDir, "omc.jsonc"),
+        join(claudeDir, "omac.jsonc"),
         JSON.stringify({
           team: {
             roleRouting: { orchestrator: { provider: "codex", model: "HIGH" } },
@@ -537,12 +537,12 @@ describe("team.roleRouting (Option E)", () => {
   });
 
   it("rejects unknown agent name", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-team-bad-agent-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-team-bad-agent-"));
     try {
       const claudeDir = join(tempDir, ".claude");
       require("node:fs").mkdirSync(claudeDir, { recursive: true });
       writeFileSync(
-        join(claudeDir, "omc.jsonc"),
+        join(claudeDir, "omac.jsonc"),
         JSON.stringify({
           team: { roleRouting: { executor: { agent: "nonExistentAgent" } } },
         }),
@@ -555,12 +555,12 @@ describe("team.roleRouting (Option E)", () => {
   });
 
   it("accepts 'reviewer' alias and preserves the raw key for later alias-aware resolution", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-team-alias-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-team-alias-"));
     try {
       const claudeDir = join(tempDir, ".claude");
       require("node:fs").mkdirSync(claudeDir, { recursive: true });
       writeFileSync(
-        join(claudeDir, "omc.jsonc"),
+        join(claudeDir, "omac.jsonc"),
         JSON.stringify({
           team: { roleRouting: { reviewer: { provider: "codex" } } },
         }),
@@ -579,12 +579,12 @@ describe("team.roleRouting (Option E)", () => {
   });
 
   it("rejects unsupported team.ops.defaultAgentType values", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-team-default-agent-type-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-team-default-agent-type-"));
     try {
       const claudeDir = join(tempDir, ".claude");
       require("node:fs").mkdirSync(claudeDir, { recursive: true });
       writeFileSync(
-        join(claudeDir, "omc.jsonc"),
+        join(claudeDir, "omac.jsonc"),
         JSON.stringify({
           team: { ops: { defaultAgentType: "executor" } },
         }),
@@ -597,12 +597,12 @@ describe("team.roleRouting (Option E)", () => {
   });
 
   it("rejects unknown role with descriptive error", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-team-bad-role-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-team-bad-role-"));
     try {
       const claudeDir = join(tempDir, ".claude");
       require("node:fs").mkdirSync(claudeDir, { recursive: true });
       writeFileSync(
-        join(claudeDir, "omc.jsonc"),
+        join(claudeDir, "omac.jsonc"),
         JSON.stringify({
           team: { roleRouting: { "totally-fake-role": { provider: "claude" } } },
         }),
@@ -633,7 +633,7 @@ describe("delegation routing deprecation warnings", () => {
   });
 
   it("warns when env delegation default provider is deprecated", () => {
-    process.env.OMC_DELEGATION_ROUTING_DEFAULT_PROVIDER = "gemini";
+    process.env.OMAC_DELEGATION_ROUTING_DEFAULT_PROVIDER = "gemini";
 
     loadConfig();
 
@@ -646,13 +646,13 @@ describe("delegation routing deprecation warnings", () => {
   });
 
   it("warns when project config uses deprecated delegation role provider", () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "omc-delegation-routing-warning-"));
+    const tempDir = mkdtempSync(join(tmpdir(), "omac-delegation-routing-warning-"));
 
     try {
       const claudeDir = join(tempDir, ".claude");
       require("node:fs").mkdirSync(claudeDir, { recursive: true });
       writeFileSync(
-        join(claudeDir, "omc.jsonc"),
+        join(claudeDir, "omac.jsonc"),
         JSON.stringify({
           delegationRouting: {
             enabled: true,

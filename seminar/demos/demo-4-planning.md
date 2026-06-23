@@ -6,7 +6,7 @@
 ## Pre-requisites
 
 - Any project directory (can be empty or existing)
-- OMC installed and configured
+- OMAC installed and configured
 - Understanding that planning is for unclear/broad requirements
 
 ## Setup (30 seconds before demo)
@@ -35,12 +35,12 @@ plan adding authentication to my app
 
 ### Phase 1: Activation & Broad Request Detection (0:00-0:10)
 **What happens:**
-- OMC detects broad request: "authentication system" without specifics
+- OMAC detects broad request: "authentication system" without specifics
 - Plan skill activates
 - Announces: "I'm starting a planning session - I'll interview you about requirements"
 
 **Presenter talking points:**
-- "OMC detected a broad request - 'authentication' could mean many things"
+- "OMAC detected a broad request - 'authentication' could mean many things"
 - "Instead of guessing, it starts an interview to understand what YOU want"
 - "This is intelligent requirement gathering"
 
@@ -116,7 +116,7 @@ What scope should we implement first?
 **Presenter talking points:**
 - "Here's the final plan - structured, actionable, validated"
 - Point to sections: "Requirements we gathered, architecture designed, phases to implement"
-- "This plan is saved to `.omc/plans/auth-system.md`"
+- "This plan is saved to `.omac/plans/auth-system.md`"
 - "You can review, modify, or execute immediately"
 
 ## Expected Output
@@ -306,10 +306,10 @@ DEPENDENCIES
 NEXT STEPS
 ──────────
 1. Review this plan
-2. Modify if needed: edit .omc/plans/auth-system.md
+2. Modify if needed: edit .omac/plans/auth-system.md
 3. Execute: "implement the auth plan" or "ralph: implement auth-system.md"
 
-Plan saved to: .omc/plans/auth-system.md
+Plan saved to: .omac/plans/auth-system.md
 ═══════════════════════════════════════════════════════════
 
 Ready to proceed? Say "implement the plan" to execute.
@@ -350,7 +350,7 @@ Show the complete terminal output from "Expected Output" section above.
 Additionally, demonstrate the saved plan file:
 
 ```bash
-$ cat .omc/plans/auth-system.md
+$ cat .omac/plans/auth-system.md
 
 # Authentication System Plan
 
@@ -398,7 +398,7 @@ ralplan the authentication system
 
 ### Variation 2: Review Existing Plan
 ```
-/oh-my-claudecode:review auth-system
+/oh-my-agent-connector:review auth-system
 ```
 
 "Review skill spawns Critic to analyze an existing plan and suggest improvements."
@@ -441,7 +441,7 @@ implement the auth-system plan
 A: Yes! Provide details upfront: "plan JWT-based auth with PostgreSQL and email verification". Plan will ask fewer questions or skip interview entirely.
 
 **Q: Can I modify the plan after it's generated?**
-A: Absolutely! Plans are saved as markdown in `.omc/plans/`. Edit the file, then execute it.
+A: Absolutely! Plans are saved as markdown in `.omac/plans/`. Edit the file, then execute it.
 
 **Q: How does plan know what questions to ask?**
 A: The plan skill has domain knowledge. For auth, it knows to ask about tokens vs sessions. For REST APIs, it knows to ask about databases, caching, etc. It adapts to context.

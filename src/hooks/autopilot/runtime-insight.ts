@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { getOmcRoot, resolveSessionStatePath } from '../../lib/worktree-paths.js';
+import { getOmacRoot, resolveSessionStatePath } from '../../lib/worktree-paths.js';
 import { readHudState } from '../../hud/state.js';
 import type { BackgroundTask } from '../../hud/types.js';
 import type { TeamTask, WorkerStatus } from '../../team/types.js';
@@ -41,7 +41,7 @@ function getTaskDependencyIds(task: TeamTask): string[] {
 }
 
 function getTeamNamesForRuntimeInsight(directory: string, sessionId?: string): string[] {
-  const teamRoot = join(getOmcRoot(directory), 'state', 'team');
+  const teamRoot = join(getOmacRoot(directory), 'state', 'team');
   if (!existsSync(teamRoot)) {
     return [];
   }
@@ -79,7 +79,7 @@ function collectRuntimeInsight(directory: string, sessionId?: string): RuntimeIn
   const missingDependencyIssues: MissingDependencyIssue[] = [];
   const workerIssues: WorkerIssue[] = [];
 
-  const teamRoot = join(getOmcRoot(directory), 'state', 'team');
+  const teamRoot = join(getOmacRoot(directory), 'state', 'team');
   for (const teamName of getTeamNamesForRuntimeInsight(directory, sessionId)) {
     const teamDir = join(teamRoot, teamName);
     const tasksDir = join(teamDir, 'tasks');

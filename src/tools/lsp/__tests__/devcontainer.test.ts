@@ -27,20 +27,20 @@ describe('devcontainer LSP helpers', () => {
   let workspaceRoot: string;
 
   beforeEach(() => {
-    workspaceRoot = mkdtempSync(join(tmpdir(), 'omc-devcontainer-'));
-    delete process.env.OMC_LSP_CONTAINER_ID;
+    workspaceRoot = mkdtempSync(join(tmpdir(), 'omac-devcontainer-'));
+    delete process.env.OMAC_LSP_CONTAINER_ID;
     vi.resetModules();
   });
 
   afterEach(() => {
     rmSync(workspaceRoot, { recursive: true, force: true });
     vi.restoreAllMocks();
-    delete process.env.OMC_LSP_CONTAINER_ID;
+    delete process.env.OMAC_LSP_CONTAINER_ID;
   });
 
   it('prefers explicit container override and translates host/container paths and URIs', async () => {
     const configFilePath = writeDevContainerConfig(workspaceRoot, '.devcontainer/devcontainer.json');
-    process.env.OMC_LSP_CONTAINER_ID = 'forced-container';
+    process.env.OMAC_LSP_CONTAINER_ID = 'forced-container';
 
     mockSpawnSync.mockImplementation((command: string, args: ReadonlyArray<string> | undefined) => {
       expect(command).toBe('docker');

@@ -17,8 +17,8 @@ const CONFLICTS = ['src/foo.ts', 'src/bar.ts'];
 
 const BASE_MERGE_ARGS = {
   workerName: 'writer',
-  workerBranch: 'omc-team/test-team/writer',
-  leaderBranch: 'omc-team/test-team-leader',
+  workerBranch: 'omac-team/test-team/writer',
+  leaderBranch: 'omac-team/test-team-leader',
   conflictingFiles: CONFLICTS,
   mergeBaseSha: 'abc1234',
   observedAt: 1_000_000_000_000, // fixed timestamp for snapshots
@@ -26,11 +26,11 @@ const BASE_MERGE_ARGS = {
 
 const BASE_REBASE_ARGS = {
   workerName: 'writer',
-  workerBranch: 'omc-team/test-team/writer',
-  leaderBranch: 'omc-team/test-team-leader',
+  workerBranch: 'omac-team/test-team/writer',
+  leaderBranch: 'omac-team/test-team-leader',
   conflictingFiles: CONFLICTS,
   baseSha: 'def5678',
-  worktreePath: '/repo/.omc/team/test-team/worktrees/writer',
+  worktreePath: '/repo/.omac/team/test-team/worktrees/writer',
   observedAt: 1_000_000_000_000,
 };
 
@@ -42,10 +42,10 @@ describe('formatMergeConflictForLeader', () => {
   it('matches snapshot', () => {
     const result = formatMergeConflictForLeader(BASE_MERGE_ARGS);
     expect(result).toMatchInlineSnapshot(`
-      "### Merge conflict: writer → omc-team/test-team-leader
+      "### Merge conflict: writer → omac-team/test-team-leader
 
-      **Worker branch:** \`omc-team/test-team/writer\`
-      **Leader branch:** \`omc-team/test-team-leader\`
+      **Worker branch:** \`omac-team/test-team/writer\`
+      **Leader branch:** \`omac-team/test-team-leader\`
       **Merge base:** \`abc1234\`
       **Observed at:** 2001-09-09T01:46:40.000Z
 
@@ -56,7 +56,7 @@ describe('formatMergeConflictForLeader', () => {
       **Leader: choose strategy.** To resolve, run:
 
       \`\`\`sh
-      git checkout omc-team/test-team-leader && git merge --no-ff omc-team/test-team/writer
+      git checkout omac-team/test-team-leader && git merge --no-ff omac-team/test-team/writer
       # resolve conflicts in the files listed above
       git add src/foo.ts src/bar.ts
       git commit
@@ -80,7 +80,7 @@ describe('formatMergeConflictForLeader', () => {
 
   it('includes resolution recipe with correct branches', () => {
     const result = formatMergeConflictForLeader(BASE_MERGE_ARGS);
-    expect(result).toContain('git checkout omc-team/test-team-leader && git merge --no-ff omc-team/test-team/writer');
+    expect(result).toContain('git checkout omac-team/test-team-leader && git merge --no-ff omac-team/test-team/writer');
   });
 
   it('includes git add with all conflicting files', () => {
@@ -103,12 +103,12 @@ describe('formatRebaseConflictForWorker', () => {
   it('matches snapshot', () => {
     const result = formatRebaseConflictForWorker(BASE_REBASE_ARGS);
     expect(result).toMatchInlineSnapshot(`
-      "### Rebase conflict: writer onto omc-team/test-team-leader
+      "### Rebase conflict: writer onto omac-team/test-team-leader
 
-      **Worker branch:** \`omc-team/test-team/writer\`
-      **Base branch:** \`omc-team/test-team-leader\`
+      **Worker branch:** \`omac-team/test-team/writer\`
+      **Base branch:** \`omac-team/test-team-leader\`
       **Base SHA:** \`def5678\`
-      **Worktree:** \`/repo/.omc/team/test-team/worktrees/writer\`
+      **Worktree:** \`/repo/.omac/team/test-team/worktrees/writer\`
       **Observed at:** 2001-09-09T01:46:40.000Z
 
       **Conflicting files:**
@@ -147,7 +147,7 @@ describe('formatRebaseConflictForWorker', () => {
 
   it('includes worktree path', () => {
     const result = formatRebaseConflictForWorker(BASE_REBASE_ARGS);
-    expect(result).toContain('/repo/.omc/team/test-team/worktrees/writer');
+    expect(result).toContain('/repo/.omac/team/test-team/worktrees/writer');
   });
 
   it('is pure: same input → same output', () => {
@@ -161,7 +161,7 @@ describe('formatRebaseConflictForWorker', () => {
 // Delivery function tests — target path correctness
 // ---------------------------------------------------------------------------
 
-const TEST_CWD = join(tmpdir(), `omc-test-conflict-mailbox-${process.pid}`);
+const TEST_CWD = join(tmpdir(), `omac-test-conflict-mailbox-${process.pid}`);
 const TEST_TEAM = 'test-team-mailbox';
 
 beforeEach(() => {
@@ -173,11 +173,11 @@ afterEach(() => {
 });
 
 describe('deliverMergeConflictToLeader', () => {
-  it('writes to .omc/state/team/{team}/leader/inbox.md', async () => {
+  it('writes to .omac/state/team/{team}/leader/inbox.md', async () => {
     const message = formatMergeConflictForLeader(BASE_MERGE_ARGS);
     await deliverMergeConflictToLeader({ teamName: TEST_TEAM, cwd: TEST_CWD, message });
 
-    const expectedPath = join(TEST_CWD, `.omc/state/team/${TEST_TEAM}/leader/inbox.md`);
+    const expectedPath = join(TEST_CWD, `.omac/state/team/${TEST_TEAM}/leader/inbox.md`);
     expect(existsSync(expectedPath)).toBe(true);
     const content = readFileSync(expectedPath, 'utf-8');
     expect(content).toContain(message);
@@ -186,14 +186,14 @@ describe('deliverMergeConflictToLeader', () => {
   it('appends separator before message', async () => {
     const message = 'first message';
     await deliverMergeConflictToLeader({ teamName: TEST_TEAM, cwd: TEST_CWD, message });
-    const expectedPath = join(TEST_CWD, `.omc/state/team/${TEST_TEAM}/leader/inbox.md`);
+    const expectedPath = join(TEST_CWD, `.omac/state/team/${TEST_TEAM}/leader/inbox.md`);
     const content = readFileSync(expectedPath, 'utf-8');
     expect(content).toContain('\n\n---\n');
   });
 });
 
 describe('deliverRebaseConflictToWorker', () => {
-  it('writes to .omc/state/team/{team}/workers/{worker}/inbox.md', async () => {
+  it('writes to .omac/state/team/{team}/workers/{worker}/inbox.md', async () => {
     const message = formatRebaseConflictForWorker(BASE_REBASE_ARGS);
     await deliverRebaseConflictToWorker({
       teamName: TEST_TEAM,
@@ -202,7 +202,7 @@ describe('deliverRebaseConflictToWorker', () => {
       message,
     });
 
-    const expectedPath = join(TEST_CWD, `.omc/state/team/${TEST_TEAM}/workers/writer/inbox.md`);
+    const expectedPath = join(TEST_CWD, `.omac/state/team/${TEST_TEAM}/workers/writer/inbox.md`);
     expect(existsSync(expectedPath)).toBe(true);
     const content = readFileSync(expectedPath, 'utf-8');
     expect(content).toContain(message);
@@ -216,7 +216,7 @@ describe('deliverRebaseConflictToWorker', () => {
       cwd: TEST_CWD,
       message,
     });
-    const expectedPath = join(TEST_CWD, `.omc/state/team/${TEST_TEAM}/workers/writer/inbox.md`);
+    const expectedPath = join(TEST_CWD, `.omac/state/team/${TEST_TEAM}/workers/writer/inbox.md`);
     const content = readFileSync(expectedPath, 'utf-8');
     expect(content).toContain('\n\n---\n');
   });

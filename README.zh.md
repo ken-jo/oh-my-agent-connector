@@ -1,10 +1,10 @@
 [English](README.md) | [한국어](README.ko.md) | 中文 | [日本語](README.ja.md) | [Español](README.es.md) | [Tiếng Việt](README.vi.md) | [Português](README.pt.md)
 
-# oh-my-claudecode
+# oh-my-agent-connector
 
-[![npm version](https://img.shields.io/npm/v/oh-my-claude-sisyphus?color=cb3837)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
-[![npm downloads](https://img.shields.io/npm/dm/oh-my-claude-sisyphus?color=blue)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
-[![GitHub stars](https://img.shields.io/github/stars/Yeachan-Heo/oh-my-claudecode?style=flat&color=yellow)](https://github.com/Yeachan-Heo/oh-my-claudecode/stargazers)
+[![npm version](https://img.shields.io/npm/v/oh-my-agent-connector?color=cb3837)](https://www.npmjs.com/package/oh-my-agent-connector)
+[![npm downloads](https://img.shields.io/npm/dm/oh-my-agent-connector?color=blue)](https://www.npmjs.com/package/oh-my-agent-connector)
+[![GitHub stars](https://img.shields.io/github/stars/Yeachan-Heo/oh-my-agent-connector?style=flat&color=yellow)](https://github.com/Yeachan-Heo/oh-my-agent-connector/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/Yeachan-Heo)
 [![Discord](https://img.shields.io/discord/1452487457085063218?color=5865F2&logo=discord&logoColor=white&label=Discord)](https://discord.gg/sj4exxQ9v)
@@ -13,9 +13,9 @@
 
 **Claude Code 的多智能体编排系统。零学习曲线。**
 
-*无需学习 Claude Code，直接使用 OMC。*
+*无需学习 Claude Code，直接使用 OMAC。*
 
-[快速开始](#快速开始) • [文档](https://yeachan-heo.github.io/oh-my-claudecode-website) • [CLI 参考](https://yeachan-heo.github.io/oh-my-claudecode-website/docs/#cli-reference) • [工作流](https://yeachan-heo.github.io/oh-my-claudecode-website/docs/#workflows) • [迁移指南](docs/MIGRATION.md) • [Discord](https://discord.gg/sj4exxQ9v)
+[快速开始](#快速开始) • [文档](https://yeachan-heo.github.io/oh-my-agent-connector-website) • [CLI 参考](https://yeachan-heo.github.io/oh-my-agent-connector-website/docs/#cli-reference) • [工作流](https://yeachan-heo.github.io/oh-my-agent-connector-website/docs/#workflows) • [迁移指南](docs/MIGRATION.md) • [Discord](https://discord.gg/sj4exxQ9v)
 
 ---
 
@@ -23,16 +23,16 @@
 
 **第一步：安装**
 ```bash
-/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
-/plugin install oh-my-claudecode
+/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-agent-connector
+/plugin install oh-my-agent-connector
 ```
 
 **第二步：配置**
 ```bash
-/omc-setup
+/omac-setup
 ```
 
-如果你通过 `omc --plugin-dir <path>` 或 `claude --plugin-dir <path>` 运行 OMC，请在 `omc setup` 中添加 `--plugin-dir-mode`（或提前导出 `OMC_PLUGIN_ROOT`），以避免复制插件在运行时已经提供的技能/代理。有关完整的决策矩阵和所有可用标志，请参阅 [REFERENCE.md 中的 Plugin directory flags 部分](./docs/REFERENCE.md#plugin-directory-flags)。
+如果你通过 `omac --plugin-dir <path>` 或 `claude --plugin-dir <path>` 运行 OMAC，请在 `omac setup` 中添加 `--plugin-dir-mode`（或提前导出 `OMAC_PLUGIN_ROOT`），以避免复制插件在运行时已经提供的技能/代理。有关完整的决策矩阵和所有可用标志，请参阅 [REFERENCE.md 中的 Plugin directory flags 部分](./docs/REFERENCE.md#plugin-directory-flags)。
 
 <!-- TODO(i18n): verify translation -->
 
@@ -55,7 +55,7 @@ autopilot: build a REST API for managing tasks
 
 ## Team 模式（推荐）
 
-从 **v4.1.7** 开始，**Team** 是 OMC 的标准编排方式。**swarm** 和 **ultrapilot** 等旧版入口仍受支持，但现在**在底层路由到 Team**。
+从 **v4.1.7** 开始，**Team** 是 OMAC 的标准编排方式。**swarm** 和 **ultrapilot** 等旧版入口仍受支持，但现在**在底层路由到 Team**。
 
 ```bash
 /team 3:executor "fix all TypeScript errors"
@@ -75,16 +75,16 @@ Team 按阶段化流水线运行：
 }
 ```
 
-> 如果团队被禁用，OMC 会发出警告并在可能的情况下回退到非 Team 执行模式。
+> 如果团队被禁用，OMAC 会发出警告并在可能的情况下回退到非 Team 执行模式。
 
 ### tmux CLI 工作者 — Codex & Gemini (v4.4.0+)
 
-**v4.4.0 移除了 Codex/Gemini MCP 服务器**（`x`、`g` 提供商）。请改用 `/omc-teams` 在 tmux 分屏中启动真实的 CLI 进程：
+**v4.4.0 移除了 Codex/Gemini MCP 服务器**（`x`、`g` 提供商）。请改用 `/omac-teams` 在 tmux 分屏中启动真实的 CLI 进程：
 
 ```bash
-/omc-teams 2:codex   "review auth module for security issues"
-/omc-teams 2:gemini  "redesign UI components for accessibility"
-/omc-teams 1:claude  "implement the payment flow"
+/omac-teams 2:codex   "review auth module for security issues"
+/omac-teams 2:gemini  "redesign UI components for accessibility"
+/omac-teams 1:claude  "implement the payment flow"
 ```
 
 如需在一个命令中混合使用 Codex + Gemini，请使用 **`/ccg`** 技能：
@@ -95,42 +95,42 @@ Team 按阶段化流水线运行：
 
 | 技能 | 工作者 | 最适合 |
 |-------|---------|----------|
-| `/omc-teams N:codex` | N 个 Codex CLI 窗格 | 代码审查、安全分析、架构 |
-| `/omc-teams N:gemini` | N 个 Gemini CLI 窗格 | UI/UX 设计、文档、大上下文任务 |
-| `/omc-teams N:claude` | N 个 Claude CLI 窗格 | 通过 tmux 中的 Claude CLI 处理通用任务 |
+| `/omac-teams N:codex` | N 个 Codex CLI 窗格 | 代码审查、安全分析、架构 |
+| `/omac-teams N:gemini` | N 个 Gemini CLI 窗格 | UI/UX 设计、文档、大上下文任务 |
+| `/omac-teams N:claude` | N 个 Claude CLI 窗格 | 通过 tmux 中的 Claude CLI 处理通用任务 |
 | `/ccg` | 1 个 Codex + 1 个 Gemini | 并行三模型编排 |
 
 工作者按需生成，任务完成后自动退出 — 无空闲资源浪费。需要安装 `codex` / `gemini` CLI 并有活跃的 tmux 会话。
 
-> **注意：包命名** — 项目品牌名为 **oh-my-claudecode**（仓库、插件、命令），但 npm 包以 [`oh-my-claude-sisyphus`](https://www.npmjs.com/package/oh-my-claude-sisyphus) 发布。通过 npm/bun 安装 CLI 工具时，请使用 `npm install -g oh-my-claude-sisyphus`。
+> **注意：包命名** — 项目品牌名为 **oh-my-agent-connector**（仓库、插件、命令），但 npm 包以 [`oh-my-agent-connector`](https://www.npmjs.com/package/oh-my-agent-connector) 发布。通过 npm/bun 安装 CLI 工具时，请使用 `npm install -g oh-my-agent-connector`。
 
 ### 更新
 
 ```bash
 # 1. 更新 marketplace 克隆
-/plugin marketplace update omc
+/plugin marketplace update omac
 
 # 2. 重新运行设置以刷新配置
-/omc-setup
+/omac-setup
 ```
 
-> **注意：** 如果 marketplace 自动更新未启用，您需要在运行设置之前手动执行 `/plugin marketplace update omc` 来同步最新版本。
+> **注意：** 如果 marketplace 自动更新未启用，您需要在运行设置之前手动执行 `/plugin marketplace update omac` 来同步最新版本。
 
 如果更新后遇到问题，清除旧的插件缓存：
 
 ```bash
-/omc-doctor
+/omac-doctor
 ```
 
 <h1 align="center">你的 Claude 已被注入超能力。</h1>
 
 <p align="center">
-  <img src="assets/omc-character.jpg" alt="oh-my-claudecode" width="400" />
+  <img src="assets/omac-character.jpg" alt="oh-my-agent-connector" width="400" />
 </p>
 
 ---
 
-## 为什么选择 oh-my-claudecode？
+## 为什么选择 oh-my-agent-connector？
 
 - **无需配置** - 开箱即用，智能默认设置
 - **Team 优先编排** - Team 是标准的多智能体界面（swarm/ultrapilot 是兼容性外观）
@@ -146,12 +146,12 @@ Team 按阶段化流水线运行：
 ## 功能特性
 
 ### 执行模式
-针对不同场景的多种策略 - 从全自动构建到 token 高效重构。[了解更多 →](https://yeachan-heo.github.io/oh-my-claudecode-website/docs/#execution-modes)
+针对不同场景的多种策略 - 从全自动构建到 token 高效重构。[了解更多 →](https://yeachan-heo.github.io/oh-my-agent-connector-website/docs/#execution-modes)
 
 | 模式 | 特点 | 适用场景 |
 |------|---------|---------|
 | **Team（推荐）** | 阶段化流水线 | 在共享任务列表上协作的 Claude 智能体 |
-| **omc-teams** | tmux CLI 工作者 | Codex/Gemini CLI 任务；按需生成，完成后退出 |
+| **omac-teams** | tmux CLI 工作者 | Codex/Gemini CLI 任务；按需生成，完成后退出 |
 | **ccg** | 三模型并行 | Codex（分析）+ Gemini（设计），Claude 合成 |
 | **Autopilot** | 自主执行 | 最小化繁琐配置的端到端功能开发 |
 | **Ultrawork** | 最大并行 | 不需要 Team 的并行修复/重构 |
@@ -169,7 +169,7 @@ Team 按阶段化流水线运行：
 
 - **魔法关键词** - `ralph`、`ulw`、`plan` 提供显式控制
 - **HUD 状态栏** - 状态栏实时显示编排指标
-  - 如果你直接使用 `claude --plugin-dir <path>` 启动 Claude Code（绕过 `omc` shim），请在 shell 中导出 `OMC_PLUGIN_ROOT=<path>`，以便 HUD bundle 解析到与插件加载器相同的 checkout。详情见 [REFERENCE.md 中的 Plugin directory flags 部分](./docs/REFERENCE.md#plugin-directory-flags)。
+  - 如果你直接使用 `claude --plugin-dir <path>` 启动 Claude Code（绕过 `omac` shim），请在 shell 中导出 `OMAC_PLUGIN_ROOT=<path>`，以便 HUD bundle 解析到与插件加载器相同的 checkout。详情见 [REFERENCE.md 中的 Plugin directory flags 部分](./docs/REFERENCE.md#plugin-directory-flags)。
 
   <!-- TODO(i18n): verify translation -->
 - **技能学习** - 从会话中提取可复用模式
@@ -177,22 +177,22 @@ Team 按阶段化流水线运行：
 
 ### 贡献
 
-想为 OMC 做贡献？请参阅 [CONTRIBUTING.md](./CONTRIBUTING.md) 了解完整的开发者指南，包括如何 fork、设置本地 checkout、将其链接为活跃插件、运行测试和提交 PR。
+想为 OMAC 做贡献？请参阅 [CONTRIBUTING.md](./CONTRIBUTING.md) 了解完整的开发者指南，包括如何 fork、设置本地 checkout、将其链接为活跃插件、运行测试和提交 PR。
 
 <!-- TODO(i18n): verify translation -->
 
 ### 自定义技能
 
-一次学习，永久复用。OMC 将调试过程中获得的实战知识提取为可移植的技能文件，并在相关场景中自动注入。
+一次学习，永久复用。OMAC 将调试过程中获得的实战知识提取为可移植的技能文件，并在相关场景中自动注入。
 
 | | 项目作用域 | 用户作用域 |
 |---|---|---|
-| **路径** | `.omc/skills/` | `~/.omc/skills/` |
+| **路径** | `.omac/skills/` | `~/.omac/skills/` |
 | **共享范围** | 团队（受版本控制） | 所有项目通用 |
 | **优先级** | 高（覆盖用户作用域） | 低（回退） |
 
 ```yaml
-# .omc/skills/fix-proxy-crash.md
+# .omac/skills/fix-proxy-crash.md
 ---
 name: Fix Proxy Crash
 description: aiohttp proxy crashes on ClientDisconnectedError
@@ -217,7 +217,7 @@ source: extracted
 | 关键词 | 效果 | 示例 |
 |---------|--------|---------|
 | `team` | 标准 Team 编排 | `/team 3:executor "fix all TypeScript errors"` |
-| `omc-teams` | tmux CLI 工作者 (codex/gemini/claude) | `/omc-teams 2:codex "security review"` |
+| `omac-teams` | tmux CLI 工作者 (codex/gemini/claude) | `/omac-teams 2:codex "security review"` |
 | `ccg` | 三模型 Codex+Gemini 编排 | `/ccg review this PR` |
 | `autopilot` | 全自动执行 | `autopilot: build a todo app` |
 | `ralph` | 持久模式 | `ralph: refactor auth` |
@@ -241,9 +241,9 @@ source: extracted
 当速率限制重置时自动恢复 Claude Code 会话。
 
 ```bash
-omc wait          # 检查状态，获取指导
-omc wait --start  # 启用自动恢复守护进程
-omc wait --stop   # 禁用守护进程
+omac wait          # 检查状态，获取指导
+omac wait --start  # 启用自动恢复守护进程
+omac wait --stop   # 禁用守护进程
 ```
 
 **需要：** tmux（用于会话检测）
@@ -254,14 +254,14 @@ omc wait --stop   # 禁用守护进程
 
 ```bash
 # 设置/替换标签列表
-omc config-stop-callback telegram --enable --token <bot_token> --chat <chat_id> --tag-list "@alice,bob"
-omc config-stop-callback discord --enable --webhook <url> --tag-list "@here,123456789012345678,role:987654321098765432"
-omc config-stop-callback slack --enable --webhook <url> --tag-list "<!here>,<@U1234567890>"
+omac config-stop-callback telegram --enable --token <bot_token> --chat <chat_id> --tag-list "@alice,bob"
+omac config-stop-callback discord --enable --webhook <url> --tag-list "@here,123456789012345678,role:987654321098765432"
+omac config-stop-callback slack --enable --webhook <url> --tag-list "<!here>,<@U1234567890>"
 
 # 增量更新
-omc config-stop-callback telegram --add-tag charlie
-omc config-stop-callback discord --remove-tag @here
-omc config-stop-callback discord --clear-tags
+omac config-stop-callback telegram --add-tag charlie
+omac config-stop-callback discord --remove-tag @here
+omac config-stop-callback discord --clear-tags
 ```
 
 标签规则：
@@ -277,11 +277,11 @@ omc config-stop-callback discord --clear-tags
 **快速设置（推荐）：**
 
 ```bash
-/oh-my-claudecode:configure-notifications
+/oh-my-agent-connector:configure-notifications
 # → 提示时输入 "openclaw" → 选择 "OpenClaw Gateway"
 ```
 
-**手动设置：** 创建 `~/.claude/omc_config.openclaw.json`：
+**手动设置：** 创建 `~/.claude/omac_config.openclaw.json`：
 
 ```json
 {
@@ -305,9 +305,9 @@ omc config-stop-callback discord --clear-tags
 
 | 变量 | 说明 |
 |------|------|
-| `OMC_OPENCLAW=1` | 启用 OpenClaw |
-| `OMC_OPENCLAW_DEBUG=1` | 启用调试日志 |
-| `OMC_OPENCLAW_CONFIG=/path/to/config.json` | 覆盖配置文件路径 |
+| `OMAC_OPENCLAW=1` | 启用 OpenClaw |
+| `OMAC_OPENCLAW_DEBUG=1` | 启用调试日志 |
+| `OMAC_OPENCLAW_CONFIG=/path/to/config.json` | 覆盖配置文件路径 |
 
 **支持的钩子事件（bridge.ts 中 6 个活跃）：**
 
@@ -335,11 +335,11 @@ omc config-stop-callback discord --clear-tags
 ## 文档
 
 - **[完整参考](docs/REFERENCE.md)** - 完整功能文档
-- **[CLI 参考](https://yeachan-heo.github.io/oh-my-claudecode-website/docs/#cli-reference)** - 所有 `omc` 命令、标志和工具
-- **[通知指南](https://yeachan-heo.github.io/oh-my-claudecode-website/docs/#notifications)** - Discord、Telegram、Slack 和 webhook 设置
-- **[推荐工作流](https://yeachan-heo.github.io/oh-my-claudecode-website/docs/#workflows)** - 常见任务的经过实战检验的技能链
-- **[发布说明](https://yeachan-heo.github.io/oh-my-claudecode-website/docs/#release-notes)** - 每个版本的新内容
-- **[网站](https://yeachan-heo.github.io/oh-my-claudecode-website)** - 交互式指南和示例
+- **[CLI 参考](https://yeachan-heo.github.io/oh-my-agent-connector-website/docs/#cli-reference)** - 所有 `omac` 命令、标志和工具
+- **[通知指南](https://yeachan-heo.github.io/oh-my-agent-connector-website/docs/#notifications)** - Discord、Telegram、Slack 和 webhook 设置
+- **[推荐工作流](https://yeachan-heo.github.io/oh-my-agent-connector-website/docs/#workflows)** - 常见任务的经过实战检验的技能链
+- **[发布说明](https://yeachan-heo.github.io/oh-my-agent-connector-website/docs/#release-notes)** - 每个版本的新内容
+- **[网站](https://yeachan-heo.github.io/oh-my-agent-connector-website)** - 交互式指南和示例
 - **[迁移指南](docs/MIGRATION.md)** - 从 v2.x 升级
 - **[架构](docs/ARCHITECTURE.md)** - 底层工作原理
 - **[性能监控](docs/PERFORMANCE-MONITORING.md)** - 智能体追踪、调试和优化
@@ -353,7 +353,7 @@ omc config-stop-callback discord --clear-tags
 
 ### 可选：多 AI 编排
 
-OMC 可以选择性地调用外部 AI 提供商进行交叉验证和设计一致性检查。**非必需** — 没有它们 OMC 也能完整运行。
+OMAC 可以选择性地调用外部 AI 提供商进行交叉验证和设计一致性检查。**非必需** — 没有它们 OMAC 也能完整运行。
 
 | 提供商 | 安装 | 功能 |
 |--------|------|------|
@@ -380,7 +380,7 @@ MIT
 
 ## Star 历史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)](https://www.star-history.com/#Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=Yeachan-Heo/oh-my-agent-connector&type=date&legend=top-left)](https://www.star-history.com/#Yeachan-Heo/oh-my-agent-connector&type=date&legend=top-left)
 
 ## 💖 支持本项目
 

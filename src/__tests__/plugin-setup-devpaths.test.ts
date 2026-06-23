@@ -11,8 +11,8 @@ const HUD_WRAPPER_TEMPLATE = join(PACKAGE_ROOT, 'scripts', 'lib', 'hud-wrapper-t
 
 /**
  * Plan binary-weaving-mountain replaced the brittle hardcoded `devPaths`
- * + `OMC_DEV=1` branch with a single `process.env.OMC_PLUGIN_ROOT` resolution
- * step set automatically by `omc --plugin-dir <path>`.
+ * + `OMAC_DEV=1` branch with a single `process.env.OMAC_PLUGIN_ROOT` resolution
+ * step set automatically by `omac --plugin-dir <path>`.
  *
  * This test guards the migration: the dev-paths array must be GONE from
  * both install paths, and the new env-var step must be present in the
@@ -22,17 +22,17 @@ describe('HUD wrapper devPaths removal (binary-weaving-mountain)', () => {
   it('plugin-setup.mjs no longer contains an inline devPaths array', () => {
     const content = readFileSync(PLUGIN_SETUP_PATH, 'utf-8');
     expect(content).not.toMatch(/const devPaths\s*=\s*\[/);
-    expect(content).not.toContain('Workspace/oh-my-claudecode/dist/hud/index.js');
-    expect(content).not.toContain('OMC_DEV');
+    expect(content).not.toContain('Workspace/oh-my-agent-connector/dist/hud/index.js');
+    expect(content).not.toContain('OMAC_DEV');
   });
 
-  it('shared HUD wrapper template exists and uses OMC_PLUGIN_ROOT', () => {
+  it('shared HUD wrapper template exists and uses OMAC_PLUGIN_ROOT', () => {
     expect(existsSync(HUD_WRAPPER_TEMPLATE)).toBe(true);
     const content = readFileSync(HUD_WRAPPER_TEMPLATE, 'utf-8');
-    expect(content).toContain('OMC_PLUGIN_ROOT');
+    expect(content).toContain('OMAC_PLUGIN_ROOT');
     expect(content).toContain('dist/hud/index.js');
-    expect(content).not.toContain('OMC_DEV');
-    expect(content).not.toContain('Workspace/oh-my-claudecode');
-    expect(content).not.toContain('projects/oh-my-claudecode');
+    expect(content).not.toContain('OMAC_DEV');
+    expect(content).not.toContain('Workspace/oh-my-agent-connector');
+    expect(content).not.toContain('projects/oh-my-agent-connector');
   });
 });

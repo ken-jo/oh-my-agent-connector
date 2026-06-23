@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Element Exports
+ * OMAC HUD - Element Exports
  *
  * Re-export all element renderers for convenient imports.
  */

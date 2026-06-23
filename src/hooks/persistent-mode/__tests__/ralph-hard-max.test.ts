@@ -7,19 +7,19 @@ import { checkPersistentModes } from '../index.js';
 import { clearSecurityConfigCache } from '../../../lib/security-config.js';
 
 describe('persistent-mode ralph hard max iterations', () => {
-  const originalSecurity = process.env.OMC_SECURITY;
+  const originalSecurity = process.env.OMAC_SECURITY;
 
   afterEach(() => {
     if (originalSecurity === undefined) {
-      delete process.env.OMC_SECURITY;
+      delete process.env.OMAC_SECURITY;
     } else {
-      process.env.OMC_SECURITY = originalSecurity;
+      process.env.OMAC_SECURITY = originalSecurity;
     }
     clearSecurityConfigCache();
   });
 
-  it('auto-disables ralph when hard max is reached (OMC_SECURITY=strict)', async () => {
-    process.env.OMC_SECURITY = 'strict';
+  it('auto-disables ralph when hard max is reached (OMAC_SECURITY=strict)', async () => {
+    process.env.OMAC_SECURITY = 'strict';
     clearSecurityConfigCache();
 
     const tempDir = mkdtempSync(join(tmpdir(), 'ralph-hard-max-'));
@@ -27,7 +27,7 @@ describe('persistent-mode ralph hard max iterations', () => {
 
     try {
       execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
-      const stateDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+      const stateDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
       mkdirSync(stateDir, { recursive: true });
 
       writeFileSync(
@@ -55,7 +55,7 @@ describe('persistent-mode ralph hard max iterations', () => {
   });
 
   it('still extends normally when below hard max (default 500)', async () => {
-    delete process.env.OMC_SECURITY;
+    delete process.env.OMAC_SECURITY;
     clearSecurityConfigCache();
 
     const tempDir = mkdtempSync(join(tmpdir(), 'ralph-no-hardmax-'));
@@ -63,7 +63,7 @@ describe('persistent-mode ralph hard max iterations', () => {
 
     try {
       execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
-      const stateDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+      const stateDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
       mkdirSync(stateDir, { recursive: true });
 
       writeFileSync(

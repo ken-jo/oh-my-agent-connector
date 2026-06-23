@@ -1,7 +1,7 @@
 /**
- * Interop CLI Command - Split-pane tmux session with OMC and OMX
+ * Interop CLI Command - Split-pane tmux session with OMAC and OMX
  *
- * Creates a tmux split-pane layout with Claude Code (OMC) on the left
+ * Creates a tmux split-pane layout with Claude Code (OMAC) on the left
  * and Codex CLI (OMX) on the right, with shared interop state.
  */
 
@@ -15,28 +15,28 @@ export type InteropMode = 'off' | 'observe' | 'active';
 export interface InteropRuntimeFlags {
   enabled: boolean;
   mode: InteropMode;
-  omcInteropToolsEnabled: boolean;
+  omacInteropToolsEnabled: boolean;
   failClosed: boolean;
 }
 
 export function readInteropRuntimeFlags(env: NodeJS.ProcessEnv = process.env): InteropRuntimeFlags {
-  const rawMode = (env.OMX_OMC_INTEROP_MODE || 'off').toLowerCase();
+  const rawMode = (env.OMX_OMAC_INTEROP_MODE || 'off').toLowerCase();
   const mode: InteropMode = rawMode === 'observe' || rawMode === 'active' ? rawMode : 'off';
   return {
-    enabled: env.OMX_OMC_INTEROP_ENABLED === '1',
+    enabled: env.OMX_OMAC_INTEROP_ENABLED === '1',
     mode,
-    omcInteropToolsEnabled: env.OMC_INTEROP_TOOLS_ENABLED === '1',
-    failClosed: env.OMX_OMC_INTEROP_FAIL_CLOSED !== '0',
+    omacInteropToolsEnabled: env.OMAC_INTEROP_TOOLS_ENABLED === '1',
+    failClosed: env.OMX_OMAC_INTEROP_FAIL_CLOSED !== '0',
   };
 }
 
 export function validateInteropRuntimeFlags(flags: InteropRuntimeFlags): { ok: boolean; reason?: string } {
   if (!flags.enabled && flags.mode !== 'off') {
-    return { ok: false, reason: 'OMX_OMC_INTEROP_MODE must be "off" when OMX_OMC_INTEROP_ENABLED=0.' };
+    return { ok: false, reason: 'OMX_OMAC_INTEROP_MODE must be "off" when OMX_OMAC_INTEROP_ENABLED=0.' };
   }
 
-  if (flags.mode === 'active' && !flags.omcInteropToolsEnabled) {
-    return { ok: false, reason: 'Active mode requires OMC_INTEROP_TOOLS_ENABLED=1.' };
+  if (flags.mode === 'active' && !flags.omacInteropToolsEnabled) {
+    return { ok: false, reason: 'Active mode requires OMAC_INTEROP_TOOLS_ENABLED=1.' };
   }
 
   return { ok: true };
@@ -61,7 +61,7 @@ export function launchInteropSession(cwd: string = process.cwd()): void {
   const flags = readInteropRuntimeFlags();
   const flagCheck = validateInteropRuntimeFlags(flags);
 
-  console.log(`[interop] mode=${flags.mode}, enabled=${flags.enabled ? '1' : '0'}, tools=${flags.omcInteropToolsEnabled ? '1' : '0'}, failClosed=${flags.failClosed ? '1' : '0'}`);
+  console.log(`[interop] mode=${flags.mode}, enabled=${flags.enabled ? '1' : '0'}, tools=${flags.omacInteropToolsEnabled ? '1' : '0'}, failClosed=${flags.failClosed ? '1' : '0'}`);
   if (!flagCheck.ok) {
     console.error(`Error: ${flagCheck.reason}`);
     console.error('Refusing to start interop in invalid flag configuration.');

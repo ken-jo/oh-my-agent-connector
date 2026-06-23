@@ -1,9 +1,9 @@
 /**
  * Multi-repo workspace anchor tests for ultragoal artifacts.
  *
- * Companion to artifacts.test.ts. Verifies that when a .omc-workspace marker
+ * Companion to artifacts.test.ts. Verifies that when a .omac-workspace marker
  * exists in a parent directory, ultragoal artifacts are written to the
- * workspace anchor's .omc/ instead of the sub-repo's .omc/.
+ * workspace anchor's .omac/ instead of the sub-repo's .omac/.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -29,11 +29,11 @@ function cleanQualityGate(): object {
 }
 
 describe('ultragoal artifacts — multi-repo workspace anchor', () => {
-  it('writes artifacts to workspace anchor .omc/ when .omc-workspace marker is in a parent dir', async () => {
-    const workspaceRoot = await mkdtemp(join(tmpdir(), 'omc-multirepo-anchor-'));
+  it('writes artifacts to workspace anchor .omac/ when .omac-workspace marker is in a parent dir', async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), 'omac-multirepo-anchor-'));
     try {
-      // Drop workspace marker so getOmcRoot() anchors to workspaceRoot
-      writeFileSync(join(workspaceRoot, '.omc-workspace'), '{}');
+      // Drop workspace marker so getOmacRoot() anchors to workspaceRoot
+      writeFileSync(join(workspaceRoot, '.omac-workspace'), '{}');
 
       // Create a sub-git-repo inside the workspace
       const subDir = join(workspaceRoot, 'sub-repo');
@@ -45,18 +45,18 @@ describe('ultragoal artifacts — multi-repo workspace anchor', () => {
       await createUltragoalPlan(subDir, { brief: '- Task A\n- Task B' });
 
       // Artifacts must land under the workspace anchor, not in the sub-repo
-      expect(existsSync(join(workspaceRoot, '.omc', 'ultragoal', 'goals.json'))).toBe(true);
-      expect(existsSync(join(subDir, '.omc', 'ultragoal'))).toBe(false);
+      expect(existsSync(join(workspaceRoot, '.omac', 'ultragoal', 'goals.json'))).toBe(true);
+      expect(existsSync(join(subDir, '.omac', 'ultragoal'))).toBe(false);
     } finally {
       clearWorktreeCache();
       await rm(workspaceRoot, { recursive: true, force: true });
     }
   });
 
-  it('sibling sub-repos share one workspace .omc/ when rooted at the same .omc-workspace', async () => {
-    const workspaceRoot = await mkdtemp(join(tmpdir(), 'omc-multirepo-sibling-'));
+  it('sibling sub-repos share one workspace .omac/ when rooted at the same .omac-workspace', async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), 'omac-multirepo-sibling-'));
     try {
-      writeFileSync(join(workspaceRoot, '.omc-workspace'), '{}');
+      writeFileSync(join(workspaceRoot, '.omac-workspace'), '{}');
 
       const repoA = join(workspaceRoot, 'repo-a');
       const repoB = join(workspaceRoot, 'repo-b');
@@ -71,13 +71,13 @@ describe('ultragoal artifacts — multi-repo workspace anchor', () => {
       await createUltragoalPlan(repoA, { brief: '- Feature A', planId: 'plan-a' });
       await createUltragoalPlan(repoB, { brief: '- Feature B', planId: 'plan-b' });
 
-      // Both plans land under the single workspace .omc/
-      expect(existsSync(join(workspaceRoot, '.omc', 'ultragoal', 'plans', 'plan-a', 'goals.json'))).toBe(true);
-      expect(existsSync(join(workspaceRoot, '.omc', 'ultragoal', 'plans', 'plan-b', 'goals.json'))).toBe(true);
+      // Both plans land under the single workspace .omac/
+      expect(existsSync(join(workspaceRoot, '.omac', 'ultragoal', 'plans', 'plan-a', 'goals.json'))).toBe(true);
+      expect(existsSync(join(workspaceRoot, '.omac', 'ultragoal', 'plans', 'plan-b', 'goals.json'))).toBe(true);
 
-      // Sub-repos must not have their own .omc/ultragoal
-      expect(existsSync(join(repoA, '.omc', 'ultragoal'))).toBe(false);
-      expect(existsSync(join(repoB, '.omc', 'ultragoal'))).toBe(false);
+      // Sub-repos must not have their own .omac/ultragoal
+      expect(existsSync(join(repoA, '.omac', 'ultragoal'))).toBe(false);
+      expect(existsSync(join(repoB, '.omac', 'ultragoal'))).toBe(false);
 
       // Plans read back from either sub-repo have the correct goal counts
       const planA = await readUltragoalPlan(repoA, 'plan-a');
@@ -91,9 +91,9 @@ describe('ultragoal artifacts — multi-repo workspace anchor', () => {
   });
 
   it('full lifecycle (start → checkpoint) resolves through workspace anchor', async () => {
-    const workspaceRoot = await mkdtemp(join(tmpdir(), 'omc-multirepo-lifecycle-'));
+    const workspaceRoot = await mkdtemp(join(tmpdir(), 'omac-multirepo-lifecycle-'));
     try {
-      writeFileSync(join(workspaceRoot, '.omc-workspace'), '{}');
+      writeFileSync(join(workspaceRoot, '.omac-workspace'), '{}');
 
       const subDir = join(workspaceRoot, 'app');
       mkdirSync(subDir, { recursive: true });
@@ -123,7 +123,7 @@ describe('ultragoal artifacts — multi-repo workspace anchor', () => {
       expect(plan.goals[0]?.status).toBe('complete');
 
       // Ledger is in the workspace anchor, not the sub-repo
-      const ledger = await readFile(join(workspaceRoot, '.omc', 'ultragoal', 'ledger.jsonl'), 'utf-8');
+      const ledger = await readFile(join(workspaceRoot, '.omac', 'ultragoal', 'ledger.jsonl'), 'utf-8');
       expect(ledger).toMatch(/"event":"plan_created"/);
       expect(ledger).toMatch(/"event":"goal_started"/);
     } finally {

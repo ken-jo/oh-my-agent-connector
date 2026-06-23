@@ -1,4 +1,4 @@
-# Skills 2.0 Adaptation for OMC (MVP)
+# Skills 2.0 Adaptation for OMAC (MVP)
 
 ## Context
 
@@ -8,7 +8,7 @@ The broader AI coding-agent ecosystem is converging on a more package-oriented s
 - skills ship bundled resources, not just prose
 - orchestration surfaces increasingly expose explicit handoffs, tools, and workflow contracts
 
-OMC already has strong foundations here:
+OMAC already has strong foundations here:
 
 - `SKILL.md` frontmatter
 - slash-loaded skills
@@ -41,15 +41,15 @@ The Agents SDK treats the following as first-class:
 
 The Agent Skills ecosystem centers on project-local skill packaging conventions such as `.agents/skills/`, with bundled artifacts that should be reused by the agent at execution time.
 
-## OMC gaps
+## OMAC gaps
 
 1. **Project-local compatibility gap**
-   - OMC's canonical project-local skill directory is `.omc/skills/`
+   - OMAC's canonical project-local skill directory is `.omac/skills/`
    - emerging conventions also use `.agents/skills/`
-   - OMC should interoperate without abandoning its own canonical layout
+   - OMAC should interoperate without abandoning its own canonical layout
 
 2. **Bundled-resource visibility gap**
-   - OMC renders skill markdown well
+   - OMAC renders skill markdown well
    - but it does not consistently call attention to `lib/`, `templates/`, scripts, or helper files shipped beside the skill
    - this increases needless reinvention and reduces package leverage
 
@@ -57,20 +57,20 @@ The Agent Skills ecosystem centers on project-local skill packaging conventions 
 
 ### 1. Compatibility read support for `.agents/skills/`
 
-- Keep `.omc/skills/` as the canonical OMC project-local skill directory
+- Keep `.omac/skills/` as the canonical OMAC project-local skill directory
 - Add `.agents/skills/` as a compatibility read source for:
   - learned/project skill discovery
   - slash-loaded skill discovery
 - Preserve deterministic priority order:
   - project commands
   - user commands
-  - project `.omc/skills`
+  - project `.omac/skills`
   - project `.agents/skills`
   - user skill directories
 
 ### 2. Standardized `Skill Resources` rendering
 
-When a skill directory contains extra bundled assets beyond `SKILL.md`, OMC now appends a standardized block:
+When a skill directory contains extra bundled assets beyond `SKILL.md`, OMAC now appends a standardized block:
 
 - skill directory path
 - bundled resource entries (for example `lib/`, `templates/`, scripts)
@@ -90,7 +90,7 @@ This MVP is intentionally narrow:
 - no new dependency
 - backward compatible with current skill metadata
 
-It gives OMC a real step toward a "skills 2.0" model without prematurely freezing a large frontmatter schema.
+It gives OMAC a real step toward a "skills 2.0" model without prematurely freezing a large frontmatter schema.
 
 ## Deferred follow-ups
 

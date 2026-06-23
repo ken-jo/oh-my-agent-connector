@@ -1,7 +1,7 @@
 /**
  * Setup Hook Module
  *
- * Handles OMC initialization and maintenance tasks.
+ * Handles OMAC initialization and maintenance tasks.
  * Triggers:
  * - init: Create directory structure, validate configs, set environment
  * - maintenance: Prune old state files, cleanup orphaned state, vacuum SQLite
@@ -12,7 +12,7 @@ import { join } from 'path';
 
 import { registerBeadsContext } from '../beads-context/index.js';
 import { getClaudeConfigDir } from '../../utils/config-dir.js';
-import { getOmcRoot } from '../../lib/worktree-paths.js';
+import { getOmacRoot } from '../../lib/worktree-paths.js';
 
 // ============================================================================
 // Types
@@ -47,15 +47,15 @@ export interface HookOutput {
 // ============================================================================
 
 const REQUIRED_DIRECTORIES = [
-  '.omc/state',
-  '.omc/logs',
-  '.omc/notepads',
-  '.omc/state/checkpoints',
-  '.omc/plans',
+  '.omac/state',
+  '.omac/logs',
+  '.omac/notepads',
+  '.omac/state/checkpoints',
+  '.omac/plans',
 ];
 
 const CONFIG_FILES = [
-  '.omc-config.json',
+  '.omac-config.json',
 ];
 
 const DEFAULT_STATE_MAX_AGE_DAYS = 7;
@@ -108,7 +108,7 @@ export function validateConfigFiles(directory: string): string[] {
 }
 
 /**
- * Set environment variables for OMC initialization
+ * Set environment variables for OMAC initialization
  */
 export function setEnvironmentVariables(): string[] {
   const envVars: string[] = [];
@@ -116,9 +116,9 @@ export function setEnvironmentVariables(): string[] {
   // Check if CLAUDE_ENV_FILE is available
   if (process.env.CLAUDE_ENV_FILE) {
     try {
-      const envContent = `export OMC_INITIALIZED=true\n`;
+      const envContent = `export OMAC_INITIALIZED=true\n`;
       appendFileSync(process.env.CLAUDE_ENV_FILE, envContent);
-      envVars.push('OMC_INITIALIZED');
+      envVars.push('OMAC_INITIALIZED');
     } catch {
       // Silently fail if can't write
     }
@@ -195,7 +195,7 @@ export function patchHooksJsonForWindows(pluginRoot: string): void {
 /**
  * Ensure ~/.claude/hooks/lib/stdin.mjs points to the current plugin version.
  *
- * This fixes a silent breakage that occurs when OMC upgrades to a new version:
+ * This fixes a silent breakage that occurs when OMAC upgrades to a new version:
  * the symlink stays pointing at the old version's cache dir, so hooks that
  * import stdin.mjs fail with ERR_MODULE_NOT_FOUND.  Rebuilding the symlink on
  * every init keeps it in sync automatically.
@@ -331,7 +331,7 @@ export async function processSetupInit(input: SetupInput): Promise<HookOutput> {
   }
 
   const context = [
-    `OMC initialized:`,
+    `OMAC initialized:`,
     `- ${result.directories_created.length} directories created`,
     `- ${result.configs_validated.length} configs validated`,
     result.env_vars_set.length > 0 ? `- Environment variables set: ${result.env_vars_set.join(', ')}` : null,
@@ -354,10 +354,10 @@ export async function processSetupInit(input: SetupInput): Promise<HookOutput> {
 // ============================================================================
 
 /**
- * Prune old state files from .omc/state directory
+ * Prune old state files from .omac/state directory
  */
 export function pruneOldStateFiles(directory: string, maxAgeDays: number = DEFAULT_STATE_MAX_AGE_DAYS): number {
-  const stateDir = join(getOmcRoot(directory), 'state');
+  const stateDir = join(getOmacRoot(directory), 'state');
   if (!existsSync(stateDir)) {
     return 0;
   }
@@ -420,7 +420,7 @@ export function pruneOldStateFiles(directory: string, maxAgeDays: number = DEFAU
  * Clean up orphaned state files (state files without corresponding active sessions)
  */
 export function cleanupOrphanedState(directory: string): number {
-  const stateDir = join(getOmcRoot(directory), 'state');
+  const stateDir = join(getOmacRoot(directory), 'state');
   if (!existsSync(stateDir)) {
     return 0;
   }
@@ -485,7 +485,7 @@ export async function processSetupMaintenance(input: SetupInput): Promise<HookOu
   }
 
   const context = [
-    `OMC maintenance completed:`,
+    `OMAC maintenance completed:`,
     prunedFiles > 0 ? `- ${prunedFiles} old state files pruned` : null,
     orphanedCleaned > 0 ? `- ${orphanedCleaned} orphaned state files cleaned` : null,
     result.errors.length > 0 ? `- Errors: ${result.errors.length}` : null,

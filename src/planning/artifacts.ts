@@ -3,13 +3,13 @@
 /**
  * Planning artifacts reader.
  *
- * Reads .omc/plans/ directory for PRD and test-spec files,
+ * Reads .omac/plans/ directory for PRD and test-spec files,
  * and extracts approved execution launch hints embedded in PRD markdown.
  */
 
 import { readdirSync, readFileSync, existsSync } from "fs";
 import { join } from "path";
-import { getOmcRoot } from "../lib/worktree-paths.js";
+import { getOmacRoot } from "../lib/worktree-paths.js";
 import {
   comparePlanningArtifactPaths,
   selectLatestPlanningArtifactPath,
@@ -78,7 +78,7 @@ function hasRequiredSections(markdown: string, headings: string[]): boolean {
 }
 
 function getPlansDirCandidates(cwd: string): string[] {
-  return [join(getOmcRoot(cwd), "plans"), join(cwd, ".omx", "plans")];
+  return [join(getOmacRoot(cwd), "plans"), join(cwd, ".omx", "plans")];
 }
 
 function sortArtifactPathsDescending(paths: string[]): string[] {
@@ -112,7 +112,7 @@ function hasCompletePlanningPair(
 }
 
 /**
- * Read planning artifacts from .omc/.omx plans directories.
+ * Read planning artifacts from .omac/.omx plans directories.
  * Returns paths to all PRD and test-spec files found.
  */
 export function readPlanningArtifacts(cwd: string): PlanningArtifacts {
@@ -194,8 +194,8 @@ function decodeQuotedValue(raw: string): string | null {
 
 function launchHintPattern(mode: "team" | "ralph"): RegExp {
   return mode === "team"
-    ? /(?<command>(?:om[cx]\s+team|\$team)(?:\s+ralph)?(?:\s+(?<count>\d+)(?::(?<role>[a-z][a-z0-9-]*))?)?\s+(?<task>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')(?<flags>(?:\s+--[\w-]+)*))/gi
-    : /(?<command>(?:om[cx]\s+ralph|\$ralph)\s+(?<task>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')(?<flags>(?:\s+--[\w-]+)*))/gi;
+    ? /(?<command>(?:(?:omac|omx)\s+team|\$team)(?:\s+ralph)?(?:\s+(?<count>\d+)(?::(?<role>[a-z][a-z0-9-]*))?)?\s+(?<task>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')(?<flags>(?:\s+--[\w-]+)*))/gi
+    : /(?<command>(?:(?:omac|omx)\s+ralph|\$ralph)\s+(?<task>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')(?<flags>(?:\s+--[\w-]+)*))/gi;
 }
 
 function collectLaunchHintMatches(

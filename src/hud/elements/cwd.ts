@@ -1,5 +1,5 @@
 /**
- * OMC HUD - CWD Element
+ * OMAC HUD - CWD Element
  *
  * Renders current working directory with configurable format.
  * Supports OSC 8 terminal hyperlinks for supported terminals (iTerm2, WezTerm, etc.)

@@ -2,7 +2,7 @@
  * Tests for ensureStdinSymlink (issue #2152)
  *
  * Verifies that the stdin.mjs symlink is correctly created and healed
- * when OMC upgrades to a new version. Uses safe replace strategy:
+ * when OMAC upgrades to a new version. Uses safe replace strategy:
  * only removes old destination AFTER successfully creating new symlink.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -30,7 +30,7 @@ describe('ensureStdinSymlink', () => {
 
   beforeEach(() => {
     // Create a temporary plugin root with the templates structure
-    pluginRoot = mkdtempSync(join(tmpdir(), 'omc-stdin-'));
+    pluginRoot = mkdtempSync(join(tmpdir(), 'omac-stdin-'));
     const templatesDir = join(pluginRoot, 'templates/hooks/lib');
     mkdirSync(templatesDir, { recursive: true });
 
@@ -39,7 +39,7 @@ describe('ensureStdinSymlink', () => {
     writeFileSync(stdinSrcPath, '// fake stdin.mjs content\n');
 
     // Create a fake config directory and set CLAUDE_CONFIG_DIR env var
-    configDir = mkdtempSync(join(tmpdir(), 'omc-config-'));
+    configDir = mkdtempSync(join(tmpdir(), 'omac-config-'));
     hooksLibDir = join(configDir, 'hooks/lib');
     originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
     process.env.CLAUDE_CONFIG_DIR = configDir;
@@ -209,7 +209,7 @@ describe('ensureStdinSymlink', () => {
 
   it('uses CLAUDE_CONFIG_DIR when set', () => {
     // Set a custom config dir
-    const customConfigDir = mkdtempSync(join(tmpdir(), 'omc-custom-config-'));
+    const customConfigDir = mkdtempSync(join(tmpdir(), 'omac-custom-config-'));
     const customHooksLib = join(customConfigDir, 'hooks/lib');
     process.env.CLAUDE_CONFIG_DIR = customConfigDir;
 

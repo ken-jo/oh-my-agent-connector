@@ -2,9 +2,9 @@
 description: ""
 ---
 
-# OMC psm
+# OMAC psm
 
-`/oh-my-claudecode:psm` is a compatibility alias for `/oh-my-claudecode:project-session-manager`.
+`/oh-my-agent-connector:psm` is a compatibility alias for `/oh-my-agent-connector:project-session-manager`.
 
 Read `skills/project-session-manager/SKILL.md`, follow its full instructions, and pass through the user's arguments:
 

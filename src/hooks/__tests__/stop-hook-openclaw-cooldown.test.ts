@@ -26,13 +26,13 @@ describe("stop hook OpenClaw cooldown bypass (issue #1120)", () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omc-stop-claw-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omac-stop-claw-"));
     // git init so resolveToWorktreeRoot returns this directory
     execSync("git init", { cwd: tmpDir, stdio: "ignore" });
     resetSkipHooksCache();
     vi.mocked(persistentMode.shouldWakeOpenClawOnStop).mockReturnValue(true);
-    delete process.env.DISABLE_OMC;
-    delete process.env.OMC_SKIP_HOOKS;
+    delete process.env.DISABLE_OMAC;
+    delete process.env.OMAC_SKIP_HOOKS;
   });
 
   afterEach(() => {
@@ -43,7 +43,7 @@ describe("stop hook OpenClaw cooldown bypass (issue #1120)", () => {
   });
 
   it("calls _openclaw.wake('stop') even when shouldSendIdleNotification returns false", async () => {
-    process.env.OMC_OPENCLAW = "1";
+    process.env.OMAC_OPENCLAW = "1";
     const wakeSpy = vi.spyOn(_openclaw, "wake");
 
     const input: HookInput = {
@@ -65,7 +65,7 @@ describe("stop hook OpenClaw cooldown bypass (issue #1120)", () => {
   });
 
   it("does NOT call _openclaw.wake('stop') when user_requested abort", async () => {
-    process.env.OMC_OPENCLAW = "1";
+    process.env.OMAC_OPENCLAW = "1";
     const wakeSpy = vi.spyOn(_openclaw, "wake");
 
     const input: HookInput = {
@@ -85,7 +85,7 @@ describe("stop hook OpenClaw cooldown bypass (issue #1120)", () => {
   });
 
   it("suppresses _openclaw.wake('stop') for unchanged zero-backlog repo state even when idle notification cooldown is bypassed", async () => {
-    process.env.OMC_OPENCLAW = "1";
+    process.env.OMAC_OPENCLAW = "1";
     vi.mocked(persistentMode.shouldWakeOpenClawOnStop).mockReturnValue(false);
     const wakeSpy = vi.spyOn(_openclaw, "wake");
 

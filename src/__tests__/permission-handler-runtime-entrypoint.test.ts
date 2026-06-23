@@ -49,7 +49,7 @@ describe('scripts/permission-handler.mjs runtime entrypoint', () => {
   let nonGitDir: string;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-permission-runtime-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-permission-runtime-'));
     gitDir = join(tempDir, 'repo');
     nonGitDir = join(tempDir, 'scratch');
 

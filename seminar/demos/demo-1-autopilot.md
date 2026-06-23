@@ -6,7 +6,7 @@
 ## Pre-requisites
 
 - Clean demo directory
-- OMC installed and configured
+- OMAC installed and configured
 - Node.js and npm available
 - Terminal visible to audience
 
@@ -20,8 +20,8 @@ cd ~/demo-workspace/bookstore-api
 # Verify clean state
 ls -la  # Should be empty
 
-# Clear any previous OMC state
-rm -rf .omc
+# Clear any previous OMAC state
+rm -rf .omac
 ```
 
 ## The Command
@@ -34,7 +34,7 @@ autopilot: build a REST API for a bookstore inventory with CRUD operations for b
 
 ### Phase 1: Expansion (0:00-0:30)
 **What happens:**
-- OMC announces: "I'm activating autopilot for full autonomous execution..."
+- OMAC announces: "I'm activating autopilot for full autonomous execution..."
 - Analyst agent spawned to create detailed specification
 - Requirements expanded: models, routes, validation, tests
 
@@ -109,7 +109,7 @@ bookstore-api/
 │   └── app.ts
 ├── tests/
 │   └── books.test.ts
-└── .omc/
+└── .omac/
     ├── plans/autopilot-bookstore-api.md
     └── notepads/autopilot-bookstore-api/
         └── learnings.md

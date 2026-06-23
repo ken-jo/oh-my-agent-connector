@@ -25,11 +25,11 @@ Parse the goal from arguments. Supported formats:
 
 | Invocation                                     | Goal Type | What to Check                    |
 | ---------------------------------------------- | --------- | -------------------------------- |
-| `/oh-my-claudecode:ultraqa --tests`            | tests     | All test suites pass             |
-| `/oh-my-claudecode:ultraqa --build`            | build     | Build succeeds with exit 0       |
-| `/oh-my-claudecode:ultraqa --lint`             | lint      | No lint errors                   |
-| `/oh-my-claudecode:ultraqa --typecheck`        | typecheck | No TypeScript errors             |
-| `/oh-my-claudecode:ultraqa --custom "pattern"` | custom    | Custom success pattern in output |
+| `/oh-my-agent-connector:ultraqa --tests`            | tests     | All test suites pass             |
+| `/oh-my-agent-connector:ultraqa --build`            | build     | Build succeeds with exit 0       |
+| `/oh-my-agent-connector:ultraqa --lint`             | lint      | No lint errors                   |
+| `/oh-my-agent-connector:ultraqa --typecheck`        | typecheck | No TypeScript errors             |
+| `/oh-my-agent-connector:ultraqa --custom "pattern"` | custom    | Custom success pattern in output |
 
 If no structured goal provided, interpret the argument as a custom goal.
 
@@ -45,7 +45,7 @@ If no structured goal provided, interpret the argument as a custom goal.
    - `--custom`: Run appropriate command and check for pattern
    - `--interactive`: Use qa-tester for interactive CLI/service testing:
      ```
-     Task(subagent_type="oh-my-claudecode:qa-tester", model="sonnet", prompt="TEST:
+     Task(subagent_type="oh-my-agent-connector:qa-tester", model="sonnet", prompt="TEST:
      Goal: [describe what to verify]
      Service: [how to start]
      Test cases: [specific scenarios to verify]")
@@ -58,7 +58,7 @@ If no structured goal provided, interpret the argument as a custom goal.
 3. **ARCHITECT DIAGNOSIS**: Spawn architect to analyze failure
 
    ```
-   Task(subagent_type="oh-my-claudecode:architect", model="opus", prompt="DIAGNOSE FAILURE:
+   Task(subagent_type="oh-my-agent-connector:architect", model="opus", prompt="DIAGNOSE FAILURE:
    Goal: [goal type]
    Output: [test/build output]
    Provide root cause and specific fix recommendations.")
@@ -67,7 +67,7 @@ If no structured goal provided, interpret the argument as a custom goal.
 4. **FIX ISSUES**: Apply architect's recommendations
 
    ```
-   Task(subagent_type="oh-my-claudecode:executor", model="sonnet", prompt="FIX:
+   Task(subagent_type="oh-my-agent-connector:executor", model="sonnet", prompt="FIX:
    Issue: [architect diagnosis]
    Files: [affected files]
    Apply the fix precisely as recommended.")
@@ -100,7 +100,7 @@ Output progress each cycle:
 
 ## State Tracking
 
-Track state in `.omc/ultraqa-state.json`:
+Track state in `.omac/ultraqa-state.json`:
 
 ```json
 {
@@ -117,7 +117,7 @@ Track state in `.omc/ultraqa-state.json`:
 
 ## Cancellation
 
-User can cancel with `/oh-my-claudecode:cancel` which clears the state file.
+User can cancel with `/oh-my-agent-connector:cancel` which clears the state file.
 
 ## Important Rules
 
@@ -135,15 +135,15 @@ When goal is met OR max cycles reached OR exiting early:
 
 ```bash
 # Delete ultraqa state file
-rm -f .omc/state/ultraqa-state.json
+rm -f .omac/state/ultraqa-state.json
 ```
 
 This ensures clean state for future sessions. Stale state files with `active: false` should not be left behind.
 
 ## Parallel session caveats
 
-- **Multi-repo workspace anchor:** drop a `.omc-workspace` marker at the parent directory so multiple sessions across sub-repos share one `.omc/`. Resolution order: `OMC_STATE_DIR > .omc-workspace > git > cwd`. See `docs/REFERENCE.md`.
-- **Session id source:** OMC_SESSION_ID env var wins in CLI contexts; hook payload data.session_id wins in hook contexts.
+- **Multi-repo workspace anchor:** drop a `.omac-workspace` marker at the parent directory so multiple sessions across sub-repos share one `.omac/`. Resolution order: `OMAC_STATE_DIR > .omac-workspace > git > cwd`. See `docs/REFERENCE.md`.
+- **Session id source:** OMAC_SESSION_ID env var wins in CLI contexts; hook payload data.session_id wins in hook contexts.
 - **Plan id (when applicable):** UltraQA state is session-scoped. Mutual-exclusion with ralph applies only within the same session.
 - **Parallel verdict:** supported (session-scoped state)
 

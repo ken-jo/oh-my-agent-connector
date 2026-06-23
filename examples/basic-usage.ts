@@ -5,8 +5,8 @@
  * with the Claude Agent SDK.
  */
 
-// Note: In real usage, import from 'oh-my-claudecode'
-import { createOmcSession, enhancePrompt } from '../src/index.js';
+// Note: In real usage, import from 'oh-my-agent-connector'
+import { createOmacSession, enhancePrompt } from '../src/index.js';
 
 // For demonstration - in real usage, import from '@anthropic-ai/claude-agent-sdk'
 // import { query } from '@anthropic-ai/claude-agent-sdk';
@@ -14,8 +14,8 @@ import { createOmcSession, enhancePrompt } from '../src/index.js';
 async function main() {
   console.log('=== Oh-My-ClaudeCode Example ===\n');
 
-  // Create a OMC session
-  const session = createOmcSession({
+  // Create a OMAC session
+  const session = createOmacSession({
     // Optional: custom configuration overrides
     config: {
       features: {
@@ -58,7 +58,7 @@ async function main() {
 // Real usage with Claude Agent SDK:
 import { query } from '@anthropic-ai/claude-agent-sdk';
 
-const session = createOmcSession();
+const session = createOmacSession();
 
 for await (const message of query({
   prompt: session.processPrompt("ultrawork implement user authentication"),

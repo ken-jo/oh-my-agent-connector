@@ -4,7 +4,7 @@ const AGENT_HEAVY_TOOLS = new Set(['Task', 'TaskCreate', 'TaskUpdate']);
 const DEFAULT_PREFLIGHT_CONTEXT_THRESHOLD = 72;
 
 export function getPreflightContextThreshold(env = process.env) {
-  const parsed = Number.parseInt(env.OMC_AGENT_PREFLIGHT_CONTEXT_THRESHOLD || '72', 10);
+  const parsed = Number.parseInt(env.OMAC_AGENT_PREFLIGHT_CONTEXT_THRESHOLD || '72', 10);
   if (Number.isNaN(parsed)) return DEFAULT_PREFLIGHT_CONTEXT_THRESHOLD;
   return Math.max(1, Math.min(100, parsed));
 }
@@ -43,10 +43,10 @@ export function estimateContextPercent(transcriptPath) {
 }
 
 export function buildPreflightRecoveryAdvice(contextPercent, threshold = DEFAULT_PREFLIGHT_CONTEXT_THRESHOLD) {
-  return `[OMC] Preflight context guard: ${contextPercent}% used ` +
+  return `[OMAC] Preflight context guard: ${contextPercent}% used ` +
     `(threshold: ${threshold}%). Avoid spawning additional agent-heavy tasks ` +
     `until context is reduced. Safe recovery: (1) pause new Task fan-out, (2) run /compact now, ` +
-    `(3) if compact fails, open a fresh session and continue from .omc/state + .omc/notepad.md.`;
+    `(3) if compact fails, open a fresh session and continue from .omac/state + .omac/notepad.md.`;
 }
 
 export function evaluateAgentHeavyPreflight({ toolName, transcriptPath, env = process.env }) {

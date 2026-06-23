@@ -8,7 +8,7 @@ describe('install() user-skill compatibility shims', () => {
   let originalConfigDir: string | undefined;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-installer-user-skill-compat-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-installer-user-skill-compat-'));
     originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
     process.env.CLAUDE_CONFIG_DIR = tempDir;
     vi.resetModules();
@@ -24,8 +24,8 @@ describe('install() user-skill compatibility shims', () => {
     vi.resetModules();
   });
 
-  it('syncs existing omc-learned user skills into flat Claude Code skill directories during install', async () => {
-    const learnedDir = join(tempDir, 'skills', 'omc-learned');
+  it('syncs existing omac-learned user skills into flat Claude Code skill directories during install', async () => {
+    const learnedDir = join(tempDir, 'skills', 'omac-learned');
     mkdirSync(learnedDir, { recursive: true });
     writeFileSync(
       join(learnedDir, 'expert-review.md'),

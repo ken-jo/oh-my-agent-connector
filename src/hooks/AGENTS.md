@@ -78,7 +78,7 @@ Hooks intercept Claude Code events to enable:
 | Directory | Purpose |
 |-----------|---------|
 | `todo-continuation/` | Enforces task completion |
-| `omc-orchestrator/` | Orchestrator behavior |
+| `omac-orchestrator/` | Orchestrator behavior |
 | `subagent-tracker/` | Tracks spawned sub-agents |
 | `session-end/` | Session termination handling |
 | `background-notification/` | Background task notifications |
@@ -190,7 +190,7 @@ writeState('autopilot-state', state);
 
 - Test specific hooks with `npm test -- --grep "hook-name"`
 - Test execution modes end-to-end with skill invocation
-- Verify state persistence in `.omc/state/`
+- Verify state persistence in `.omac/state/`
 - For security hooks, follow `templates/rules/security.md` checklist
 
 ## Dependencies
@@ -251,10 +251,10 @@ return {
 
 | Hook | State File |
 |------|------------|
-| autopilot | `.omc/state/autopilot-state.json` |
-| ultrapilot | `.omc/state/ultrapilot-state.json` |
-| ralph | `.omc/state/ralph-state.json` |
-| swarm | `.omc/state/swarm-tasks.db` (SQLite) |
+| autopilot | `.omac/state/autopilot-state.json` |
+| ultrapilot | `.omac/state/ultrapilot-state.json` |
+| ralph | `.omac/state/ralph-state.json` |
+| swarm | `.omac/state/swarm-tasks.db` (SQLite) |
 | learner | `~/.claude/local-skills/` |
 
 <!-- MANUAL: -->

@@ -5,7 +5,7 @@
  * 1. Re-exports of base agents from individual files
  * 2. Tiered agent variants with dynamically loaded prompts from /agents/*.md
  * 3. getAgentDefinitions() for agent registry
- * 4. omcSystemPrompt for the main orchestrator
+ * 4. omacSystemPrompt for the main orchestrator
  */
 
 import type { AgentConfig, PluginConfig } from '../shared/types.js';
@@ -281,13 +281,13 @@ export function getAgentDefinitions(options?: {
 }
 
 // ============================================================
-// OMC SYSTEM PROMPT
+// OMAC SYSTEM PROMPT
 // ============================================================
 
 /**
- * OMC System Prompt - The main orchestrator
+ * OMAC System Prompt - The main orchestrator
  */
-export const omcSystemPrompt = `You are the relentless orchestrator of a multi-agent development system.
+export const omacSystemPrompt = `You are the relentless orchestrator of a multi-agent development system.
 
 ## RELENTLESS EXECUTION
 

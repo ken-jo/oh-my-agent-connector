@@ -3,7 +3,7 @@
  * and Bedrock/Vertex AI auto-detection
  *
  * When CC Switch or similar tools route requests to non-Claude providers,
- * or when running on AWS Bedrock or Google Vertex AI, OMC should
+ * or when running on AWS Bedrock or Google Vertex AI, OMAC should
  * auto-enable forceInherit to avoid passing Claude-specific model tier
  * names (sonnet/opus/haiku) that cause 400 errors.
  */
@@ -18,12 +18,12 @@ describe('isNonClaudeProvider (issue #1201)', () => {
     'CLAUDE_MODEL',
     'ANTHROPIC_MODEL',
     'ANTHROPIC_BASE_URL',
-    'OMC_ROUTING_FORCE_INHERIT',
+    'OMAC_ROUTING_FORCE_INHERIT',
     'CLAUDE_CODE_USE_BEDROCK',
     'CLAUDE_CODE_USE_VERTEX',
-    'OMC_MODEL_HIGH',
-    'OMC_MODEL_MEDIUM',
-    'OMC_MODEL_LOW',
+    'OMAC_MODEL_HIGH',
+    'OMAC_MODEL_MEDIUM',
+    'OMAC_MODEL_LOW',
     'CLAUDE_CODE_BEDROCK_OPUS_MODEL',
     'CLAUDE_CODE_BEDROCK_SONNET_MODEL',
     'CLAUDE_CODE_BEDROCK_HAIKU_MODEL',
@@ -78,8 +78,8 @@ describe('isNonClaudeProvider (issue #1201)', () => {
     expect(isNonClaudeProvider()).toBe(false);
   });
 
-  it('returns true when OMC_ROUTING_FORCE_INHERIT is already true', () => {
-    process.env.OMC_ROUTING_FORCE_INHERIT = 'true';
+  it('returns true when OMAC_ROUTING_FORCE_INHERIT is already true', () => {
+    process.env.OMAC_ROUTING_FORCE_INHERIT = 'true';
     expect(isNonClaudeProvider()).toBe(true);
   });
 
@@ -98,8 +98,8 @@ describe('isNonClaudeProvider (issue #1201)', () => {
     expect(isNonClaudeProvider()).toBe(true);
   });
 
-  it('returns true when OMC_MODEL_MEDIUM is non-Claude', () => {
-    process.env.OMC_MODEL_MEDIUM = 'glm-5.1:cloud';
+  it('returns true when OMAC_MODEL_MEDIUM is non-Claude', () => {
+    process.env.OMAC_MODEL_MEDIUM = 'glm-5.1:cloud';
     expect(isNonClaudeProvider()).toBe(true);
   });
 
@@ -286,12 +286,12 @@ describe('loadConfig auto-enables forceInherit for non-Claude providers (issue #
     'CLAUDE_MODEL',
     'ANTHROPIC_MODEL',
     'ANTHROPIC_BASE_URL',
-    'OMC_ROUTING_FORCE_INHERIT',
+    'OMAC_ROUTING_FORCE_INHERIT',
     'CLAUDE_CODE_USE_BEDROCK',
     'CLAUDE_CODE_USE_VERTEX',
-    'OMC_MODEL_HIGH',
-    'OMC_MODEL_MEDIUM',
-    'OMC_MODEL_LOW',
+    'OMAC_MODEL_HIGH',
+    'OMAC_MODEL_MEDIUM',
+    'OMAC_MODEL_LOW',
     'CLAUDE_CODE_BEDROCK_OPUS_MODEL',
     'CLAUDE_CODE_BEDROCK_SONNET_MODEL',
     'CLAUDE_CODE_BEDROCK_HAIKU_MODEL',
@@ -323,8 +323,8 @@ describe('loadConfig auto-enables forceInherit for non-Claude providers (issue #
     expect(config.routing?.forceInherit).toBe(true);
   });
 
-  it('does not auto-enable forceInherit for partial OMC tier env overrides', () => {
-    process.env.OMC_MODEL_HIGH = 'glm-5.1:cloud';
+  it('does not auto-enable forceInherit for partial OMAC tier env overrides', () => {
+    process.env.OMAC_MODEL_HIGH = 'glm-5.1:cloud';
     const config = loadConfig();
 
     expect(config.routing?.forceInherit).toBe(false);
@@ -343,19 +343,19 @@ describe('loadConfig auto-enables forceInherit for non-Claude providers (issue #
     expect(config.routing?.forceInherit).toBe(false);
   });
 
-  it('respects explicit OMC_ROUTING_FORCE_INHERIT=false even with non-Claude model', () => {
+  it('respects explicit OMAC_ROUTING_FORCE_INHERIT=false even with non-Claude model', () => {
     process.env.CLAUDE_MODEL = 'glm-5';
-    process.env.OMC_ROUTING_FORCE_INHERIT = 'false';
+    process.env.OMAC_ROUTING_FORCE_INHERIT = 'false';
     const config = loadConfig();
     // User explicitly set forceInherit=false, but our auto-detection
-    // checks OMC_ROUTING_FORCE_INHERIT === undefined, so explicit false
+    // checks OMAC_ROUTING_FORCE_INHERIT === undefined, so explicit false
     // means the env config sets it to false, then auto-detect skips
     // because env var is defined.
     expect(config.routing?.forceInherit).toBe(false);
   });
 
-  it('does not double-enable when OMC_ROUTING_FORCE_INHERIT=true is already set', () => {
-    process.env.OMC_ROUTING_FORCE_INHERIT = 'true';
+  it('does not double-enable when OMAC_ROUTING_FORCE_INHERIT=true is already set', () => {
+    process.env.OMAC_ROUTING_FORCE_INHERIT = 'true';
     const config = loadConfig();
     expect(config.routing?.forceInherit).toBe(true);
   });
@@ -374,9 +374,9 @@ describe('loadConfig auto-enables forceInherit for non-Claude providers (issue #
     expect(config.routing?.forceInherit).toBe(true);
   });
 
-  it('respects explicit OMC_ROUTING_FORCE_INHERIT=false even on Bedrock', () => {
+  it('respects explicit OMAC_ROUTING_FORCE_INHERIT=false even on Bedrock', () => {
     process.env.CLAUDE_CODE_USE_BEDROCK = '1';
-    process.env.OMC_ROUTING_FORCE_INHERIT = 'false';
+    process.env.OMAC_ROUTING_FORCE_INHERIT = 'false';
     const config = loadConfig();
     expect(config.routing?.forceInherit).toBe(false);
   });

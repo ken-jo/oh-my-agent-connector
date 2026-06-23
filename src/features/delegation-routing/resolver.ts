@@ -23,7 +23,7 @@ const DEPRECATED_MCP_PROVIDERS = new Set<DelegationRoute['provider']>([
 ]);
 
 export const DEPRECATED_MCP_PROVIDER_WARNING =
-  '[OMC] Codex/Gemini MCP delegation is deprecated. Use /team to coordinate CLI workers instead.';
+  '[OMAC] Codex/Gemini MCP delegation is deprecated. Use /team to coordinate CLI workers instead.';
 
 /**
  * Resolve delegation decision based on configuration and context

@@ -12,8 +12,8 @@ describe('team api dispatch-aware messaging', () => {
   const teamName = 'dispatch-team';
 
   beforeEach(async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-team-api-dispatch-'));
-    const base = join(cwd, '.omc', 'state', 'team', teamName);
+    cwd = await mkdtemp(join(tmpdir(), 'omac-team-api-dispatch-'));
+    const base = join(cwd, '.omac', 'state', 'team', teamName);
     await mkdir(join(base, 'tasks'), { recursive: true });
     await mkdir(join(base, 'mailbox'), { recursive: true });
     await mkdir(join(base, 'events'), { recursive: true });
@@ -49,7 +49,7 @@ describe('team api dispatch-aware messaging', () => {
     expect(data.message?.body).toBe('ACK: worker-1 initialized');
     expect(typeof data.message?.message_id).toBe('string');
 
-    const mailboxPath = join(cwd, '.omc', 'state', 'team', teamName, 'mailbox', 'leader-fixed.json');
+    const mailboxPath = join(cwd, '.omac', 'state', 'team', teamName, 'mailbox', 'leader-fixed.json');
     expect(existsSync(mailboxPath)).toBe(true);
     const mailbox = JSON.parse(await readFile(mailboxPath, 'utf-8')) as {
       messages: Array<{ message_id: string; body: string; notified_at?: string }>;
@@ -93,7 +93,7 @@ describe('team api dispatch-aware messaging', () => {
     }, cwd);
     expect(notified.ok).toBe(true);
 
-    const mailboxPath = join(cwd, '.omc', 'state', 'team', teamName, 'mailbox', 'worker-1.json');
+    const mailboxPath = join(cwd, '.omac', 'state', 'team', teamName, 'mailbox', 'worker-1.json');
     const mailbox = JSON.parse(await readFile(mailboxPath, 'utf-8')) as {
       messages: Array<{ message_id: string; delivered_at?: string; notified_at?: string }>;
     };
@@ -109,8 +109,8 @@ describe('team api dispatch-aware messaging', () => {
     expect(typeof requests[0]?.delivered_at).toBe('string');
   });
 
-  it('uses OMC_TEAM_STATE_ROOT placeholder in mailbox triggers for worktree-backed workers', async () => {
-    const configPath = join(cwd, '.omc', 'state', 'team', teamName, 'config.json');
+  it('uses OMAC_TEAM_STATE_ROOT placeholder in mailbox triggers for worktree-backed workers', async () => {
+    const configPath = join(cwd, '.omac', 'state', 'team', teamName, 'config.json');
     await writeFile(configPath, JSON.stringify({
       name: teamName,
       task: 'dispatch',
@@ -123,7 +123,7 @@ describe('team api dispatch-aware messaging', () => {
         index: 1,
         role: 'executor',
         assigned_tasks: [],
-        worktree_path: join(cwd, '.omc', 'worktrees', teamName, 'worker-1'),
+        worktree_path: join(cwd, '.omac', 'worktrees', teamName, 'worker-1'),
       }],
       created_at: '2026-03-06T00:00:00.000Z',
       next_task_id: 2,
@@ -140,13 +140,13 @@ describe('team api dispatch-aware messaging', () => {
 
     const requests = await listDispatchRequests(teamName, cwd, { kind: 'mailbox', to_worker: 'worker-1' });
     expect(requests).toHaveLength(1);
-    expect(requests[0]?.trigger_message).toContain('$OMC_TEAM_STATE_ROOT/mailbox/worker-1.json');
+    expect(requests[0]?.trigger_message).toContain('$OMAC_TEAM_STATE_ROOT/mailbox/worker-1.json');
     expect(requests[0]?.trigger_message).toContain('report progress');
   });
 
 
   it('routes mailbox notifications using config workers when manifest workers are stale', async () => {
-    const base = join(cwd, '.omc', 'state', 'team', teamName);
+    const base = join(cwd, '.omac', 'state', 'team', teamName);
     await writeFile(join(base, 'manifest.json'), JSON.stringify({
       schema_version: 2,
       name: teamName,
@@ -175,7 +175,7 @@ describe('team api dispatch-aware messaging', () => {
   });
 
   it('uses the canonical worker pane when duplicate worker records exist', async () => {
-    const configPath = join(cwd, '.omc', 'state', 'team', teamName, 'config.json');
+    const configPath = join(cwd, '.omac', 'state', 'team', teamName, 'config.json');
     await writeFile(configPath, JSON.stringify({
       name: teamName,
       task: 'dispatch',

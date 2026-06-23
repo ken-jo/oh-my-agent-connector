@@ -24,7 +24,7 @@ vi.mock('child_process', () => ({
 // ---------------------------------------------------------------------------
 
 function mkWorktree(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'omc-cadence-test-'));
+  const dir = mkdtempSync(join(tmpdir(), 'omac-cadence-test-'));
   // Minimal git init so hooks can reference .git internals
   mkdirSync(join(dir, '.git'), { recursive: true });
   return dir;

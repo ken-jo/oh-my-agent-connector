@@ -65,6 +65,6 @@ describe('getUltraworkPersistenceMessage — safe objective echo (issue #2971)',
   it('surfaces cancel guidance in the persistence message', () => {
     const state = makeState('Original activation prompt');
     const msg = getUltraworkPersistenceMessage(state);
-    expect(msg).toContain('/oh-my-claudecode:cancel');
+    expect(msg).toContain('/oh-my-agent-connector:cancel');
   });
 });

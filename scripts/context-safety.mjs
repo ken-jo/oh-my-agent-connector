@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * OMC Context Safety Hook (PreToolUse) - compatibility no-op
+ * OMAC Context Safety Hook (PreToolUse) - compatibility no-op
  *
  * TeamCreate was removed from this guard in #1006 because blocking lightweight
  * orchestration setup caused silent fallback behavior. ExitPlanMode was removed

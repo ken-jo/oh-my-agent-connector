@@ -1,6 +1,6 @@
 # MCP Tools
 
-> OMC provides MCP tools for state management, code intelligence, and data analysis.
+> OMAC provides MCP tools for state management, code intelligence, and data analysis.
 
 Unlike skills that users invoke directly, tools are used internally by agents during task execution.
 
@@ -22,12 +22,12 @@ Unlike skills that users invoke directly, tools are used internally by agents du
 
 ## State
 
-State tools manage the state of OMC execution modes (autopilot, ralph, ultrawork, etc.). Each mode records its current progress, active status, and configuration in state files.
+State tools manage the state of OMAC execution modes (autopilot, ralph, ultrawork, etc.). Each mode records its current progress, active status, and configuration in state files.
 
 ### Storage Path
 
 ```
-.omc/state/
+.omac/state/
 ├── sessions/{sessionId}/     # Session-scoped state
 │   ├── autopilot-state.json
 │   ├── ralph-state.json
@@ -84,7 +84,7 @@ Lists all currently active sessions.
 state_list_active()
 ```
 
-Returns all session IDs and their corresponding modes under `.omc/state/sessions/`.
+Returns all session IDs and their corresponding modes under `.omac/state/sessions/`.
 
 #### `state_get_status`
 
@@ -100,12 +100,12 @@ Includes the active mode name and whether dependent modes exist.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `OMC_STATE_DIR` | (unset) | Centralized state directory. When set, state persists even if the worktree is deleted. |
+| `OMAC_STATE_DIR` | (unset) | Centralized state directory. When set, state persists even if the worktree is deleted. |
 
-When `OMC_STATE_DIR` is set, state is stored at `$OMC_STATE_DIR/{project-id}/`.
+When `OMAC_STATE_DIR` is set, state is stored at `$OMAC_STATE_DIR/{project-id}/`.
 
 ```bash
-export OMC_STATE_DIR="$HOME/.claude/omc"
+export OMAC_STATE_DIR="$HOME/.claude/omac"
 ```
 
 ### Usage Patterns
@@ -142,7 +142,7 @@ Notepad is a persistent note system that survives context window compaction. In 
 ### Storage Path
 
 ```
-.omc/notepad.md
+.omac/notepad.md
 ```
 
 ### Tools
@@ -240,7 +240,7 @@ Project Memory manages long-term per-project memory. It persists project structu
 ### Storage Path
 
 ```
-.omc/project-memory.json
+.omac/project-memory.json
 ```
 
 ### Tools
@@ -302,7 +302,7 @@ Use for coding rules, prohibitions, and requirements.
 |---|---|---|
 | Scope | Current session | Entire project (persists across sessions) |
 | Purpose | In-progress notes | Project rules, structure, learned knowledge |
-| File | `.omc/notepad.md` | `.omc/project-memory.json` |
+| File | `.omac/notepad.md` | `.omac/project-memory.json` |
 | Compaction | Restored during compaction | Always available |
 
 ### Usage Patterns
@@ -441,14 +441,14 @@ lsp_servers()
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `OMC_LSP_TIMEOUT_MS` | `15000` | LSP request timeout in ms. Increase for large repos or slow servers. |
+| `OMAC_LSP_TIMEOUT_MS` | `15000` | LSP request timeout in ms. Increase for large repos or slow servers. |
 
 ### Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
 | LSP tools not working | Install the language server: `npm install -g typescript-language-server` |
-| Timeout errors | Increase `OMC_LSP_TIMEOUT_MS` |
+| Timeout errors | Increase `OMAC_LSP_TIMEOUT_MS` |
 | Check server status | Run `lsp_servers()` to verify installation |
 
 ---
@@ -575,7 +575,7 @@ python_repl(code="print(df.describe())")
 ```python
 python_repl(code="""
 import json
-with open('.omc/research/session-1/state.json') as f:
+with open('.omac/research/session-1/state.json') as f:
     state = json.load(f)
 print(f"Stages: {len(state['stages'])}")
 print(f"Status: {state['status']}")
@@ -724,28 +724,28 @@ Internal skill management tools used by the runtime to load and list available s
 
 ### Tools
 
-#### `load_omc_skills_local`
+#### `load_omac_skills_local`
 
-Loads skills from the local project directory (`.omc/skills/`).
+Loads skills from the local project directory (`.omac/skills/`).
 
 ```
-load_omc_skills_local()
+load_omac_skills_local()
 ```
 
-#### `load_omc_skills_global`
+#### `load_omac_skills_global`
 
 Loads skills from the global user directory (`~/.claude/skills/`).
 
 ```
-load_omc_skills_global()
+load_omac_skills_global()
 ```
 
-#### `list_omc_skills`
+#### `list_omac_skills`
 
-Lists all available OMC skills (built-in + local + global).
+Lists all available OMAC skills (built-in + local + global).
 
 ```
-list_omc_skills()
+list_omac_skills()
 ```
 
 ---
@@ -778,4 +778,4 @@ deepinit_manifest(action="save")
 deepinit_manifest(action="check")
 ```
 
-Used internally by the `deepinit` skill (`/oh-my-claudecode:deepinit`) to enable incremental AGENTS.md regeneration instead of full re-scans.
+Used internally by the `deepinit` skill (`/oh-my-agent-connector:deepinit`) to enable incremental AGENTS.md regeneration instead of full re-scans.

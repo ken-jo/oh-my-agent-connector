@@ -28,7 +28,7 @@ describe('issue #2652 runtime wiring and output contract', () => {
   });
 
   it('dispatches session-idle from persistent-mode.mjs Stop hook path', async () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), 'omc-session-idle-'));
+    const tempRoot = mkdtempSync(join(tmpdir(), 'omac-session-idle-'));
     try {
       const pluginRoot = join(tempRoot, 'plugin');
       const projectRoot = join(tempRoot, 'project');
@@ -49,7 +49,7 @@ describe('issue #2652 runtime wiring and output contract', () => {
           ...process.env,
           CLAUDE_PLUGIN_ROOT: pluginRoot,
           HOME: join(tempRoot, 'home'),
-          OMC_STATE_DIR: join(tempRoot, 'state'),
+          OMAC_STATE_DIR: join(tempRoot, 'state'),
           IDLE_MARKER_PATH: markerPath,
         },
       });

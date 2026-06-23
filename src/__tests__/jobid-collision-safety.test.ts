@@ -40,7 +40,7 @@ describe('generateJobId collision safety', () => {
 
   it('generated IDs match the updated JOB_ID_PATTERN', async () => {
     const { generateJobId } = await import('../cli/team.js');
-    const JOB_ID_PATTERN = /^omc-[a-z0-9]{1,16}$/;
+    const JOB_ID_PATTERN = /^omac-[a-z0-9]{1,16}$/;
 
     for (let i = 0; i < 50; i++) {
       const id = generateJobId();
@@ -53,7 +53,7 @@ describe('generateJobId collision safety', () => {
 
     const fixedTime = Date.now();
     const id = generateJobId(fixedTime);
-    const prefix = `omc-${fixedTime.toString(36)}`;
+    const prefix = `omac-${fixedTime.toString(36)}`;
     const randomPart = id.slice(prefix.length);
 
     // Must have at least 8 chars of randomness

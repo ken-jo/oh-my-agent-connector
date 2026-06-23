@@ -69,7 +69,7 @@ function getTrustedPrefixes(): string[] {
     trusted.push(`${home}/.grok/bin`);
   }
 
-  const custom = (process.env.OMC_TRUSTED_CLI_DIRS ?? '')
+  const custom = (process.env.OMAC_TRUSTED_CLI_DIRS ?? '')
     .split(':')
     .map(part => part.trim())
     .filter(Boolean)
@@ -137,7 +137,7 @@ export function resolveCliBinaryPath(binary: string): string {
   }
 
   if (!isTrustedPrefix(resolvedPath)) {
-    console.warn(`[omc:cli-security] CLI binary '${binary}' resolved to non-standard path: ${resolvedPath}`);
+    console.warn(`[omac:cli-security] CLI binary '${binary}' resolved to non-standard path: ${resolvedPath}`);
   }
 
   resolvedPathCache.set(binary, resolvedPath);
@@ -397,15 +397,15 @@ const WORKER_MODEL_ENV_ALLOWLIST = [
   'ANTHROPIC_DEFAULT_OPUS_MODEL',
   'ANTHROPIC_DEFAULT_SONNET_MODEL',
   'ANTHROPIC_DEFAULT_HAIKU_MODEL',
-  'OMC_MODEL_HIGH',
-  'OMC_MODEL_MEDIUM',
-  'OMC_MODEL_LOW',
-  'OMC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL',
-  'OMC_CODEX_DEFAULT_MODEL',
-  'OMC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL',
-  'OMC_GEMINI_DEFAULT_MODEL',
-  'OMC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL',
-  'OMC_GROK_DEFAULT_MODEL',
+  'OMAC_MODEL_HIGH',
+  'OMAC_MODEL_MEDIUM',
+  'OMAC_MODEL_LOW',
+  'OMAC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL',
+  'OMAC_CODEX_DEFAULT_MODEL',
+  'OMAC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL',
+  'OMAC_GEMINI_DEFAULT_MODEL',
+  'OMAC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL',
+  'OMAC_GROK_DEFAULT_MODEL',
 ] as const;
 
 export function getWorkerEnv(
@@ -416,9 +416,9 @@ export function getWorkerEnv(
 ): Record<string, string> {
   validateTeamName(teamName);
   const workerEnv: Record<string, string> = {
-    OMC_TEAM_WORKER: `${teamName}/${workerName}`,
-    OMC_TEAM_NAME: teamName,
-    OMC_WORKER_AGENT_TYPE: agentType,
+    OMAC_TEAM_WORKER: `${teamName}/${workerName}`,
+    OMAC_TEAM_NAME: teamName,
+    OMAC_WORKER_AGENT_TYPE: agentType,
   };
 
   for (const key of WORKER_MODEL_ENV_ALLOWLIST) {
@@ -464,7 +464,7 @@ export function resolveClaudeWorkerModel(
 ): string | undefined {
   // When force-inherit routing is enabled, do not resolve/override worker model.
   // This preserves parent model inheritance and avoids alias normalization drift.
-  if (env.OMC_ROUTING_FORCE_INHERIT === 'true') {
+  if (env.OMAC_ROUTING_FORCE_INHERIT === 'true') {
     return undefined;
   }
 
@@ -488,10 +488,10 @@ export function resolveClaudeWorkerModel(
     return bedrockModel;
   }
 
-  // OMC tier env vars
-  const omcModel = env.OMC_MODEL_MEDIUM || '';
-  if (omcModel) {
-    return omcModel;
+  // OMAC tier env vars
+  const omacModel = env.OMAC_MODEL_MEDIUM || '';
+  if (omacModel) {
+    return omacModel;
   }
 
   return undefined;

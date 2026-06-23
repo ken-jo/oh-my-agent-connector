@@ -10,7 +10,7 @@ vi.mock('../installer/index.js', async () => {
   return {
     ...actual,
     install: vi.fn(),
-    HOOKS_DIR: '/tmp/omc-test-hooks',
+    HOOKS_DIR: '/tmp/omac-test-hooks',
     isProjectScopedPlugin: vi.fn(),
     checkNodeVersion: vi.fn(),
   };
@@ -87,8 +87,8 @@ describe('auto-update reconciliation', () => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/commands')) {
         return options && typeof options === 'object' && 'withFileTypes' in options
-          ? [{ name: 'omc-setup.md', isFile: () => true, isDirectory: () => false }] as any
-          : ['omc-setup.md'] as any;
+          ? [{ name: 'omac-setup.md', isFile: () => true, isDirectory: () => false }] as any
+          : ['omac-setup.md'] as any;
       }
       if (normalized.endsWith('/skills')) {
         return options && typeof options === 'object' && 'withFileTypes' in options
@@ -100,9 +100,9 @@ describe('auto-update reconciliation', () => {
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
-      if (normalized.includes('.omc-version.json')) {
+      if (normalized.includes('.omac-version.json')) {
         return JSON.stringify({
           version: '4.1.5',
           installedAt: '2026-02-09T00:00:00.000Z',
@@ -130,7 +130,7 @@ describe('auto-update reconciliation', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    delete process.env.OMC_UPDATE_RECONCILE;
+    delete process.env.OMAC_UPDATE_RECONCILE;
     delete process.env.CLAUDE_PLUGIN_ROOT;
     if (originalGhToken === undefined) {
       delete process.env.GH_TOKEN;
@@ -172,7 +172,7 @@ describe('auto-update reconciliation', () => {
       {
         headers: {
           'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'oh-my-claudecode-updater',
+          'User-Agent': 'oh-my-agent-connector-updater',
         },
       },
     );
@@ -278,7 +278,7 @@ describe('auto-update reconciliation', () => {
     const result = reconcileUpdateRuntime({ verbose: false });
 
     expect(result.success).toBe(true);
-    expect(mockedMkdirSync).toHaveBeenCalledWith('/tmp/omc-test-hooks', { recursive: true });
+    expect(mockedMkdirSync).toHaveBeenCalledWith('/tmp/omac-test-hooks', { recursive: true });
     expect(mockedInstall).toHaveBeenCalledWith({
       force: true,
       verbose: false,
@@ -328,14 +328,14 @@ describe('auto-update reconciliation', () => {
 
   it('syncs active plugin cache roots and logs when copy occurs', () => {
     const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const activeRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode', '4.1.5');
+    const activeRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector', '4.1.5');
 
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
-      if (normalized.includes('.omc-version.json')) {
+      if (normalized.includes('.omac-version.json')) {
         return JSON.stringify({
           version: '4.1.5',
           installedAt: '2026-02-09T00:00:00.000Z',
@@ -345,7 +345,7 @@ describe('auto-update reconciliation', () => {
       if (normalized.endsWith('/plugins/installed_plugins.json')) {
         return JSON.stringify({
           plugins: {
-            'oh-my-claudecode': [{ installPath: activeRoot }],
+            'oh-my-agent-connector': [{ installPath: activeRoot }],
           },
         });
       }
@@ -387,23 +387,23 @@ describe('auto-update reconciliation', () => {
       expect.anything(),
       expect.anything(),
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith('[omc update] Synced plugin cache');
+    expect(consoleLogSpy).toHaveBeenCalledWith('[omac update] Synced plugin cache');
   });
 
 
 
   it('fails reconciliation when active plugin cache repair reports validation errors', () => {
-    const activeRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode', '4.14.1');
+    const activeRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector', '4.14.1');
 
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
       if (normalized.endsWith('/plugins/installed_plugins.json')) {
         return JSON.stringify({
           plugins: {
-            'oh-my-claudecode': [{ installPath: activeRoot }],
+            'oh-my-agent-connector': [{ installPath: activeRoot }],
           },
         });
       }
@@ -450,12 +450,12 @@ describe('auto-update reconciliation', () => {
 
     expect(result.success).toBe(true);
     expect(mockedCpSync).not.toHaveBeenCalled();
-    expect(consoleLogSpy).not.toHaveBeenCalledWith('[omc update] Synced plugin cache');
+    expect(consoleLogSpy).not.toHaveBeenCalledWith('[omac update] Synced plugin cache');
   });
 
 
   it('updates installed_plugins.json to the new cache version after plugin cache sync succeeds', () => {
-    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     const oldRoot = join(cacheRoot, '4.14.0');
     const newRoot = join(cacheRoot, '4.14.1');
     const installedPluginsPath = join(CLAUDE_CONFIG_DIR, 'plugins', 'installed_plugins.json');
@@ -469,16 +469,16 @@ describe('auto-update reconciliation', () => {
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
-      if (normalized === '/usr/lib/node_modules/oh-my-claude-sisyphus/package.json') {
+      if (normalized === '/usr/lib/node_modules/oh-my-agent-connector/package.json') {
         return JSON.stringify({ version: '4.14.1' });
       }
       if (normalized.endsWith('/plugins/installed_plugins.json')) {
         return JSON.stringify({
           version: 2,
           plugins: {
-            'oh-my-claudecode@omc': [{ installPath: oldRoot, version: '4.14.0', enabled: true }],
+            'oh-my-agent-connector@omac': [{ installPath: oldRoot, version: '4.14.0', enabled: true }],
           },
         });
       }
@@ -486,10 +486,10 @@ describe('auto-update reconciliation', () => {
     });
     mockedExistsSync.mockImplementation((path: Parameters<typeof existsSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
-      return normalized.endsWith('/plugins/cache/omc/oh-my-claudecode')
+      return normalized.endsWith('/plugins/cache/omac/oh-my-agent-connector')
         || normalized.endsWith('/plugins/installed_plugins.json')
         || normalized.startsWith(join(cacheRoot, '4.14.1').replace(/\\/g, '/'))
-        || normalized.startsWith('/usr/lib/node_modules/oh-my-claude-sisyphus');
+        || normalized.startsWith('/usr/lib/node_modules/oh-my-agent-connector');
     });
 
     const result = syncPluginCache(false);
@@ -505,9 +505,9 @@ describe('auto-update reconciliation', () => {
   });
 
   it('preserves Windows-style installPath separators when rewriting installed_plugins.json', () => {
-    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
-    const oldWindowsRoot = 'C:\\Users\\bellman\\.claude\\plugins\\cache\\omc\\oh-my-claudecode\\4.14.0';
-    const newWindowsRoot = 'C:\\Users\\bellman\\.claude\\plugins\\cache\\omc\\oh-my-claudecode\\4.14.1';
+    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
+    const oldWindowsRoot = 'C:\\Users\\bellman\\.claude\\plugins\\cache\\omac\\oh-my-agent-connector\\4.14.0';
+    const newWindowsRoot = 'C:\\Users\\bellman\\.claude\\plugins\\cache\\omac\\oh-my-agent-connector\\4.14.1';
 
     mockedExecSync.mockImplementation((command: string) => {
       if (command === 'npm root -g') {
@@ -518,16 +518,16 @@ describe('auto-update reconciliation', () => {
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
-      if (normalized === 'C:/Users/bellman/AppData/Roaming/npm/node_modules/oh-my-claude-sisyphus/package.json') {
+      if (normalized === 'C:/Users/bellman/AppData/Roaming/npm/node_modules/oh-my-agent-connector/package.json') {
         return JSON.stringify({ version: '4.14.1' });
       }
       if (normalized.endsWith('/plugins/installed_plugins.json')) {
         return JSON.stringify({
           version: 2,
           plugins: {
-            'oh-my-claudecode@omc': [{ installPath: oldWindowsRoot, version: '4.14.0' }],
+            'oh-my-agent-connector@omac': [{ installPath: oldWindowsRoot, version: '4.14.0' }],
           },
         });
       }
@@ -538,21 +538,21 @@ describe('auto-update reconciliation', () => {
       return normalized === cacheRoot.replace(/\\/g, '/')
         || normalized.endsWith('/plugins/installed_plugins.json')
         || normalized.startsWith(join(cacheRoot, '4.14.1').replace(/\\/g, '/'))
-        || normalized.startsWith('C:/Users/bellman/AppData/Roaming/npm/node_modules/oh-my-claude-sisyphus');
+        || normalized.startsWith('C:/Users/bellman/AppData/Roaming/npm/node_modules/oh-my-agent-connector');
     });
 
     const result = syncPluginCache(false);
 
     expect(result.errors).toEqual([]);
     const written = String(mockedWriteFileSync.mock.calls.find(([path]) => String(path).includes('installed_plugins.json.tmp-'))?.[1]);
-    expect(JSON.parse(written).plugins['oh-my-claudecode@omc'][0]).toMatchObject({
+    expect(JSON.parse(written).plugins['oh-my-agent-connector@omac'][0]).toMatchObject({
       version: '4.14.1',
       installPath: newWindowsRoot,
     });
   });
 
   it('does not rewrite installed_plugins.json when plugin cache sync reports copy errors', () => {
-    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
 
     mockedExecSync.mockImplementation((command: string) => {
       if (command === 'npm root -g') {
@@ -563,16 +563,16 @@ describe('auto-update reconciliation', () => {
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
-      if (normalized === '/usr/lib/node_modules/oh-my-claude-sisyphus/package.json') {
+      if (normalized === '/usr/lib/node_modules/oh-my-agent-connector/package.json') {
         return JSON.stringify({ version: '4.14.1' });
       }
       if (normalized.endsWith('/plugins/installed_plugins.json')) {
         return JSON.stringify({
           version: 2,
           plugins: {
-            'oh-my-claudecode@omc': [{ installPath: join(cacheRoot, '4.14.0'), version: '4.14.0' }],
+            'oh-my-agent-connector@omac': [{ installPath: join(cacheRoot, '4.14.0'), version: '4.14.0' }],
           },
         });
       }
@@ -580,10 +580,10 @@ describe('auto-update reconciliation', () => {
     });
     mockedExistsSync.mockImplementation((path: Parameters<typeof existsSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
-      return normalized.endsWith('/plugins/cache/omc/oh-my-claudecode')
+      return normalized.endsWith('/plugins/cache/omac/oh-my-agent-connector')
         || normalized.endsWith('/plugins/installed_plugins.json')
         || normalized.startsWith(join(cacheRoot, '4.14.1').replace(/\\/g, '/'))
-        || normalized.startsWith('/usr/lib/node_modules/oh-my-claude-sisyphus');
+        || normalized.startsWith('/usr/lib/node_modules/oh-my-agent-connector');
     });
     mockedCpSync.mockImplementationOnce(() => {
       throw new Error('copy failed');
@@ -596,7 +596,7 @@ describe('auto-update reconciliation', () => {
     expect(mockedRenameSync).not.toHaveBeenCalledWith(expect.stringContaining('installed_plugins.json.tmp-'), expect.anything());
   });
   it('does not rewrite installed_plugins.json when the versioned cache is missing runtime-critical files after sync', () => {
-    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     const versionedCacheRoot = join(cacheRoot, '4.14.1');
 
     mockedExecSync.mockImplementation((command: string) => {
@@ -608,16 +608,16 @@ describe('auto-update reconciliation', () => {
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
-      if (normalized === '/usr/lib/node_modules/oh-my-claude-sisyphus/package.json') {
+      if (normalized === '/usr/lib/node_modules/oh-my-agent-connector/package.json') {
         return JSON.stringify({ version: '4.14.1' });
       }
       if (normalized.endsWith('/plugins/installed_plugins.json')) {
         return JSON.stringify({
           version: 2,
           plugins: {
-            'oh-my-claudecode@omc': [{ installPath: join(cacheRoot, '4.14.0'), version: '4.14.0' }],
+            'oh-my-agent-connector@omac': [{ installPath: join(cacheRoot, '4.14.0'), version: '4.14.0' }],
           },
         });
       }
@@ -631,9 +631,9 @@ describe('auto-update reconciliation', () => {
       if (normalized === `${versionedCacheRoot.replace(/\\/g, '/')}/dist/hooks/skill-bridge.cjs`) {
         return false;
       }
-      return normalized.endsWith('/plugins/cache/omc/oh-my-claudecode')
+      return normalized.endsWith('/plugins/cache/omac/oh-my-agent-connector')
         || normalized.endsWith('/plugins/installed_plugins.json')
-        || normalized.startsWith('/usr/lib/node_modules/oh-my-claude-sisyphus')
+        || normalized.startsWith('/usr/lib/node_modules/oh-my-agent-connector')
         || normalized.startsWith(versionedCacheRoot.replace(/\\/g, '/'));
     });
 
@@ -647,7 +647,7 @@ describe('auto-update reconciliation', () => {
 
   it('syncs the plugin cache directory when cache root exists', () => {
     const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     const versionedCacheRoot = `${cacheRoot}/4.9.0`;
 
     mockedExecSync.mockImplementation((command: string) => {
@@ -660,12 +660,12 @@ describe('auto-update reconciliation', () => {
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
-      if (normalized === '/usr/lib/node_modules/oh-my-claude-sisyphus/package.json') {
+      if (normalized === '/usr/lib/node_modules/oh-my-agent-connector/package.json') {
         return JSON.stringify({ version: '4.9.0' });
       }
-      if (normalized.includes('.omc-version.json')) {
+      if (normalized.includes('.omac-version.json')) {
         return JSON.stringify({
           version: '4.1.5',
           installedAt: '2026-02-09T00:00:00.000Z',
@@ -683,7 +683,7 @@ describe('auto-update reconciliation', () => {
       if (normalized === cacheRoot) {
         return true;
       }
-      if (normalized.startsWith('/usr/lib/node_modules/oh-my-claude-sisyphus/')) {
+      if (normalized.startsWith('/usr/lib/node_modules/oh-my-agent-connector/')) {
         return normalized.endsWith('/dist')
           || normalized.endsWith('/package.json')
           || normalized.endsWith('/.claude-plugin/plugin.json')
@@ -691,7 +691,7 @@ describe('auto-update reconciliation', () => {
           || normalized.endsWith('/bridge/cli.cjs')
           || normalized.endsWith('/hooks/hooks.json')
           || normalized.endsWith('/commands')
-          || normalized.endsWith('/commands/omc-setup.md')
+          || normalized.endsWith('/commands/omac-setup.md')
           || normalized.endsWith('/skills')
           || normalized.endsWith('/skills/plan/SKILL.md');
       }
@@ -708,20 +708,20 @@ describe('auto-update reconciliation', () => {
     }));
     expect(mockedMkdirSync).toHaveBeenCalledWith(versionedCacheRoot, { recursive: true });
     expect(mockedCpSync).toHaveBeenCalledWith(
-      '/usr/lib/node_modules/oh-my-claude-sisyphus/dist',
+      '/usr/lib/node_modules/oh-my-agent-connector/dist',
       `${versionedCacheRoot}/dist`,
       expect.objectContaining({ recursive: true, force: true }),
     );
     expect(mockedCpSync).toHaveBeenCalledWith(
-      '/usr/lib/node_modules/oh-my-claude-sisyphus/package.json',
+      '/usr/lib/node_modules/oh-my-agent-connector/package.json',
       `${versionedCacheRoot}/package.json`,
       expect.objectContaining({ recursive: true, force: true }),
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith('[omc update] Plugin cache synced');
+    expect(consoleLogSpy).toHaveBeenCalledWith('[omac update] Plugin cache synced');
   });
 
   it('skips plugin cache sync gracefully when cache dir does not exist', () => {
-    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     mockedExistsSync.mockImplementation((path: Parameters<typeof existsSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
@@ -742,7 +742,7 @@ describe('auto-update reconciliation', () => {
 
   it('handles plugin cache sync errors non-fatally', () => {
     const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
+    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
     const versionedCacheRoot = `${cacheRoot}/4.9.0`;
 
     mockedExecSync.mockImplementation((command: string) => {
@@ -755,12 +755,12 @@ describe('auto-update reconciliation', () => {
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
-      if (normalized === '/usr/lib/node_modules/oh-my-claude-sisyphus/package.json') {
+      if (normalized === '/usr/lib/node_modules/oh-my-agent-connector/package.json') {
         return JSON.stringify({ version: '4.9.0' });
       }
-      if (normalized.includes('.omc-version.json')) {
+      if (normalized.includes('.omac-version.json')) {
         return JSON.stringify({
           version: '4.1.5',
           installedAt: '2026-02-09T00:00:00.000Z',
@@ -778,7 +778,7 @@ describe('auto-update reconciliation', () => {
       if (normalized === cacheRoot) {
         return true;
       }
-      if (normalized.startsWith('/usr/lib/node_modules/oh-my-claude-sisyphus/')) {
+      if (normalized.startsWith('/usr/lib/node_modules/oh-my-agent-connector/')) {
         return normalized.endsWith('/dist')
           || normalized.endsWith('/package.json')
           || normalized.endsWith('/.claude-plugin/plugin.json')
@@ -786,7 +786,7 @@ describe('auto-update reconciliation', () => {
           || normalized.endsWith('/bridge/cli.cjs')
           || normalized.endsWith('/hooks/hooks.json')
           || normalized.endsWith('/commands')
-          || normalized.endsWith('/commands/omc-setup.md')
+          || normalized.endsWith('/commands/omac-setup.md')
           || normalized.endsWith('/skills')
           || normalized.endsWith('/skills/plan/SKILL.md');
       }
@@ -808,7 +808,7 @@ describe('auto-update reconciliation', () => {
       `Failed to sync package.json to ${versionedCacheRoot}: copy failed`,
     ]);
     expect(consoleWarnSpy).toHaveBeenCalledWith(
-      `[omc update] Plugin cache sync warning: Failed to sync dist to ${versionedCacheRoot}: copy failed`,
+      `[omac update] Plugin cache sync warning: Failed to sync dist to ${versionedCacheRoot}: copy failed`,
     );
   });
 
@@ -819,7 +819,7 @@ describe('auto-update reconciliation', () => {
     delete process.env.CLAUDECODE_SESSION_ID;
     expect(shouldBlockStandaloneUpdateInCurrentSession()).toBe(false);
 
-    process.env.CLAUDE_PLUGIN_ROOT = '/tmp/.claude/plugins/cache/omc/oh-my-claudecode/4.1.5';
+    process.env.CLAUDE_PLUGIN_ROOT = '/tmp/.claude/plugins/cache/omac/oh-my-agent-connector/4.1.5';
     expect(shouldBlockStandaloneUpdateInCurrentSession()).toBe(false);
 
     process.env.CLAUDE_CODE_ENTRYPOINT = 'hook';
@@ -832,16 +832,16 @@ describe('auto-update reconciliation', () => {
 
   it('dedupes plugin roots and ignores missing targets during sync', () => {
     const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const activeRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode', '4.1.5');
-    const staleRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode', '4.1.4');
+    const activeRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector', '4.1.5');
+    const staleRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector', '4.1.4');
     process.env.CLAUDE_PLUGIN_ROOT = activeRoot;
 
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
-      if (normalized.includes('.omc-version.json')) {
+      if (normalized.includes('.omac-version.json')) {
         return JSON.stringify({
           version: '4.1.5',
           installedAt: '2026-02-09T00:00:00.000Z',
@@ -851,7 +851,7 @@ describe('auto-update reconciliation', () => {
       if (normalized.endsWith('/plugins/installed_plugins.json')) {
         return JSON.stringify({
           plugins: {
-            'oh-my-claudecode': [
+            'oh-my-agent-connector': [
               { installPath: activeRoot },
               { installPath: staleRoot },
             ],
@@ -885,13 +885,13 @@ describe('auto-update reconciliation', () => {
     expect(targetCalls.length).toBeGreaterThan(0);
     expect(mockedCpSync.mock.calls.some(([, destination]) => String(destination).startsWith(staleRoot))).toBe(false);
     expect(consoleLogSpy).toHaveBeenCalledTimes(1);
-    expect(consoleLogSpy).toHaveBeenCalledWith('[omc update] Synced plugin cache');
+    expect(consoleLogSpy).toHaveBeenCalledWith('[omac update] Synced plugin cache');
   });
 
   it('allows standalone update when CLAUDE_PLUGIN_ROOT is inherited without an active Claude session', async () => {
-    const pluginRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode', '4.1.5');
-    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omc', 'oh-my-claudecode');
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    const pluginRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector', '4.1.5');
+    const cacheRoot = join(CLAUDE_CONFIG_DIR, 'plugins', 'cache', 'omac', 'oh-my-agent-connector');
+    process.env.OMAC_UPDATE_RECONCILE = '1';
     process.env.CLAUDE_PLUGIN_ROOT = pluginRoot;
     delete process.env.CLAUDE_CODE_ENTRYPOINT;
     delete process.env.CLAUDE_SESSION_ID;
@@ -911,7 +911,7 @@ describe('auto-update reconciliation', () => {
     }));
 
     mockedExecSync.mockImplementation((command: string) => {
-      if (command === 'npm install -g oh-my-claude-sisyphus@latest') {
+      if (command === 'npm install -g oh-my-agent-connector@latest') {
         return '';
       }
       if (command === 'npm root -g') {
@@ -940,12 +940,12 @@ describe('auto-update reconciliation', () => {
     const result = await performUpdate({ verbose: false });
 
     expect(result.success).toBe(true);
-    expect(mockedExecSync).toHaveBeenCalledWith('npm install -g oh-my-claude-sisyphus@latest', expect.any(Object));
+    expect(mockedExecSync).toHaveBeenCalledWith('npm install -g oh-my-agent-connector@latest', expect.any(Object));
   });
 
   it('restores global Claude Code when npm removes an existing global install during update', async () => {
     const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -970,10 +970,10 @@ describe('auto-update reconciliation', () => {
         claudeCodePackageCheckCount += 1;
         return claudeCodePackageCheckCount === 1 || claudeCodePackageCheckCount === 3;
       }
-      if (normalized.endsWith('/plugins/marketplaces/omc')) {
+      if (normalized.endsWith('/plugins/marketplaces/omac')) {
         return false;
       }
-      if (normalized.endsWith('/plugins/cache/omc/oh-my-claudecode')) {
+      if (normalized.endsWith('/plugins/cache/omac/oh-my-agent-connector')) {
         return false;
       }
       return true;
@@ -982,12 +982,12 @@ describe('auto-update reconciliation', () => {
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
       if (normalized === '/usr/lib/node_modules/@anthropic-ai/claude-code/package.json') {
         return JSON.stringify({ version: '1.2.3' });
       }
-      if (normalized.includes('.omc-version.json')) {
+      if (normalized.includes('.omac-version.json')) {
         return JSON.stringify({
           version: '4.1.5',
           installedAt: '2026-02-09T00:00:00.000Z',
@@ -1001,7 +1001,7 @@ describe('auto-update reconciliation', () => {
       if (command === 'npm root -g') {
         return '/usr/lib/node_modules\n';
       }
-      if (command === 'npm install -g oh-my-claude-sisyphus@latest') {
+      if (command === 'npm install -g oh-my-agent-connector@latest') {
         return '';
       }
       throw new Error(`Unexpected execSync command: ${command}`);
@@ -1019,15 +1019,15 @@ describe('auto-update reconciliation', () => {
 
       expect(result.success).toBe(true);
       expect(mockedExecFileSync).toHaveBeenCalledWith('npm', ['install', '-g', '@anthropic-ai/claude-code@1.2.3'], expect.any(Object));
-      expect(consoleLogSpy).toHaveBeenCalledWith('[omc update] Restoring global @anthropic-ai/claude-code@1.2.3 after npm update...');
-      expect(consoleLogSpy).toHaveBeenCalledWith('[omc update] Restored global @anthropic-ai/claude-code');
+      expect(consoleLogSpy).toHaveBeenCalledWith('[omac update] Restoring global @anthropic-ai/claude-code@1.2.3 after npm update...');
+      expect(consoleLogSpy).toHaveBeenCalledWith('[omac update] Restored global @anthropic-ai/claude-code');
     } finally {
       consoleLogSpy.mockRestore();
     }
   });
 
   it('does not install global Claude Code when it was absent before update', async () => {
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -1050,10 +1050,10 @@ describe('auto-update reconciliation', () => {
       if (normalized === '/usr/lib/node_modules/@anthropic-ai/claude-code/package.json') {
         return false;
       }
-      if (normalized.endsWith('/plugins/marketplaces/omc')) {
+      if (normalized.endsWith('/plugins/marketplaces/omac')) {
         return false;
       }
-      if (normalized.endsWith('/plugins/cache/omc/oh-my-claudecode')) {
+      if (normalized.endsWith('/plugins/cache/omac/oh-my-agent-connector')) {
         return false;
       }
       return true;
@@ -1063,7 +1063,7 @@ describe('auto-update reconciliation', () => {
       if (command === 'npm root -g') {
         return '/usr/lib/node_modules\n';
       }
-      if (command === 'npm install -g oh-my-claude-sisyphus@latest') {
+      if (command === 'npm install -g oh-my-agent-connector@latest') {
         return '';
       }
       throw new Error(`Unexpected execSync command: ${command}`);
@@ -1077,7 +1077,7 @@ describe('auto-update reconciliation', () => {
   });
 
   it('does not install global Claude Code when pre-update detection is unknown', async () => {
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -1097,10 +1097,10 @@ describe('auto-update reconciliation', () => {
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
         return true;
       }
-      if (normalized.endsWith('/plugins/marketplaces/omc')) {
+      if (normalized.endsWith('/plugins/marketplaces/omac')) {
         return false;
       }
-      if (normalized.endsWith('/plugins/cache/omc/oh-my-claudecode')) {
+      if (normalized.endsWith('/plugins/cache/omac/oh-my-agent-connector')) {
         return false;
       }
       return true;
@@ -1115,7 +1115,7 @@ describe('auto-update reconciliation', () => {
         }
         return '/usr/lib/node_modules\n';
       }
-      if (command === 'npm install -g oh-my-claude-sisyphus@latest') {
+      if (command === 'npm install -g oh-my-agent-connector@latest') {
         return '';
       }
       throw new Error(`Unexpected execSync command: ${command}`);
@@ -1128,7 +1128,7 @@ describe('auto-update reconciliation', () => {
   });
 
   it('restores global Claude Code when post-update detection is unknown after a known pre-update install', async () => {
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -1151,10 +1151,10 @@ describe('auto-update reconciliation', () => {
       if (normalized === '/usr/lib/node_modules/@anthropic-ai/claude-code/package.json') {
         return true;
       }
-      if (normalized.endsWith('/plugins/marketplaces/omc')) {
+      if (normalized.endsWith('/plugins/marketplaces/omac')) {
         return false;
       }
-      if (normalized.endsWith('/plugins/cache/omc/oh-my-claudecode')) {
+      if (normalized.endsWith('/plugins/cache/omac/oh-my-agent-connector')) {
         return false;
       }
       return true;
@@ -1164,7 +1164,7 @@ describe('auto-update reconciliation', () => {
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
       if (normalized === '/usr/lib/node_modules/@anthropic-ai/claude-code/package.json') {
         claudeCodeReadCount += 1;
@@ -1173,7 +1173,7 @@ describe('auto-update reconciliation', () => {
         }
         return JSON.stringify({ version: '1.2.3' });
       }
-      if (normalized.includes('.omc-version.json')) {
+      if (normalized.includes('.omac-version.json')) {
         return JSON.stringify({
           version: '4.1.5',
           installedAt: '2026-02-09T00:00:00.000Z',
@@ -1187,7 +1187,7 @@ describe('auto-update reconciliation', () => {
       if (command === 'npm root -g') {
         return '/usr/lib/node_modules\n';
       }
-      if (command === 'npm install -g oh-my-claude-sisyphus@latest') {
+      if (command === 'npm install -g oh-my-agent-connector@latest') {
         return '';
       }
       throw new Error(`Unexpected execSync command: ${command}`);
@@ -1208,7 +1208,7 @@ describe('auto-update reconciliation', () => {
 
   it('detects native Windows Claude Code via claude --version and does not attempt npm restore', async () => {
     mockPlatform('win32');
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -1231,10 +1231,10 @@ describe('auto-update reconciliation', () => {
       if (normalized === 'C:/Users/bellman/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/package.json') {
         return false;
       }
-      if (normalized.endsWith('/plugins/marketplaces/omc')) {
+      if (normalized.endsWith('/plugins/marketplaces/omac')) {
         return false;
       }
-      if (normalized.endsWith('/plugins/cache/omc/oh-my-claudecode')) {
+      if (normalized.endsWith('/plugins/cache/omac/oh-my-agent-connector')) {
         return false;
       }
       return true;
@@ -1244,7 +1244,7 @@ describe('auto-update reconciliation', () => {
       if (command === 'npm root -g') {
         return 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\node_modules\r\n';
       }
-      if (command === 'npm install -g oh-my-claude-sisyphus@latest') {
+      if (command === 'npm install -g oh-my-agent-connector@latest') {
         return '';
       }
       throw new Error(`Unexpected execSync command: ${command}`);
@@ -1276,7 +1276,7 @@ describe('auto-update reconciliation', () => {
 
   it('treats unknown Claude Code detection as non-restorable during Windows updates', async () => {
     mockPlatform('win32');
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -1299,10 +1299,10 @@ describe('auto-update reconciliation', () => {
       if (normalized === 'C:/Users/bellman/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/package.json') {
         return false;
       }
-      if (normalized.endsWith('/plugins/marketplaces/omc')) {
+      if (normalized.endsWith('/plugins/marketplaces/omac')) {
         return false;
       }
-      if (normalized.endsWith('/plugins/cache/omc/oh-my-claudecode')) {
+      if (normalized.endsWith('/plugins/cache/omac/oh-my-agent-connector')) {
         return false;
       }
       return true;
@@ -1312,7 +1312,7 @@ describe('auto-update reconciliation', () => {
       if (command === 'npm root -g') {
         return 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\node_modules\r\n';
       }
-      if (command === 'npm install -g oh-my-claude-sisyphus@latest') {
+      if (command === 'npm install -g oh-my-agent-connector@latest') {
         return '';
       }
       throw new Error(`Unexpected execSync command: ${command}`);
@@ -1338,7 +1338,7 @@ describe('auto-update reconciliation', () => {
 
   it('uses Windows-safe npm options when restoring global Claude Code', async () => {
     mockPlatform('win32');
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -1363,10 +1363,10 @@ describe('auto-update reconciliation', () => {
         claudeCodePackageCheckCount += 1;
         return claudeCodePackageCheckCount === 1 || claudeCodePackageCheckCount === 3;
       }
-      if (normalized.endsWith('/plugins/marketplaces/omc')) {
+      if (normalized.endsWith('/plugins/marketplaces/omac')) {
         return false;
       }
-      if (normalized.endsWith('/plugins/cache/omc/oh-my-claudecode')) {
+      if (normalized.endsWith('/plugins/cache/omac/oh-my-agent-connector')) {
         return false;
       }
       return true;
@@ -1375,12 +1375,12 @@ describe('auto-update reconciliation', () => {
     mockedReadFileSync.mockImplementation((path: Parameters<typeof readFileSync>[0]) => {
       const normalized = String(path).replace(/\\/g, '/');
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
-        return JSON.stringify({ name: 'oh-my-claudecode', commands: './commands/', skills: ['./skills/plan/'] });
+        return JSON.stringify({ name: 'oh-my-agent-connector', commands: './commands/', skills: ['./skills/plan/'] });
       }
       if (normalized === 'C:/Users/bellman/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/package.json') {
         return JSON.stringify({ version: '1.2.3' });
       }
-      if (normalized.includes('.omc-version.json')) {
+      if (normalized.includes('.omac-version.json')) {
         return JSON.stringify({
           version: '4.1.5',
           installedAt: '2026-02-09T00:00:00.000Z',
@@ -1394,7 +1394,7 @@ describe('auto-update reconciliation', () => {
       if (command === 'npm root -g') {
         return 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\node_modules\r\n';
       }
-      if (command === 'npm install -g oh-my-claude-sisyphus@latest') {
+      if (command === 'npm install -g oh-my-agent-connector@latest') {
         return '';
       }
       if (command === 'npm install -g @anthropic-ai/claude-code@1.2.3') {
@@ -1415,13 +1415,13 @@ describe('auto-update reconciliation', () => {
   it('runs reconciliation as part of performUpdate without plugin hook reinjection', async () => {
     // Set env var so performUpdate takes the direct reconciliation path
     // (simulates being in the re-exec'd process after npm install)
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
     process.env.CLAUDE_PLUGIN_ROOT = join(
       CLAUDE_CONFIG_DIR,
       'plugins',
       'cache',
-      'omc',
-      'oh-my-claudecode',
+      'omac',
+      'oh-my-agent-connector',
       '4.1.5',
     );
 
@@ -1443,7 +1443,7 @@ describe('auto-update reconciliation', () => {
     const result = await performUpdate({ verbose: false });
 
     expect(result.success).toBe(true);
-    expect(mockedExecSync).toHaveBeenCalledWith('npm install -g oh-my-claude-sisyphus@latest', expect.any(Object));
+    expect(mockedExecSync).toHaveBeenCalledWith('npm install -g oh-my-agent-connector@latest', expect.any(Object));
     expect(mockedInstall).toHaveBeenCalledWith({
       force: true,
       verbose: false,
@@ -1452,12 +1452,12 @@ describe('auto-update reconciliation', () => {
       refreshHooksInPlugin: false,
     });
 
-    delete process.env.OMC_UPDATE_RECONCILE;
+    delete process.env.OMAC_UPDATE_RECONCILE;
   });
 
   it('does not persist metadata when reconciliation fails', async () => {
     // Set env var so performUpdate takes the direct reconciliation path
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -1492,7 +1492,7 @@ describe('auto-update reconciliation', () => {
   });
 
   it('skips marketplace auto-sync when the marketplace clone has local modifications', async () => {
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -1533,7 +1533,7 @@ describe('auto-update reconciliation', () => {
     expect(result.success).toBe(true);
     expect(mockedExecFileSync).toHaveBeenCalledWith(
       'git',
-      ['-C', expect.stringContaining('/plugins/marketplaces/omc'), 'status', '--porcelain', '--untracked-files=normal'],
+      ['-C', expect.stringContaining('/plugins/marketplaces/omac'), 'status', '--porcelain', '--untracked-files=normal'],
       expect.any(Object)
     );
     expect(mockedExecFileSync).not.toHaveBeenCalledWith(
@@ -1547,11 +1547,11 @@ describe('auto-update reconciliation', () => {
       expect.any(Object)
     );
 
-    delete process.env.OMC_UPDATE_RECONCILE;
+    delete process.env.OMAC_UPDATE_RECONCILE;
   });
 
   it('skips marketplace auto-sync when the marketplace clone has local commits', async () => {
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -1596,7 +1596,7 @@ describe('auto-update reconciliation', () => {
     expect(result.success).toBe(true);
     expect(mockedExecFileSync).toHaveBeenCalledWith(
       'git',
-      ['-C', expect.stringContaining('/plugins/marketplaces/omc'), 'rev-list', '--left-right', '--count', 'HEAD...origin/main'],
+      ['-C', expect.stringContaining('/plugins/marketplaces/omac'), 'rev-list', '--left-right', '--count', 'HEAD...origin/main'],
       expect.any(Object)
     );
     expect(mockedExecFileSync).not.toHaveBeenCalledWith(
@@ -1605,11 +1605,11 @@ describe('auto-update reconciliation', () => {
       expect.any(Object)
     );
 
-    delete process.env.OMC_UPDATE_RECONCILE;
+    delete process.env.OMAC_UPDATE_RECONCILE;
   });
 
   it('fast-forwards a clean marketplace clone when origin/main is ahead', async () => {
-    process.env.OMC_UPDATE_RECONCILE = '1';
+    process.env.OMAC_UPDATE_RECONCILE = '1';
 
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -1654,7 +1654,7 @@ describe('auto-update reconciliation', () => {
     expect(result.success).toBe(true);
     expect(mockedExecFileSync).toHaveBeenCalledWith(
       'git',
-      ['-C', expect.stringContaining('/plugins/marketplaces/omc'), 'merge', '--ff-only', 'origin/main'],
+      ['-C', expect.stringContaining('/plugins/marketplaces/omac'), 'merge', '--ff-only', 'origin/main'],
       expect.any(Object)
     );
     expect(mockedExecFileSync).not.toHaveBeenCalledWith(
@@ -1663,10 +1663,10 @@ describe('auto-update reconciliation', () => {
       expect.any(Object)
     );
 
-    delete process.env.OMC_UPDATE_RECONCILE;
+    delete process.env.OMAC_UPDATE_RECONCILE;
   });
 
-  it('re-execs with omc.cmd on Windows and persists metadata after reconciliation', async () => {
+  it('re-execs with omac.cmd on Windows and persists metadata after reconciliation', async () => {
     mockPlatform('win32');
 
     mockedExistsSync.mockImplementation((path: Parameters<typeof existsSync>[0]) => {
@@ -1677,7 +1677,7 @@ describe('auto-update reconciliation', () => {
       if (normalized === 'C:/Users/bellman/AppData/Roaming/npm/node_modules/@anthropic-ai/claude-code/package.json') {
         return false;
       }
-      if (normalized.endsWith('/plugins/marketplaces/omc')) {
+      if (normalized.endsWith('/plugins/marketplaces/omac')) {
         return false;
       }
       return true;
@@ -1700,7 +1700,7 @@ describe('auto-update reconciliation', () => {
       if (command === 'npm root -g') {
         return 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\node_modules\r\n';
       }
-      if (command === 'npm install -g oh-my-claude-sisyphus@latest') {
+      if (command === 'npm install -g oh-my-agent-connector@latest') {
         return '';
       }
       throw new Error(`Unexpected execSync command: ${command}`);
@@ -1708,9 +1708,9 @@ describe('auto-update reconciliation', () => {
 
     mockedExecFileSync.mockImplementation((command: string) => {
       if (command === 'where.exe') {
-        return 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\omc.cmd\r\n';
+        return 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\omac.cmd\r\n';
       }
-      if (command === 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\omc.cmd') {
+      if (command === 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\omac.cmd') {
         return '';
       }
       throw new Error(`Unexpected execFileSync command: ${command}`);
@@ -1719,24 +1719,24 @@ describe('auto-update reconciliation', () => {
     const result = await performUpdate({ verbose: false });
 
     expect(result.success).toBe(true);
-    expect(mockedExecSync).toHaveBeenCalledWith('npm install -g oh-my-claude-sisyphus@latest', expect.objectContaining({
+    expect(mockedExecSync).toHaveBeenCalledWith('npm install -g oh-my-agent-connector@latest', expect.objectContaining({
       windowsHide: true,
     }));
-    expect(mockedExecFileSync).toHaveBeenCalledWith('where.exe', ['omc.cmd'], expect.objectContaining({
+    expect(mockedExecFileSync).toHaveBeenCalledWith('where.exe', ['omac.cmd'], expect.objectContaining({
       encoding: 'utf-8',
       stdio: 'pipe',
       timeout: 5000,
       windowsHide: true,
     }));
-    expect(mockedExecFileSync).toHaveBeenCalledWith('C:\\Users\\bellman\\AppData\\Roaming\\npm\\omc.cmd', ['update-reconcile'], expect.objectContaining({
+    expect(mockedExecFileSync).toHaveBeenCalledWith('C:\\Users\\bellman\\AppData\\Roaming\\npm\\omac.cmd', ['update-reconcile'], expect.objectContaining({
       encoding: 'utf-8',
       stdio: 'pipe',
       timeout: 60000,
       shell: true,
       windowsHide: true,
-      env: expect.objectContaining({ OMC_UPDATE_RECONCILE: '1' }),
+      env: expect.objectContaining({ OMAC_UPDATE_RECONCILE: '1' }),
     }));
-    expect(mockedWriteFileSync).toHaveBeenCalledWith(expect.stringContaining('.omc-version.json'), expect.stringContaining('"version": "4.1.6"'));
+    expect(mockedWriteFileSync).toHaveBeenCalledWith(expect.stringContaining('.omac-version.json'), expect.stringContaining('"version": "4.1.6"'));
   });
 
   it('does not persist metadata when Windows reconcile re-exec fails with ENOENT', async () => {
@@ -1747,7 +1747,7 @@ describe('auto-update reconciliation', () => {
       if (normalized.endsWith('/.claude-plugin/plugin.json')) {
         return true;
       }
-      if (normalized.endsWith('/plugins/marketplaces/omc')) {
+      if (normalized.endsWith('/plugins/marketplaces/omac')) {
         return false;
       }
       return true;
@@ -1769,10 +1769,10 @@ describe('auto-update reconciliation', () => {
     mockedExecSync.mockReturnValue('');
     mockedExecFileSync.mockImplementation((command: string) => {
       if (command === 'where.exe') {
-        return 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\omc.cmd\r\n';
+        return 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\omac.cmd\r\n';
       }
-      if (command === 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\omc.cmd') {
-        const error = Object.assign(new Error('spawnSync C:\\Users\\bellman\\AppData\\Roaming\\npm\\omc.cmd ENOENT'), {
+      if (command === 'C:\\Users\\bellman\\AppData\\Roaming\\npm\\omac.cmd') {
+        const error = Object.assign(new Error('spawnSync C:\\Users\\bellman\\AppData\\Roaming\\npm\\omac.cmd ENOENT'), {
           code: 'ENOENT',
         });
         throw error;
@@ -1784,11 +1784,11 @@ describe('auto-update reconciliation', () => {
 
     expect(result.success).toBe(false);
     expect(result.message).toBe('Updated to 4.1.6, but runtime reconciliation failed');
-    expect(result.errors).toEqual(['spawnSync C:\\Users\\bellman\\AppData\\Roaming\\npm\\omc.cmd ENOENT']);
-    expect(mockedExecFileSync).toHaveBeenCalledWith('C:\\Users\\bellman\\AppData\\Roaming\\npm\\omc.cmd', ['update-reconcile'], expect.objectContaining({
+    expect(result.errors).toEqual(['spawnSync C:\\Users\\bellman\\AppData\\Roaming\\npm\\omac.cmd ENOENT']);
+    expect(mockedExecFileSync).toHaveBeenCalledWith('C:\\Users\\bellman\\AppData\\Roaming\\npm\\omac.cmd', ['update-reconcile'], expect.objectContaining({
       shell: true,
       windowsHide: true,
-      env: expect.objectContaining({ OMC_UPDATE_RECONCILE: '1' }),
+      env: expect.objectContaining({ OMAC_UPDATE_RECONCILE: '1' }),
     }));
     expect(mockedWriteFileSync).not.toHaveBeenCalled();
   });

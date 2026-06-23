@@ -94,7 +94,7 @@ describe("formatNotification routing", () => {
       ...basePayload,
       event: "agent-call",
       agentName: "executor",
-      agentType: "oh-my-claudecode:executor",
+      agentType: "oh-my-agent-connector:executor",
     });
     expect(result).toContain("# Agent Spawned");
   });
@@ -126,9 +126,9 @@ describe("formatAgentCall", () => {
   it("should include agent type when provided", () => {
     const result = formatAgentCall({
       ...basePayload,
-      agentType: "oh-my-claudecode:executor",
+      agentType: "oh-my-agent-connector:executor",
     });
-    expect(result).toContain("**Type:** `oh-my-claudecode:executor`");
+    expect(result).toContain("**Type:** `oh-my-agent-connector:executor`");
   });
 
   it("should include footer with project info", () => {
@@ -255,14 +255,14 @@ describe("parseTmuxTail noise filters", () => {
     expect(result).toBe("Table ─── Header");
   });
 
-  it("drops OMC HUD versioned status lines", () => {
+  it("drops OMAC HUD versioned status lines", () => {
     expect(
-      parseTmuxTail("[OMC#4.4.5] | thinking | session:510m | ctx:61% | 🔧57"),
+      parseTmuxTail("[OMAC#4.4.5] | thinking | session:510m | ctx:61% | 🔧57"),
     ).toBe("");
   });
 
-  it("drops unversioned OMC HUD lines", () => {
-    expect(parseTmuxTail("[OMC] | session:5m")).toBe("");
+  it("drops unversioned OMAC HUD lines", () => {
+    expect(parseTmuxTail("[OMAC] | session:5m")).toBe("");
   });
 
   it("drops bypass-permissions indicator lines starting with ⏵", () => {
@@ -302,7 +302,7 @@ describe("parseTmuxTail noise filters", () => {
   it("returns empty string when all lines are noise types", () => {
     const input = [
       "────────────────────────",
-      "[OMC#4.4.5] | thinking | session:510m",
+      "[OMAC#4.4.5] | thinking | session:510m",
       "⏵⏵ bypass permissions on",
       "❯",
       "@@@@@@@@@@@@@@@@@@@@",
@@ -314,7 +314,7 @@ describe("parseTmuxTail noise filters", () => {
     const input = [
       "────────────────────────",
       "Build complete",
-      "[OMC#4.4.5] | thinking | session:510m",
+      "[OMAC#4.4.5] | thinking | session:510m",
       "Tests passed: 42",
       "⏵⏵ bypass permissions on",
       "❯",

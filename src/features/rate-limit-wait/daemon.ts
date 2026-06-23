@@ -17,7 +17,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { spawn } from 'child_process';
 import { resolveDaemonModulePath } from '../../utils/daemon-module-path.js';
-import { getGlobalOmcStatePath } from '../../utils/paths.js';
+import { getGlobalOmacStatePath } from '../../utils/paths.js';
 import {
   checkRateLimitStatus,
   formatRateLimitStatus,
@@ -46,9 +46,9 @@ const DEFAULT_CONFIG: Required<DaemonConfig> = {
   pollIntervalMs: 60 * 1000, // 1 minute
   paneLinesToCapture: 15,
   verbose: false,
-  stateFilePath: getGlobalOmcStatePath('rate-limit-daemon.json'),
-  pidFilePath: getGlobalOmcStatePath('rate-limit-daemon.pid'),
-  logFilePath: getGlobalOmcStatePath('rate-limit-daemon.log'),
+  stateFilePath: getGlobalOmacStatePath('rate-limit-daemon.json'),
+  pidFilePath: getGlobalOmacStatePath('rate-limit-daemon.pid'),
+  logFilePath: getGlobalOmacStatePath('rate-limit-daemon.log'),
 };
 
 /** Maximum log file size before rotation (1MB) */
@@ -486,7 +486,7 @@ export function startDaemon(config?: DaemonConfig): DaemonResponse {
 
   const daemonScript = `
     import(${JSON.stringify(moduleUrl)}).then(async ({ pollLoopWithConfigFile }) => {
-      await pollLoopWithConfigFile(process.env.OMC_DAEMON_CONFIG_FILE);
+      await pollLoopWithConfigFile(process.env.OMAC_DAEMON_CONFIG_FILE);
     }).catch((err) => { console.error(err); process.exit(1); });
   `;
 
@@ -495,7 +495,7 @@ export function startDaemon(config?: DaemonConfig): DaemonResponse {
     // Note: Using minimal env to prevent leaking sensitive credentials
     const daemonEnv = {
       ...createMinimalDaemonEnv(),
-      OMC_DAEMON_CONFIG_FILE: configPath,
+      OMAC_DAEMON_CONFIG_FILE: configPath,
     };
     const child = spawn('node', ['-e', daemonScript], {
       detached: true,
@@ -541,7 +541,7 @@ export async function runDaemonForeground(config?: DaemonConfig): Promise<void> 
 
   // Check if already running
   if (isDaemonRunning(cfg)) {
-    console.error('Daemon is already running. Use "omc wait daemon stop" first.');
+    console.error('Daemon is already running. Use "omac wait daemon stop" first.');
     process.exit(1);
   }
 

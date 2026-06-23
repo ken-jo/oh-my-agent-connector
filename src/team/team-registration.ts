@@ -10,7 +10,7 @@
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import { getClaudeConfigDir } from '../utils/config-dir.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 import type { McpWorkerMember, ConfigProbeResult } from './types.js';
 import { sanitizeName } from './tmux-session.js';
 import { atomicWriteJson, validateResolvedPath } from './fs-utils.js';
@@ -25,13 +25,13 @@ function configPath(teamName: string): string {
 }
 
 function shadowRegistryPath(workingDirectory: string): string {
-  const result = join(getOmcRoot(workingDirectory), 'state', 'team-mcp-workers.json');
-  validateResolvedPath(result, join(getOmcRoot(workingDirectory), 'state'));
+  const result = join(getOmacRoot(workingDirectory), 'state', 'team-mcp-workers.json');
+  validateResolvedPath(result, join(getOmacRoot(workingDirectory), 'state'));
   return result;
 }
 
 function probeResultPath(workingDirectory: string): string {
-  return join(getOmcRoot(workingDirectory), 'state', 'config-probe-result.json');
+  return join(getOmacRoot(workingDirectory), 'state', 'config-probe-result.json');
 }
 
 // --- Probe result cache ---
@@ -71,7 +71,7 @@ export function getRegistrationStrategy(workingDirectory: string): 'config' | 's
  *
  * Strategy auto-selected based on cached probe result:
  * - 'config': Write member to config.json (preferred)
- * - 'shadow': Write member to .omc/state/team-mcp-workers.json (fallback)
+ * - 'shadow': Write member to .omac/state/team-mcp-workers.json (fallback)
  *
  * Both paths use atomic write (temp + rename) to prevent corruption.
  */

@@ -25,7 +25,7 @@ describe('shared-state artifact handoff', () => {
   it('stores large task descriptions and results as artifacts', () => {
     const largeDescription = 'describe ' + 'x'.repeat(5000);
     const task = addSharedTask(tempDir, {
-      source: 'omc',
+      source: 'omac',
       target: 'omx',
       type: 'implement',
       description: largeDescription,
@@ -48,7 +48,7 @@ describe('shared-state artifact handoff', () => {
 
   it('keeps small messages inline and cleans up large artifacts', () => {
     const smallMessage = addSharedMessage(tempDir, {
-      source: 'omc',
+      source: 'omac',
       target: 'omx',
       content: 'short note',
     });
@@ -57,7 +57,7 @@ describe('shared-state artifact handoff', () => {
     expect(smallMessage.content).toBe('short note');
 
     const largeMessage = addSharedMessage(tempDir, {
-      source: 'omc',
+      source: 'omac',
       target: 'omx',
       content: 'message ' + 'z'.repeat(5000),
     });

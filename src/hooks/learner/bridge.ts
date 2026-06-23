@@ -18,7 +18,7 @@ import {
 } from "fs";
 import { join, dirname, basename } from "path";
 import { homedir } from "os";
-import { OmcPaths } from "../../lib/worktree-paths.js";
+import { OmacPaths } from "../../lib/worktree-paths.js";
 import { parseYamlMetadata } from "./parser.js";
 import { expandTriggers } from "./transliteration-map.js";
 
@@ -27,10 +27,10 @@ export const USER_SKILLS_DIR = join(
   homedir(),
   ".claude",
   "skills",
-  "omc-learned",
+  "omac-learned",
 );
-export const GLOBAL_SKILLS_DIR = join(homedir(), ".omc", "skills");
-export const PROJECT_SKILLS_SUBDIR = OmcPaths.SKILLS;
+export const GLOBAL_SKILLS_DIR = join(homedir(), ".omac", "skills");
+export const PROJECT_SKILLS_SUBDIR = OmacPaths.SKILLS;
 export const PROJECT_AGENT_SKILLS_SUBDIR = join(".agents", "skills");
 export const SKILL_EXTENSION = ".md";
 
@@ -183,7 +183,7 @@ function summarizeSkillContent(content: string): string {
 }
 
 /** State file path */
-const STATE_FILE = `${OmcPaths.STATE}/skill-sessions.json`;
+const STATE_FILE = `${OmacPaths.STATE}/skill-sessions.json`;
 
 // =============================================================================
 // Types

@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Main Renderer
+ * OMAC HUD - Main Renderer
  *
  * Composes statusline output from render context.
  */
@@ -306,18 +306,18 @@ export async function render(
 
   // -- main-group elements (default: main statusline) --
 
-  if (enabledElements.omcLabel) {
+  if (enabledElements.omacLabel) {
     const localSuffix = isRuntimePackageLocal() ? "L" : "";
-    const versionTag = context.omcVersion
-      ? `#${context.omcVersion}${localSuffix}`
+    const versionTag = context.omacVersion
+      ? `#${context.omacVersion}${localSuffix}`
       : (localSuffix ? `#${localSuffix}` : "");
     if (enabledElements.updateNotification !== false && context.updateAvailable) {
       rendered.set(
-        "omcLabel",
-        bold(`[OMC${versionTag}] -> ${context.updateAvailable} omc update`),
+        "omacLabel",
+        bold(`[OMAC${versionTag}] -> ${context.updateAvailable} omac update`),
       );
     } else {
-      rendered.set("omcLabel", bold(`[OMC${versionTag}]`));
+      rendered.set("omacLabel", bold(`[OMAC${versionTag}]`));
     }
   }
 

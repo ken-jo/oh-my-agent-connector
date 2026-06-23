@@ -50,7 +50,7 @@ function isInside(parent: string, child: string): boolean {
 
 /**
  * Validate that a destructive cleanup target is a concrete worktree-like child
- * under one of the OMC-owned worktree roots. This is intentionally small and
+ * under one of the OMAC-owned worktree roots. This is intentionally small and
  * path-focused: callers still own git/dirty-state checks, while this helper
  * fails closed for path confusion, symlinks, main repositories, and root/home
  * accidents before any recursive removal can run.

@@ -55,14 +55,14 @@ describe('Type Tests', () => {
     it('should support agent configuration', () => {
       const config: PluginConfig = {
         agents: {
-          omc: { model: 'claude-sonnet-4-6' },
+          omac: { model: 'claude-sonnet-4-6' },
           architect: { model: 'claude-opus-4-8' },
           explore: { model: 'claude-haiku-4-5' },
           documentSpecialist: { model: 'claude-haiku-4-5' },
         },
       };
 
-      expect(config.agents?.omc?.model).toBe('claude-sonnet-4-6');
+      expect(config.agents?.omac?.model).toBe('claude-sonnet-4-6');
       expect(config.agents?.architect?.model).toBe('claude-opus-4-8');
     });
 

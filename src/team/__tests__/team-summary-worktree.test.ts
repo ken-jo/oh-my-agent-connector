@@ -7,11 +7,11 @@ import { executeTeamApiOperation } from '../api-interop.js';
 
 describe('team summary worktree metadata', () => {
   it('surfaces workspace and worker worktree contract fields', async () => {
-    const cwd = mkdtempSync(join(tmpdir(), 'omc-summary-worktree-'));
+    const cwd = mkdtempSync(join(tmpdir(), 'omac-summary-worktree-'));
     const teamName = 'summary-team';
-    const teamRoot = join(cwd, '.omc', 'state', 'team', teamName);
-    const teamStateRoot = join(cwd, '.omc', 'state', 'team', teamName);
-    const worktreePath = join(cwd, '.omc', 'team', teamName, 'worktrees', 'worker-1');
+    const teamRoot = join(cwd, '.omac', 'state', 'team', teamName);
+    const teamStateRoot = join(cwd, '.omac', 'state', 'team', teamName);
+    const worktreePath = join(cwd, '.omac', 'team', teamName, 'worktrees', 'worker-1');
     try {
       mkdirSync(teamRoot, { recursive: true });
       writeFileSync(join(teamRoot, 'config.json'), JSON.stringify({
@@ -29,13 +29,13 @@ describe('team summary worktree metadata', () => {
           working_dir: worktreePath,
           worktree_repo_root: cwd,
           worktree_path: worktreePath,
-          worktree_branch: 'omc-team/summary-team/worker-1',
+          worktree_branch: 'omac-team/summary-team/worker-1',
           worktree_detached: false,
           worktree_created: true,
           team_state_root: teamStateRoot,
         }],
         created_at: new Date().toISOString(),
-        tmux_session: 'omc-summary-team',
+        tmux_session: 'omac-summary-team',
         next_task_id: 1,
         leader_cwd: cwd,
         team_state_root: teamStateRoot,
@@ -56,7 +56,7 @@ describe('team summary worktree metadata', () => {
         working_dir: worktreePath,
         worktree_repo_root: cwd,
         worktree_path: worktreePath,
-        worktree_branch: 'omc-team/summary-team/worker-1',
+        worktree_branch: 'omac-team/summary-team/worker-1',
         worktree_detached: false,
         worktree_created: true,
         team_state_root: teamStateRoot,
@@ -73,7 +73,7 @@ describe('team summary worktree metadata', () => {
           working_dir: worktreePath,
           worktree_repo_root: cwd,
           worktree_path: worktreePath,
-          worktree_branch: 'omc-team/summary-team/worker-1',
+          worktree_branch: 'omac-team/summary-team/worker-1',
           worktree_detached: false,
           worktree_created: true,
           team_state_root: teamStateRoot,

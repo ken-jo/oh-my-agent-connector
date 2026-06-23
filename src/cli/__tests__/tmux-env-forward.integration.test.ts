@@ -1,7 +1,7 @@
 /**
  * Integration test: tmux env var forwarding
  *
- * Verifies that env vars set on the omc process actually arrive inside
+ * Verifies that env vars set on the omac process actually arrive inside
  * a tmux session created the same way runClaudeOutsideTmux does.
  * No Claude CLI or API tokens are involved — the test runs `printenv`
  * inside the tmux pane and reads the output from a temp file.
@@ -29,12 +29,12 @@ function isTmuxAvailable(): boolean {
 const HAS_TMUX = isTmuxAvailable();
 
 describe.skipIf(!HAS_TMUX)('tmux env forwarding — integration', () => {
-  const SESSION_NAME = `omc-env-test-${Date.now()}`;
+  const SESSION_NAME = `omac-env-test-${Date.now()}`;
   let tempDir: string;
   let outFile: string;
 
   beforeAll(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-tmux-env-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-tmux-env-'));
     outFile = join(tempDir, 'env-output');
   });
 
@@ -49,7 +49,7 @@ describe.skipIf(!HAS_TMUX)('tmux env forwarding — integration', () => {
   });
 
   it('CLAUDE_CONFIG_DIR set via buildEnvExportPrefix reaches the tmux pane', () => {
-    const testValue = '/tmp/omc-test-config-dir';
+    const testValue = '/tmp/omac-test-config-dir';
 
     // Build the env export prefix the same way runClaudeOutsideTmux does,
     // but with a controlled env snapshot instead of process.env

@@ -1,10 +1,10 @@
-# Speaker Notes: oh-my-claudecode Seminar
+# Speaker Notes: oh-my-agent-connector Seminar
 
 ## Time Allocation (60 minutes total)
 | Section | Time | Slides |
 |---------|------|--------|
 | Opening & Problem Statement | 5 min | 1-3 |
-| What is OMC? | 8 min | 4-8 |
+| What is OMAC? | 8 min | 4-8 |
 | Execution Modes Deep Dive | 20 min | 9-23 |
 | Agent System | 7 min | 24-28 |
 | Live Demos | 12 min | 29-33 |
@@ -43,11 +43,11 @@
 - "What if the AI could run multiple specialists in parallel, route tasks to the right model tier, and persist until verification passes?"
 
 **The Reveal**
-- "That's exactly what oh-my-claudecode does. It transforms Claude Code from a single generalist assistant into a coordinated team of 28 specialists."
+- "That's exactly what oh-my-agent-connector does. It transforms Claude Code from a single generalist assistant into a coordinated team of 28 specialists."
 - "Today, I'm going to show you how this changes everything about AI-assisted development."
 
 ### Transition
-"Let me start by showing you exactly what OMC is and how it thinks differently about AI assistance."
+"Let me start by showing you exactly what OMAC is and how it thinks differently about AI assistance."
 
 ### Audience Engagement
 - Ask for the opening show of hands
@@ -56,10 +56,10 @@
 
 ---
 
-## Section 2: What is OMC? (8 min, Slides 4-8)
+## Section 2: What is OMAC? (8 min, Slides 4-8)
 
 ### Opening Line
-"The fundamental insight behind OMC is simple: your AI should be a conductor, not a performer."
+"The fundamental insight behind OMAC is simple: your AI should be a conductor, not a performer."
 
 ### Key Points
 - The conductor metaphor: orchestrates specialists rather than doing everything
@@ -72,12 +72,12 @@
 
 **The Conductor Metaphor** (Slide 4)
 - "Think about an orchestra conductor. They don't play the violin, the timpani, or the trumpet. They COORDINATE the specialists who do."
-- "That's the shift OMC makes. Claude becomes the conductor, and 28 specialized agents are the orchestra."
+- "That's the shift OMAC makes. Claude becomes the conductor, and 28 specialized agents are the orchestra."
 - "When you say 'build a feature,' Claude doesn't do it all personally. It delegates: Explorer finds relevant code, Architect designs the solution, Executor implements, QA Tester verifies."
 
 **Before vs After** (Slide 5)
 - "BEFORE: 'Claude, search for auth code.' [wait] 'Now analyze it.' [wait] 'Now write tests.' [wait] You're the project manager micromanaging every step."
-- "AFTER: 'Build authentication for the API.' OMC automatically: explores codebase, analyzes requirements, generates plan, implements in parallel, writes tests, verifies. You're the product owner stating the goal."
+- "AFTER: 'Build authentication for the API.' OMAC automatically: explores codebase, analyzes requirements, generates plan, implements in parallel, writes tests, verifies. You're the product owner stating the goal."
 - "This isn't a minor improvement. This is a 10x workflow change."
 
 **Architecture Flow** (Slide 6)
@@ -96,7 +96,7 @@
 - "Zero configuration files, zero setup beyond installation"
 
 **Core Innovations** (Slide 8)
-- "Three things make OMC unique:"
+- "Three things make OMAC unique:"
 - "1. MULTI-AGENT ORCHESTRATION: Tasks automatically decompose and distribute to specialists"
 - "2. SMART MODEL ROUTING: Simple tasks use cheap Haiku, complex tasks use powerful Opus - saves 30-50% on costs"
 - "3. EXECUTION MODES: Autopilot, Ultrapilot, Swarm, Pipeline, Ecomode - each optimized for different scenarios"
@@ -114,7 +114,7 @@
 ## Section 3: Execution Modes Deep Dive (20 min, Slides 9-23)
 
 ### Opening Line
-"Execution modes are where OMC's power becomes concrete. Each mode is optimized for a specific type of work. Let's explore all five."
+"Execution modes are where OMAC's power becomes concrete. Each mode is optimized for a specific type of work. Let's explore all five."
 
 ### Mode 1: Autopilot (4 min, Slides 9-11)
 
@@ -292,11 +292,11 @@
 | Ecomode | Medium | Lowest | Efficient | Budget-conscious, batch ops |
 
 ### Transition
-"These modes are powered by OMC's agent system. Let's look at how those 28 specialists are organized."
+"These modes are powered by OMAC's agent system. Let's look at how those 28 specialists are organized."
 
 ### Audience Engagement
 - "Quick question: Which mode sounds most useful for YOUR daily work?" (Take 2-3 responses)
-- "The beauty is you don't have to memorize this. Say 'fast parallel fixes' and OMC activates ultrawork. Say 'efficient batch fixes' and it activates ."
+- "The beauty is you don't have to memorize this. Say 'fast parallel fixes' and OMAC activates ultrawork. Say 'efficient batch fixes' and it activates ."
 - Watch for confused faces during technical explanations - offer to elaborate if needed
 
 ---
@@ -315,7 +315,7 @@
 **Talking Points**
 
 **The 13 Domains** (Slide 24)
-- "OMC organizes agents into 13 specializations:"
+- "OMAC organizes agents into 13 specializations:"
 - "ANALYSIS: architect-low, architect-medium, architect (debugging, root cause)"
 - "EXECUTION: executor-low, executor, executor-high (code implementation)"
 - "SEARCH: explore, explore-high (codebase exploration)"
@@ -362,7 +362,7 @@
 - "You invoke skills, skills invoke agents. It's turtles all the way down."
 
 **The Selection Decision Tree** (Slide 28)
-- "How does OMC decide which agent to use? Three factors:"
+- "How does OMAC decide which agent to use? Three factors:"
 - "1. TASK COMPLEXITY: Keyword detection ('simple' → LOW, 'complex' → HIGH)"
 - "2. DELEGATION CATEGORY: Visual-engineering → HIGH, Quick → LOW, Ultrabrain → HIGH"
 - "3. EXECUTION MODE: Ecomode prefers LOW tier, standard modes use natural tier"
@@ -380,12 +380,12 @@
 ## Section 5: Live Demos (12 min, Slides 29-33)
 
 ### Opening Line
-"Enough talking about it. Let's see OMC in action across five different scenarios."
+"Enough talking about it. Let's see OMAC in action across five different scenarios."
 
 ### Demo 1: Autopilot - Full Feature Build (5 min, Slide 29)
 
 **Setup**
-- Have terminal ready with OMC installed
+- Have terminal ready with OMAC installed
 - Prepare fallback recording in case of failure
 - Clear any previous state files
 
@@ -426,7 +426,7 @@ When complete:
 
 **Setup**
 - Have a project with multiple TypeScript errors ready
-- Could be the OMC codebase itself with intentional errors
+- Could be the OMAC codebase itself with intentional errors
 
 **Demo Script**
 ```
@@ -534,7 +534,7 @@ Narrate:
 ## Section 6: Developer Experience (4 min, Slides 34-37)
 
 ### Opening Line
-"Powerful technology is useless if it's hard to use. OMC is designed for zero learning curve."
+"Powerful technology is useless if it's hard to use. OMAC is designed for zero learning curve."
 
 ### Key Points
 - Magic keywords for zero learning curve
@@ -558,30 +558,30 @@ Narrate:
 **The HUD** (Slide 35)
 - "The HUD gives real-time visibility into the agent swarm:"
 ```
-[OMC] Mode: ultrawork | Agents: 3 active | executor-1: fixing auth.ts | executor-2: fixing api.ts | architect: reviewing
+[OMAC] Mode: ultrawork | Agents: 3 active | executor-1: fixing auth.ts | executor-2: fixing api.ts | architect: reviewing
 ```
 - "At a glance you know:"
 - "  Which mode is active"
 - "  How many agents are working"
 - "  What each agent is doing"
-- "Installation: `/oh-my-claudecode:hud setup` - adds to your shell prompt"
+- "Installation: `/oh-my-agent-connector:hud setup` - adds to your shell prompt"
 
 **Notepad Wisdom** (Slide 36)
-- "OMC learns from every session via the notepad system:"
-- "Location: `.omc/notepads/{plan-name}/`"
+- "OMAC learns from every session via the notepad system:"
+- "Location: `.omac/notepads/{plan-name}/`"
 - "  learnings.md - Technical patterns discovered"
 - "  decisions.md - Architectural choices and rationale"
 - "  issues.md - Known problems and workarounds"
 - "  problems.md - Current blockers"
 - ""
 - "Example learning: 'When modifying TypeScript interfaces, always run tsc --noEmit before committing to catch downstream breakages.'"
-- "These persist across sessions. Your OMC gets smarter over time."
+- "These persist across sessions. Your OMAC gets smarter over time."
 
 **Cost Analytics** (Slide 37)
-- "OMC tracks token usage per session:"
+- "OMAC tracks token usage per session:"
 - "See exactly how much each mode costs"
 - "Compare ultrawork vs  for your workload"
-- "Audit logs at `.omc/logs/delegation-audit.jsonl`"
+- "Audit logs at `.omac/logs/delegation-audit.jsonl`"
 - "Know your costs before they surprise you."
 
 ### Transition
@@ -613,11 +613,11 @@ Narrate:
 
 **Installation** (Slide 39)
 ```bash
-# Step 1: Install OMC
-npm install -g oh-my-claudecode
+# Step 1: Install OMAC
+npm install -g oh-my-agent-connector
 
 # Step 2: Run setup wizard
-claude-code "/oh-my-claudecode:omc-setup"
+claude-code "/oh-my-agent-connector:omac-setup"
 
 # Step 3: Start using it
 claude-code "autopilot: build me a todo app"
@@ -633,7 +633,7 @@ claude-code "autopilot: build me a todo app"
 - "Takes 60 seconds. After that, just start describing what you want to build."
 
 ### Transition
-"That's OMC. Let's recap and open for questions."
+"That's OMAC. Let's recap and open for questions."
 
 ### Audience Engagement
 - "Who's ready to try this on their project this week?" (Show of hands)
@@ -644,7 +644,7 @@ claude-code "autopilot: build me a todo app"
 ## Section 8: Closing & Q&A (2 min, Slides 41-43)
 
 ### Opening Line
-"Let's recap what makes OMC transformative."
+"Let's recap what makes OMAC transformative."
 
 ### Key Points
 - Shift from interactive assistant to autonomous orchestrator
@@ -656,20 +656,20 @@ claude-code "autopilot: build me a todo app"
 **Talking Points**
 
 **The Big Picture** (Slide 41)
-- "OMC transforms Claude Code from a single assistant into a coordinated team."
+- "OMAC transforms Claude Code from a single assistant into a coordinated team."
 - "You go from micromanaging every step to stating goals and getting results."
 - "The five execution modes cover everything: greenfield (autopilot), parallel (ultrawork/ultrapilot), batch (swarm), sequential (pipeline), budget ()."
 - "28 agents with 3-tier model routing save you 30-50% on costs while getting work done faster."
 
 **Resources** (Slide 42)
-- "GitHub: github.com/Yeachan-Heo/oh-my-claudecode"
+- "GitHub: github.com/Yeachan-Heo/oh-my-agent-connector"
 - "Documentation: Full guides in the repo README"
 - "Community: Join discussions, share your experiences"
 - "Contributing: It's MIT licensed - PRs welcome"
 
 **Call to Action** (Slide 43)
 - "Try autopilot this week on a small feature. See how it feels to describe the goal and let the system orchestrate."
-- "If you like it, share it with your team. OMC shines with real-world complexity."
+- "If you like it, share it with your team. OMAC shines with real-world complexity."
 - "Now, let's open for questions."
 
 ### Transition to Q&A
@@ -684,21 +684,21 @@ Prepare answers for these likely questions:
 ### 1. "How much does it cost?"
 
 **Answer:**
-"OMC itself is completely free - it's MIT licensed open-source. What you pay for is the Claude API usage.
+"OMAC itself is completely free - it's MIT licensed open-source. What you pay for is the Claude API usage.
 
 You need either:
 - A Claude Pro subscription ($20/month) which includes API access
 - Or a Claude Team subscription with API credits
 - Or direct API access via Anthropic
 
-The key cost benefit: OMC's smart model routing saves you 30-50% on token costs compared to manually using Claude. For example, simple searches use Haiku (super cheap), complex debugging uses Opus (expensive but necessary). Without OMC, everything might default to Opus.
+The key cost benefit: OMAC's smart model routing saves you 30-50% on token costs compared to manually using Claude. For example, simple searches use Haiku (super cheap), complex debugging uses Opus (expensive but necessary). Without OMAC, everything might default to Opus.
 
 Ecomode specifically optimizes for cost - in our benchmarks, it reduces costs by 40-60% compared to ultrawork mode while still completing the work effectively."
 
 ### 2. "Can I use it with other AI models?"
 
 **Answer:**
-"Currently OMC is designed specifically for Claude Code and leverages Claude's three model tiers - Haiku, Sonnet, and Opus.
+"Currently OMAC is designed specifically for Claude Code and leverages Claude's three model tiers - Haiku, Sonnet, and Opus.
 
 The architecture relies on Claude's specific capabilities for the multi-agent orchestration. We don't support GPT-4, Gemini, or other models at this time.
 
@@ -707,9 +707,9 @@ That said, it's open-source. If there's community interest in adapting it to oth
 ### 3. "How is this different from just using Claude Code?"
 
 **Answer:**
-"Great question. Without OMC, Claude Code gives you one very smart generalist assistant. You tell it every step: 'search for this, analyze that, now implement this, now test that.'
+"Great question. Without OMAC, Claude Code gives you one very smart generalist assistant. You tell it every step: 'search for this, analyze that, now implement this, now test that.'
 
-With OMC, you get 28 specialized agents orchestrated automatically. You state the goal - 'build authentication' - and OMC:
+With OMAC, you get 28 specialized agents orchestrated automatically. You state the goal - 'build authentication' - and OMAC:
 - Automatically explores your codebase for patterns
 - Plans the implementation
 - Parallelizes execution across multiple agents
@@ -718,16 +718,16 @@ With OMC, you get 28 specialized agents orchestrated automatically. You state th
 
 It's the difference between hiring one person who does everything sequentially versus coordinating a specialized team working in parallel.
 
-Real-world impact: Tasks that took 30 minutes of back-and-forth with Claude Code now take 5 minutes of autonomous execution with OMC."
+Real-world impact: Tasks that took 30 minutes of back-and-forth with Claude Code now take 5 minutes of autonomous execution with OMAC."
 
 ### 4. "What about security? Is my code safe?"
 
 **Answer:**
-"OMC runs entirely locally via Claude Code. Your code never leaves your machine except through the normal Claude API calls that you'd be making anyway.
+"OMAC runs entirely locally via Claude Code. Your code never leaves your machine except through the normal Claude API calls that you'd be making anyway.
 
-Additionally, OMC includes a security-reviewer agent that can audit code for common vulnerabilities. You can invoke it explicitly: '/pipeline security' runs a security audit pipeline.
+Additionally, OMAC includes a security-reviewer agent that can audit code for common vulnerabilities. You can invoke it explicitly: '/pipeline security' runs a security audit pipeline.
 
-The notepad wisdom system stores data locally in `.omc/notepads/`. Nothing is sent to external servers.
+The notepad wisdom system stores data locally in `.omac/notepads/`. Nothing is sent to external servers.
 
 For maximum security, you can review the code - it's fully open-source on GitHub. Every agent prompt is visible."
 
@@ -745,16 +745,16 @@ You are an expert in pytest and Python testing best practices.
 Focus on: fixtures, parametrization, mocking with pytest-mock.
 ```
 
-Then invoke: `Task(subagent_type="oh-my-claudecode:pytest-specialist")`
+Then invoke: `Task(subagent_type="oh-my-agent-connector:pytest-specialist")`
 
-You can also customize execution modes, delegation categories, and model routing rules via the config file at `~/.claude/.omc-config.json`.
+You can also customize execution modes, delegation categories, and model routing rules via the config file at `~/.claude/.omac-config.json`.
 
 Power users go deep on customization. Casual users never need to touch it."
 
 ### 6. "Does it work with any programming language?"
 
 **Answer:**
-"Yes. OMC works with any language that Claude Code supports - which is basically all mainstream languages.
+"Yes. OMAC works with any language that Claude Code supports - which is basically all mainstream languages.
 
 Some agents have special optimizations:
 - build-fixer has deep TypeScript integration
@@ -768,7 +768,7 @@ The codebase exploration works universally since it uses grep, glob, and LSP und
 ### 7. "How do I know which mode to use?"
 
 **Answer:**
-"Honestly? You don't need to think about it. Just describe what you want in natural language and OMC auto-detects the right mode.
+"Honestly? You don't need to think about it. Just describe what you want in natural language and OMAC auto-detects the right mode.
 
 But if you want to be explicit:
 - NEW FEATURE, GREENFIELD: autopilot or ultrapilot
@@ -790,7 +790,7 @@ After a week of use, you'll develop intuition. But day one? Just describe the go
 **Answer:**
 "That's what ralph mode is for! Ralph literally won't stop until it succeeds.
 
-But more seriously - OMC has built-in verification at multiple levels:
+But more seriously - OMAC has built-in verification at multiple levels:
 - Build verification (does it compile?)
 - Test verification (do tests pass?)
 - Lint verification (does it pass linting?)
@@ -798,20 +798,20 @@ But more seriously - OMC has built-in verification at multiple levels:
 
 If any verification fails, it enters a fix-verify loop automatically.
 
-In practice, failures happen - maybe a test fails, maybe there's a linting error. OMC catches these and fixes them before claiming completion.
+In practice, failures happen - maybe a test fails, maybe there's a linting error. OMAC catches these and fixes them before claiming completion.
 
 The Architect verification step is the final check - a separate Opus-powered agent reviews the work and either approves or sends it back for revision."
 
 ### 9. "Can I run this in CI/CD?"
 
 **Answer:**
-"OMC is designed for interactive development, not CI/CD automation.
+"OMAC is designed for interactive development, not CI/CD automation.
 
 The planning interviews require human input. The execution modes assume iterative refinement. The architect verification is designed for development-time quality checks.
 
 For CI/CD, you'd use Claude Code's built-in capabilities or traditional CI tools.
 
-That said, some teams use OMC-generated tests in their CI pipeline. The tests themselves are standard - jest, pytest, etc. - they just happened to be generated via OMC.
+That said, some teams use OMAC-generated tests in their CI pipeline. The tests themselves are standard - jest, pytest, etc. - they just happened to be generated via OMAC.
 
 There's been interest in a 'CI mode' that's fully non-interactive. If that's something you need, open a GitHub issue - we prioritize based on user demand."
 
@@ -832,7 +832,7 @@ Compare this to traditional tools:
 - Kubernetes: Weeks to understand pods, deployments, services
 - Even git: Hours to understand branching, merging, rebasing
 
-OMC: Literally zero learning time. If you can describe what you want in English, you can use OMC.
+OMAC: Literally zero learning time. If you can describe what you want in English, you can use OMAC.
 
 The learning comes later - understanding WHEN to use ultrawork vs pipeline, WHICH agent is best for what. But that's optimization, not prerequisites."
 
@@ -862,7 +862,7 @@ The learning comes later - understanding WHEN to use ultrawork vs pipeline, WHIC
 This is your MOST IMPORTANT persuasion tool. Nail it.
 
 **Script it word-for-word:**
-"Let me show you the mental model shift. BEFORE OMC: [read the before section slowly]. You're the micromanager. AFTER OMC: [read the after section with rising energy]. You're the product owner. This isn't a 10% improvement - this is a complete paradigm shift."
+"Let me show you the mental model shift. BEFORE OMAC: [read the before section slowly]. You're the micromanager. AFTER OMAC: [read the after section with rising energy]. You're the product owner. This isn't a 10% improvement - this is a complete paradigm shift."
 
 ### Time Management
 - **Ahead 5+ minutes?** Extend Q&A, add extra demo, elaborate on agent system
@@ -891,7 +891,7 @@ This is your MOST IMPORTANT persuasion tool. Nail it.
 ### The Final Impression
 Your last 30 seconds set the memory. End with energy:
 
-"OMC transforms AI-assisted development from interactive tutoring to autonomous execution. It's free, it's open-source, and it's ready for you to try today. Install it this week, build something with autopilot, and see how it feels to conduct the orchestra instead of playing every instrument. Thank you - let's take your questions."
+"OMAC transforms AI-assisted development from interactive tutoring to autonomous execution. It's free, it's open-source, and it's ready for you to try today. Install it this week, build something with autopilot, and see how it feels to conduct the orchestra instead of playing every instrument. Thank you - let's take your questions."
 
 [Hold for applause, then open for Q&A]
 
@@ -954,11 +954,11 @@ After the seminar:
 By the end, every person should:
 1. Understand the conductor vs performer mental model
 2. Know which execution mode they'd try first
-3. Feel confident they could install and use OMC today
+3. Feel confident they could install and use OMAC today
 4. Be excited about the paradigm shift from interactive to autonomous
 
 **Your Success Metric:**
-"How many people install OMC in the next week?"
+"How many people install OMAC in the next week?"
 
 Good luck. You've got this.
 

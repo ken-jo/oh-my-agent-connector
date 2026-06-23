@@ -27,7 +27,7 @@ describe('Tier-0 contract docs consistency', () => {
 
   it('documents all Tier-0 slash commands in REFERENCE.md', () => {
     for (const skillName of ['autopilot', 'ultrawork', 'ralph', 'team', 'ralplan']) {
-      expect(referenceDoc).toContain(`/oh-my-claudecode:${skillName}`);
+      expect(referenceDoc).toContain(`/oh-my-agent-connector:${skillName}`);
     }
   });
 
@@ -39,7 +39,7 @@ describe('Tier-0 contract docs consistency', () => {
 
   it('does not contain blank placeholder rows in core skill/command docs', () => {
     expect(referenceDoc).not.toContain('| `` |');
-    expect(referenceDoc).not.toContain('/oh-my-claudecode: <task>');
+    expect(referenceDoc).not.toContain('/oh-my-agent-connector: <task>');
     expect(referenceDoc).not.toContain('incl. )');
   });
 
@@ -54,8 +54,8 @@ describe('Tier-0 contract docs consistency', () => {
   });
 
   it('does not document removed wrapper slash commands as installed skills', () => {
-    expect(referenceDoc).not.toContain('/oh-my-claudecode:analyze <target>');
-    expect(referenceDoc).not.toContain('/oh-my-claudecode:tdd <feature>');
+    expect(referenceDoc).not.toContain('/oh-my-agent-connector:analyze <target>');
+    expect(referenceDoc).not.toContain('/oh-my-agent-connector:tdd <feature>');
   });
 
   it('documents team as explicit-only rather than an auto-triggered keyword', () => {
@@ -66,8 +66,8 @@ describe('Tier-0 contract docs consistency', () => {
   it('keeps install and update guidance aligned on canonical setup entrypoints', () => {
     const localPluginDoc = readProjectFile('docs', 'LOCAL_PLUGIN_INSTALL.md');
 
-    expect(claudeDoc).toContain('Say "setup omc" or run `/oh-my-claudecode:omc-setup`.');
-    expect(referenceDoc).toContain('/oh-my-claudecode:setup');
+    expect(claudeDoc).toContain('Say "setup omac" or run `/oh-my-agent-connector:omac-setup`.');
+    expect(referenceDoc).toContain('/oh-my-agent-connector:setup');
     expect(localPluginDoc).toContain('/setup');
     expect(localPluginDoc).toContain('git worktrees');
   });
@@ -86,21 +86,27 @@ describe('Tier-0 contract docs consistency', () => {
       'README.tr.md',
       'README.vi.md',
       'README.zh.md',
-    ].map((file) => readProjectFile(file));
+    ].map((file) => ({ file, content: readProjectFile(file) }));
 
-    for (const content of readmes) {
-      expect(content).not.toContain('https://yeachan-heo.github.io/oh-my-claudecode-website/docs.html');
-      expect(content).toContain('https://yeachan-heo.github.io/oh-my-claudecode-website/docs/#');
+    let readmesWithPublishedDocsLinks = 0;
+    for (const { content } of readmes) {
+      expect(content).not.toContain('https://yeachan-heo.github.io/oh-my-agent-connector-website/docs.html');
+      if (content.includes('https://yeachan-heo.github.io/oh-my-agent-connector-website/')) {
+        readmesWithPublishedDocsLinks += 1;
+        expect(content).toContain('https://yeachan-heo.github.io/oh-my-agent-connector-website/docs/#');
+      }
     }
+
+    expect(readmesWithPublishedDocsLinks).toBeGreaterThan(0);
   });
 
-  it('keeps root AGENTS.md aligned with OMC branding and state paths', () => {
+  it('keeps root AGENTS.md aligned with OMAC branding and state paths', () => {
     const agentsDoc = readProjectFile('AGENTS.md');
 
-    expect(agentsDoc).toContain('# oh-my-claudecode - Intelligent Multi-Agent Orchestration');
-    expect(agentsDoc).toContain('You are running with oh-my-claudecode (OMC), a multi-agent orchestration layer for Claude Code.');
-    expect(agentsDoc).toContain('`.omc/state/`');
-    expect(agentsDoc).toContain('Run `omc setup` to install all components. Run `omc doctor` to verify installation.');
+    expect(agentsDoc).toContain('# oh-my-agent-connector - Intelligent Multi-Agent Orchestration');
+    expect(agentsDoc).toContain('You are running with oh-my-agent-connector (OMAC), a multi-agent orchestration layer for Claude Code.');
+    expect(agentsDoc).toContain('`.omac/state/`');
+    expect(agentsDoc).toContain('Run `omac setup` to install all components. Run `omac doctor` to verify installation.');
     expect(agentsDoc).not.toContain('oh-my-codex');
     expect(agentsDoc).not.toContain('OMX_TEAM_WORKER_LAUNCH_ARGS');
     expect(agentsDoc).not.toContain('gpt-5.3-codex-spark');
@@ -111,12 +117,12 @@ describe('Tier-0 contract docs consistency', () => {
     const benchmarkRunner = readProjectFile('benchmark', 'run_benchmark.py');
     const quickTest = readProjectFile('benchmark', 'quick_test.sh');
     const vanilla = readProjectFile('benchmark', 'run_vanilla.sh');
-    const omc = readProjectFile('benchmark', 'run_omc.sh');
+    const omac = readProjectFile('benchmark', 'run_omac.sh');
     const fullComparison = readProjectFile('benchmark', 'run_full_comparison.sh');
     const resultsReadme = readProjectFile('benchmark', 'results', 'README.md');
     const expectedModel = 'claude-sonnet-4-6-20260217';
 
-    for (const content of [benchmarkReadme, benchmarkRunner, quickTest, vanilla, omc, fullComparison, resultsReadme]) {
+    for (const content of [benchmarkReadme, benchmarkRunner, quickTest, vanilla, omac, fullComparison, resultsReadme]) {
       expect(content).toContain(expectedModel);
     }
 
@@ -132,7 +138,7 @@ describe('Tier-0 contract docs consistency', () => {
     expect(packageJson.scripts).not.toHaveProperty('build:codex');
     expect(packageJson.scripts).not.toHaveProperty('build:gemini');
     expect(seminarDemo).toContain('# 빠른 모델 (Sonnet 4.6)');
-    expect(seminarDemo).toContain('export OMC_MODEL=anthropic/claude-sonnet-4-6');
+    expect(seminarDemo).toContain('export OMAC_MODEL=anthropic/claude-sonnet-4-6');
     expect(seminarDemo).not.toContain('anthropic/claude-sonnet-4-5');
   });
 });

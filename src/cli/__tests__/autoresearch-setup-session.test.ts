@@ -24,7 +24,7 @@ describe('collectAutoresearchRepoSignals', () => {
   });
 
   it('collects generic repo signals from package.json and mission examples', () => {
-    const repo = mkdtempSync(join(tmpdir(), 'omc-autoresearch-signals-'));
+    const repo = mkdtempSync(join(tmpdir(), 'omac-autoresearch-signals-'));
     writeFileSync(join(repo, 'package.json'), JSON.stringify({ scripts: { test: 'vitest run', build: 'tsc --noEmit' } }), 'utf-8');
     mkdirSync(join(repo, 'missions', 'demo'), { recursive: true });
     writeFileSync(join(repo, 'missions', 'demo', 'sandbox.md'), '---\nevaluator:\n  command: npm run test\n  format: json\n---\n', 'utf-8');

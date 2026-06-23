@@ -10,14 +10,14 @@ import { existsSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'fs'
 import { join } from 'path';
 import {
   resolveStatePath,
-  ensureOmcDir,
+  ensureOmacDir,
   validateWorkingDirectory,
   resolveSessionStatePath,
   ensureSessionStateDir,
   listSessionIds,
   validateSessionId,
-  getOmcRoot,
-  OmcPaths,
+  getOmacRoot,
+  OmacPaths,
 } from '../lib/worktree-paths.js';
 import { resolveSessionId } from '../lib/session-id.js';
 import { atomicWriteJsonSync } from '../lib/atomic-write.js';
@@ -50,10 +50,10 @@ const EXECUTION_MODES: [string, ...string[]] = [
 const STATE_TOOL_MODES: [string, ...string[]] = [
   ...EXECUTION_MODES,
   'ralplan',
-  'omc-teams',
+  'omac-teams',
   'skill-active'
 ];
-const EXTRA_STATE_ONLY_MODES = ['ralplan', 'omc-teams', 'skill-active'] as const;
+const EXTRA_STATE_ONLY_MODES = ['ralplan', 'omac-teams', 'skill-active'] as const;
 type StateToolMode = typeof STATE_TOOL_MODES[number];
 const CANCEL_SIGNAL_TTL_MS = 30_000;
 const OWNER_SESSION_FALLBACK_MODES = new Set<StateToolMode>(['ralph']);
@@ -75,7 +75,7 @@ function readTeamNamesFromStateFile(statePath: string): string[] {
 }
 
 function pruneMissionBoardTeams(root: string, teamNames?: string[]): number {
-  const missionStatePath = join(getOmcRoot(root), 'state', 'mission-state.json');
+  const missionStatePath = join(getOmacRoot(root), 'state', 'mission-state.json');
   if (!existsSync(missionStatePath)) return 0;
 
   try {
@@ -114,7 +114,7 @@ function pruneMissionBoardTeams(root: string, teamNames?: string[]): number {
 }
 
 function cleanupTeamRuntimeState(root: string, teamNames?: string[]): number {
-  const teamStateRoot = join(getOmcRoot(root), 'state', 'team');
+  const teamStateRoot = join(getOmacRoot(root), 'state', 'team');
   if (!existsSync(teamStateRoot)) return 0;
 
   const shouldRemoveAll = teamNames == null;
@@ -162,30 +162,30 @@ function getLegacyStateFileCandidates(mode: StateToolMode, root: string): string
   const normalizedName = mode.endsWith('-state') ? mode : `${mode}-state`;
   const candidates = [
     getStatePath(mode, root),
-    join(getOmcRoot(root), `${normalizedName}.json`),
+    join(getOmacRoot(root), `${normalizedName}.json`),
   ];
 
   return [...new Set(candidates)];
 }
 
-function getWorkingDirectoryLocalOmcRoot(root: string): string {
-  return join(root, OmcPaths.ROOT);
+function getWorkingDirectoryLocalOmacRoot(root: string): string {
+  return join(root, OmacPaths.ROOT);
 }
 
 function shouldCheckWorkingDirectoryLocalState(root: string): boolean {
-  return getWorkingDirectoryLocalOmcRoot(root) !== getOmcRoot(root);
+  return getWorkingDirectoryLocalOmacRoot(root) !== getOmacRoot(root);
 }
 
 function getWorkingDirectoryLocalSessionStatePath(mode: StateToolMode, root: string, sessionId: string): string {
   const normalizedName = mode.endsWith('-state') ? mode : `${mode}-state`;
-  return join(getWorkingDirectoryLocalOmcRoot(root), 'state', 'sessions', sessionId, `${normalizedName}.json`);
+  return join(getWorkingDirectoryLocalOmacRoot(root), 'state', 'sessions', sessionId, `${normalizedName}.json`);
 }
 
 function getWorkingDirectoryLocalLegacyStateFileCandidates(mode: StateToolMode, root: string): string[] {
   const normalizedName = mode.endsWith('-state') ? mode : `${mode}-state`;
   return [
-    join(getWorkingDirectoryLocalOmcRoot(root), 'state', `${normalizedName}.json`),
-    join(getWorkingDirectoryLocalOmcRoot(root), `${normalizedName}.json`),
+    join(getWorkingDirectoryLocalOmacRoot(root), 'state', `${normalizedName}.json`),
+    join(getWorkingDirectoryLocalOmacRoot(root), `${normalizedName}.json`),
   ];
 }
 
@@ -379,7 +379,7 @@ function clearModeRuntimeArtifacts(
 ): { cleared: number; hadFailure: boolean } {
   let cleared = 0;
   let hadFailure = false;
-  const stateRoot = join(getOmcRoot(root), 'state');
+  const stateRoot = join(getOmacRoot(root), 'state');
   const candidateDirs = new Set<string>([stateRoot]);
 
   if (sessionId) {
@@ -685,7 +685,7 @@ export const stateWriteTool: ToolDefinition<{
           ? getStateFilePath(root, mode as ExecutionMode, sessionId)
           : resolveSessionStatePath(mode, sessionId, root);
       } else {
-        ensureOmcDir('state', root);
+        ensureOmacDir('state', root);
         statePath = getStatePath(mode, root);
       }
 
@@ -1022,7 +1022,7 @@ export const stateClearTool: ToolDefinition<{
           source: 'state_clear' as const,
         };
         // Write to legacy path (checked by stop hook fallback)
-        const legacySignalPath = join(getOmcRoot(root), 'state', 'cancel-signal-state.json');
+        const legacySignalPath = join(getOmacRoot(root), 'state', 'cancel-signal-state.json');
         try { atomicWriteJsonSync(legacySignalPath, cancelSignalPayload); } catch { /* best-effort */ }
         // Write to each session path (checked by stop hook primary check)
         for (const sid of listSessionIds(root)) {
@@ -1150,11 +1150,11 @@ export const stateListActiveTool: ToolDefinition<{
   all: z.ZodOptional<z.ZodBoolean>;
 }> = {
   name: 'state_list_active',
-  description: 'List all currently active modes. By default, scopes to the current session (OMC_SESSION_ID). Pass all:true to list active modes across all sessions.',
+  description: 'List all currently active modes. By default, scopes to the current session (OMAC_SESSION_ID). Pass all:true to list active modes across all sessions.',
   annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   schema: {
     workingDirectory: z.string().optional().describe('Working directory (defaults to cwd)'),
-    session_id: z.string().optional().describe('Explicit session ID to scope the listing. Overrides OMC_SESSION_ID when provided.'),
+    session_id: z.string().optional().describe('Explicit session ID to scope the listing. Overrides OMAC_SESSION_ID when provided.'),
     all: z.boolean().optional().describe('When true, list active modes across all sessions (legacy + every session-scoped dir). Overrides the default current-session scope.'),
   },
   handler: async (args) => {

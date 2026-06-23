@@ -1,8 +1,8 @@
 /**
- * Tests for `--plugin-dir` capture in `omc` launch.
+ * Tests for `--plugin-dir` capture in `omac` launch.
  *
  * Plan: binary-weaving-mountain — HUD wrapper resolves the active plugin root
- * from `process.env.OMC_PLUGIN_ROOT`, set by the `omc` CLI when the user
+ * from `process.env.OMAC_PLUGIN_ROOT`, set by the `omac` CLI when the user
  * passes `--plugin-dir <path>`. The flag must NOT be consumed (it still
  * forwards to Claude Code's plugin loader untouched).
  */
@@ -12,7 +12,7 @@ import { mkdtempSync, realpathSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import { join, resolve } from 'path';
 import { parsePluginDirArg, TMUX_ENV_FORWARD } from '../launch.js';
-import { OMC_PLUGIN_ROOT_ENV } from '../../lib/env-vars.js';
+import { OMAC_PLUGIN_ROOT_ENV } from '../../lib/env-vars.js';
 
 describe('parsePluginDirArg', () => {
   it('returns absolute path for "--plugin-dir <path>" form', () => {
@@ -26,13 +26,13 @@ describe('parsePluginDirArg', () => {
   });
 
   it('preserves Windows drive-letter absolute paths on non-Windows hosts', () => {
-    const out = parsePluginDirArg(['--plugin-dir', 'C:\\Users\\me\\omc']);
-    expect(out).toBe('C:\\Users\\me\\omc');
+    const out = parsePluginDirArg(['--plugin-dir', 'C:\\Users\\me\\omac']);
+    expect(out).toBe('C:\\Users\\me\\omac');
   });
 
   it('preserves Windows UNC absolute paths on non-Windows hosts', () => {
-    const out = parsePluginDirArg(['--plugin-dir=\\\\server\\share\\omc']);
-    expect(out).toBe('\\\\server\\share\\omc');
+    const out = parsePluginDirArg(['--plugin-dir=\\\\server\\share\\omac']);
+    expect(out).toBe('\\\\server\\share\\omac');
   });
 
   it('returns null when --plugin-dir is absent', () => {
@@ -51,9 +51,9 @@ describe('parsePluginDirArg', () => {
   });
 });
 
-describe('OMC_PLUGIN_ROOT tmux env forwarding', () => {
+describe('OMAC_PLUGIN_ROOT tmux env forwarding', () => {
   it('is included in TMUX_ENV_FORWARD so it survives tmux env scrubbing', () => {
-    expect(TMUX_ENV_FORWARD).toContain('OMC_PLUGIN_ROOT');
+    expect(TMUX_ENV_FORWARD).toContain('OMAC_PLUGIN_ROOT');
   });
 });
 
@@ -65,9 +65,9 @@ describe('OMC_PLUGIN_ROOT tmux env forwarding', () => {
  * the rest of `runClaude`. We also mock `./tmux-utils.js` so the launch policy
  * is forced to `direct` (no tmux dependency) and `claude` is reported as
  * available. CLAUDE_CONFIG_DIR is pointed at a throwaway tmpdir so
- * `prepareOmcLaunchConfigDir` short-circuits cheaply.
+ * `prepareOmacLaunchConfigDir` short-circuits cheaply.
  *
- * The thing under test: `launchCommand` mutates `process.env[OMC_PLUGIN_ROOT_ENV]`
+ * The thing under test: `launchCommand` mutates `process.env[OMAC_PLUGIN_ROOT_ENV]`
  * exactly when `--plugin-dir`/`--plugin-dir=` is present, and otherwise leaves
  * the parent value alone — that env then flows into the child via
  * `execFileSync`'s default env-inherit semantics.
@@ -85,8 +85,8 @@ vi.mock('child_process', async () => {
         // execFileSync inherits parent env when options.env is undefined,
         // so the source of truth is process.env at call time.
         capturedEnv = { ...(options?.env ?? process.env) };
-        const err: NodeJS.ErrnoException & { __omc?: symbol } = new Error('mocked claude exit');
-        err.__omc = SHORTCIRCUIT;
+        const err: NodeJS.ErrnoException & { __omac?: symbol } = new Error('mocked claude exit');
+        err.__omac = SHORTCIRCUIT;
         // Throwing aborts runClaude/launchCommand cleanly via the try/finally.
         throw err;
       }
@@ -105,21 +105,21 @@ vi.mock('../tmux-utils.js', async () => {
   };
 });
 
-describe('launchCommand → child env propagation (OMC_PLUGIN_ROOT)', () => {
+describe('launchCommand → child env propagation (OMAC_PLUGIN_ROOT)', () => {
   let tmpConfigDir: string;
   let savedEnv: { [k: string]: string | undefined };
   let savedCwd: string;
 
   beforeEach(() => {
-    tmpConfigDir = mkdtempSync(join(tmpdir(), 'omc-pdc-'));
+    tmpConfigDir = mkdtempSync(join(tmpdir(), 'omac-pdc-'));
     savedEnv = {
-      [OMC_PLUGIN_ROOT_ENV]: process.env[OMC_PLUGIN_ROOT_ENV],
+      [OMAC_PLUGIN_ROOT_ENV]: process.env[OMAC_PLUGIN_ROOT_ENV],
       CLAUDE_CONFIG_DIR: process.env.CLAUDE_CONFIG_DIR,
       CLAUDECODE: process.env.CLAUDECODE,
-      OMC_NOTIFY: process.env.OMC_NOTIFY,
+      OMAC_NOTIFY: process.env.OMAC_NOTIFY,
     };
     savedCwd = process.cwd();
-    delete process.env[OMC_PLUGIN_ROOT_ENV];
+    delete process.env[OMAC_PLUGIN_ROOT_ENV];
     delete process.env.CLAUDECODE;
     process.env.CLAUDE_CONFIG_DIR = tmpConfigDir;
     capturedEnv = null;
@@ -146,44 +146,44 @@ describe('launchCommand → child env propagation (OMC_PLUGIN_ROOT)', () => {
     }
   }
 
-  it('1. --plugin-dir <path> → child env contains absolute OMC_PLUGIN_ROOT', async () => {
+  it('1. --plugin-dir <path> → child env contains absolute OMAC_PLUGIN_ROOT', async () => {
     await runLaunch(['--plugin-dir', '/tmp/foo']);
     expect(capturedEnv).not.toBeNull();
-    expect(capturedEnv![OMC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/foo'));
+    expect(capturedEnv![OMAC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/foo'));
   });
 
-  it('2. --plugin-dir=<path> → child env contains absolute OMC_PLUGIN_ROOT', async () => {
+  it('2. --plugin-dir=<path> → child env contains absolute OMAC_PLUGIN_ROOT', async () => {
     await runLaunch(['--plugin-dir=/tmp/foo']);
     expect(capturedEnv).not.toBeNull();
-    expect(capturedEnv![OMC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/foo'));
+    expect(capturedEnv![OMAC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/foo'));
   });
 
-  it('3. no flag and no parent env → child env does not contain OMC_PLUGIN_ROOT', async () => {
+  it('3. no flag and no parent env → child env does not contain OMAC_PLUGIN_ROOT', async () => {
     await runLaunch([]);
     expect(capturedEnv).not.toBeNull();
-    expect(capturedEnv![OMC_PLUGIN_ROOT_ENV]).toBeUndefined();
+    expect(capturedEnv![OMAC_PLUGIN_ROOT_ENV]).toBeUndefined();
   });
 
   it('4. parent env set + --plugin-dir → argv wins over inherited env', async () => {
-    process.env[OMC_PLUGIN_ROOT_ENV] = '/tmp/bar';
+    process.env[OMAC_PLUGIN_ROOT_ENV] = '/tmp/bar';
     await runLaunch(['--plugin-dir', '/tmp/foo']);
-    expect(capturedEnv![OMC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/foo'));
+    expect(capturedEnv![OMAC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/foo'));
   });
 
-  it('5. parent env set + no flag → child inherits parent OMC_PLUGIN_ROOT', async () => {
-    process.env[OMC_PLUGIN_ROOT_ENV] = '/tmp/bar';
+  it('5. parent env set + no flag → child inherits parent OMAC_PLUGIN_ROOT', async () => {
+    process.env[OMAC_PLUGIN_ROOT_ENV] = '/tmp/bar';
     await runLaunch([]);
-    expect(capturedEnv![OMC_PLUGIN_ROOT_ENV]).toBe('/tmp/bar');
+    expect(capturedEnv![OMAC_PLUGIN_ROOT_ENV]).toBe('/tmp/bar');
   });
 
   it('6. relative --plugin-dir is resolved against the launch CWD', async () => {
     // realpath: macOS prefixes /tmp -> /private/var/..., and process.chdir
     // resolves the symlink, so the launch-time cwd uses the canonical path.
-    const knownCwd = realpathSync(mkdtempSync(join(tmpdir(), 'omc-pdc-cwd-')));
+    const knownCwd = realpathSync(mkdtempSync(join(tmpdir(), 'omac-pdc-cwd-')));
     try {
       process.chdir(knownCwd);
       await runLaunch(['--plugin-dir', './foo']);
-      expect(capturedEnv![OMC_PLUGIN_ROOT_ENV]).toBe(resolve(knownCwd, './foo'));
+      expect(capturedEnv![OMAC_PLUGIN_ROOT_ENV]).toBe(resolve(knownCwd, './foo'));
     } finally {
       try { process.chdir(savedCwd); } catch { /* ignore */ }
       try { rmSync(knownCwd, { recursive: true, force: true }); } catch { /* ignore */ }

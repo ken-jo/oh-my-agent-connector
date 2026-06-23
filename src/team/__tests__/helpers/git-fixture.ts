@@ -6,9 +6,9 @@
 // Design notes:
 //   - The "repo root" is a regular (non-bare) git repo at tmpDir/repo/
 //   - Worker worktrees live at tmpDir/worktrees/{workerName}/
-//   - Worker branches are omc-team/{teamName}/{workerName} (matching getBranchName)
-//   - Leader branch must NOT be main/master (M3 hardening) — defaults to 'omc-team-test-leader'
-//   - State dir (.omc/...) is created inside the repo root so orchestrator paths resolve
+//   - Worker branches are omac-team/{teamName}/{workerName} (matching getBranchName)
+//   - Leader branch must NOT be main/master (M3 hardening) — defaults to 'omac-team-test-leader'
+//   - State dir (.omac/...) is created inside the repo root so orchestrator paths resolve
 //   - simulateRuntimeRestart does NOT clean up the repo; it only kills the orchestrator
 //     handle (if set externally) and can optionally create an orphan rebase-merge dir.
 
@@ -90,7 +90,7 @@ export interface CreateGitFixtureOpts {
 export async function createGitFixture(opts: CreateGitFixtureOpts): Promise<GitFixture> {
   const {
     workerCount,
-    leaderBranchName = 'omc-team-test-leader',
+    leaderBranchName = 'omac-team-test-leader',
     teamName = 'test-team',
     keepLeaderBranchCheckedOut = false,
   } = opts;
@@ -102,7 +102,7 @@ export async function createGitFixture(opts: CreateGitFixtureOpts): Promise<GitF
   }
 
   // Create temp directory structure
-  const tmpBase = mkdtempSync(join(tmpdir(), 'omc-test-'));
+  const tmpBase = mkdtempSync(join(tmpdir(), 'omac-test-'));
   const repoRoot = join(tmpBase, 'repo');
   mkdirSync(repoRoot, { recursive: true });
 
@@ -125,13 +125,13 @@ export async function createGitFixture(opts: CreateGitFixtureOpts): Promise<GitF
   }
 
   // Create worker worktrees
-  const workersDir = join(repoRoot, '.omc', 'team', teamName, 'worktrees');
+  const workersDir = join(repoRoot, '.omac', 'team', teamName, 'worktrees');
   mkdirSync(workersDir, { recursive: true });
 
   const workers: WorkerFixture[] = [];
   for (let i = 0; i < workerCount; i++) {
     const workerName = `worker-${i + 1}`;
-    const branch = `omc-team/${teamName}/${workerName}`;
+    const branch = `omac-team/${teamName}/${workerName}`;
     const wtPath = join(workersDir, workerName);
 
     // Create a new branch and worktree
@@ -144,7 +144,7 @@ export async function createGitFixture(opts: CreateGitFixtureOpts): Promise<GitF
   }
 
   // Write worktrees.json metadata (needed by listTeamWorktrees / recoverFromRestart)
-  const worktreesMetaDir = join(repoRoot, '.omc', 'state', 'team', teamName);
+  const worktreesMetaDir = join(repoRoot, '.omac', 'state', 'team', teamName);
   mkdirSync(worktreesMetaDir, { recursive: true });
   const worktreesMeta = workers.map((w) => ({
     path: w.worktreePath,
@@ -229,7 +229,7 @@ export async function createGitFixture(opts: CreateGitFixtureOpts): Promise<GitF
           }
         }
         // Remove merger worktree if it exists
-        const mergerPath = join(repoRoot, '.omc', 'team', teamName, 'merger');
+        const mergerPath = join(repoRoot, '.omac', 'team', teamName, 'merger');
         if (existsSync(mergerPath)) {
           try {
             git(repoRoot, ['worktree', 'remove', '--force', mergerPath]);
@@ -334,5 +334,5 @@ export function readEventLog(eventLogPath: string): Array<{ type: string; worker
 
 /** Build the event log path for a team. */
 export function orchestratorEventLogPath(repoRoot: string, teamName: string): string {
-  return join(repoRoot, '.omc', 'state', 'team', teamName, 'orchestrator-events.jsonl');
+  return join(repoRoot, '.omac', 'state', 'team', teamName, 'orchestrator-events.jsonl');
 }

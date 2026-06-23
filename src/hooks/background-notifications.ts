@@ -20,7 +20,7 @@ export function dispatchNotificationInBackground(
   event: NotificationEvent,
   data: BackgroundNotificationData,
 ): void {
-  if (process.env.OMC_NOTIFY === "0") return;
+  if (process.env.OMAC_NOTIFY === "0") return;
 
   let serializedEvent: string;
   let serializedData: string;
@@ -47,7 +47,7 @@ export function dispatchNotificationInBackground(
       windowsHide: true,
       env: {
         ...process.env,
-        OMC_HOOK_BACKGROUND_CHILD: "1",
+        OMAC_HOOK_BACKGROUND_CHILD: "1",
       },
     });
     child.unref();

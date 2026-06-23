@@ -2,9 +2,9 @@ import { existsSync, readFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { cleanupTeamWorktrees } from '../team/git-worktree.js';
 import { validateTeamName } from '../team/team-name.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 
-export interface OmcTeamJob {
+export interface OmacTeamJob {
   status: 'running' | 'completed' | 'failed' | 'timeout';
   result?: string;
   stderr?: string;
@@ -31,8 +31,8 @@ type ArtifactOutcome =
   | { kind: 'terminal'; status: 'completed' | 'failed'; raw: string }
   | { kind: 'parse-failed'; message: string; payload: string };
 
-function readResultArtifact(omcJobsDir: string, jobId: string): ArtifactOutcome {
-  const artifactPath = join(omcJobsDir, `${jobId}-result.json`);
+function readResultArtifact(omacJobsDir: string, jobId: string): ArtifactOutcome {
+  const artifactPath = join(omacJobsDir, `${jobId}-result.json`);
   if (!existsSync(artifactPath)) return { kind: 'none' };
 
   let raw: string;
@@ -65,11 +65,11 @@ function readResultArtifact(omcJobsDir: string, jobId: string): ArtifactOutcome 
 }
 
 export function convergeJobWithResultArtifact(
-  job: OmcTeamJob,
+  job: OmacTeamJob,
   jobId: string,
-  omcJobsDir: string,
-): { job: OmcTeamJob; changed: boolean } {
-  const artifact = readResultArtifact(omcJobsDir, jobId);
+  omacJobsDir: string,
+): { job: OmacTeamJob; changed: boolean } {
+  const artifact = readResultArtifact(omacJobsDir, jobId);
   if (artifact.kind === 'none') return { job, changed: false };
 
   if (artifact.kind === 'terminal') {
@@ -100,11 +100,11 @@ export function convergeJobWithResultArtifact(
   };
 }
 
-export function isJobTerminal(job: OmcTeamJob): boolean {
+export function isJobTerminal(job: OmacTeamJob): boolean {
   return job.status === 'completed' || job.status === 'failed' || job.status === 'timeout';
 }
 
-export function clearScopedTeamState(job: Pick<OmcTeamJob, 'cwd' | 'teamName'>): ScopedTeamStateCleanupResult {
+export function clearScopedTeamState(job: Pick<OmacTeamJob, 'cwd' | 'teamName'>): ScopedTeamStateCleanupResult {
   if (!job.cwd || !job.teamName) {
     return { ok: true, message: 'team state cleanup skipped (missing job cwd/teamName).' };
   }
@@ -118,7 +118,7 @@ export function clearScopedTeamState(job: Pick<OmcTeamJob, 'cwd' | 'teamName'>):
     };
   }
 
-  const stateDir = join(getOmcRoot(job.cwd), 'state', 'team', job.teamName);
+  const stateDir = join(getOmacRoot(job.cwd), 'state', 'team', job.teamName);
   let worktreeMessage = 'worktree cleanup skipped.';
   try {
     const cleanup = cleanupTeamWorktrees(job.teamName, job.cwd);

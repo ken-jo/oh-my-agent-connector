@@ -24,7 +24,7 @@ describe('project-session-manager review worktree hardening', () => {
   });
 
   it('bootstraps review worktrees with best-effort dependency reuse when package.json matches', () => {
-    const root = mkdtempSync(join(tmpdir(), 'omc-psm-review-'));
+    const root = mkdtempSync(join(tmpdir(), 'omac-psm-review-'));
     tempDirs.push(root);
 
     const repo = join(root, 'repo');
@@ -54,7 +54,7 @@ describe('project-session-manager review worktree hardening', () => {
   });
 
   it('skips dependency reuse when package.json differs', () => {
-    const root = mkdtempSync(join(tmpdir(), 'omc-psm-review-mismatch-'));
+    const root = mkdtempSync(join(tmpdir(), 'omac-psm-review-mismatch-'));
     tempDirs.push(root);
 
     const repo = join(root, 'repo');

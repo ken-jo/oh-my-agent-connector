@@ -1,9 +1,9 @@
 /**
  * Integration tests for multi-repo workspace anchor behaviour (Wave 4).
  *
- * Verifies getOmcRoot, getProjectIdentifier, resolveSessionStatePaths,
- * findWorkspaceRoot, and OMC_STATE_DIR precedence across sibling sub-repos
- * that share a .omc-workspace marker at a common parent directory.
+ * Verifies getOmacRoot, getProjectIdentifier, resolveSessionStatePaths,
+ * findWorkspaceRoot, and OMAC_STATE_DIR precedence across sibling sub-repos
+ * that share a .omac-workspace marker at a common parent directory.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -11,7 +11,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
-  getOmcRoot,
+  getOmacRoot,
   getProjectIdentifier,
   resolveSessionStatePaths,
   findWorkspaceRoot,
@@ -22,12 +22,12 @@ describe('multi-repo workspace anchor', () => {
   let parent: string;
   let repoA: string;
   let repoB: string;
-  const savedOMC_STATE_DIR = process.env.OMC_STATE_DIR;
+  const savedOMAC_STATE_DIR = process.env.OMAC_STATE_DIR;
 
   beforeEach(() => {
     clearWorktreeCache();
-    // Fresh temp parent dir per test — no .git, no .omc-workspace yet
-    parent = mkdtempSync(join(tmpdir(), 'omc-multirepo-'));
+    // Fresh temp parent dir per test — no .git, no .omac-workspace yet
+    parent = mkdtempSync(join(tmpdir(), 'omac-multirepo-'));
     repoA = join(parent, 'repoA');
     repoB = join(parent, 'repoB');
     mkdirSync(repoA, { recursive: true });
@@ -36,29 +36,29 @@ describe('multi-repo workspace anchor', () => {
 
   afterEach(() => {
     clearWorktreeCache();
-    // Restore OMC_STATE_DIR
-    if (savedOMC_STATE_DIR === undefined) {
-      delete process.env.OMC_STATE_DIR;
+    // Restore OMAC_STATE_DIR
+    if (savedOMAC_STATE_DIR === undefined) {
+      delete process.env.OMAC_STATE_DIR;
     } else {
-      process.env.OMC_STATE_DIR = savedOMC_STATE_DIR;
+      process.env.OMAC_STATE_DIR = savedOMAC_STATE_DIR;
     }
     if (parent) rmSync(parent, { recursive: true, force: true });
   });
 
-  it('sibling sub-repos both resolve .omc root to the parent workspace anchor', () => {
-    writeFileSync(join(parent, '.omc-workspace'), '{}');
+  it('sibling sub-repos both resolve .omac root to the parent workspace anchor', () => {
+    writeFileSync(join(parent, '.omac-workspace'), '{}');
     clearWorktreeCache();
 
-    const rootA = getOmcRoot(repoA);
-    const rootB = getOmcRoot(repoB);
-    const expected = join(parent, '.omc');
+    const rootA = getOmacRoot(repoA);
+    const rootB = getOmacRoot(repoB);
+    const expected = join(parent, '.omac');
 
     expect(rootA).toBe(expected);
     expect(rootB).toBe(expected);
   });
 
   it('sibling sub-repos share the same project identifier', () => {
-    writeFileSync(join(parent, '.omc-workspace'), '{}');
+    writeFileSync(join(parent, '.omac-workspace'), '{}');
     clearWorktreeCache();
 
     const idA = getProjectIdentifier(repoA);
@@ -71,7 +71,7 @@ describe('multi-repo workspace anchor', () => {
   });
 
   it('marker with {"id":"myws"} derives project identifier from sanitized id', () => {
-    writeFileSync(join(parent, '.omc-workspace'), JSON.stringify({ id: 'myws' }));
+    writeFileSync(join(parent, '.omac-workspace'), JSON.stringify({ id: 'myws' }));
     clearWorktreeCache();
 
     const id = getProjectIdentifier(repoA);
@@ -83,7 +83,7 @@ describe('multi-repo workspace anchor', () => {
   });
 
   it('session state paths for two sessions under the same workspace are isolated', () => {
-    writeFileSync(join(parent, '.omc-workspace'), '{}');
+    writeFileSync(join(parent, '.omac-workspace'), '{}');
     clearWorktreeCache();
 
     const pathsA = resolveSessionStatePaths('ralph', 'sessA', repoA);
@@ -92,24 +92,24 @@ describe('multi-repo workspace anchor', () => {
     // Write paths must differ
     expect(pathsA.effectiveWrite).not.toBe(pathsB.effectiveWrite);
 
-    // Both write paths must live under the shared workspace .omc/state/sessions/
-    const sessionsRoot = join(parent, '.omc', 'state', 'sessions');
+    // Both write paths must live under the shared workspace .omac/state/sessions/
+    const sessionsRoot = join(parent, '.omac', 'state', 'sessions');
     expect(pathsA.effectiveWrite.startsWith(sessionsRoot)).toBe(true);
     expect(pathsB.effectiveWrite.startsWith(sessionsRoot)).toBe(true);
   });
 
-  it('OMC_STATE_DIR overrides workspace marker and ignores .omc-workspace', () => {
-    writeFileSync(join(parent, '.omc-workspace'), '{}');
+  it('OMAC_STATE_DIR overrides workspace marker and ignores .omac-workspace', () => {
+    writeFileSync(join(parent, '.omac-workspace'), '{}');
     clearWorktreeCache();
 
-    const stateDir = mkdtempSync(join(tmpdir(), 'omc-statedir-'));
+    const stateDir = mkdtempSync(join(tmpdir(), 'omac-statedir-'));
     try {
-      process.env.OMC_STATE_DIR = stateDir;
+      process.env.OMAC_STATE_DIR = stateDir;
       clearWorktreeCache();
 
-      const root = getOmcRoot(repoA);
+      const root = getOmacRoot(repoA);
 
-      // Must resolve under OMC_STATE_DIR, not under the workspace marker parent
+      // Must resolve under OMAC_STATE_DIR, not under the workspace marker parent
       expect(root.startsWith(stateDir)).toBe(true);
       expect(root.startsWith(parent)).toBe(false);
     } finally {
@@ -118,7 +118,7 @@ describe('multi-repo workspace anchor', () => {
   });
 
   it('findWorkspaceRoot walks up from a sub-repo and finds the parent marker', () => {
-    writeFileSync(join(parent, '.omc-workspace'), '{}');
+    writeFileSync(join(parent, '.omac-workspace'), '{}');
     clearWorktreeCache();
 
     const wsRoot = findWorkspaceRoot(repoA);

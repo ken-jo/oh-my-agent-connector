@@ -10,7 +10,7 @@ const HOOKS_PATH = join(process.cwd(), 'hooks', 'hooks.json');
 const tempDirs: string[] = [];
 
 function makeTempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'omc-context-safety-'));
+  const dir = mkdtempSync(join(tmpdir(), 'omac-context-safety-'));
   tempDirs.push(dir);
   return dir;
 }
@@ -80,7 +80,7 @@ describe('context-safety hook (issues #1006, #1597)', () => {
         session_id: 'session-1597',
         cwd: dir,
       },
-      { OMC_CONTEXT_SAFETY_THRESHOLD: '55' }
+      { OMAC_CONTEXT_SAFETY_THRESHOLD: '55' }
     );
 
     expect(result.exitCode).toBe(0);

@@ -9,7 +9,7 @@ import {
   extendLeaderBootstrapPrompt,
 } from '../leader-inbox.js';
 
-const TEST_CWD = join(tmpdir(), `omc-test-leader-inbox-${process.pid}`);
+const TEST_CWD = join(tmpdir(), `omac-test-leader-inbox-${process.pid}`);
 const TEST_TEAM = 'my-team';
 
 beforeEach(() => {
@@ -27,7 +27,7 @@ afterEach(() => {
 describe('leaderInboxPath', () => {
   it('returns correct path under cwd', () => {
     const p = leaderInboxPath(TEST_TEAM, TEST_CWD);
-    expect(p).toBe(join(TEST_CWD, '.omc/state/team/my-team/leader/inbox.md'));
+    expect(p).toBe(join(TEST_CWD, '.omac/state/team/my-team/leader/inbox.md'));
   });
 
   it('sanitizes team name (strips special chars)', () => {
@@ -57,7 +57,7 @@ describe('leaderInboxPath', () => {
 describe('ensureLeaderInbox', () => {
   it('creates the leader directory', async () => {
     await ensureLeaderInbox(TEST_TEAM, TEST_CWD);
-    const dir = join(TEST_CWD, '.omc/state/team/my-team/leader');
+    const dir = join(TEST_CWD, '.omac/state/team/my-team/leader');
     expect(existsSync(dir)).toBe(true);
   });
 
@@ -126,7 +126,7 @@ describe('appendToLeaderInbox', () => {
 
   it('creates parent directories if missing', async () => {
     // Fresh cwd with no pre-existing dirs
-    const freshCwd = join(tmpdir(), `omc-test-leader-inbox-fresh-${process.pid}`);
+    const freshCwd = join(tmpdir(), `omac-test-leader-inbox-fresh-${process.pid}`);
     try {
       mkdirSync(freshCwd, { recursive: true });
       await appendToLeaderInbox('newteam', 'msg', freshCwd);
@@ -145,7 +145,7 @@ describe('appendToLeaderInbox', () => {
 describe('extendLeaderBootstrapPrompt', () => {
   it('contains the canonical leader inbox path', () => {
     const prompt = extendLeaderBootstrapPrompt(TEST_TEAM);
-    expect(prompt).toContain('.omc/state/team/my-team/leader/inbox.md');
+    expect(prompt).toContain('.omac/state/team/my-team/leader/inbox.md');
   });
 
   it('contains "check this file" instruction', () => {
@@ -165,7 +165,7 @@ describe('extendLeaderBootstrapPrompt', () => {
     // team-name segment of the path must not contain '!' or spaces.
     expect(prompt).not.toContain('!');
     // Extract the path segment from the prompt and verify no spaces in it
-    const pathMatch = prompt.match(/\.omc\/state\/team\/([^/]+)\/leader\/inbox\.md/);
+    const pathMatch = prompt.match(/\.omac\/state\/team\/([^/]+)\/leader\/inbox\.md/);
     expect(pathMatch).not.toBeNull();
     expect(pathMatch![1]).not.toContain('!');
     expect(pathMatch![1]).not.toContain(' ');
@@ -175,7 +175,7 @@ describe('extendLeaderBootstrapPrompt', () => {
     const prompt = extendLeaderBootstrapPrompt(TEST_TEAM);
     const fullPath = leaderInboxPath(TEST_TEAM, TEST_CWD);
     // The prompt uses relative path; fullPath has cwd prefix
-    const relSegment = `.omc/state/team/my-team/leader/inbox.md`;
+    const relSegment = `.omac/state/team/my-team/leader/inbox.md`;
     expect(fullPath).toContain(relSegment);
     expect(prompt).toContain(relSegment);
   });

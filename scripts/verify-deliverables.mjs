@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * OMC Deliverable Verification Hook (SubagentStop)
+ * OMAC Deliverable Verification Hook (SubagentStop)
  *
  * Checks that completing agents actually produced their expected deliverables.
  * A task can be marked "completed" with zero output files — this hook catches
  * that gap by verifying file existence and minimum content.
  *
  * Deliverable requirements are loaded from (in priority order):
- *   1. .omc/deliverables.json (project-specific overrides)
- *   2. ${CLAUDE_PLUGIN_ROOT}/templates/deliverables.json (OMC defaults)
+ *   1. .omac/deliverables.json (project-specific overrides)
+ *   2. ${CLAUDE_PLUGIN_ROOT}/templates/deliverables.json (OMAC defaults)
  *
  * This hook is ADVISORY (non-blocking). It returns additionalContext warnings
  * when deliverables are missing, but never prevents the agent from stopping.
@@ -23,7 +23,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, normalize, isAbsolute, resolve } from 'node:path';
 import { readStdin } from './lib/stdin.mjs';
-import { resolveOmcStateRoot } from './lib/state-root.mjs';
+import { resolveOmacStateRoot } from './lib/state-root.mjs';
 
 /**
  * Sanitize a file path to prevent directory traversal attacks.
@@ -38,19 +38,19 @@ function sanitizePath(filePath) {
 }
 
 /**
- * Load deliverable requirements from project config or OMC defaults.
+ * Load deliverable requirements from project config or OMAC defaults.
  */
-function loadDeliverableConfig(directory, omcRoot) {
-  const _omcRoot = omcRoot;
+function loadDeliverableConfig(directory, omacRoot) {
+  const _omacRoot = omacRoot;
   // Priority 1: Project-specific overrides
-  const projectConfig = join(_omcRoot, 'deliverables.json');
+  const projectConfig = join(_omacRoot, 'deliverables.json');
   if (existsSync(projectConfig)) {
     try {
       return JSON.parse(readFileSync(projectConfig, 'utf-8'));
     } catch { /* fall through to defaults */ }
   }
 
-  // Priority 2: OMC defaults
+  // Priority 2: OMAC defaults
   const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT;
   if (pluginRoot) {
     const defaultConfig = join(pluginRoot, 'templates', 'deliverables.json');
@@ -65,13 +65,13 @@ function loadDeliverableConfig(directory, omcRoot) {
 }
 
 /**
- * Determine the current team stage from OMC state.
+ * Determine the current team stage from OMAC state.
  */
-function detectStage(directory, sessionId, omcRoot) {
-  const _omcRoot = omcRoot;
+function detectStage(directory, sessionId, omacRoot) {
+  const _omacRoot = omacRoot;
   // Try session-scoped state first
   if (sessionId) {
-    const sessionState = join(_omcRoot, 'state', 'sessions', sessionId, 'team-state.json');
+    const sessionState = join(_omacRoot, 'state', 'sessions', sessionId, 'team-state.json');
     if (existsSync(sessionState)) {
       try {
         const data = JSON.parse(readFileSync(sessionState, 'utf-8'));
@@ -81,7 +81,7 @@ function detectStage(directory, sessionId, omcRoot) {
   }
 
   // Fallback to legacy state
-  const legacyState = join(_omcRoot, 'state', 'team-state.json');
+  const legacyState = join(_omacRoot, 'state', 'team-state.json');
   if (existsSync(legacyState)) {
     try {
       const data = JSON.parse(readFileSync(legacyState, 'utf-8'));
@@ -150,10 +150,10 @@ async function main() {
 
     const directory = data.cwd || data.directory || process.cwd();
     const sessionId = data.session_id || data.sessionId || '';
-    const omcRoot = await resolveOmcStateRoot(directory);
+    const omacRoot = await resolveOmacStateRoot(directory);
 
     // Load deliverable config
-    const config = loadDeliverableConfig(directory, omcRoot);
+    const config = loadDeliverableConfig(directory, omacRoot);
     if (!config) {
       // No config found — nothing to verify
       console.log(JSON.stringify({ continue: true, suppressOutput: true }));
@@ -161,7 +161,7 @@ async function main() {
     }
 
     // Detect current stage
-    const stage = detectStage(directory, sessionId, omcRoot);
+    const stage = detectStage(directory, sessionId, omacRoot);
     if (!stage) {
       // No team stage detected — skip verification
       console.log(JSON.stringify({ continue: true, suppressOutput: true }));
@@ -218,7 +218,7 @@ async function main() {
 
     // Build advisory warning
     const warnings = issues.map(i => `  - ${i.path}: ${i.reason}`).join('\n');
-    const message = `[OMC] Deliverable verification for stage "${stage}":\n` +
+    const message = `[OMAC] Deliverable verification for stage "${stage}":\n` +
       `${issues.length} issue(s) found:\n${warnings}\n` +
       `These deliverables may be expected by the next stage.`;
 

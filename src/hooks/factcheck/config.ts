@@ -1,7 +1,7 @@
 /**
  * Factcheck Guard Configuration
  *
- * Loads guard config from the OMC config system with token expansion
+ * Loads guard config from the OMAC config system with token expansion
  * and deep merge over sensible defaults.
  */
 
@@ -18,8 +18,8 @@ const DEFAULT_FACTCHECK_POLICY: FactcheckPolicy = {
   enabled: false,
   mode: 'quick',
   strict_project_patterns: [],
-  forbidden_path_prefixes: ['${CLAUDE_CONFIG_DIR}/plugins/cache/omc/'],
-  forbidden_path_substrings: ['/.omc/', '.omc-config.json'],
+  forbidden_path_prefixes: ['${CLAUDE_CONFIG_DIR}/plugins/cache/omac/'],
+  forbidden_path_substrings: ['/.omac/', '.omac-config.json'],
   readonly_command_prefixes: [
     'ls ', 'cat ', 'find ', 'grep ', 'head ', 'tail ', 'stat ', 'echo ', 'wc ',
   ],
@@ -53,7 +53,7 @@ export const DEFAULT_GUARDS_CONFIG: GuardsConfig = {
  */
 export function expandTokens(value: string, workspace?: string): string {
   const home = homedir();
-  const ws = workspace ?? process.env.OMC_WORKSPACE ?? process.cwd();
+  const ws = workspace ?? process.env.OMAC_WORKSPACE ?? process.cwd();
   return value
     .replace(/\$\{HOME\}/g, home)
     .replace(/\$\{WORKSPACE\}/g, ws)
@@ -112,9 +112,9 @@ function deepMergeGuards(
 // ---------------------------------------------------------------------------
 
 /**
- * Load guards config from the OMC config system.
+ * Load guards config from the OMAC config system.
  *
- * Reads the `guards` key from the merged OMC config, deep-merges over
+ * Reads the `guards` key from the merged OMAC config, deep-merges over
  * defaults, and expands ${HOME}/${WORKSPACE}/${CLAUDE_CONFIG_DIR} tokens.
  */
 export function loadGuardsConfig(workspace?: string): GuardsConfig {

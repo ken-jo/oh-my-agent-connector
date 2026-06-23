@@ -34,7 +34,7 @@ interface CliInput {
 
 export function assertAutoMergeRuntimeSupported(useV2: boolean, autoMerge: boolean): void {
   if (autoMerge && !useV2) {
-    throw new Error('--auto-merge requires runtime v2; unset OMC_RUNTIME_V2=0 or disable --auto-merge');
+    throw new Error('--auto-merge requires runtime v2; unset OMAC_RUNTIME_V2=0 or disable --auto-merge');
   }
 }
 
@@ -131,11 +131,11 @@ export async function checkWatchdogFailedMarker(
 export async function writeResultArtifact(
   output: CliOutput,
   finishedAt: string,
-  jobId: string | undefined = process.env.OMC_JOB_ID,
-  omcJobsDir: string | undefined = process.env.OMC_JOBS_DIR,
+  jobId: string | undefined = process.env.OMAC_JOB_ID,
+  omacJobsDir: string | undefined = process.env.OMAC_JOBS_DIR,
 ): Promise<void> {
-  if (!jobId || !omcJobsDir) return;
-  const resultPath = join(omcJobsDir, `${jobId}-result.json`);
+  if (!jobId || !omacJobsDir) return;
+  const resultPath = join(omacJobsDir, `${jobId}-result.json`);
   const tmpPath = `${resultPath}.tmp`;
   await writeFile(
     tmpPath,
@@ -174,7 +174,7 @@ export function buildTerminalCliResult(
   return {
     output: buildCliOutput(stateRoot, teamName, status, workerCount, startTimeMs),
     exitCode: status === 'completed' ? 0 : 1,
-    notice: `[runtime-cli] phase=${phase} reached terminal state; preserving team state for inspection. Run "omc team shutdown ${teamName}" when explicit cleanup is desired.\n`,
+    notice: `[runtime-cli] phase=${phase} reached terminal state; preserving team state for inspection. Run "omac team shutdown ${teamName}" when explicit cleanup is desired.\n`,
   };
 }
 
@@ -185,10 +185,10 @@ async function writePanesFile(
   sessionName: string,
   ownsWindow: boolean,
 ): Promise<void> {
-  const omcJobsDir = process.env.OMC_JOBS_DIR;
-  if (!jobId || !omcJobsDir) return;
+  const omacJobsDir = process.env.OMAC_JOBS_DIR;
+  if (!jobId || !omacJobsDir) return;
 
-  const panesPath = join(omcJobsDir, `${jobId}-panes.json`);
+  const panesPath = join(omacJobsDir, `${jobId}-panes.json`);
   await writeFile(
     panesPath + '.tmp',
     JSON.stringify({ paneIds: [...paneIds], leaderPaneId, sessionName, ownsWindow }),
@@ -271,7 +271,7 @@ export function readTaskOutputFallback(
 function collectTaskResults(stateRoot: string): TaskResult[] {
   const tasksDir = join(stateRoot, 'tasks');
   const teamName = basename(stateRoot);
-  // stateRoot is `<omcRoot>/state/team/<teamName>`; outputs live at `<omcRoot>/outputs`.
+  // stateRoot is `<omacRoot>/state/team/<teamName>`; outputs live at `<omacRoot>/outputs`.
   const outputsDir = join(stateRoot, '..', '..', '..', 'outputs');
   try {
     const files = readdirSync(tasksDir).filter(f => f.endsWith('.json'));
@@ -344,7 +344,7 @@ async function main(): Promise<void> {
   } = input;
 
   const workerCount = input.workerCount ?? agentTypes.length;
-  const stateRoot = join(cwd, `.omc/state/team/${teamName}`);
+  const stateRoot = join(cwd, `.omac/state/team/${teamName}`);
 
   const config: TeamConfig = {
     teamName,
@@ -465,8 +465,8 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Persist pane IDs so MCP server can clean up explicitly via omc_run_team_cleanup.
-  const jobId = process.env.OMC_JOB_ID;
+  // Persist pane IDs so MCP server can clean up explicitly via omac_run_team_cleanup.
+  const jobId = process.env.OMAC_JOB_ID;
   const expectedTaskCount = tasks.length;
   let mismatchStreak = 0;
   try {

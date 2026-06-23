@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Session Health Element
+ * OMAC HUD - Session Health Element
  *
  * Renders session duration and health indicator.
  */

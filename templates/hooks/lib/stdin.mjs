@@ -1,7 +1,7 @@
 /**
- * Shared stdin utilities for OMC hooks
+ * Shared stdin utilities for OMAC hooks
  * Provides timeout-protected stdin reading to prevent hangs on Linux and Windows
- * See: https://github.com/Yeachan-Heo/oh-my-claudecode/issues/240
+ * See: https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/240
  */
 
 /**

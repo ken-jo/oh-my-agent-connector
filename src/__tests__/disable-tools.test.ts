@@ -1,27 +1,27 @@
 /**
- * Tests for OMC_DISABLE_TOOLS env var support
+ * Tests for OMAC_DISABLE_TOOLS env var support
  *
  * Verifies that parseDisabledGroups() correctly maps user-facing group names
  * to ToolCategory values, and that the filtering logic works as expected.
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { parseDisabledGroups, DISABLE_TOOLS_GROUP_MAP } from '../mcp/omc-tools-server.js';
+import { parseDisabledGroups, DISABLE_TOOLS_GROUP_MAP } from '../mcp/omac-tools-server.js';
 import { TOOL_CATEGORIES } from '../constants/index.js';
 
-describe('OMC_DISABLE_TOOLS', () => {
+describe('OMAC_DISABLE_TOOLS', () => {
   let savedEnv: string | undefined;
 
   beforeEach(() => {
-    savedEnv = process.env.OMC_DISABLE_TOOLS;
-    delete process.env.OMC_DISABLE_TOOLS;
+    savedEnv = process.env.OMAC_DISABLE_TOOLS;
+    delete process.env.OMAC_DISABLE_TOOLS;
   });
 
   afterEach(() => {
     if (savedEnv !== undefined) {
-      process.env.OMC_DISABLE_TOOLS = savedEnv;
+      process.env.OMAC_DISABLE_TOOLS = savedEnv;
     } else {
-      delete process.env.OMC_DISABLE_TOOLS;
+      delete process.env.OMAC_DISABLE_TOOLS;
     }
   });
 
@@ -177,15 +177,15 @@ describe('OMC_DISABLE_TOOLS', () => {
         expect(result.size).toBe(0);
       });
 
-      it('reads from process.env.OMC_DISABLE_TOOLS when no argument given', () => {
-        process.env.OMC_DISABLE_TOOLS = 'lsp,ast';
+      it('reads from process.env.OMAC_DISABLE_TOOLS when no argument given', () => {
+        process.env.OMAC_DISABLE_TOOLS = 'lsp,ast';
         const result = parseDisabledGroups();
         expect(result.has(TOOL_CATEGORIES.LSP)).toBe(true);
         expect(result.has(TOOL_CATEGORIES.AST)).toBe(true);
       });
 
       it('explicit argument takes precedence over env var', () => {
-        process.env.OMC_DISABLE_TOOLS = 'lsp';
+        process.env.OMAC_DISABLE_TOOLS = 'lsp';
         const result = parseDisabledGroups('ast');
         expect(result.has(TOOL_CATEGORIES.AST)).toBe(true);
         expect(result.has(TOOL_CATEGORIES.LSP)).toBe(false);

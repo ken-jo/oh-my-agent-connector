@@ -1,15 +1,15 @@
 /**
- * Tests for `--plugin-dir-mode` setup flag and `OMC_PLUGIN_ROOT` auto-detection.
+ * Tests for `--plugin-dir-mode` setup flag and `OMAC_PLUGIN_ROOT` auto-detection.
  *
  * Behavior under test (from src/installer/index.ts and src/cli/index.ts):
  *   1. `pluginDirMode: true` → install() does NOT copy legacy agents and does NOT
  *      install bundled skills, but still installs HUD/hooks/CLAUDE.md.
- *   2. `OMC_PLUGIN_ROOT` env var (set by `omc --plugin-dir`) → CLI auto-detects
+ *   2. `OMAC_PLUGIN_ROOT` env var (set by `omac --plugin-dir`) → CLI auto-detects
  *      and behaves as if `--plugin-dir-mode` were passed.
  *   3. No flag, no env var → existing behavior (legacy agents + bundled skills
  *      still copied when no plugin is enabled).
  *   4. `--no-plugin` + `--plugin-dir-mode` → `--no-plugin` wins (skills copied).
- *   5. Real OMC plugin enabled → existing skip behavior unchanged (independent
+ *   5. Real OMAC plugin enabled → existing skip behavior unchanged (independent
  *      of pluginDirMode).
  *
  * These tests run install() against a throwaway CLAUDE_CONFIG_DIR and assert on
@@ -31,12 +31,12 @@ async function freshInstaller() {
 }
 
 beforeEach(() => {
-  testDir = mkdtempSync(join(tmpdir(), 'omc-pdm-'));
+  testDir = mkdtempSync(join(tmpdir(), 'omac-pdm-'));
   // Force a clean, isolated config dir for every test
   process.env.CLAUDE_CONFIG_DIR = testDir;
   // Avoid plugin auto-detection from the developer's real ~/.claude
   delete process.env.CLAUDE_PLUGIN_ROOT;
-  delete process.env.OMC_PLUGIN_ROOT;
+  delete process.env.OMAC_PLUGIN_ROOT;
 });
 
 afterEach(() => {
@@ -69,7 +69,7 @@ describe('install() with pluginDirMode option', () => {
   });
 
   it('3. neither flag nor env var → existing behavior copies legacy agents/skills', async () => {
-    const { install, hasEnabledOmcPlugin } = await freshInstaller();
+    const { install, hasEnabledOmacPlugin } = await freshInstaller();
     const result = install({
       verbose: false,
       skipClaudeCheck: true,
@@ -78,7 +78,7 @@ describe('install() with pluginDirMode option', () => {
     // If a plugin happens to be enabled in the host environment, the assertion
     // collapses to "skip is correct under existing rules". Otherwise we expect
     // legacy agents to have been written.
-    if (!hasEnabledOmcPlugin()) {
+    if (!hasEnabledOmacPlugin()) {
       expect(result.installedAgents.length).toBeGreaterThan(0);
       expect(existsSync(join(testDir, 'agents'))).toBe(true);
     }
@@ -99,14 +99,14 @@ describe('install() with pluginDirMode option', () => {
   });
 });
 
-// CLI-level precedence rules (--plugin-dir-mode flag, OMC_PLUGIN_ROOT
+// CLI-level precedence rules (--plugin-dir-mode flag, OMAC_PLUGIN_ROOT
 // auto-detection, --no-plugin conflict) are exercised against the real
 // commander pipeline in src/cli/__tests__/setup-command-precedence.test.ts.
 // They used to be re-implemented inline here as a `resolvePluginDirMode`
 // helper, which drifted from the production logic in src/cli/index.ts.
 
-describe('5. real OMC plugin enabled → existing skip behavior unchanged', () => {
-  it('hasEnabledOmcPlugin() result drives skip independently of pluginDirMode', async () => {
+describe('5. real OMAC plugin enabled → existing skip behavior unchanged', () => {
+  it('hasEnabledOmacPlugin() result drives skip independently of pluginDirMode', async () => {
     // We can't reliably toggle the host's settings.json from inside a unit test,
     // so we just assert the install() call short-circuits identically when both
     // (a) pluginDirMode=true and (b) host plugin detection says skip — i.e. no

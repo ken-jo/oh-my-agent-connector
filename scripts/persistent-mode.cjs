@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * OMC Persistent Mode Hook (Node.js)
- * Minimal continuation enforcer for all OMC modes.
+ * OMAC Persistent Mode Hook (Node.js)
+ * Minimal continuation enforcer for all OMAC modes.
  * Stripped down for reliability — no optional imports, no PRD, no notepad pruning.
  *
  * Supported modes: ralph, autopilot, ultrapilot, swarm, ultrawork, ultraqa, pipeline, team
@@ -25,7 +25,7 @@ const { execFileSync } = require("child_process");
 const { homedir } = require("os");
 const { join, dirname, resolve, normalize } = require("path");
 const { getClaudeConfigDir } = require("./lib/config-dir.cjs");
-const { resolveOmcStateRoot } = require("./lib/state-root.cjs");
+const { resolveOmacStateRoot } = require("./lib/state-root.cjs");
 
 async function readStdin(timeoutMs = 2000) {
   return new Promise((resolve) => {
@@ -71,11 +71,11 @@ function shouldWriteStateBack(path) {
 }
 
 /**
- * Read the session-idle notification cooldown in seconds from ~/.omc/config.json.
+ * Read the session-idle notification cooldown in seconds from ~/.omac/config.json.
  * Default: 60. 0 = disabled.
  */
 function getIdleCooldownSeconds() {
-  const configPath = join(homedir(), '.omc', 'config.json');
+  const configPath = join(homedir(), '.omac', 'config.json');
   const config = readJsonFile(configPath);
   const val = config?.notificationCooldown?.sessionIdleSeconds;
   if (typeof val === 'number') return val;
@@ -473,7 +473,7 @@ function getAutopilotPhase(state) {
 
 function isAutopilotRoutingEchoPrompt(promptText) {
   return /^\[MAGIC KEYWORDS?(?: DETECTED)?:\s*AUTOPILOT\s*\]\s*$/i.test(promptText) ||
-    /^\/(?:oh-my-claudecode:|omc:)?autopilot(?:\s+execute)?\s*$/i.test(promptText);
+    /^\/(?:oh-my-agent-connector:|omac:)?autopilot(?:\s+execute)?\s*$/i.test(promptText);
 }
 
 function isOrphanedAutopilotRoutingEchoState(state) {
@@ -550,7 +550,7 @@ function writeStopBreaker(stateDir, name, count, sessionId) {
 /**
  * Check if a cancel signal is in progress for the session.
  * Cancel signals are written by state_clear and expire after 30 seconds.
- * @param {string} stateDir - The .omc/state directory path
+ * @param {string} stateDir - The .omac/state directory path
  * @param {string} sessionId - Optional session ID
  * @returns {boolean} true if cancel is in progress
  */
@@ -788,9 +788,9 @@ async function countIncompleteTodos(sessionId, projectDir) {
   }
 
   // Project-local todos only
-  const omcRoot = await resolveOmcStateRoot(projectDir);
+  const omacRoot = await resolveOmacStateRoot(projectDir);
   for (const path of [
-    join(omcRoot, "todos.json"),
+    join(omacRoot, "todos.json"),
     join(projectDir, ".claude", "todos.json"),
   ]) {
     try {
@@ -856,7 +856,7 @@ function getLiveUltraworkObjective(state) {
  * Blocking these stops causes a deadlock: can't compact because can't stop,
  * can't continue because context is full.
  *
- * See: https://github.com/Yeachan-Heo/oh-my-claudecode/issues/213
+ * See: https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/213
  */
 function isContextLimitStop(data) {
   const reasons = [
@@ -1010,12 +1010,12 @@ async function main() {
 
     const directory = data.cwd || data.directory || process.cwd();
     const sessionId = data.session_id || data.sessionId || "";
-    const omcRoot = await resolveOmcStateRoot(directory);
-    const stateDir = join(omcRoot, "state");
+    const omacRoot = await resolveOmacStateRoot(directory);
+    const stateDir = join(omacRoot, "state");
 
     // CRITICAL: Never block context-limit stops.
     // Blocking these causes a deadlock where Claude Code cannot compact.
-    // See: https://github.com/Yeachan-Heo/oh-my-claudecode/issues/213
+    // See: https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/213
     if (isContextLimitStop(data)) {
       console.log(JSON.stringify({ continue: true, suppressOutput: true }));
       return;
@@ -1058,7 +1058,7 @@ async function main() {
     const pipeline = readStateFileWithSession(stateDir, "pipeline-state.json", sessionId);
     const team = readStateFileWithSession(stateDir, "team-state.json", sessionId);
     const ralplan = readStateFileWithSession(stateDir, "ralplan-state.json", sessionId);
-    const omcTeams = readStateFileWithSession(stateDir, "omc-teams-state.json", sessionId);
+    const omacTeams = readStateFileWithSession(stateDir, "omac-teams-state.json", sessionId);
 
     // Swarm uses swarm-summary.json (not swarm-state.json) + marker file
     const swarmMarker = existsSync(join(stateDir, "swarm-active.marker"));
@@ -1095,7 +1095,7 @@ async function main() {
         // Fire-and-forget notification
         sendStopNotification('ralph', ralph.state, sessionId, directory).catch(() => {});
 
-        const ralphReason = `[RALPH LOOP - ITERATION ${iteration + 1}/${maxIter}] Work is NOT done. Continue working.\nWhen FULLY complete (after Architect verification), run /oh-my-claudecode:cancel to cleanly exit ralph mode and clean up all state files. If cancel fails, retry with /oh-my-claudecode:cancel --force.\n${ralph.state.prompt ? `Task: ${ralph.state.prompt}` : ""}`;
+        const ralphReason = `[RALPH LOOP - ITERATION ${iteration + 1}/${maxIter}] Work is NOT done. Continue working.\nWhen FULLY complete (after Architect verification), run /oh-my-agent-connector:cancel to cleanly exit ralph mode and clean up all state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force.\n${ralph.state.prompt ? `Task: ${ralph.state.prompt}` : ""}`;
         console.log(
           JSON.stringify({
             decision: "block",
@@ -1113,7 +1113,7 @@ async function main() {
           return;
         }
         writeJsonFile(ralph.path, ralph.state);
-        const extendReason = `[RALPH LOOP - EXTENDED] Max iterations reached; extending to ${ralph.state.max_iterations} and continuing. When FULLY complete (after Architect verification), run /oh-my-claudecode:cancel (or --force).`;
+        const extendReason = `[RALPH LOOP - EXTENDED] Max iterations reached; extending to ${ralph.state.max_iterations} and continuing. When FULLY complete (after Architect verification), run /oh-my-agent-connector:cancel (or --force).`;
         console.log(JSON.stringify({ decision: "block", reason: extendReason }));
         return;
       }
@@ -1139,7 +1139,7 @@ async function main() {
           sendStopNotification('autopilot', autopilot.state, sessionId, directory).catch(() => {});
 
           const cancelGuidance = typeof autopilot.state.session_id === "string" && autopilot.state.session_id === sessionId
-            ? " When all phases are complete, run /oh-my-claudecode:cancel to cleanly exit and clean up this session's autopilot state files. If cancel fails, retry with /oh-my-claudecode:cancel --force."
+            ? " When all phases are complete, run /oh-my-agent-connector:cancel to cleanly exit and clean up this session's autopilot state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force."
             : "";
           console.log(
             JSON.stringify({
@@ -1202,7 +1202,7 @@ async function main() {
                   writeStopBreaker(stateDir, "team-pipeline", breakerCount, sessionId);
                   sendStopNotification("team", team.state, sessionId, directory).catch(() => {});
 
-                  const teamPipelineReason = `[TEAM PIPELINE - PHASE: ${phase.toUpperCase()} | REINFORCEMENT ${breakerCount}/${TEAM_PIPELINE_STOP_BLOCKER_MAX}] The team pipeline is active in phase "${phase}". Continue working on the team workflow. Do not stop until the pipeline reaches a terminal state (complete/failed/cancelled). When done, run /oh-my-claudecode:cancel to cleanly exit.`;
+                  const teamPipelineReason = `[TEAM PIPELINE - PHASE: ${phase.toUpperCase()} | REINFORCEMENT ${breakerCount}/${TEAM_PIPELINE_STOP_BLOCKER_MAX}] The team pipeline is active in phase "${phase}". Continue working on the team workflow. Do not stop until the pipeline reaches a terminal state (complete/failed/cancelled). When done, run /oh-my-agent-connector:cancel to cleanly exit.`;
                   console.log(JSON.stringify({
                     decision: "block",
                     reason: teamPipelineReason,
@@ -1244,7 +1244,7 @@ async function main() {
 
           sendStopNotification("ralplan", ralplan.state, sessionId, directory).catch(() => {});
 
-          const ralplanReason = `[RALPLAN - CONSENSUS PLANNING | REINFORCEMENT ${breakerCount}/${RALPLAN_STOP_BLOCKER_MAX}] The ralplan consensus workflow is active. Continue the Planner/Architect/Critic planning loop only. Ralplan is read-only/planning mode: do not implement, invoke execution skills, edit source, commit, push, or open PRs from this continuation. When consensus is reached, stop at a pending-approval handoff and require explicit user approval before execution. When done, run /oh-my-claudecode:cancel to cleanly exit.`;
+          const ralplanReason = `[RALPLAN - CONSENSUS PLANNING | REINFORCEMENT ${breakerCount}/${RALPLAN_STOP_BLOCKER_MAX}] The ralplan consensus workflow is active. Continue the Planner/Architect/Critic planning loop only. Ralplan is read-only/planning mode: do not implement, invoke execution skills, edit source, commit, push, or open PRs from this continuation. When consensus is reached, stop at a pending-approval handoff and require explicit user approval before execution. When done, run /oh-my-agent-connector:cancel to cleanly exit.`;
           console.log(JSON.stringify({
             decision: "block",
             reason: ralplanReason,
@@ -1273,7 +1273,7 @@ async function main() {
           console.log(
             JSON.stringify({
               decision: "block",
-              reason: `[ULTRAPILOT] ${incomplete} workers still running. Continue working. When all workers complete, run /oh-my-claudecode:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-claudecode:cancel --force.`,
+              reason: `[ULTRAPILOT] ${incomplete} workers still running. Continue working. When all workers complete, run /oh-my-agent-connector:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`,
             }),
           );
           return;
@@ -1298,7 +1298,7 @@ async function main() {
           console.log(
             JSON.stringify({
               decision: "block",
-              reason: `[SWARM ACTIVE] ${pending} tasks remain. Continue working. When all tasks are done, run /oh-my-claudecode:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-claudecode:cancel --force.`,
+              reason: `[SWARM ACTIVE] ${pending} tasks remain. Continue working. When all tasks are done, run /oh-my-agent-connector:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`,
             }),
           );
           return;
@@ -1323,7 +1323,7 @@ async function main() {
           console.log(
             JSON.stringify({
               decision: "block",
-              reason: `[PIPELINE - Stage ${currentStage + 1}/${totalStages}] Pipeline not complete. Continue working. When all stages complete, run /oh-my-claudecode:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-claudecode:cancel --force.`,
+              reason: `[PIPELINE - Stage ${currentStage + 1}/${totalStages}] Pipeline not complete. Continue working. When all stages complete, run /oh-my-agent-connector:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`,
             }),
           );
           return;
@@ -1347,7 +1347,7 @@ async function main() {
           console.log(
             JSON.stringify({
               decision: "block",
-              reason: `[TEAM - Phase: ${phase}] Team mode active. Continue working. When all team tasks complete, run /oh-my-claudecode:cancel to cleanly exit. If cancel fails, retry with /oh-my-claudecode:cancel --force.`,
+              reason: `[TEAM - Phase: ${phase}] Team mode active. Continue working. When all team tasks complete, run /oh-my-agent-connector:cancel to cleanly exit. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`,
             }),
           );
           return;
@@ -1355,23 +1355,23 @@ async function main() {
       }
     }
 
-    // Priority 6.5: OMC Teams (tmux CLI workers — independent of native team state)
-    if (omcTeams.state?.active && !isStaleState(omcTeams.state) && isSessionMatch(omcTeams.state, sessionId)) {
-      const phase = normalizeTeamPhase(omcTeams.state);
+    // Priority 6.5: OMAC Teams (tmux CLI workers — independent of native team state)
+    if (omacTeams.state?.active && !isStaleState(omacTeams.state) && isSessionMatch(omacTeams.state, sessionId)) {
+      const phase = normalizeTeamPhase(omacTeams.state);
       if (phase) {
-        const newCount = getSafeReinforcementCount(omcTeams.state.reinforcement_count) + 1;
+        const newCount = getSafeReinforcementCount(omacTeams.state.reinforcement_count) + 1;
         if (newCount <= 20) {
-          omcTeams.state.reinforcement_count = newCount;
-          omcTeams.state.last_checked_at = new Date().toISOString();
-          writeJsonFile(omcTeams.path, omcTeams.state);
+          omacTeams.state.reinforcement_count = newCount;
+          omacTeams.state.last_checked_at = new Date().toISOString();
+          writeJsonFile(omacTeams.path, omacTeams.state);
 
           // Fire-and-forget notification
-          sendStopNotification('omc-teams', omcTeams.state, sessionId, directory).catch(() => {});
+          sendStopNotification('omac-teams', omacTeams.state, sessionId, directory).catch(() => {});
 
           console.log(
             JSON.stringify({
               decision: "block",
-              reason: `[OMC TEAMS - Phase: ${phase}] OMC Teams workers active. Continue working. When all workers complete, run /oh-my-claudecode:cancel to cleanly exit. If cancel fails, retry with /oh-my-claudecode:cancel --force.`,
+              reason: `[OMAC TEAMS - Phase: ${phase}] OMAC Teams workers active. Continue working. When all workers complete, run /oh-my-agent-connector:cancel to cleanly exit. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`,
             }),
           );
           return;
@@ -1394,7 +1394,7 @@ async function main() {
         console.log(
           JSON.stringify({
             decision: "block",
-            reason: `[ULTRAQA - Cycle ${cycle + 1}/${maxCycles}] Tests not all passing. Continue fixing. When all tests pass, run /oh-my-claudecode:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-claudecode:cancel --force.`,
+            reason: `[ULTRAQA - Cycle ${cycle + 1}/${maxCycles}] Tests not all passing. Continue fixing. When all tests pass, run /oh-my-agent-connector:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`,
           }),
         );
         return;
@@ -1451,16 +1451,16 @@ async function main() {
 
       if (totalIncomplete > 0) {
         const itemType = taskCount > 0 ? "Tasks" : "todos";
-        reason += ` ${totalIncomplete} incomplete ${itemType} remain. Continue working. When all work is complete, run /oh-my-claudecode:cancel to cleanly exit ultrawork mode and clean up state files.`;
+        reason += ` ${totalIncomplete} incomplete ${itemType} remain. Continue working. When all work is complete, run /oh-my-agent-connector:cancel to cleanly exit ultrawork mode and clean up state files.`;
       } else if (newCount >= 5) {
         // Strong directive: LLM must call cancel NOW
-        reason += ` No incomplete tasks detected. You MUST invoke /oh-my-claudecode:cancel immediately to exit ultrawork mode and clean up state files. Call state_clear(mode="ultrawork") if the cancel skill is unavailable.`;
+        reason += ` No incomplete tasks detected. You MUST invoke /oh-my-agent-connector:cancel immediately to exit ultrawork mode and clean up state files. Call state_clear(mode="ultrawork") if the cancel skill is unavailable.`;
       } else if (newCount >= 3) {
         // Reinforce clean-exit guidance once no tracked work remains.
-        reason += ` If all work is complete, run /oh-my-claudecode:cancel to cleanly exit ultrawork mode and clean up state files. If cancel fails, retry with /oh-my-claudecode:cancel --force. Otherwise, continue working.`;
+        reason += ` If all work is complete, run /oh-my-agent-connector:cancel to cleanly exit ultrawork mode and clean up state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force. Otherwise, continue working.`;
       } else {
         // Early iterations with no tasks yet still need an immediately visible exit path.
-        reason += ` No incomplete tasks detected. If all work is complete, run /oh-my-claudecode:cancel to cleanly exit ultrawork mode and clean up state files. Otherwise, continue working - create Tasks to track your progress.`;
+        reason += ` No incomplete tasks detected. If all work is complete, run /oh-my-agent-connector:cancel to cleanly exit ultrawork mode and clean up state files. Otherwise, continue working - create Tasks to track your progress.`;
       }
 
       const currentObjective = getLiveUltraworkObjective(ultrawork.state);

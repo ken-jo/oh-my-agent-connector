@@ -1,5 +1,5 @@
 /**
- * `omc doctor team-routing` — probe configured /team role-routing providers.
+ * `omac doctor team-routing` — probe configured /team role-routing providers.
  *
  * Iterates every unique provider referenced by `team.roleRouting` (falling back
  * to `claude` when config is empty) and checks CLI presence on PATH.
@@ -74,7 +74,7 @@ export async function doctorTeamRoutingCommand(options: { json?: boolean }): Pro
   try {
     providers = collectConfiguredProviders();
   } catch (err) {
-    console.error(`[OMC] Failed to load config: ${err instanceof Error ? err.message : String(err)}`);
+    console.error(`[OMAC] Failed to load config: ${err instanceof Error ? err.message : String(err)}`);
     return 1;
   }
 

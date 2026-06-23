@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * OMC HUD - Main Entry Point
+ * OMAC HUD - Main Entry Point
  *
- * Statusline command that visualizes oh-my-claudecode state.
+ * Statusline command that visualizes oh-my-agent-connector state.
  * Receives stdin JSON from Claude Code and outputs formatted statusline.
  */
 
@@ -29,7 +29,7 @@ import {
   readUltraworkStateForHud,
   readPrdStateForHud,
   readAutopilotStateForHud,
-} from "./omc-state.js";
+} from "./omac-state.js";
 import { getUsage, getSubscriptionInfo } from "./usage-api.js";
 import { executeCustomProvider } from "./custom-rate-provider.js";
 import { render } from "./render.js";
@@ -55,7 +55,7 @@ import { access, readFile } from "fs/promises";
 import { join, basename, dirname } from "path";
 import { spawn } from "child_process";
 import { fileURLToPath } from "url";
-import { getOmcRoot } from "../lib/worktree-paths.js";
+import { getOmacRoot } from "../lib/worktree-paths.js";
 import { getClaudeConfigDir, getUpdateCheckCachePath } from "../utils/config-dir.js";
 
 /**
@@ -167,7 +167,7 @@ function spawnSessionSummaryScript(
   );
 
   if (!existsSync(scriptPath)) {
-    if (process.env.OMC_DEBUG) {
+    if (process.env.OMAC_DEBUG) {
       console.error("[HUD] session-summary script not found:", scriptPath);
     }
     return;
@@ -187,7 +187,7 @@ function spawnSessionSummaryScript(
     child.unref();
   } catch (error) {
     summaryProcessPid = null;
-    if (process.env.OMC_DEBUG) {
+    if (process.env.OMAC_DEBUG) {
       console.error(
         "[HUD] Failed to spawn session-summary:",
         error instanceof Error ? error.message : error,
@@ -213,12 +213,12 @@ async function calculateSessionHealth(
 
 /**
  * Show installation diagnostic when called from CLI without stdin.
- * Helps users verify HUD setup after omc-setup.
+ * Helps users verify HUD setup after omac-setup.
  */
 function showDiagnostic(): void {
   const version = getRuntimePackageVersion();
   const configDir = getClaudeConfigDir();
-  const hudScript = join(configDir, "hud", "omc-hud.mjs");
+  const hudScript = join(configDir, "hud", "omac-hud.mjs");
   const settingsFile = join(configDir, "settings.json");
 
   const hudExists = existsSync(hudScript);
@@ -227,9 +227,9 @@ function showDiagnostic(): void {
     const settings = JSON.parse(readFileSync(settingsFile, "utf-8"));
     const sl = settings.statusLine;
     if (sl && typeof sl === "object" && typeof (sl as Record<string, unknown>).command === "string") {
-      statusLineOk = ((sl as Record<string, unknown>).command as string).includes("omc-hud");
+      statusLineOk = ((sl as Record<string, unknown>).command as string).includes("omac-hud");
     } else if (typeof sl === "string") {
-      statusLineOk = sl.includes("omc-hud");
+      statusLineOk = sl.includes("omac-hud");
     }
   } catch {
     /* settings.json missing or invalid */
@@ -238,12 +238,12 @@ function showDiagnostic(): void {
   const config = readHudConfig();
   const preset = config.preset ?? "focused";
 
-  console.log(`[OMC] HUD v${version} | preset: ${preset}`);
+  console.log(`[OMAC] HUD v${version} | preset: ${preset}`);
   console.log(`  HUD script:  ${hudExists ? "installed" : "MISSING"}`);
   console.log(`  statusLine:  ${statusLineOk ? "configured" : "NOT configured"}`);
 
   if (!hudExists || !statusLineOk) {
-    console.log("  Run /oh-my-claudecode:hud setup to fix.");
+    console.log("  Run /oh-my-agent-connector:hud setup to fix.");
   } else {
     console.log("  HUD renders automatically inside Claude Code sessions.");
   }
@@ -268,7 +268,7 @@ async function main(watchMode = false, skipInit = false): Promise<void> {
       stdin = previousStdinCache;
       if (!stdin) {
         // Cache not yet populated (first poll before statusline fires)
-        console.log("[OMC] Starting...");
+        console.log("[OMAC] Starting...");
         return;
       }
     } else {
@@ -318,7 +318,7 @@ async function main(watchMode = false, skipInit = false): Promise<void> {
       await initializeHUDState(cwd, currentSessionId ?? undefined);
     }
 
-    // Read OMC state files
+    // Read OMAC state files
     const ralph = readRalphStateForHud(cwd, currentSessionId ?? undefined);
     const ultrawork = readUltraworkStateForHud(
       cwd,
@@ -376,15 +376,15 @@ async function main(watchMode = false, skipInit = false): Promise<void> {
         ? await executeCustomProvider(config.rateLimitsProvider)
         : null;
 
-    // Read OMC version and update check cache
-    let omcVersion: string | null = null;
+    // Read OMAC version and update check cache
+    let omacVersion: string | null = null;
     let updateAvailable: string | null = null;
     try {
-      omcVersion = getRuntimePackageVersion();
-      if (omcVersion === "unknown") omcVersion = null;
+      omacVersion = getRuntimePackageVersion();
+      if (omacVersion === "unknown") omacVersion = null;
     } catch (error) {
       // Ignore version detection errors
-      if (process.env.OMC_DEBUG) {
+      if (process.env.OMAC_DEBUG) {
         console.error(
           "[HUD] Version detection error:",
           error instanceof Error ? error.message : error,
@@ -399,14 +399,14 @@ async function main(watchMode = false, skipInit = false): Promise<void> {
       const cached = JSON.parse(content);
       if (
         cached?.latestVersion &&
-        omcVersion &&
-        compareVersions(omcVersion, cached.latestVersion) < 0
+        omacVersion &&
+        compareVersions(omacVersion, cached.latestVersion) < 0
       ) {
         updateAvailable = cached.latestVersion;
       }
     } catch (error) {
       // Ignore update cache read errors - expected if file doesn't exist yet
-      if (process.env.OMC_DEBUG) {
+      if (process.env.OMAC_DEBUG) {
         console.error(
           "[HUD] Update cache read error:",
           error instanceof Error ? error.message : error,
@@ -418,8 +418,8 @@ async function main(watchMode = false, skipInit = false): Promise<void> {
     let sessionSummary: SessionSummaryState | null = null;
     const sessionSummaryEnabled = config.elements.sessionSummary ?? false;
     if (sessionSummaryEnabled && resolvedTranscriptPath && currentSessionId) {
-      const omcStateDir = join(getOmcRoot(cwd), "state");
-      sessionSummary = readSessionSummary(omcStateDir, currentSessionId);
+      const omacStateDir = join(getOmacRoot(cwd), "state");
+      sessionSummary = readSessionSummary(omacStateDir, currentSessionId);
 
       // Debounce: only spawn script if cache is absent or older than 60 seconds.
       // This prevents spawning a child process on every HUD poll (every ~1s).
@@ -431,7 +431,7 @@ async function main(watchMode = false, skipInit = false): Promise<void> {
       if (shouldSpawn) {
         spawnSessionSummaryScript(
           resolvedTranscriptPath,
-          omcStateDir,
+          omacStateDir,
           currentSessionId,
         );
       }
@@ -478,7 +478,7 @@ async function main(watchMode = false, skipInit = false): Promise<void> {
       sessionHealth: await calculateSessionHealth(sessionStart, contextPercent),
       lastRequestTokenUsage: transcriptData.lastRequestTokenUsage || null,
       sessionTotalTokens: transcriptData.sessionTotalTokens ?? null,
-      omcVersion,
+      omacVersion,
       updateAvailable,
       toolCallCount: transcriptData.toolCallCount,
       agentCallCount: transcriptData.agentCallCount,
@@ -499,8 +499,8 @@ async function main(watchMode = false, skipInit = false): Promise<void> {
       payloadEstimate,
     };
 
-    // Debug: log data if OMC_DEBUG is set
-    if (process.env.OMC_DEBUG) {
+    // Debug: log data if OMAC_DEBUG is set
+    if (process.env.OMAC_DEBUG) {
       console.error(
         "[HUD DEBUG] stdin.context_window:",
         JSON.stringify(stdin.context_window),
@@ -521,9 +521,9 @@ async function main(watchMode = false, skipInit = false): Promise<void> {
       context.contextPercent >= config.contextLimitWarning.threshold
     ) {
       try {
-        const omcStateDir = join(getOmcRoot(cwd), "state");
-        mkdirSync(omcStateDir, { recursive: true });
-        const triggerFile = join(omcStateDir, "compact-requested.json");
+        const omacStateDir = join(getOmacRoot(cwd), "state");
+        mkdirSync(omacStateDir, { recursive: true });
+        const triggerFile = join(omacStateDir, "compact-requested.json");
         writeFileSync(
           triggerFile,
           JSON.stringify({
@@ -534,7 +534,7 @@ async function main(watchMode = false, skipInit = false): Promise<void> {
         );
       } catch (error) {
         // Silent failure — don't break HUD rendering
-        if (process.env.OMC_DEBUG) {
+        if (process.env.OMAC_DEBUG) {
           console.error(
             "[HUD] Auto-compact trigger write error:",
             error instanceof Error ? error.message : error,
@@ -576,21 +576,21 @@ async function main(watchMode = false, skipInit = false): Promise<void> {
         error.message.includes("Cannot find module"));
 
     if (isInstallError) {
-      console.log("[OMC] run /omc-setup to install properly");
+      console.log("[OMAC] run /omac-setup to install properly");
     } else {
       // Output fallback message to stdout for status line visibility
-      console.log("[OMC] HUD error - check stderr");
+      console.log("[OMAC] HUD error - check stderr");
       // Log actual runtime errors to stderr for debugging
       console.error(
-        "[OMC HUD Error]",
+        "[OMAC HUD Error]",
         error instanceof Error ? error.message : error,
       );
     }
   }
 }
 
-// Export for programmatic use (e.g., omc hud --watch loop)
+// Export for programmatic use (e.g., omac hud --watch loop)
 export { main };
 
-// Auto-run (unconditional so dynamic import() via omc-hud.mjs wrapper works correctly)
+// Auto-run (unconditional so dynamic import() via omac-hud.mjs wrapper works correctly)
 main();

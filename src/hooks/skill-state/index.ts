@@ -27,8 +27,8 @@
  *   1. `writeSkillActiveStateCopies()` is the only helper allowed to persist
  *      workflow-slot state. Every workflow-slot write, confirm, tombstone, TTL
  *      pruning, and hard-clear must update BOTH
- *        - `.omc/state/skill-active-state.json`
- *        - `.omc/state/sessions/{sessionId}/skill-active-state.json`
+ *        - `.omac/state/skill-active-state.json`
+ *        - `.omac/state/sessions/{sessionId}/skill-active-state.json`
  *      together through this single helper.
  *   2. Support-skill writes go through the same helper so the shared file
  *      never drops the `active_skills` branch.
@@ -70,7 +70,7 @@ export const CANONICAL_WORKFLOW_SKILLS = [
 export type CanonicalWorkflowSkill = typeof CANONICAL_WORKFLOW_SKILLS[number];
 
 export function isCanonicalWorkflowSkill(skillName: string): skillName is CanonicalWorkflowSkill {
-  const normalized = skillName.toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = skillName.toLowerCase().replace(/^oh-my-agent-connector:/, '');
   return (CANONICAL_WORKFLOW_SKILLS as readonly string[]).includes(normalized);
 }
 
@@ -109,7 +109,7 @@ const SKILL_PROTECTION: Record<string, SkillProtectionLevel> = {
   ralph: 'none',
   ultrawork: 'none',
   team: 'none',
-  'omc-teams': 'none',
+  'omac-teams': 'none',
   ultraqa: 'none',
   ralplan: 'none',
   'self-improve': 'none',
@@ -118,9 +118,9 @@ const SKILL_PROTECTION: Record<string, SkillProtectionLevel> = {
   // === Instant / read-only → no protection needed ===
   trace: 'none',
   hud: 'none',
-  'omc-doctor': 'none',
-  'omc-help': 'none',
-  'learn-about-omc': 'none',
+  'omac-doctor': 'none',
+  'omac-help': 'none',
+  'learn-about-omac': 'none',
   note: 'none',
 
   // === Light protection (simple shortcuts, 3 reinforcements) ===
@@ -129,16 +129,16 @@ const SKILL_PROTECTION: Record<string, SkillProtectionLevel> = {
   'configure-notifications': 'light',
 
   // === Medium protection (review/planning, 5 reinforcements) ===
-  'omc-plan': 'medium',
+  'omac-plan': 'medium',
   plan: 'medium',
   'deep-interview': 'heavy',
   review: 'medium',
   'external-context': 'medium',
   'ai-slop-cleaner': 'medium',
-  sciomc: 'medium',
+  sciomac: 'medium',
   skillify: 'medium',
   learner: 'medium',
-  'omc-setup': 'medium',
+  'omac-setup': 'medium',
   setup: 'medium',
   'mcp-setup': 'medium',
   'project-session-manager': 'medium',
@@ -153,10 +153,10 @@ const SKILL_PROTECTION: Record<string, SkillProtectionLevel> = {
 };
 
 export function getSkillProtection(skillName: string, rawSkillName?: string): SkillProtectionLevel {
-  if (rawSkillName != null && !rawSkillName.toLowerCase().startsWith('oh-my-claudecode:')) {
+  if (rawSkillName != null && !rawSkillName.toLowerCase().startsWith('oh-my-agent-connector:')) {
     return 'none';
   }
-  const normalized = skillName.toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = skillName.toLowerCase().replace(/^oh-my-agent-connector:/, '');
   return SKILL_PROTECTION[normalized] ?? 'none';
 }
 
@@ -297,7 +297,7 @@ export function upsertWorkflowSkillSlot(
   skillName: string,
   slotData: Partial<ActiveSkillSlot> = {},
 ): SkillActiveStateV2 {
-  const normalized = skillName.toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = skillName.toLowerCase().replace(/^oh-my-agent-connector:/, '');
   const existing = state.active_skills[normalized];
   const now = new Date().toISOString();
 
@@ -341,7 +341,7 @@ export function markWorkflowSkillCompleted(
   skillName: string,
   now: string = new Date().toISOString(),
 ): SkillActiveStateV2 {
-  const normalized = skillName.toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = skillName.toLowerCase().replace(/^oh-my-agent-connector:/, '');
   const existing = state.active_skills[normalized];
   if (!existing) return state;
   const updated: ActiveSkillSlot = { ...existing, completed_at: now };
@@ -356,7 +356,7 @@ export function clearWorkflowSkillSlot(
   state: SkillActiveStateV2,
   skillName: string,
 ): SkillActiveStateV2 {
-  const normalized = skillName.toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = skillName.toLowerCase().replace(/^oh-my-agent-connector:/, '');
   if (!(normalized in state.active_skills)) return state;
   const next: Record<string, ActiveSkillSlot> = { ...state.active_skills };
   delete next[normalized];
@@ -436,7 +436,7 @@ export function isWorkflowSkillLive(
   state: SkillActiveStateV2,
   skillName: string,
 ): boolean {
-  const normalized = skillName.toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = skillName.toLowerCase().replace(/^oh-my-agent-connector:/, '');
   const slot = state.active_skills[normalized];
   return !!slot && !slot.completed_at;
 }
@@ -452,7 +452,7 @@ export function isWorkflowSkillTombstoned(
   ttlMs: number = WORKFLOW_TOMBSTONE_TTL_MS,
   now: number = Date.now(),
 ): boolean {
-  const normalized = skillName.toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = skillName.toLowerCase().replace(/^oh-my-agent-connector:/, '');
   const slot = state.active_skills[normalized];
   if (!slot || !slot.completed_at) return false;
   const tombstonedAt = new Date(slot.completed_at).getTime();
@@ -525,8 +525,8 @@ export function readSkillActiveStateNormalized(
 /**
  * THE ONLY HELPER allowed to persist workflow-slot state.
  *
- * Writes BOTH root `.omc/state/skill-active-state.json` AND session
- * `.omc/state/sessions/{sessionId}/skill-active-state.json` together. When a
+ * Writes BOTH root `.omac/state/skill-active-state.json` AND session
+ * `.omac/state/sessions/{sessionId}/skill-active-state.json` together. When a
  * resolved state is empty (no slots, no support_skill), the corresponding
  * file is removed instead — the absence of a file is the canonical empty
  * state.
@@ -613,7 +613,7 @@ export function readSkillActiveState(
  * copies together via `writeSkillActiveStateCopies()`.
  *
  * @param rawSkillName - Original skill name as invoked. When provided without
- *   the `oh-my-claudecode:` prefix, protection returns 'none' to avoid
+ *   the `oh-my-agent-connector:` prefix, protection returns 'none' to avoid
  *   confusion with user-defined project skills of the same name (#1581).
  */
 export function writeSkillActiveState(
@@ -627,7 +627,7 @@ export function writeSkillActiveState(
 
   const config = PROTECTION_CONFIGS[protection];
   const now = new Date().toISOString();
-  const normalized = skillName.toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = skillName.toLowerCase().replace(/^oh-my-agent-connector:/, '');
 
   const existingV2 = readSkillActiveStateNormalized(directory, sessionId);
   const existing = existingV2.support_skill;

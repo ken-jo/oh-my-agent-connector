@@ -12,9 +12,9 @@ import { readHeartbeat, isWorkerAlive } from './heartbeat.js';
 import { isSessionAlive, sanitizeName } from './tmux-session.js';
 import { tmuxExec } from '../cli/tmux-utils.js';
 
-/** Check if the shared split-pane session 'omc-team-{teamName}' exists (new tmux model). */
+/** Check if the shared split-pane session 'omac-team-{teamName}' exists (new tmux model). */
 function isSharedSessionAlive(teamName: string): boolean {
-  const name = `omc-team-${sanitizeName(teamName)}`;
+  const name = `omac-team-${sanitizeName(teamName)}`;
   try {
     tmuxExec(['has-session', '-t', name], { stdio: 'pipe', timeout: 5000 });
     return true;

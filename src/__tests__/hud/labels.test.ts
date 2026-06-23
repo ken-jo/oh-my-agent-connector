@@ -25,7 +25,7 @@ function stripAnsi(value: string): string {
 }
 
 function createTempConfigDir(settings: unknown): string {
-  const dir = mkdtempSync(join(tmpdir(), 'omc-hud-labels-'));
+  const dir = mkdtempSync(join(tmpdir(), 'omac-hud-labels-'));
   tempDirs.push(dir);
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'settings.json'), JSON.stringify(settings), 'utf8');
@@ -54,7 +54,7 @@ function createContext(): HudRenderContext {
     sessionHealth: null,
     lastRequestTokenUsage: { inputTokens: 1530, outputTokens: 987 },
     sessionTotalTokens: null,
-    omcVersion: null,
+    omacVersion: null,
     updateAvailable: null,
     toolCallCount: 5,
     agentCallCount: 3,
@@ -72,7 +72,7 @@ function createConfig(labels = DEFAULT_HUD_LABELS): HudConfig {
     labels,
     elements: {
       ...DEFAULT_HUD_CONFIG.elements,
-      omcLabel: false,
+      omacLabel: false,
       rateLimits: false,
       permissionStatus: false,
       thinking: true,
@@ -145,7 +145,7 @@ describe('HUD labels', () => {
 
   it('ignores invalid locale and unsupported label keys in settings.json', () => {
     const configDir = createTempConfigDir({
-      omcHud: {
+      omacHud: {
         locale: 'pirate',
         labels: {
           context: 'context-custom',

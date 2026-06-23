@@ -189,7 +189,7 @@ export async function runAutoresearchNoviceBridge(
         throw new Error('Research topic is required.');
       }
 
-      const evaluatorIntent = await promptWithDefault(io, '\nHow should OMC judge success? Describe it in plain language', topic);
+      const evaluatorIntent = await promptWithDefault(io, '\nHow should OMAC judge success? Describe it in plain language', topic);
       evaluatorCommand = await promptWithDefault(
         io,
         '\nEvaluator command (leave placeholder to refine further; must output {pass:boolean, score?:number} JSON before launch)',
@@ -254,7 +254,7 @@ export async function guidedAutoresearchSetupInference(
 
     const explicitEvaluator = await askQuestion(
       rl,
-      '\nOptional evaluator command (leave blank and OMC will infer one if confidence is high)\n> ',
+      '\nOptional evaluator command (leave blank and OMAC will infer one if confidence is high)\n> ',
     );
 
     const clarificationAnswers: string[] = [];
@@ -330,7 +330,7 @@ export function spawnAutoresearchTmux(missionDir: string, slug: string): void {
     throw new Error('tmux is required for background autoresearch execution. Install tmux and try again.');
   }
 
-  const sessionName = `omc-autoresearch-${slug}`;
+  const sessionName = `omac-autoresearch-${slug}`;
 
   try {
     tmuxExec(['has-session', '-t', sessionName], { stripTmux: true, stdio: 'ignore' });
@@ -347,8 +347,8 @@ export function spawnAutoresearchTmux(missionDir: string, slug: string): void {
   }
 
   const repoRoot = resolveMissionRepoRoot(missionDir);
-  const omcPath = resolve(join(__dirname, '..', '..', 'bin', 'omc.js'));
-  const command = buildTmuxShellCommand(process.execPath, [omcPath, 'autoresearch', missionDir]);
+  const omacPath = resolve(join(__dirname, '..', '..', 'bin', 'omac.js'));
+  const command = buildTmuxShellCommand(process.execPath, [omacPath, 'autoresearch', missionDir]);
   const wrappedCommand = wrapWithLoginShell(command);
 
   tmuxExec(['new-session', '-d', '-s', sessionName, '-c', repoRoot, wrappedCommand], { stripTmux: true, stdio: 'ignore' });
@@ -407,7 +407,7 @@ export function spawnAutoresearchSetupTmux(repoRoot: string): void {
     throw new Error('tmux is required for autoresearch setup. Install tmux and try again.');
   }
 
-  const sessionName = `omc-autoresearch-setup-${Date.now().toString(36)}`;
+  const sessionName = `omac-autoresearch-setup-${Date.now().toString(36)}`;
   const codexHome = prepareAutoresearchSetupCodexHome(repoRoot, sessionName);
   const claudeCommand = buildTmuxShellCommandWithEnv('claude', [CLAUDE_BYPASS_FLAG], { CODEX_HOME: codexHome });
   const wrappedClaudeCommand = wrapWithLoginShell(claudeCommand);

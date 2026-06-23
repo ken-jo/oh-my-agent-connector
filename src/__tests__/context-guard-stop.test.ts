@@ -63,7 +63,7 @@ describe('context-guard-stop safe recovery messaging (issue #1373)', () => {
 
     expect(out.decision).toBe('block');
     expect(String(out.reason)).toContain('Run /compact immediately');
-    expect(String(out.reason)).toContain('.omc/state');
+    expect(String(out.reason)).toContain('.omac/state');
   });
 
   it('fails open at critical context exhaustion to avoid stop-hook deadlock', () => {
@@ -113,7 +113,7 @@ describe('context-guard-stop safe recovery messaging (issue #1373)', () => {
     writeFileSync(
       join(fakeBinDir, 'git'),
       '#!/usr/bin/env node\n' +
-      'require("fs").appendFileSync(process.env.OMC_FAKE_GIT_LOG, process.argv.slice(2).join(" ") + "\\n");\n' +
+      'require("fs").appendFileSync(process.env.OMAC_FAKE_GIT_LOG, process.argv.slice(2).join(" ") + "\\n");\n' +
       'process.exit(1);\n',
       { mode: 0o755 },
     );
@@ -131,7 +131,7 @@ describe('context-guard-stop safe recovery messaging (issue #1373)', () => {
       },
       {
         PATH: `${fakeBinDir}${delimiter}${process.env.PATH ?? ''}`,
-        OMC_FAKE_GIT_LOG: gitLogPath,
+        OMAC_FAKE_GIT_LOG: gitLogPath,
       },
     );
 

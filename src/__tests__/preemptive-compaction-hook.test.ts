@@ -11,7 +11,7 @@ const HOOKS_PATH = join(process.cwd(), 'hooks', 'hooks.json');
 const tempDirs: string[] = [];
 
 function makeTempDir(): string {
-  const dir = mkdtempSync(join(tmpdir(), 'omc-preemptive-hook-'));
+  const dir = mkdtempSync(join(tmpdir(), 'omac-preemptive-hook-'));
   tempDirs.push(dir);
   return dir;
 }
@@ -121,9 +121,9 @@ describe('post-tool-verifier preemptive compaction warnings', () => {
         tool_response: 'read output',
       },
       {
-        OMC_QUIET: '2',
-        OMC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
-        OMC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
+        OMAC_QUIET: '2',
+        OMAC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
+        OMAC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
       },
     );
 
@@ -132,7 +132,7 @@ describe('post-tool-verifier preemptive compaction warnings', () => {
       hookSpecificOutput: {
         hookEventName: 'PostToolUse',
         additionalContext:
-          '[OMC WARNING] Context at 72% (warning threshold: 70%). Plan a /compact soon to preserve room for the next large tool output.',
+          '[OMAC WARNING] Context at 72% (warning threshold: 70%). Plan a /compact soon to preserve room for the next large tool output.',
       },
     });
   });
@@ -141,10 +141,10 @@ describe('post-tool-verifier preemptive compaction warnings', () => {
     const dir = makeTempDir();
     const transcriptPath = writeTranscript(dir, 75, 100);
     const env = {
-      OMC_QUIET: '2',
-      OMC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
-      OMC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
-      OMC_PREEMPTIVE_COMPACTION_COOLDOWN_MS: '60000',
+      OMAC_QUIET: '2',
+      OMAC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
+      OMAC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
+      OMAC_PREEMPTIVE_COMPACTION_COOLDOWN_MS: '60000',
     };
 
     const first = runPostToolVerifier(
@@ -176,10 +176,10 @@ describe('post-tool-verifier preemptive compaction warnings', () => {
     const dir = makeTempDir();
     const transcriptPath = writeTranscript(dir, 75, 100);
     const env = {
-      OMC_QUIET: '2',
-      OMC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
-      OMC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
-      OMC_PREEMPTIVE_COMPACTION_COOLDOWN_MS: '60000',
+      OMAC_QUIET: '2',
+      OMAC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
+      OMAC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
+      OMAC_PREEMPTIVE_COMPACTION_COOLDOWN_MS: '60000',
     };
 
     const first = runPostToolVerifier(
@@ -219,10 +219,10 @@ describe('post-tool-verifier preemptive compaction warnings', () => {
         tool_response: 'read output',
       },
       {
-        OMC_QUIET: '2',
-        OMC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
-        OMC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
-        OMC_PREEMPTIVE_COMPACTION_COOLDOWN_MS: '60000',
+        OMAC_QUIET: '2',
+        OMAC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
+        OMAC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
+        OMAC_PREEMPTIVE_COMPACTION_COOLDOWN_MS: '60000',
       },
     );
 
@@ -236,10 +236,10 @@ describe('post-tool-verifier preemptive compaction warnings', () => {
         tool_response: 'read output',
       },
       {
-        OMC_QUIET: '2',
-        OMC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
-        OMC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
-        OMC_PREEMPTIVE_COMPACTION_COOLDOWN_MS: '60000',
+        OMAC_QUIET: '2',
+        OMAC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
+        OMAC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
+        OMAC_PREEMPTIVE_COMPACTION_COOLDOWN_MS: '60000',
       },
     );
 
@@ -248,7 +248,7 @@ describe('post-tool-verifier preemptive compaction warnings', () => {
       hookSpecificOutput: {
         hookEventName: 'PostToolUse',
         additionalContext:
-          '[OMC CRITICAL] Context at 91% (critical threshold: 90%). Run /compact now before continuing with more tools or agent fan-out.',
+          '[OMAC CRITICAL] Context at 91% (critical threshold: 90%). Run /compact now before continuing with more tools or agent fan-out.',
       },
     });
   });
@@ -269,9 +269,9 @@ describe('post-tool-verifier preemptive compaction warnings', () => {
         },
       },
       {
-        OMC_QUIET: '2',
-        OMC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
-        OMC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
+        OMAC_QUIET: '2',
+        OMAC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
+        OMAC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
       },
     );
 
@@ -280,7 +280,7 @@ describe('post-tool-verifier preemptive compaction warnings', () => {
       hookSpecificOutput: {
         hookEventName: 'PostToolUse',
         additionalContext:
-          '[OMC WARNING] Context at 72% (warning threshold: 70%). Plan a /compact soon to preserve room for the next large tool output.',
+          '[OMAC WARNING] Context at 72% (warning threshold: 70%). Plan a /compact soon to preserve room for the next large tool output.',
       },
     });
   });
@@ -306,9 +306,9 @@ describe('post-tool-verifier preemptive compaction warnings', () => {
         },
       },
       {
-        OMC_QUIET: '2',
-        OMC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
-        OMC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
+        OMAC_QUIET: '2',
+        OMAC_PREEMPTIVE_COMPACTION_WARNING_PERCENT: '70',
+        OMAC_PREEMPTIVE_COMPACTION_CRITICAL_PERCENT: '90',
       },
     );
 
@@ -317,7 +317,7 @@ describe('post-tool-verifier preemptive compaction warnings', () => {
       hookSpecificOutput: {
         hookEventName: 'PostToolUse',
         additionalContext:
-          '[OMC WARNING] Context at 72% (warning threshold: 70%). Plan a /compact soon to preserve room for the next large tool output.',
+          '[OMAC WARNING] Context at 72% (warning threshold: 70%). Plan a /compact soon to preserve room for the next large tool output.',
       },
     });
   });
@@ -343,7 +343,7 @@ describe('post-tool-verifier Write/Edit response envelopes', () => {
           content: longFailureProse,
         },
       },
-      { OMC_QUIET: '2' },
+      { OMAC_QUIET: '2' },
     );
 
     expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -360,7 +360,7 @@ describe('post-tool-verifier Write/Edit response envelopes', () => {
           content: longFailureProse,
         },
       },
-      { OMC_QUIET: '2' },
+      { OMAC_QUIET: '2' },
     );
 
     expect(result).toEqual({ continue: true, suppressOutput: true });
@@ -374,7 +374,7 @@ describe('post-tool-verifier Write/Edit response envelopes', () => {
         session_id: 'write-string-failure-test',
         tool_response: 'Error: failed to write file',
       },
-      { OMC_QUIET: '2' },
+      { OMAC_QUIET: '2' },
     );
 
     expect(result).toEqual({
@@ -394,7 +394,7 @@ describe('post-tool-verifier Write/Edit response envelopes', () => {
         session_id: 'edit-string-failure-test',
         tool_response: 'Error: failed to edit file',
       },
-      { OMC_QUIET: '2' },
+      { OMAC_QUIET: '2' },
     );
 
     expect(result).toEqual({

@@ -48,10 +48,10 @@ describe('worker-bootstrap', () => {
 
   describe('generateWorkerOverlay', () => {
     it('uses urgent trigger wording that requires immediate work and concrete progress', () => {
-      expect(generateTriggerMessage('test-team', 'worker-1')).toContain('.omc/state/team/test-team/workers/worker-1/inbox.md');
+      expect(generateTriggerMessage('test-team', 'worker-1')).toContain('.omac/state/team/test-team/workers/worker-1/inbox.md');
       expect(generateTriggerMessage('test-team', 'worker-1')).toContain('execute now');
       expect(generateTriggerMessage('test-team', 'worker-1')).toContain('concrete progress');
-      expect(generateMailboxTriggerMessage('test-team', 'worker-1', 2)).toContain('.omc/state/team/test-team/mailbox/worker-1.json');
+      expect(generateMailboxTriggerMessage('test-team', 'worker-1', 2)).toContain('.omac/state/team/test-team/mailbox/worker-1.json');
       expect(generateMailboxTriggerMessage('test-team', 'worker-1', 2)).toContain('act now');
       expect(generateMailboxTriggerMessage('test-team', 'worker-1', 2)).toContain('concrete progress');
     });
@@ -66,32 +66,32 @@ describe('worker-bootstrap', () => {
     });
 
     it('supports team-root placeholders for worktree-backed trigger paths', () => {
-      expect(generateTriggerMessage('test-team', 'worker-1', '$OMC_TEAM_STATE_ROOT'))
-        .toContain('$OMC_TEAM_STATE_ROOT/workers/worker-1/inbox.md');
-      expect(generateTriggerMessage('test-team', 'worker-1', '$OMC_TEAM_STATE_ROOT'))
-        .not.toContain('$OMC_TEAM_STATE_ROOT/team/test-team');
-      expect(generateTriggerMessage('test-team', 'worker-1', '$OMC_TEAM_STATE_ROOT'))
+      expect(generateTriggerMessage('test-team', 'worker-1', '$OMAC_TEAM_STATE_ROOT'))
+        .toContain('$OMAC_TEAM_STATE_ROOT/workers/worker-1/inbox.md');
+      expect(generateTriggerMessage('test-team', 'worker-1', '$OMAC_TEAM_STATE_ROOT'))
+        .not.toContain('$OMAC_TEAM_STATE_ROOT/team/test-team');
+      expect(generateTriggerMessage('test-team', 'worker-1', '$OMAC_TEAM_STATE_ROOT'))
         .toContain('work now');
-      expect(generateMailboxTriggerMessage('test-team', 'worker-1', 2, '$OMC_TEAM_STATE_ROOT'))
-        .toContain('$OMC_TEAM_STATE_ROOT/mailbox/worker-1.json');
-      expect(generateMailboxTriggerMessage('test-team', 'worker-1', 2, '$OMC_TEAM_STATE_ROOT'))
-        .not.toContain('$OMC_TEAM_STATE_ROOT/team/test-team');
-      expect(generateMailboxTriggerMessage('test-team', 'worker-1', 2, '$OMC_TEAM_STATE_ROOT'))
+      expect(generateMailboxTriggerMessage('test-team', 'worker-1', 2, '$OMAC_TEAM_STATE_ROOT'))
+        .toContain('$OMAC_TEAM_STATE_ROOT/mailbox/worker-1.json');
+      expect(generateMailboxTriggerMessage('test-team', 'worker-1', 2, '$OMAC_TEAM_STATE_ROOT'))
+        .not.toContain('$OMAC_TEAM_STATE_ROOT/team/test-team');
+      expect(generateMailboxTriggerMessage('test-team', 'worker-1', 2, '$OMAC_TEAM_STATE_ROOT'))
         .toContain('report progress');
     });
 
     it('renders canonical team-root paths in worktree overlays', () => {
-      const overlay = generateWorkerOverlay({ ...baseParams, instructionStateRoot: '$OMC_TEAM_STATE_ROOT' });
-      expect(overlay).toContain('touch $OMC_TEAM_STATE_ROOT/workers/worker-1/.ready');
-      expect(overlay).toContain('Read $OMC_TEAM_STATE_ROOT/workers/worker-1/inbox.md');
-      expect(overlay).toContain('Write to $OMC_TEAM_STATE_ROOT/workers/worker-1/status.json');
-      expect(overlay).toContain('$OMC_TEAM_STATE_ROOT/workers/worker-1/shutdown-ack.json');
-      expect(overlay).not.toContain('$OMC_TEAM_STATE_ROOT/team/test-team');
+      const overlay = generateWorkerOverlay({ ...baseParams, instructionStateRoot: '$OMAC_TEAM_STATE_ROOT' });
+      expect(overlay).toContain('touch $OMAC_TEAM_STATE_ROOT/workers/worker-1/.ready');
+      expect(overlay).toContain('Read $OMAC_TEAM_STATE_ROOT/workers/worker-1/inbox.md');
+      expect(overlay).toContain('Write to $OMAC_TEAM_STATE_ROOT/workers/worker-1/status.json');
+      expect(overlay).toContain('$OMAC_TEAM_STATE_ROOT/workers/worker-1/shutdown-ack.json');
+      expect(overlay).not.toContain('$OMAC_TEAM_STATE_ROOT/team/test-team');
     });
 
     it('uses a short prompt-mode startup pointer instead of lifecycle/task text', () => {
       const prompt = generatePromptModeStartupPrompt('test-team', 'worker-1');
-      expect(prompt).toContain('.omc/state/team/test-team/workers/worker-1/inbox.md');
+      expect(prompt).toContain('.omac/state/team/test-team/workers/worker-1/inbox.md');
       expect(prompt).toContain('Open');
       expect(prompt).not.toContain('claim-task');
       expect(prompt).not.toContain('transition-task-status');
@@ -173,7 +173,7 @@ describe('worker-bootstrap', () => {
       expect(overlay).not.toContain('Read your task file at');
     });
 
-    it('renders plugin-safe CLI lifecycle examples when omc is unavailable in plugin installs', () => {
+    it('renders plugin-safe CLI lifecycle examples when omac is unavailable in plugin installs', () => {
       process.env.CLAUDE_PLUGIN_ROOT = '/plugin-root';
       process.env.PATH = '';
 
@@ -189,9 +189,9 @@ describe('worker-bootstrap', () => {
   describe('getWorkerEnv', () => {
     it('returns correct env vars', () => {
       const env = getWorkerEnv('my-team', 'worker-2', 'gemini');
-      expect(env.OMC_TEAM_WORKER).toBe('my-team/worker-2');
-      expect(env.OMC_TEAM_NAME).toBe('my-team');
-      expect(env.OMC_WORKER_AGENT_TYPE).toBe('gemini');
+      expect(env.OMAC_TEAM_WORKER).toBe('my-team/worker-2');
+      expect(env.OMAC_TEAM_NAME).toBe('my-team');
+      expect(env.OMAC_WORKER_AGENT_TYPE).toBe('gemini');
     });
   });
 });

@@ -4,7 +4,7 @@ Reusable verification protocol logic extracted from ralph, ultrawork, and autopi
 
 ## Overview
 
-This module provides a single source of truth for verification requirements and execution across all major OMC workflows. It standardizes the verification process and ensures consistent evidence collection.
+This module provides a single source of truth for verification requirements and execution across all major OMAC workflows. It standardizes the verification process and ensures consistent evidence collection.
 
 ## Key Features
 
@@ -147,7 +147,7 @@ await runVerification(checklist);
 
 if (checklist.summary?.verdict === 'approved') {
   // All checks passed - use cancel to cleanly exit
-  console.log('[RALPH VERIFIED] Run /oh-my-claudecode:cancel to exit.');
+  console.log('[RALPH VERIFIED] Run /oh-my-agent-connector:cancel to exit.');
 }
 ```
 

@@ -1,13 +1,13 @@
 ---
 name: local-build-reminder
-description: Remind the user to rebuild OMC after editing TypeScript when running from a local fork. Triggered automatically by the AI whenever it notices it (or the user) just changed a src/**/*.ts file in an OMC dev install.
+description: Remind the user to rebuild OMAC after editing TypeScript when running from a local fork. Triggered automatically by the AI whenever it notices it (or the user) just changed a src/**/*.ts file in an OMAC dev install.
 level: 1
 ---
 
 # Local Build Reminder
 
-**Always-on reminder for OMC fork development.** When OMC is running in local
-mode (HUD shows `[OMC#X.Y.ZL]` with an `L` suffix), Claude Code loads compiled
+**Always-on reminder for OMAC fork development.** When OMAC is running in local
+mode (HUD shows `[OMAC#X.Y.ZL]` with an `L` suffix), Claude Code loads compiled
 JavaScript from `dist/` — NOT TypeScript source from `src/`. Edits to `.ts`
 files are invisible to the running plugin until `npm run build` regenerates
 `dist/`.
@@ -19,7 +19,7 @@ The AI should mention this reminder whenever **any of these** happens:
 1. The user (or the AI itself) just edited `src/**/*.ts` in this repo.
 2. The user asks "why isn't my change working?" / "I edited X but it does the same" after a TS edit.
 3. The user is about to restart Claude Code and the working tree has TS edits with no rebuild.
-4. The user runs an OMC command and expects new behavior tied to a TS edit.
+4. The user runs an OMAC command and expects new behavior tied to a TS edit.
 
 ## What to say
 
@@ -35,7 +35,7 @@ If multiple TS files were edited in a row, just remind once at the end.
 
 - The user only edited `.mjs` / `.cjs` / `.md` / `.json` — those load directly
   from disk, no build needed.
-- The user is in a Claude Code session that isn't running OMC locally
+- The user is in a Claude Code session that isn't running OMAC locally
   (no `L` in the HUD).
 - A `tsc --watch` / `npm run dev:full` is already running in the background
   — those rebuild automatically on save.
@@ -69,10 +69,10 @@ needed afterwards.
 
 ## Detection signal — how the AI knows it's "local mode"
 
-The HUD's `[OMC#X.Y.ZL]` suffix is the visible cue. Programmatically, the
+The HUD's `[OMAC#X.Y.ZL]` suffix is the visible cue. Programmatically, the
 detection lives in `src/lib/version.ts::isRuntimePackageLocal()` and triggers
 on any of: `.git/` at package root, `src/` at package root, package reached
 via symlink/junction, or any ancestor is a symlink/junction.
 
-When running inside the OMC fork repo itself, the AI is by definition in
+When running inside the OMAC fork repo itself, the AI is by definition in
 local mode — the reminder always applies.

@@ -17,25 +17,25 @@ describe('unified MCP registry sync', () => {
   let testRoot: string;
   let claudeDir: string;
   let codexDir: string;
-  let omcDir: string;
+  let omacDir: string;
   let originalEnv: NodeJS.ProcessEnv;
   let originalPlatform: NodeJS.Platform;
 
   beforeEach(() => {
     originalEnv = { ...process.env };
     originalPlatform = process.platform;
-    testRoot = mkdtempSync(join(tmpdir(), 'omc-mcp-registry-'));
+    testRoot = mkdtempSync(join(tmpdir(), 'omac-mcp-registry-'));
     claudeDir = join(testRoot, '.claude');
     codexDir = join(testRoot, '.codex');
-    omcDir = join(testRoot, '.omc');
+    omacDir = join(testRoot, '.omac');
 
     mkdirSync(claudeDir, { recursive: true });
     mkdirSync(codexDir, { recursive: true });
-    mkdirSync(omcDir, { recursive: true });
+    mkdirSync(omacDir, { recursive: true });
     process.env.CLAUDE_CONFIG_DIR = claudeDir;
     process.env.CLAUDE_MCP_CONFIG_PATH = join(testRoot, '.claude.json');
     process.env.CODEX_HOME = codexDir;
-    process.env.OMC_HOME = omcDir;
+    process.env.OMAC_HOME = omacDir;
   });
 
   afterEach(() => {
@@ -73,7 +73,7 @@ describe('unified MCP registry sync', () => {
     });
 
     const codexConfig = readFileSync(getCodexConfigPath(), 'utf-8');
-    expect(codexConfig).toContain('# BEGIN OMC MANAGED MCP REGISTRY');
+    expect(codexConfig).toContain('# BEGIN OMAC MANAGED MCP REGISTRY');
     expect(codexConfig).toContain('[mcp_servers.gitnexus]');
     expect(codexConfig).toContain('command = "gitnexus"');
     expect(codexConfig).toContain('args = ["mcp"]');
@@ -155,7 +155,7 @@ describe('unified MCP registry sync', () => {
   it('round-trips URL-based remote MCP entries through the unified registry sync', () => {
     const settings = {
       mcpServers: {
-        remoteOmc: {
+        remoteOmac: {
           url: 'https://lab.example.com/mcp',
           timeout: 30,
         },
@@ -165,7 +165,7 @@ describe('unified MCP registry sync', () => {
     const { settings: syncedSettings, result } = syncUnifiedMcpRegistryTargets(settings);
 
     expect(result.bootstrappedFromClaude).toBe(true);
-    expect(result.serverNames).toEqual(['remoteOmc']);
+    expect(result.serverNames).toEqual(['remoteOmac']);
     expect(syncedSettings).toEqual({});
 
     const registryPath = getUnifiedMcpRegistryPath();
@@ -175,14 +175,14 @@ describe('unified MCP registry sync', () => {
     });
 
     const codexConfig = readFileSync(getCodexConfigPath(), 'utf-8');
-    expect(codexConfig).toContain('[mcp_servers.remoteOmc]');
+    expect(codexConfig).toContain('[mcp_servers.remoteOmac]');
     expect(codexConfig).toContain('url = "https://lab.example.com/mcp"');
     expect(codexConfig).toContain('startup_timeout_sec = 30');
   });
 
   it('preserves HTTP MCP headers from .claude.json through registry, Claude rewrite, and Codex TOML', () => {
     const mcpServers = {
-      remoteOmc: {
+      remoteOmac: {
         url: 'https://lab.example.com/mcp',
         type: 'sse',
         headers: {
@@ -199,7 +199,7 @@ describe('unified MCP registry sync', () => {
     const { settings: syncedSettings, result } = syncUnifiedMcpRegistryTargets({ theme: 'dark' });
 
     expect(result.bootstrappedFromClaude).toBe(true);
-    expect(result.serverNames).toEqual(['remoteOmc']);
+    expect(result.serverNames).toEqual(['remoteOmac']);
     expect(syncedSettings).toEqual({ theme: 'dark' });
     expect(JSON.parse(readFileSync(getUnifiedMcpRegistryPath(), 'utf-8'))).toEqual(mcpServers);
     expect(JSON.parse(readFileSync(getClaudeMcpConfigPath(), 'utf-8'))).toEqual({
@@ -207,10 +207,10 @@ describe('unified MCP registry sync', () => {
     });
 
     const codexConfig = readFileSync(getCodexConfigPath(), 'utf-8');
-    expect(codexConfig).toContain('[mcp_servers.remoteOmc]');
+    expect(codexConfig).toContain('[mcp_servers.remoteOmac]');
     expect(codexConfig).toContain('url = "https://lab.example.com/mcp"');
     expect(codexConfig).toContain('type = "sse"');
-    expect(codexConfig).toContain('[mcp_servers.remoteOmc.headers]');
+    expect(codexConfig).toContain('[mcp_servers.remoteOmac.headers]');
     expect(codexConfig).toContain('Authorization = "Bearer test-token"');
     expect(codexConfig).toContain('X-Custom-Header = "custom-value"');
 
@@ -353,12 +353,12 @@ describe('unified MCP registry sync', () => {
       'command = "custom-local"',
       'args = ["serve"]',
       '',
-      '# BEGIN OMC MANAGED MCP REGISTRY',
+      '# BEGIN OMAC MANAGED MCP REGISTRY',
       '',
       '[mcp_servers.old_registry]',
       'command = "legacy"',
       '',
-      '# END OMC MANAGED MCP REGISTRY',
+      '# END OMAC MANAGED MCP REGISTRY',
       '',
     ].join('\n');
 
@@ -408,8 +408,8 @@ describe('unified MCP registry sync', () => {
     expect(result.changed).toBe(true);
     expect(result.content.match(/\[mcp_servers\.atlassian\]/g)).toHaveLength(1);
     expect(result.content).toContain('[mcp_servers.storybook_local]');
-    expect(result.content).toContain('# BEGIN OMC MANAGED MCP REGISTRY');
-    expect(result.content).toContain('# END OMC MANAGED MCP REGISTRY');
+    expect(result.content).toContain('# BEGIN OMAC MANAGED MCP REGISTRY');
+    expect(result.content).toContain('# END OMAC MANAGED MCP REGISTRY');
 
     const second = syncCodexConfigToml(result.content, registry);
     expect(second.changed).toBe(false);
@@ -484,7 +484,7 @@ describe('unified MCP registry sync', () => {
   });
 
   it('removes previously managed Claude and Codex MCP entries when the registry becomes empty', () => {
-    writeFileSync(join(omcDir, 'mcp-registry-state.json'), JSON.stringify({ managedServers: ['gitnexus'] }, null, 2));
+    writeFileSync(join(omacDir, 'mcp-registry-state.json'), JSON.stringify({ managedServers: ['gitnexus'] }, null, 2));
     writeFileSync(getUnifiedMcpRegistryPath(), JSON.stringify({}, null, 2));
     writeFileSync(getClaudeMcpConfigPath(), JSON.stringify({
       mcpServers: {
@@ -495,13 +495,13 @@ describe('unified MCP registry sync', () => {
     writeFileSync(getCodexConfigPath(), [
       'model = "gpt-5"',
       '',
-      '# BEGIN OMC MANAGED MCP REGISTRY',
+      '# BEGIN OMAC MANAGED MCP REGISTRY',
       '',
       '[mcp_servers.gitnexus]',
       'command = "gitnexus"',
       'args = ["mcp"]',
       '',
-      '# END OMC MANAGED MCP REGISTRY',
+      '# END OMAC MANAGED MCP REGISTRY',
       '',
     ].join('\n'));
 
@@ -538,13 +538,13 @@ describe('unified MCP registry sync', () => {
     }, null, 2));
     mkdirSync(codexDir, { recursive: true });
     writeFileSync(getCodexConfigPath(), [
-      '# BEGIN OMC MANAGED MCP REGISTRY',
+      '# BEGIN OMAC MANAGED MCP REGISTRY',
       '',
       '[mcp_servers.gitnexus]',
       'command = "gitnexus"',
       'args = ["wrong"]',
       '',
-      '# END OMC MANAGED MCP REGISTRY',
+      '# END OMAC MANAGED MCP REGISTRY',
       '',
     ].join('\n'));
 
@@ -558,21 +558,21 @@ describe('unified MCP registry sync', () => {
 
   it('is idempotent when registry, Claude MCP root config, and Codex TOML already match', () => {
     writeFileSync(getUnifiedMcpRegistryPath(), JSON.stringify({
-      remoteOmc: { url: 'https://lab.example.com/mcp', timeout: 30 },
+      remoteOmac: { url: 'https://lab.example.com/mcp', timeout: 30 },
     }, null, 2));
     writeFileSync(getClaudeMcpConfigPath(), JSON.stringify({
       mcpServers: {
-        remoteOmc: { url: 'https://lab.example.com/mcp', timeout: 30 },
+        remoteOmac: { url: 'https://lab.example.com/mcp', timeout: 30 },
       },
     }, null, 2));
     writeFileSync(getCodexConfigPath(), [
-      '# BEGIN OMC MANAGED MCP REGISTRY',
+      '# BEGIN OMAC MANAGED MCP REGISTRY',
       '',
-      '[mcp_servers.remoteOmc]',
+      '[mcp_servers.remoteOmac]',
       'url = "https://lab.example.com/mcp"',
       'startup_timeout_sec = 30',
       '',
-      '# END OMC MANAGED MCP REGISTRY',
+      '# END OMAC MANAGED MCP REGISTRY',
       '',
     ].join('\n'));
 
@@ -642,22 +642,22 @@ describe('unified MCP registry sync', () => {
 
   it('detects mismatched URL-based remote MCP definitions during doctor inspection', () => {
     writeFileSync(getUnifiedMcpRegistryPath(), JSON.stringify({
-      remoteOmc: { url: 'https://lab.example.com/mcp', timeout: 30 },
+      remoteOmac: { url: 'https://lab.example.com/mcp', timeout: 30 },
     }, null, 2));
     writeFileSync(getClaudeMcpConfigPath(), JSON.stringify({
       mcpServers: {
-        remoteOmc: { url: 'https://staging.example.com/mcp', timeout: 30 },
+        remoteOmac: { url: 'https://staging.example.com/mcp', timeout: 30 },
       },
     }, null, 2));
     mkdirSync(codexDir, { recursive: true });
     writeFileSync(getCodexConfigPath(), [
-      '# BEGIN OMC MANAGED MCP REGISTRY',
+      '# BEGIN OMAC MANAGED MCP REGISTRY',
       '',
-      '[mcp_servers.remoteOmc]',
+      '[mcp_servers.remoteOmac]',
       'url = "https://staging.example.com/mcp"',
       'startup_timeout_sec = 30',
       '',
-      '# END OMC MANAGED MCP REGISTRY',
+      '# END OMAC MANAGED MCP REGISTRY',
       '',
     ].join('\n'));
 
@@ -665,13 +665,13 @@ describe('unified MCP registry sync', () => {
 
     expect(status.claudeMissing).toEqual([]);
     expect(status.codexMissing).toEqual([]);
-    expect(status.claudeMismatched).toEqual(['remoteOmc']);
-    expect(status.codexMismatched).toEqual(['remoteOmc']);
+    expect(status.claudeMismatched).toEqual(['remoteOmac']);
+    expect(status.codexMismatched).toEqual(['remoteOmac']);
   });
 
-  it('uses XDG config/state defaults when OMC_HOME is unset on Linux', () => {
+  it('uses XDG config/state defaults when OMAC_HOME is unset on Linux', () => {
     Object.defineProperty(process, 'platform', { value: 'linux' });
-    delete process.env.OMC_HOME;
+    delete process.env.OMAC_HOME;
     process.env.HOME = testRoot;
     process.env.XDG_CONFIG_HOME = join(testRoot, '.config');
     process.env.XDG_STATE_HOME = join(testRoot, '.state');
@@ -685,19 +685,19 @@ describe('unified MCP registry sync', () => {
       },
     });
 
-    expect(result.registryPath).toBe(join(testRoot, '.config', 'omc', 'mcp-registry.json'));
-    expect(existsSync(join(testRoot, '.config', 'omc', 'mcp-registry.json'))).toBe(true);
-    expect(existsSync(join(testRoot, '.state', 'omc', 'mcp-registry-state.json'))).toBe(true);
+    expect(result.registryPath).toBe(join(testRoot, '.config', 'omac', 'mcp-registry.json'));
+    expect(existsSync(join(testRoot, '.config', 'omac', 'mcp-registry.json'))).toBe(true);
+    expect(existsSync(join(testRoot, '.state', 'omac', 'mcp-registry-state.json'))).toBe(true);
   });
 
-  it('falls back to legacy ~/.omc registry when the XDG registry does not exist', () => {
+  it('falls back to legacy ~/.omac registry when the XDG registry does not exist', () => {
     Object.defineProperty(process, 'platform', { value: 'linux' });
-    delete process.env.OMC_HOME;
+    delete process.env.OMAC_HOME;
     process.env.HOME = testRoot;
     process.env.XDG_CONFIG_HOME = join(testRoot, '.config');
     process.env.XDG_STATE_HOME = join(testRoot, '.state');
 
-    const legacyRegistryDir = join(testRoot, '.omc');
+    const legacyRegistryDir = join(testRoot, '.omac');
     mkdirSync(legacyRegistryDir, { recursive: true });
     writeFileSync(join(legacyRegistryDir, 'mcp-registry.json'), JSON.stringify({
       gitnexus: { command: 'gitnexus', args: ['mcp'] },

@@ -10,9 +10,9 @@ import { join } from 'path';
 import { homedir } from 'os';
 
 /** Storage directory for agent usage reminder state */
-export const OMC_STORAGE_DIR = join(homedir(), '.omc');
+export const OMAC_STORAGE_DIR = join(homedir(), '.omac');
 export const AGENT_USAGE_REMINDER_STORAGE = join(
-  OMC_STORAGE_DIR,
+  OMAC_STORAGE_DIR,
   'agent-usage-reminder',
 );
 
@@ -33,7 +33,7 @@ export const TARGET_TOOLS = new Set([
 export const AGENT_TOOLS = new Set([
   'task',
   'call_omo_agent',
-  'omc_task',
+  'omac_task',
 ]);
 
 /** Reminder message shown to users */

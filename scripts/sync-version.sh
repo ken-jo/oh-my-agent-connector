@@ -3,7 +3,7 @@
 # Syncs the version from package.json to all satellite files:
 #   - .claude-plugin/plugin.json
 #   - .claude-plugin/marketplace.json
-#   - docs/CLAUDE.md (OMC:VERSION marker)
+#   - docs/CLAUDE.md (OMAC:VERSION marker)
 #
 # Usage: automatically invoked by `npm version <bump>`
 #        or manually: ./scripts/sync-version.sh [version]
@@ -32,7 +32,7 @@ fi
 # 3. docs/CLAUDE.md version marker
 CLAUDE_MD="$ROOT/docs/CLAUDE.md"
 if [ -f "$CLAUDE_MD" ]; then
-  perl -i -pe "s/<!-- OMC:VERSION:[^ ]* -->/<!-- OMC:VERSION:$VERSION -->/" "$CLAUDE_MD"
+  perl -i -pe "s/<!-- OMAC:VERSION:[^ ]* -->/<!-- OMAC:VERSION:$VERSION -->/" "$CLAUDE_MD"
   echo "  ✓ docs/CLAUDE.md → $VERSION"
 fi
 

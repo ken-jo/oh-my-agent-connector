@@ -6,28 +6,28 @@
 import { readFileSync, existsSync, readdirSync } from 'fs';
 import { basename, dirname, join } from 'path';
 import { getClaudeConfigDir } from '../../utils/config-dir.js';
-import { isOmcHook } from '../../installer/index.js';
+import { isOmacHook } from '../../installer/index.js';
 import { colors } from '../utils/formatting.js';
 import { getSkillsDir, listBuiltinSkillNames } from '../../features/builtin-skills/skills.js';
 import { inspectUnifiedMcpRegistrySync } from '../../installer/mcp-registry.js';
 import { findWorkspaceRoot, WORKSPACE_MARKER } from '../../lib/worktree-paths.js';
 
 export interface WorkspaceMarkerStatus {
-  /** Absolute path to the directory containing .omc-workspace, or null if absent. */
+  /** Absolute path to the directory containing .omac-workspace, or null if absent. */
   markerRoot: string | null;
-  /** True when OMC_STATE_DIR env var is set. */
+  /** True when OMAC_STATE_DIR env var is set. */
   stateDirEnvSet: boolean;
-  /** Value of OMC_STATE_DIR, or null when unset. */
+  /** Value of OMAC_STATE_DIR, or null when unset. */
   stateDirEnvValue: string | null;
-  /** When both OMC_STATE_DIR and .omc-workspace are active, this is true (warn: OMC_STATE_DIR wins). */
+  /** When both OMAC_STATE_DIR and .omac-workspace are active, this is true (warn: OMAC_STATE_DIR wins). */
   precedenceConflict: boolean;
 }
 
 export interface ConflictReport {
-  hookConflicts: { event: string; command: string; isOmc: boolean }[];
+  hookConflicts: { event: string; command: string; isOmac: boolean }[];
   claudeMdStatus: { hasMarkers: boolean; hasUserContent: boolean; path: string; companionFile?: string } | null;
   legacySkills: { name: string; path: string }[];
-  envFlags: { disableOmc: boolean; skipHooks: string[] };
+  envFlags: { disableOmac: boolean; skipHooks: string[] };
   configIssues: { unknownFields: string[] };
   windowsUnsafePluginHooks: { pluginRoot: string; event: string; command: string }[];
   mcpRegistrySync: ReturnType<typeof inspectUnifiedMcpRegistrySync>;
@@ -66,7 +66,7 @@ function collectHooksFromSettings(settingsPath: string): ConflictReport['hookCon
           if (!group.hooks || !Array.isArray(group.hooks)) continue;
           for (const hook of group.hooks) {
             if (hook.type === 'command' && hook.command) {
-              conflicts.push({ event, command: hook.command, isOmc: isOmcHook(hook.command) });
+              conflicts.push({ event, command: hook.command, isOmac: isOmacHook(hook.command) });
             }
           }
         }
@@ -160,23 +160,23 @@ export function checkWindowsUnsafePluginHooks(): ConflictReport['windowsUnsafePl
 }
 
 /**
- * Check a single file for OMC markers.
+ * Check a single file for OMAC markers.
  * Returns { hasMarkers, hasUserContent } or null on error.
  */
-function checkFileForOmcMarkers(filePath: string): { hasMarkers: boolean; hasUserContent: boolean } | null {
+function checkFileForOmacMarkers(filePath: string): { hasMarkers: boolean; hasUserContent: boolean } | null {
   if (!existsSync(filePath)) return null;
   try {
     const content = readFileSync(filePath, 'utf-8');
-    const hasStartMarker = content.includes('<!-- OMC:START -->');
-    const hasEndMarker = content.includes('<!-- OMC:END -->');
+    const hasStartMarker = content.includes('<!-- OMAC:START -->');
+    const hasEndMarker = content.includes('<!-- OMAC:END -->');
     const hasMarkers = hasStartMarker && hasEndMarker;
 
     let hasUserContent = false;
     if (hasMarkers) {
-      const startIdx = content.indexOf('<!-- OMC:START -->');
-      const endIdx = content.indexOf('<!-- OMC:END -->');
+      const startIdx = content.indexOf('<!-- OMAC:START -->');
+      const endIdx = content.indexOf('<!-- OMAC:END -->');
       const beforeMarker = content.substring(0, startIdx).trim();
-      const afterMarker = content.substring(endIdx + '<!-- OMC:END -->'.length).trim();
+      const afterMarker = content.substring(endIdx + '<!-- OMAC:END -->'.length).trim();
       hasUserContent = beforeMarker.length > 0 || afterMarker.length > 0;
     } else {
       hasUserContent = content.trim().length > 0;
@@ -189,8 +189,8 @@ function checkFileForOmcMarkers(filePath: string): { hasMarkers: boolean; hasUse
 
 /**
  * Find companion CLAUDE-*.md files in the config directory.
- * These are files like CLAUDE-omc.md that users create as part of a
- * file-split pattern to keep OMC config separate from their own CLAUDE.md.
+ * These are files like CLAUDE-omac.md that users create as part of a
+ * file-split pattern to keep OMAC config separate from their own CLAUDE.md.
  */
 function findCompanionClaudeMdFiles(configDir: string): string[] {
   try {
@@ -203,9 +203,9 @@ function findCompanionClaudeMdFiles(configDir: string): string[] {
 }
 
 /**
- * Check CLAUDE.md for OMC markers and user content.
- * Also checks companion files (CLAUDE-omc.md, etc.) for the file-split pattern
- * where users keep OMC config in a separate file.
+ * Check CLAUDE.md for OMAC markers and user content.
+ * Also checks companion files (CLAUDE-omac.md, etc.) for the file-split pattern
+ * where users keep OMAC config in a separate file.
  */
 export function checkClaudeMdStatus(): ConflictReport['claudeMdStatus'] {
   const configDir = getClaudeConfigDir();
@@ -217,7 +217,7 @@ export function checkClaudeMdStatus(): ConflictReport['claudeMdStatus'] {
 
   try {
     // Check the main CLAUDE.md first
-    const mainResult = checkFileForOmcMarkers(claudeMdPath);
+    const mainResult = checkFileForOmacMarkers(claudeMdPath);
     if (!mainResult) return null;
 
     if (mainResult.hasMarkers) {
@@ -231,7 +231,7 @@ export function checkClaudeMdStatus(): ConflictReport['claudeMdStatus'] {
     // No markers in main file - check companion files (file-split pattern)
     const companions = findCompanionClaudeMdFiles(configDir);
     for (const companionPath of companions) {
-      const companionResult = checkFileForOmcMarkers(companionPath);
+      const companionResult = checkFileForOmacMarkers(companionPath);
       if (companionResult?.hasMarkers) {
         return {
           hasMarkers: true,
@@ -267,20 +267,20 @@ export function checkClaudeMdStatus(): ConflictReport['claudeMdStatus'] {
 }
 
 /**
- * Check environment flags that affect OMC behavior
+ * Check environment flags that affect OMAC behavior
  */
 export function checkEnvFlags(): ConflictReport['envFlags'] {
-  const disableOmc = process.env.DISABLE_OMC === 'true' || process.env.DISABLE_OMC === '1';
+  const disableOmac = process.env.DISABLE_OMAC === 'true' || process.env.DISABLE_OMAC === '1';
   const skipHooks: string[] = [];
 
-  if (process.env.OMC_SKIP_HOOKS) {
-    skipHooks.push(...process.env.OMC_SKIP_HOOKS.split(',').map(h => h.trim()));
+  if (process.env.OMAC_SKIP_HOOKS) {
+    skipHooks.push(...process.env.OMAC_SKIP_HOOKS.split(',').map(h => h.trim()));
   }
 
-  return { disableOmc, skipHooks };
+  return { disableOmac, skipHooks };
 }
 
-const SETUP_FALLBACK_SKILL_NAMES = new Set(['omc-reference']);
+const SETUP_FALLBACK_SKILL_NAMES = new Set(['omac-reference']);
 
 function parseSemverLikeVersion(version: string): number[] | null {
   if (!/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) {
@@ -331,7 +331,7 @@ function readInstalledPluginRoots(): string[] {
       : parsed as Record<string, unknown>;
 
     return Object.entries(plugins)
-      .filter(([key]) => key.startsWith('oh-my-claudecode'))
+      .filter(([key]) => key.startsWith('oh-my-agent-connector'))
       .flatMap(([, value]) => Array.isArray(value) ? value : [])
       .map(entry => entry && typeof entry === 'object' && 'installPath' in entry
         ? (entry as { installPath?: unknown }).installPath
@@ -395,9 +395,9 @@ function isSupportedSetupFallbackSkill(legacySkillsDir: string, entry: string, b
   }
 
   // scripts/setup-claude-md.sh intentionally syncs the raw bundled
-  // skills/omc-reference/SKILL.md file into ~/.claude/skills/omc-reference/SKILL.md
+  // skills/omac-reference/SKILL.md file into ~/.claude/skills/omac-reference/SKILL.md
   // as a Claude CLI fallback. Suppress only that exact, unmodified sync so real
-  // legacy collisions and user-edited omc-reference copies still surface.
+  // legacy collisions and user-edited omac-reference copies still surface.
   if (entry.toLowerCase() !== baseName) {
     return false;
   }
@@ -454,7 +454,7 @@ export function checkLegacySkills(): ConflictReport['legacySkills'] {
  */
 export function checkConfigIssues(): ConflictReport['configIssues'] {
   const unknownFields: string[] = [];
-  const configPath = join(getClaudeConfigDir(), '.omc-config.json');
+  const configPath = join(getClaudeConfigDir(), '.omac-config.json');
 
   if (!existsSync(configPath)) {
     return { unknownFields };
@@ -465,9 +465,9 @@ export function checkConfigIssues(): ConflictReport['configIssues'] {
 
     // Known top-level fields from the current config surfaces:
     // - PluginConfig (src/shared/types.ts)
-    // - OMCConfig (src/features/auto-update.ts)
-    // - direct .omc-config.json readers/writers (notifications, auto-invoke,
-    //   delegation enforcement, omc-setup team config)
+    // - OMACConfig (src/features/auto-update.ts)
+    // - direct .omac-config.json readers/writers (notifications, auto-invoke,
+    //   delegation enforcement, omac-setup team config)
     // - preserved legacy compatibility keys that still appear in user configs
     const knownFields = new Set([
       // PluginConfig fields
@@ -477,7 +477,7 @@ export function checkConfigIssues(): ConflictReport['configIssues'] {
       'permissions',
       'magicKeywords',
       'routing',
-      // OMCConfig fields (from auto-update.ts / omc-setup)
+      // OMACConfig fields (from auto-update.ts / omac-setup)
       'silentAutoUpdate',
       'configuredAt',
       'configVersion',
@@ -494,7 +494,7 @@ export function checkConfigIssues(): ConflictReport['configIssues'] {
       'hudEnabled',
       'autoUpgradePrompt',
       'nodeBinary',
-      // Direct config readers / writers outside OMCConfig
+      // Direct config readers / writers outside OMACConfig
       'customIntegrations',
       'delegationEnforcementLevel',
       'enforcementLevel',
@@ -515,18 +515,18 @@ export function checkConfigIssues(): ConflictReport['configIssues'] {
 }
 
 /**
- * Check for .omc-workspace marker presence and OMC_STATE_DIR precedence.
+ * Check for .omac-workspace marker presence and OMAC_STATE_DIR precedence.
  *
  * Reports:
- *  - Whether a .omc-workspace marker was found (and where).
- *  - Whether OMC_STATE_DIR is set.
- *  - When both are set, emits a precedenceConflict flag (OMC_STATE_DIR wins per
- *    the resolution-order principle: OMC_STATE_DIR > .omc-workspace > git > cwd).
+ *  - Whether a .omac-workspace marker was found (and where).
+ *  - Whether OMAC_STATE_DIR is set.
+ *  - When both are set, emits a precedenceConflict flag (OMAC_STATE_DIR wins per
+ *    the resolution-order principle: OMAC_STATE_DIR > .omac-workspace > git > cwd).
  */
 export function checkWorkspaceMarker(): WorkspaceMarkerStatus {
   const markerRoot = findWorkspaceRoot();
-  const stateDirEnvValue = process.env.OMC_STATE_DIR && process.env.OMC_STATE_DIR.trim()
-    ? process.env.OMC_STATE_DIR.trim()
+  const stateDirEnvValue = process.env.OMAC_STATE_DIR && process.env.OMAC_STATE_DIR.trim()
+    ? process.env.OMAC_STATE_DIR.trim()
     : null;
   const stateDirEnvSet = stateDirEnvValue !== null;
   const precedenceConflict = stateDirEnvSet && markerRoot !== null;
@@ -549,9 +549,9 @@ export function runConflictCheck(): ConflictReport {
 
   // Determine if there are actual conflicts
   const hasConflicts =
-    hookConflicts.some(h => !h.isOmc) || // Non-OMC hooks present
+    hookConflicts.some(h => !h.isOmac) || // Non-OMAC hooks present
     legacySkills.length > 0 || // Legacy skills colliding with plugin
-    envFlags.disableOmc || // OMC is disabled
+    envFlags.disableOmac || // OMAC is disabled
     envFlags.skipHooks.length > 0 || // Hooks are being skipped
     configIssues.unknownFields.length > 0 || // Unknown config fields
     windowsUnsafePluginHooks.length > 0 || // Stale plugin hooks still use sh/find-node on Windows
@@ -559,7 +559,7 @@ export function runConflictCheck(): ConflictReport {
     mcpRegistrySync.claudeMismatched.length > 0 ||
     mcpRegistrySync.codexMissing.length > 0 ||
     mcpRegistrySync.codexMismatched.length > 0;
-    // Note: Missing OMC markers is informational (normal for fresh install), not a conflict
+    // Note: Missing OMAC markers is informational (normal for fresh install), not a conflict
     // Note: workspaceMarker.precedenceConflict is a WARN, not a hard conflict
 
   return {
@@ -587,7 +587,7 @@ export function formatReport(report: ConflictReport, json: boolean): string {
   const lines: string[] = [];
 
   lines.push('');
-  lines.push(colors.bold('🔍 Oh-My-ClaudeCode Conflict Diagnostic'));
+  lines.push(colors.bold('🔍 Oh-My-AgentConnector Conflict Diagnostic'));
   lines.push(colors.gray('━'.repeat(60)));
   lines.push('');
 
@@ -596,7 +596,7 @@ export function formatReport(report: ConflictReport, json: boolean): string {
     lines.push(colors.bold('📌 Hook Configuration'));
     lines.push('');
     for (const hook of report.hookConflicts) {
-      const status = hook.isOmc ? colors.green('✓ OMC') : colors.yellow('⚠ Other');
+      const status = hook.isOmac ? colors.green('✓ OMAC') : colors.yellow('⚠ Other');
       lines.push(`  ${hook.event.padEnd(20)} ${status}`);
       lines.push(`    ${colors.gray(hook.command)}`);
     }
@@ -614,17 +614,17 @@ export function formatReport(report: ConflictReport, json: boolean): string {
 
     if (report.claudeMdStatus.hasMarkers) {
       if (report.claudeMdStatus.companionFile) {
-        lines.push(`  ${colors.green('✓')} OMC markers found in companion file`);
+        lines.push(`  ${colors.green('✓')} OMAC markers found in companion file`);
         lines.push(`    ${colors.gray(`Companion: ${report.claudeMdStatus.companionFile}`)}`);
       } else {
-        lines.push(`  ${colors.green('✓')} OMC markers present`);
+        lines.push(`  ${colors.green('✓')} OMAC markers present`);
       }
       if (report.claudeMdStatus.hasUserContent) {
         lines.push(`  ${colors.green('✓')} User content preserved outside markers`);
       }
     } else {
-      lines.push(`  ${colors.yellow('⚠')} No OMC markers found`);
-      lines.push(`    ${colors.gray('Run /oh-my-claudecode:omc-setup to add markers')}`);
+      lines.push(`  ${colors.yellow('⚠')} No OMAC markers found`);
+      lines.push(`    ${colors.gray('Run /oh-my-agent-connector:omac-setup to add markers')}`);
       if (report.claudeMdStatus.hasUserContent) {
         lines.push(`  ${colors.blue('ℹ')} User content present - will be preserved`);
       }
@@ -640,14 +640,14 @@ export function formatReport(report: ConflictReport, json: boolean): string {
   // Environment flags
   lines.push(colors.bold('🔧 Environment Flags'));
   lines.push('');
-  if (report.envFlags.disableOmc) {
-    lines.push(`  ${colors.red('✗')} DISABLE_OMC is set - OMC is disabled`);
+  if (report.envFlags.disableOmac) {
+    lines.push(`  ${colors.red('✗')} DISABLE_OMAC is set - OMAC is disabled`);
   } else {
-    lines.push(`  ${colors.green('✓')} DISABLE_OMC not set`);
+    lines.push(`  ${colors.green('✓')} DISABLE_OMAC not set`);
   }
 
   if (report.envFlags.skipHooks.length > 0) {
-    lines.push(`  ${colors.yellow('⚠')} OMC_SKIP_HOOKS: ${report.envFlags.skipHooks.join(', ')}`);
+    lines.push(`  ${colors.yellow('⚠')} OMAC_SKIP_HOOKS: ${report.envFlags.skipHooks.join(', ')}`);
   } else {
     lines.push(`  ${colors.green('✓')} No hooks are being skipped`);
   }
@@ -674,7 +674,7 @@ export function formatReport(report: ConflictReport, json: boolean): string {
       lines.push(`    - ${hook.event} ${colors.gray(`(${hook.pluginRoot})`)}`);
       lines.push(`      ${colors.gray(hook.command)}`);
     }
-    lines.push(`    ${colors.gray('Run /oh-my-claudecode:omc-setup or update/reinstall the plugin to rewrite hooks to direct node run.cjs commands.')}`);
+    lines.push(`    ${colors.gray('Run /oh-my-agent-connector:omac-setup or update/reinstall the plugin to rewrite hooks to direct node run.cjs commands.')}`);
     lines.push('');
   }
 
@@ -682,7 +682,7 @@ export function formatReport(report: ConflictReport, json: boolean): string {
   if (report.configIssues.unknownFields.length > 0) {
     lines.push(colors.bold('⚙️  Configuration Issues'));
     lines.push('');
-    lines.push(`  ${colors.yellow('⚠')} Unknown fields in .omc-config.json:`);
+    lines.push(`  ${colors.yellow('⚠')} Unknown fields in .omac-config.json:`);
     for (const field of report.configIssues.unknownFields) {
       lines.push(`    - ${field}`);
     }
@@ -723,7 +723,7 @@ export function formatReport(report: ConflictReport, json: boolean): string {
   lines.push('');
 
   // Workspace marker
-  lines.push(colors.bold('🗂  Workspace Marker (.omc-workspace)'));
+  lines.push(colors.bold('🗂  Workspace Marker (.omac-workspace)'));
   lines.push('');
   const wm = report.workspaceMarker;
   if (wm.markerRoot) {
@@ -733,14 +733,14 @@ export function formatReport(report: ConflictReport, json: boolean): string {
     lines.push(`  ${colors.gray('ℹ')} No ${WORKSPACE_MARKER} marker found (single-repo mode)`);
   }
   if (wm.stateDirEnvSet) {
-    lines.push(`  ${colors.green('✓')} OMC_STATE_DIR is set: ${wm.stateDirEnvValue}`);
+    lines.push(`  ${colors.green('✓')} OMAC_STATE_DIR is set: ${wm.stateDirEnvValue}`);
   } else {
-    lines.push(`  ${colors.gray('ℹ')} OMC_STATE_DIR not set`);
+    lines.push(`  ${colors.gray('ℹ')} OMAC_STATE_DIR not set`);
   }
   if (wm.precedenceConflict) {
-    lines.push(`  ${colors.yellow('⚠')} Both OMC_STATE_DIR and ${WORKSPACE_MARKER} are active.`);
-    lines.push(`    ${colors.gray('OMC_STATE_DIR takes precedence (resolution order: OMC_STATE_DIR > .omc-workspace > git > cwd).')}`);
-    lines.push(`    ${colors.gray('If you intended .omc-workspace to anchor state, unset OMC_STATE_DIR.')}`);
+    lines.push(`  ${colors.yellow('⚠')} Both OMAC_STATE_DIR and ${WORKSPACE_MARKER} are active.`);
+    lines.push(`    ${colors.gray('OMAC_STATE_DIR takes precedence (resolution order: OMAC_STATE_DIR > .omac-workspace > git > cwd).')}`);
+    lines.push(`    ${colors.gray('If you intended .omac-workspace to anchor state, unset OMAC_STATE_DIR.')}`);
   }
   lines.push('');
 
@@ -748,10 +748,10 @@ export function formatReport(report: ConflictReport, json: boolean): string {
   lines.push(colors.gray('━'.repeat(60)));
   if (report.hasConflicts) {
     lines.push(`${colors.yellow('⚠')} Potential conflicts detected`);
-    lines.push(`${colors.gray('Review the issues above and run /oh-my-claudecode:omc-setup if needed')}`);
+    lines.push(`${colors.gray('Review the issues above and run /oh-my-agent-connector:omac-setup if needed')}`);
   } else {
     lines.push(`${colors.green('✓')} No conflicts detected`);
-    lines.push(`${colors.gray('OMC is properly configured')}`);
+    lines.push(`${colors.gray('OMAC is properly configured')}`);
   }
   lines.push('');
 

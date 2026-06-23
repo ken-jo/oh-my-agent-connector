@@ -4,14 +4,14 @@
  * Intercepts Stop events to automatically delegate recently modified files
  * to the code-simplifier agent for cleanup and simplification.
  *
- * Opt-in via global OMC config.json (XDG-aware on Linux/Unix, legacy ~/.omc fallback)
+ * Opt-in via global OMAC config.json (XDG-aware on Linux/Unix, legacy ~/.omac fallback)
  * Default: disabled (opt-in only)
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
-import { getGlobalOmcConfigCandidates } from '../../utils/paths.js';
+import { getGlobalOmacConfigCandidates } from '../../utils/paths.js';
 
 /** Config shape for the code-simplifier feature */
 export interface CodeSimplifierConfig {
@@ -22,8 +22,8 @@ export interface CodeSimplifierConfig {
   maxFiles?: number;
 }
 
-/** Global OMC config shape (subset relevant to code-simplifier) */
-interface OmcGlobalConfig {
+/** Global OMAC config shape (subset relevant to code-simplifier) */
+interface OmacGlobalConfig {
   codeSimplifier?: CodeSimplifierConfig;
 }
 
@@ -40,18 +40,18 @@ const DEFAULT_MAX_FILES = 10;
 export const TRIGGER_MARKER_FILENAME = 'code-simplifier-triggered.marker';
 
 /**
- * Read the global OMC config from the XDG-aware location, with legacy
- * ~/.omc/config.json fallback for backward compatibility.
+ * Read the global OMAC config from the XDG-aware location, with legacy
+ * ~/.omac/config.json fallback for backward compatibility.
  * Returns null if the file does not exist or cannot be parsed.
  */
-export function readOmcConfig(): OmcGlobalConfig | null {
-  for (const configPath of getGlobalOmcConfigCandidates('config.json')) {
+export function readOmacConfig(): OmacGlobalConfig | null {
+  for (const configPath of getGlobalOmacConfigCandidates('config.json')) {
     if (!existsSync(configPath)) {
       continue;
     }
 
     try {
-      return JSON.parse(readFileSync(configPath, 'utf-8')) as OmcGlobalConfig;
+      return JSON.parse(readFileSync(configPath, 'utf-8')) as OmacGlobalConfig;
     } catch {
       return null;
     }
@@ -65,7 +65,7 @@ export function readOmcConfig(): OmcGlobalConfig | null {
  * Disabled by default — requires explicit opt-in.
  */
 export function isCodeSimplifierEnabled(): boolean {
-  const config = readOmcConfig();
+  const config = readOmacConfig();
   return config?.codeSimplifier?.enabled === true;
 }
 
@@ -145,7 +145,7 @@ export function buildSimplifierMessage(files: string[]): string {
 
 ${fileList}
 
-Use: Task(subagent_type="oh-my-claudecode:code-simplifier", prompt="Simplify the recently modified files:\\n${fileArgs}")`;
+Use: Task(subagent_type="oh-my-agent-connector:code-simplifier", prompt="Simplify the recently modified files:\\n${fileArgs}")`;
 }
 
 /**
@@ -172,7 +172,7 @@ export function processCodeSimplifier(
     return { shouldBlock: false, message: '' };
   }
 
-  const config = readOmcConfig();
+  const config = readOmacConfig();
   const extensions = config?.codeSimplifier?.extensions ?? DEFAULT_EXTENSIONS;
   const maxFiles = config?.codeSimplifier?.maxFiles ?? DEFAULT_MAX_FILES;
   const files = getModifiedFiles(cwd, extensions, maxFiles);

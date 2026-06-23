@@ -243,15 +243,15 @@ describe("validateSlackChannel", () => {
 
 describe("validateSlackUsername", () => {
   it("accepts simple username", () => {
-    expect(validateSlackUsername("OMC Bot")).toBe("OMC Bot");
+    expect(validateSlackUsername("OMAC Bot")).toBe("OMAC Bot");
   });
 
   it("accepts username with hyphens and underscores", () => {
-    expect(validateSlackUsername("omc-notify_bot")).toBe("omc-notify_bot");
+    expect(validateSlackUsername("omac-notify_bot")).toBe("omac-notify_bot");
   });
 
   it("accepts username with periods", () => {
-    expect(validateSlackUsername("omc.bot")).toBe("omc.bot");
+    expect(validateSlackUsername("omac.bot")).toBe("omac.bot");
   });
 
   it("accepts username with apostrophe", () => {
@@ -291,7 +291,7 @@ describe("validateSlackUsername", () => {
   });
 
   it("trims whitespace and validates", () => {
-    expect(validateSlackUsername("  OMC Bot  ")).toBe("OMC Bot");
+    expect(validateSlackUsername("  OMAC Bot  ")).toBe("OMAC Bot");
   });
 
   it("rejects username exceeding 80 chars", () => {
@@ -303,17 +303,17 @@ describe("buildConfigFromEnv", () => {
   const _originalEnv = process.env;
 
   beforeEach(() => {
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "");
-    vi.stubEnv("OMC_DISCORD_WEBHOOK_URL", "");
-    vi.stubEnv("OMC_DISCORD_MENTION", "");
-    vi.stubEnv("OMC_TELEGRAM_BOT_TOKEN", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_BOT_TOKEN", "");
-    vi.stubEnv("OMC_TELEGRAM_CHAT_ID", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_CHAT_ID", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_UID", "");
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "");
-    vi.stubEnv("OMC_SLACK_MENTION", "");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "");
+    vi.stubEnv("OMAC_DISCORD_WEBHOOK_URL", "");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "");
+    vi.stubEnv("OMAC_TELEGRAM_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_TELEGRAM_CHAT_ID", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_CHAT_ID", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_UID", "");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "");
+    vi.stubEnv("OMAC_SLACK_MENTION", "");
   });
 
   afterEach(() => {
@@ -325,8 +325,8 @@ describe("buildConfigFromEnv", () => {
   });
 
   it("builds discord-bot config from env vars", () => {
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "test-token");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "123456");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "test-token");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "123456");
     const config = buildConfigFromEnv();
     expect(config).not.toBeNull();
     expect(config!.enabled).toBe(true);
@@ -339,23 +339,23 @@ describe("buildConfigFromEnv", () => {
   });
 
   it("includes validated mention in discord-bot config", () => {
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "test-token");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "123456");
-    vi.stubEnv("OMC_DISCORD_MENTION", "<@12345678901234567>");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "test-token");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "123456");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "<@12345678901234567>");
     const config = buildConfigFromEnv();
     expect(config!["discord-bot"]!.mention).toBe("<@12345678901234567>");
   });
 
   it("rejects invalid mention in env var", () => {
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "test-token");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "123456");
-    vi.stubEnv("OMC_DISCORD_MENTION", "@everyone");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "test-token");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "123456");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "@everyone");
     const config = buildConfigFromEnv();
     expect(config!["discord-bot"]!.mention).toBeUndefined();
   });
 
   it("builds discord webhook config from env var", () => {
-    vi.stubEnv("OMC_DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/test");
+    vi.stubEnv("OMAC_DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/test");
     const config = buildConfigFromEnv();
     expect(config!.discord).toEqual({
       enabled: true,
@@ -365,8 +365,8 @@ describe("buildConfigFromEnv", () => {
   });
 
   it("builds telegram config from env vars", () => {
-    vi.stubEnv("OMC_TELEGRAM_BOT_TOKEN", "123:abc");
-    vi.stubEnv("OMC_TELEGRAM_CHAT_ID", "999");
+    vi.stubEnv("OMAC_TELEGRAM_BOT_TOKEN", "123:abc");
+    vi.stubEnv("OMAC_TELEGRAM_CHAT_ID", "999");
     const config = buildConfigFromEnv();
     expect(config!.telegram).toEqual({
       enabled: true,
@@ -376,7 +376,7 @@ describe("buildConfigFromEnv", () => {
   });
 
   it("builds slack config from env var", () => {
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
     const config = buildConfigFromEnv();
     expect(config!.slack).toEqual({
       enabled: true,
@@ -386,44 +386,44 @@ describe("buildConfigFromEnv", () => {
   });
 
   it("builds slack config with mention from env var", () => {
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
-    vi.stubEnv("OMC_SLACK_MENTION", "<@U1234567890>");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
+    vi.stubEnv("OMAC_SLACK_MENTION", "<@U1234567890>");
     const config = buildConfigFromEnv();
     expect(config!.slack!.mention).toBe("<@U1234567890>");
   });
 
   it("trims whitespace from slack mention env var", () => {
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
-    vi.stubEnv("OMC_SLACK_MENTION", "  <!channel>  ");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
+    vi.stubEnv("OMAC_SLACK_MENTION", "  <!channel>  ");
     const config = buildConfigFromEnv();
     expect(config!.slack!.mention).toBe("<!channel>");
   });
 
   it("rejects invalid slack mention format in env var", () => {
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
-    vi.stubEnv("OMC_SLACK_MENTION", "@everyone");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
+    vi.stubEnv("OMAC_SLACK_MENTION", "@everyone");
     const config = buildConfigFromEnv();
     expect(config!.slack!.mention).toBeUndefined();
   });
 
   it("trims whitespace from mention env var", () => {
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "test-token");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "123456");
-    vi.stubEnv("OMC_DISCORD_MENTION", "  <@12345678901234567>  ");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "test-token");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "123456");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "  <@12345678901234567>  ");
     const config = buildConfigFromEnv();
     expect(config!["discord-bot"]!.mention).toBe("<@12345678901234567>");
   });
 
-  it("uses OMC_TELEGRAM_NOTIFIER_BOT_TOKEN as fallback", () => {
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_BOT_TOKEN", "123:fallback");
-    vi.stubEnv("OMC_TELEGRAM_CHAT_ID", "999");
+  it("uses OMAC_TELEGRAM_NOTIFIER_BOT_TOKEN as fallback", () => {
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_BOT_TOKEN", "123:fallback");
+    vi.stubEnv("OMAC_TELEGRAM_CHAT_ID", "999");
     const config = buildConfigFromEnv();
     expect(config!.telegram!.botToken).toBe("123:fallback");
   });
 
-  it("uses OMC_TELEGRAM_NOTIFIER_UID as fallback for chat ID", () => {
-    vi.stubEnv("OMC_TELEGRAM_BOT_TOKEN", "123:abc");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_UID", "uid-999");
+  it("uses OMAC_TELEGRAM_NOTIFIER_UID as fallback for chat ID", () => {
+    vi.stubEnv("OMAC_TELEGRAM_BOT_TOKEN", "123:abc");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_UID", "uid-999");
     const config = buildConfigFromEnv();
     expect(config!.telegram!.chatId).toBe("uid-999");
   });
@@ -435,17 +435,17 @@ describe("getNotificationConfig - deep merge", () => {
 
   beforeEach(() => {
     // Clear env vars
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "");
-    vi.stubEnv("OMC_DISCORD_WEBHOOK_URL", "");
-    vi.stubEnv("OMC_DISCORD_MENTION", "");
-    vi.stubEnv("OMC_TELEGRAM_BOT_TOKEN", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_BOT_TOKEN", "");
-    vi.stubEnv("OMC_TELEGRAM_CHAT_ID", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_CHAT_ID", "");
-    vi.stubEnv("OMC_TELEGRAM_NOTIFIER_UID", "");
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "");
-    vi.stubEnv("OMC_SLACK_MENTION", "");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "");
+    vi.stubEnv("OMAC_DISCORD_WEBHOOK_URL", "");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "");
+    vi.stubEnv("OMAC_TELEGRAM_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_BOT_TOKEN", "");
+    vi.stubEnv("OMAC_TELEGRAM_CHAT_ID", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_CHAT_ID", "");
+    vi.stubEnv("OMAC_TELEGRAM_NOTIFIER_UID", "");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "");
+    vi.stubEnv("OMAC_SLACK_MENTION", "");
 
     _mockExistsSync = vi.fn().mockReturnValue(false);
     _mockReadFileSync = vi.fn().mockReturnValue("{}");
@@ -463,8 +463,8 @@ describe("getNotificationConfig - deep merge", () => {
 
   it("env provides discord-bot when file config has only discord webhook", () => {
     // Simulate: file has discord webhook, env has discord-bot credentials
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "env-bot-token");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "env-channel");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "env-bot-token");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "env-channel");
     const envConfig = buildConfigFromEnv();
     expect(envConfig).not.toBeNull();
     expect(envConfig!["discord-bot"]).toBeDefined();
@@ -473,8 +473,8 @@ describe("getNotificationConfig - deep merge", () => {
   });
 
   it("env provides telegram when file config has only discord", () => {
-    vi.stubEnv("OMC_TELEGRAM_BOT_TOKEN", "123:tg-token");
-    vi.stubEnv("OMC_TELEGRAM_CHAT_ID", "tg-chat");
+    vi.stubEnv("OMAC_TELEGRAM_BOT_TOKEN", "123:tg-token");
+    vi.stubEnv("OMAC_TELEGRAM_CHAT_ID", "tg-chat");
     const envConfig = buildConfigFromEnv();
     expect(envConfig!.telegram).toEqual({
       enabled: true,
@@ -484,11 +484,11 @@ describe("getNotificationConfig - deep merge", () => {
   });
 
   it("builds config with multiple platforms from env", () => {
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "bot-token");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "channel-123");
-    vi.stubEnv("OMC_TELEGRAM_BOT_TOKEN", "456:tg");
-    vi.stubEnv("OMC_TELEGRAM_CHAT_ID", "chat-789");
-    vi.stubEnv("OMC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "bot-token");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "channel-123");
+    vi.stubEnv("OMAC_TELEGRAM_BOT_TOKEN", "456:tg");
+    vi.stubEnv("OMAC_TELEGRAM_CHAT_ID", "chat-789");
+    vi.stubEnv("OMAC_SLACK_WEBHOOK_URL", "https://hooks.slack.com/services/test");
 
     const config = buildConfigFromEnv();
     expect(config).not.toBeNull();
@@ -499,10 +499,10 @@ describe("getNotificationConfig - deep merge", () => {
   });
 
   it("mention from env is shared across discord-bot and discord webhook", () => {
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_BOT_TOKEN", "bot-token");
-    vi.stubEnv("OMC_DISCORD_NOTIFIER_CHANNEL", "channel-123");
-    vi.stubEnv("OMC_DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/test");
-    vi.stubEnv("OMC_DISCORD_MENTION", "<@12345678901234567>");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_BOT_TOKEN", "bot-token");
+    vi.stubEnv("OMAC_DISCORD_NOTIFIER_CHANNEL", "channel-123");
+    vi.stubEnv("OMAC_DISCORD_WEBHOOK_URL", "https://discord.com/api/webhooks/test");
+    vi.stubEnv("OMAC_DISCORD_MENTION", "<@12345678901234567>");
 
     const config = buildConfigFromEnv();
     expect(config!["discord-bot"]!.mention).toBe("<@12345678901234567>");

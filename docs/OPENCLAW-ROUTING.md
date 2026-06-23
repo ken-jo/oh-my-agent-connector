@@ -1,6 +1,6 @@
 # OpenClaw / Clawhip Routing Contract
 
-This document defines the normalized event contract OMC emits through the OpenClaw bridge for native Clawhip-style consumers.
+This document defines the normalized event contract OMAC emits through the OpenClaw bridge for native Clawhip-style consumers.
 
 ## Goals
 

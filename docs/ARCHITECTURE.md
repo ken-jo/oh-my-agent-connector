@@ -1,14 +1,14 @@
 # Architecture
 
-> How oh-my-claudecode orchestrates multi-agent workflows.
+> How oh-my-agent-connector orchestrates multi-agent workflows.
 
 ## Overview
 
-oh-my-claudecode enables Claude Code to orchestrate specialized agents through a skill-based routing system. It is built on four interlocking systems: **Hooks** detect lifecycle events, **Skills** inject behaviors, **Agents** execute specialized work, and **State** tracks progress across context resets.
+oh-my-agent-connector enables Claude Code to orchestrate specialized agents through a skill-based routing system. It is built on four interlocking systems: **Hooks** detect lifecycle events, **Skills** inject behaviors, **Agents** execute specialized work, and **State** tracks progress across context resets.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         OH-MY-CLAUDECODE                                 │
+│                         OH-MY-AGENT-CONNECTOR                                 │
 │                     Intelligent Skill Activation                         │
 └─────────────────────────────────────────────────────────────────────────┘
 
@@ -49,7 +49,7 @@ User Input --> Hooks (event detection) --> Skills (behavior injection)
 
 ### Overview
 
-OMC provides 19 specialized agents organized into 4 lanes. Each agent is invoked as `oh-my-claudecode:<agent-name>` and runs on the appropriate model tier.
+OMAC provides 19 specialized agents organized into 4 lanes. Each agent is invoked as `oh-my-agent-connector:<agent-name>` and runs on the appropriate model tier.
 
 ### Build/Analysis Lane
 
@@ -100,7 +100,7 @@ Challenges plans and designs made by other agents. A plan passes only when no ga
 
 ### Model Routing
 
-OMC uses three model tiers:
+OMAC uses three model tiers:
 
 | Tier | Model | Characteristics | Cost |
 |------|-------|-----------------|------|
@@ -119,7 +119,7 @@ Work is delegated through the Task tool with intelligent model routing:
 
 ```typescript
 Task(
-  subagent_type="oh-my-claudecode:executor",
+  subagent_type="oh-my-agent-connector:executor",
   model="sonnet",
   prompt="Implement feature..."
 )
@@ -175,7 +175,7 @@ explore --> analyst --> planner --> critic --> executor --> verifier
 
 ### Overview
 
-Skills are **behavior injections** that modify how the orchestrator operates. Instead of swapping agents, skills add capabilities on top of existing agents. OMC provides 31 skills total (28 user-invocable + 3 internal/pipeline).
+Skills are **behavior injections** that modify how the orchestrator operates. Instead of swapping agents, skills add capabilities on top of existing agents. OMAC provides 31 skills total (28 user-invocable + 3 internal/pipeline).
 
 ### Skill Layers
 
@@ -212,9 +212,9 @@ Active skills: ultrawork + default + git-master
 
 **Slash commands:**
 ```bash
-/oh-my-claudecode:autopilot build me a todo app
-/oh-my-claudecode:ralph refactor the auth module
-/oh-my-claudecode:team 3:executor "implement fullstack app"
+/oh-my-agent-connector:autopilot build me a todo app
+/oh-my-agent-connector:ralph refactor the auth module
+/oh-my-agent-connector:team 3:executor "implement fullstack app"
 ```
 
 **Magic keywords** — include a keyword in natural language and the skill activates automatically:
@@ -250,7 +250,7 @@ ultrawork implement user authentication with OAuth
 #### team
 Coordinates N Claude agents with a 5-stage pipeline: `plan → prd → exec → verify → fix`
 ```bash
-/oh-my-claudecode:team 3:executor "implement fullstack todo app"
+/oh-my-agent-connector:team 3:executor "implement fullstack todo app"
 ```
 
 #### ccg (Claude-Codex-Gemini)
@@ -271,20 +271,20 @@ ralplan this feature
 
 | Skill | Description | Command |
 |-------|-------------|---------|
-| `cancel` | Cancel active execution mode | `/oh-my-claudecode:cancel` |
-| `hud` | Status bar configuration | `/oh-my-claudecode:hud` |
-| `omc-setup` | Initial setup wizard | `/oh-my-claudecode:omc-setup` |
-| `omc-doctor` | Diagnose installation | `/oh-my-claudecode:omc-doctor` |
-| `skillify` | Extract reusable skills from session | `/oh-my-claudecode:skillify` (`learner` deprecated alias) |
-| `skill` | Manage local skills (list/add/remove) | `/oh-my-claudecode:skill` |
-| `trace` | Evidence-driven causal tracing | `/oh-my-claudecode:trace` |
-| `release` | Automated release workflow | `/oh-my-claudecode:release` |
-| `deepinit` | Generate hierarchical AGENTS.md | `/oh-my-claudecode:deepinit` |
+| `cancel` | Cancel active execution mode | `/oh-my-agent-connector:cancel` |
+| `hud` | Status bar configuration | `/oh-my-agent-connector:hud` |
+| `omac-setup` | Initial setup wizard | `/oh-my-agent-connector:omac-setup` |
+| `omac-doctor` | Diagnose installation | `/oh-my-agent-connector:omac-doctor` |
+| `skillify` | Extract reusable skills from session | `/oh-my-agent-connector:skillify` (`learner` deprecated alias) |
+| `skill` | Manage local skills (list/add/remove) | `/oh-my-agent-connector:skill` |
+| `trace` | Evidence-driven causal tracing | `/oh-my-agent-connector:trace` |
+| `release` | Automated release workflow | `/oh-my-agent-connector:release` |
+| `deepinit` | Generate hierarchical AGENTS.md | `/oh-my-agent-connector:deepinit` |
 | `deep-interview` | Socratic deep interview | `/deep-interview` |
-| `sciomc` | Parallel scientist agent orchestration | `/oh-my-claudecode:sciomc` |
-| `external-context` | Parallel document-specialist research | `/oh-my-claudecode:external-context` |
-| `ai-slop-cleaner` | Clean AI expression patterns | `/oh-my-claudecode:ai-slop-cleaner` |
-| `writer-memory` | Memory system for writing projects | `/oh-my-claudecode:writer-memory` |
+| `sciomac` | Parallel scientist agent orchestration | `/oh-my-agent-connector:sciomac` |
+| `external-context` | Parallel document-specialist research | `/oh-my-agent-connector:external-context` |
+| `ai-slop-cleaner` | Clean AI expression patterns | `/oh-my-agent-connector:ai-slop-cleaner` |
+| `writer-memory` | Memory system for writing projects | `/oh-my-agent-connector:writer-memory` |
 
 ### Magic Keyword Reference
 
@@ -303,7 +303,7 @@ ralplan this feature
 | `ultrathink`, `think hard`, `think deeply` | Deep reasoning mode |
 | `tdd`, `test first`, `red green` | TDD workflow |
 | `deslop`, `anti-slop` | AI expression cleanup |
-| `cancelomc`, `stopomc` | Cancel active execution mode |
+| `cancelomac`, `stopomac` | Cancel active execution mode |
 
 ### Keyword Detection Sources
 
@@ -322,13 +322,13 @@ The `autopilot`, `ralph`, and `ccg` triggers are hardcoded in the hook and canno
 
 ### Overview
 
-Hooks are code that reacts to Claude Code lifecycle events. They run automatically when a user submits a prompt, uses a tool, or starts/ends a session. OMC implements agent delegation, keyword detection, and state persistence through this hook system.
+Hooks are code that reacts to Claude Code lifecycle events. They run automatically when a user submits a prompt, uses a tool, or starts/ends a session. OMAC implements agent delegation, keyword detection, and state persistence through this hook system.
 
 ### Lifecycle Events
 
-Claude Code provides 11 lifecycle events. OMC registers hooks on these events:
+Claude Code provides 11 lifecycle events. OMAC registers hooks on these events:
 
-| Event | When It Fires | OMC Usage |
+| Event | When It Fires | OMAC Usage |
 |-------|---------------|-----------|
 | `UserPromptSubmit` | User submits a prompt | Magic keyword detection, skill injection |
 | `SessionStart` | Session begins | Initial setup, project memory load |
@@ -388,7 +388,7 @@ Enable via config:
 
 ### Hook Registration Structure
 
-OMC hooks are declared in `hooks.json`. Each hook is a Node.js script with a timeout:
+OMAC hooks are declared in `hooks.json`. Each hook is a Node.js script with a timeout:
 
 ```json
 {
@@ -415,12 +415,12 @@ OMC hooks are declared in `hooks.json`. Each hook is a Node.js script with a tim
 
 Disable all hooks:
 ```bash
-export DISABLE_OMC=1
+export DISABLE_OMAC=1
 ```
 
 Skip specific hooks (comma-separated):
 ```bash
-export OMC_SKIP_HOOKS="keyword-detector,persistent-mode"
+export OMAC_SKIP_HOOKS="keyword-detector,persistent-mode"
 ```
 
 ---
@@ -429,12 +429,12 @@ export OMC_SKIP_HOOKS="keyword-detector,persistent-mode"
 
 ### Overview
 
-OMC stores task progress and project knowledge in the `.omc/` directory. The state system preserves critical information even when context compaction resets the context window.
+OMAC stores task progress and project knowledge in the `.omac/` directory. The state system preserves critical information even when context compaction resets the context window.
 
 ### Directory Structure
 
 ```
-.omc/
+.omac/
 ├── state/                    # Per-mode state files
 │   ├── autopilot-state.json  # autopilot progress
 │   ├── ralph-state.json      # ralph loop state
@@ -460,16 +460,16 @@ OMC stores task progress and project knowledge in the `.omc/` directory. The sta
 
 ### Control Plane vs Data Plane
 
-OMC keeps orchestration metadata separate from large durable artifacts:
+OMAC keeps orchestration metadata separate from large durable artifacts:
 
-- **Control plane**: queue state, worker assignment, session state, and cross-tool task/message envelopes under `.omc/state/**`.
-- **Data plane**: plans, specs, prompts, results, traces, and other durable artifacts under paths such as `.omc/plans/`, `.omc/notepads/`, `.omc/prompts/`, and `.omc/state/interop/artifacts/**`.
+- **Control plane**: queue state, worker assignment, session state, and cross-tool task/message envelopes under `.omac/state/**`.
+- **Data plane**: plans, specs, prompts, results, traces, and other durable artifacts under paths such as `.omac/plans/`, `.omac/notepads/`, `.omac/prompts/`, and `.omac/state/interop/artifacts/**`.
 - **Concrete handoff examples**:
-  - shared interop state keeps task/message metadata inline while storing oversized task descriptions, task results, and message bodies under `.omc/state/interop/artifacts/**`
-  - prompt persistence stores durable prompt/response files under `.omc/prompts/**` and records descriptor metadata alongside job status
+  - shared interop state keeps task/message metadata inline while storing oversized task descriptions, task results, and message bodies under `.omac/state/interop/artifacts/**`
+  - prompt persistence stores durable prompt/response files under `.omac/prompts/**` and records descriptor metadata alongside job status
 
 **Global State:**
-- `~/.omc/state/{name}.json` — user preferences and global config
+- `~/.omac/state/{name}.json` — user preferences and global config
 
 Legacy locations are auto-migrated on read.
 
@@ -498,7 +498,7 @@ When a handoff needs to reference a large artifact, prefer a descriptor/handle o
 
 ### Notepad
 
-**File:** `.omc/notepad.md`
+**File:** `.omac/notepad.md`
 
 The notepad survives context compaction. Content written to it persists even after the context window is reset.
 
@@ -522,7 +522,7 @@ Notes can be saved using the `notepad_write_manual` MCP tool or the `notepad_wri
 
 ### Project Memory
 
-**File:** `.omc/project-memory.json`
+**File:** `.omac/project-memory.json`
 
 Project memory is a persistent store for project-level knowledge. It survives across sessions.
 
@@ -542,13 +542,13 @@ Project memory is a persistent store for project-level knowledge. It survives ac
 
 ### Session Scope
 
-**Path:** `.omc/state/sessions/{sessionId}/`
+**Path:** `.omac/state/sessions/{sessionId}/`
 
 Stores state isolated per session. Multiple sessions on the same project run simultaneously without state conflicts.
 
 ### Plan Notepad (Per-Plan Knowledge Capture)
 
-**Path:** `.omc/notepads/{plan-name}/`
+**Path:** `.omac/notepads/{plan-name}/`
 
 Stores learnings from each execution plan separately.
 
@@ -563,16 +563,16 @@ All entries are timestamped automatically.
 
 ### Centralized State (Optional)
 
-By default, state is stored in the project's `.omc/` directory and is deleted when the worktree is removed.
+By default, state is stored in the project's `.omac/` directory and is deleted when the worktree is removed.
 
-To preserve state across worktree deletions, set the `OMC_STATE_DIR` environment variable:
+To preserve state across worktree deletions, set the `OMAC_STATE_DIR` environment variable:
 
 ```bash
 # Add to ~/.bashrc or ~/.zshrc
-export OMC_STATE_DIR="$HOME/.claude/omc"
+export OMAC_STATE_DIR="$HOME/.claude/omac"
 ```
 
-State is then stored at `~/.claude/omc/{project-identifier}/`. The project identifier is a hash of the Git remote URL, so the same repository shares state across different worktrees.
+State is then stored at `~/.claude/omac/{project-identifier}/`. The project identifier is a hash of the Git remote URL, so the same repository shares state across different worktrees.
 
 ### Persistent Memory Tags
 

@@ -1,7 +1,7 @@
 /**
  * Ralph Hook
  *
- * Self-referential work loop that continues until cancelled via /oh-my-claudecode:cancel.
+ * Self-referential work loop that continues until cancelled via /oh-my-agent-connector:cancel.
  * Named after the character who keeps working until the job is done.
  *
  * Enhanced with PRD (Product Requirements Document) support for structured task tracking.
@@ -42,7 +42,7 @@ import {
 } from "../ultrawork/index.js";
 import {
   resolveSessionStatePath,
-  getOmcRoot,
+  getOmacRoot,
 } from "../../lib/worktree-paths.js";
 import { readTeamPipelineState } from "../team-pipeline/state.js";
 import type { TeamPipelinePhase } from "../team-pipeline/types.js";
@@ -72,8 +72,8 @@ export function isUltraQAActive(
   }
 
   // No sessionId: legacy path (backward compat)
-  const omcDir = getOmcRoot(directory);
-  const stateFile = join(omcDir, "state", "ultraqa-state.json");
+  const omacDir = getOmacRoot(directory);
+  const stateFile = join(omacDir, "state", "ultraqa-state.json");
   try {
     const content = readFileSync(stateFile, "utf-8");
     const state = JSON.parse(content);
@@ -288,7 +288,7 @@ export function createRalphLoopHook(directory: string): RalphLoopHook {
     // Mutual exclusion check: cannot start Ralph Loop if UltraQA is active
     if (isUltraQAActive(directory, sessionId)) {
       console.error(
-        "Cannot start Ralph Loop while UltraQA is active. Cancel UltraQA first with /oh-my-claudecode:cancel.",
+        "Cannot start Ralph Loop while UltraQA is active. Cancel UltraQA first with /oh-my-agent-connector:cancel.",
       );
       return false;
     }

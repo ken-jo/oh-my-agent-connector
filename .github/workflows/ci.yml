@@ -114,7 +114,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check for raw .omc path constructions
+      - name: Check for raw .omac path constructions
         run: node scripts/ci/check-multirepo-paths.mjs
 
   version-check:
@@ -174,33 +174,33 @@ jobs:
           echo "📦 Creating tarball..."
           npm pack
           
-          TARBALL=$(ls -t oh-my-claude-sisyphus-*.tgz | head -1)
+          TARBALL=$(ls -t oh-my-agent-connector-*.tgz | head -1)
           echo "📦 Tarball: $TARBALL"
           
           echo "📦 Testing global install from tarball..."
           npm install -g ./$TARBALL
           
-          echo "🔍 Checking omc command..."
-          which omc
+          echo "🔍 Checking omac command..."
+          which omac
           
-          echo "🔍 Testing omc --version..."
-          omc --version
+          echo "🔍 Testing omac --version..."
+          omac --version
           
-          VERSION_OUTPUT=$(omc --version 2>&1)
+          VERSION_OUTPUT=$(omac --version 2>&1)
           if [ $? -ne 0 ]; then
-            echo "❌ omc --version failed!"
+            echo "❌ omac --version failed!"
             echo "$VERSION_OUTPUT"
             exit 1
           fi
           
-          echo "✅ omc --version: $VERSION_OUTPUT"
+          echo "✅ omac --version: $VERSION_OUTPUT"
           
-          echo "🔍 Testing omc --help..."
-          omc --help
+          echo "🔍 Testing omac --help..."
+          omac --help
           
-          HELP_OUTPUT=$(omc --help 2>&1)
+          HELP_OUTPUT=$(omac --help 2>&1)
           if [ $? -ne 0 ]; then
-            echo "❌ omc --help failed!"
+            echo "❌ omac --help failed!"
             echo "$HELP_OUTPUT"
             exit 1
           fi

@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { getGlobalOmcConfigCandidates } from '../../../utils/paths.js';
+import { getGlobalOmacConfigCandidates } from '../../../utils/paths.js';
 import {
   getIdleNotificationCooldownSeconds,
   shouldWakeOpenClawOnStop,
@@ -33,7 +33,7 @@ vi.mock('../../../lib/atomic-write.js', () => ({
 }));
 
 const { TEST_HOME } = vi.hoisted(() => ({
-  TEST_HOME: process.env.HOME || '/tmp/omc-test-home',
+  TEST_HOME: process.env.HOME || '/tmp/omac-test-home',
 }));
 
 vi.mock('os', async () => {
@@ -44,7 +44,7 @@ vi.mock('os', async () => {
   };
 });
 
-const TEST_STATE_DIR = '/project/.omc/state';
+const TEST_STATE_DIR = '/project/.omac/state';
 const COOLDOWN_PATH = join(TEST_STATE_DIR, 'idle-notif-cooldown.json');
 const TEST_SESSION_ID = 'session-123';
 const SESSION_COOLDOWN_PATH = join(
@@ -54,7 +54,7 @@ const SESSION_COOLDOWN_PATH = join(
   'idle-notif-cooldown.json'
 );
 function getConfigPaths(): string[] {
-  return getGlobalOmcConfigCandidates('config.json');
+  return getGlobalOmacConfigCandidates('config.json');
 }
 
 describe('getIdleNotificationCooldownSeconds', () => {
@@ -65,12 +65,12 @@ describe('getIdleNotificationCooldownSeconds', () => {
     process.env.HOME = TEST_HOME;
     delete process.env.XDG_CONFIG_HOME;
     delete process.env.XDG_STATE_HOME;
-    delete process.env.OMC_HOME;
+    delete process.env.OMAC_HOME;
   });
 
   const originalXdgConfigHome = process.env.XDG_CONFIG_HOME;
   const originalXdgStateHome = process.env.XDG_STATE_HOME;
-  const originalOmcHome = process.env.OMC_HOME;
+  const originalOmacHome = process.env.OMAC_HOME;
 
   afterEach(() => {
     if (originalHome === undefined) {
@@ -91,10 +91,10 @@ describe('getIdleNotificationCooldownSeconds', () => {
       process.env.XDG_STATE_HOME = originalXdgStateHome;
     }
 
-    if (originalOmcHome === undefined) {
-      delete process.env.OMC_HOME;
+    if (originalOmacHome === undefined) {
+      delete process.env.OMAC_HOME;
     } else {
-      process.env.OMC_HOME = originalOmcHome;
+      process.env.OMAC_HOME = originalOmacHome;
     }
   });
 
@@ -116,7 +116,7 @@ describe('getIdleNotificationCooldownSeconds', () => {
     expect(readFileSync).toHaveBeenCalledWith(configPath, 'utf-8');
   });
 
-  it('falls back to legacy ~/.omc config when XDG config is absent', () => {
+  it('falls back to legacy ~/.omac config when XDG config is absent', () => {
     const candidates = getConfigPaths();
     // On macOS, XDG primary and legacy resolve to the same path, so
     // dedupePaths collapses them to a single entry. Use the last candidate

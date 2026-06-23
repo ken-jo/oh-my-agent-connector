@@ -1,7 +1,7 @@
 /**
- * OMC HUD - Custom Rate Limit Provider
+ * OMAC HUD - Custom Rate Limit Provider
  *
- * Executes a user-supplied command (omcHud.rateLimitsProvider) to fetch
+ * Executes a user-supplied command (omacHud.rateLimitsProvider) to fetch
  * rate limit / quota data and maps the output to CustomProviderResult.
  *
  * Output contract (stdout JSON):
@@ -44,7 +44,7 @@ function getCachePath(): string {
   return join(
     getClaudeConfigDir(),
     'plugins',
-    'oh-my-claudecode',
+    'oh-my-agent-connector',
     '.custom-rate-cache.json',
   );
 }
@@ -196,7 +196,7 @@ export async function executeCustomProvider(
     const buckets = parseOutput(stdout, config.periods);
 
     if (buckets === null) {
-      if (process.env.OMC_DEBUG) {
+      if (process.env.OMAC_DEBUG) {
         console.error('[custom-rate-provider] Invalid output format from command');
       }
       if (cache) return { buckets: cache.buckets, stale: true };
@@ -206,7 +206,7 @@ export async function executeCustomProvider(
     writeCache(buckets);
     return { buckets, stale: false };
   } catch (err) {
-    if (process.env.OMC_DEBUG) {
+    if (process.env.OMAC_DEBUG) {
       console.error(
         '[custom-rate-provider] Command failed:',
         err instanceof Error ? err.message : err,

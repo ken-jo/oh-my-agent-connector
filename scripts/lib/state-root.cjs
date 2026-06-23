@@ -3,8 +3,8 @@
 /**
  * State Root Resolver (CJS)
  *
- * Single authoritative entry point for resolving the .omc root directory in
- * CJS hook scripts, respecting the OMC_STATE_DIR environment variable.
+ * Single authoritative entry point for resolving the .omac root directory in
+ * CJS hook scripts, respecting the OMAC_STATE_DIR environment variable.
  *
  * See scripts/lib/state-root.mjs for full documentation.
  */
@@ -16,33 +16,33 @@ const { existsSync } = require('fs');
 const { createHash } = require('crypto');
 
 /**
- * Resolve the .omc root directory, respecting OMC_STATE_DIR.
+ * Resolve the .omac root directory, respecting OMAC_STATE_DIR.
  *
  * @param {string} directory - Worktree root directory
- * @returns {Promise<string>} Absolute path to the .omc root
+ * @returns {Promise<string>} Absolute path to the .omac root
  */
-async function resolveOmcStateRoot(directory) {
+async function resolveOmacStateRoot(directory) {
   const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT;
   if (pluginRoot) {
     try {
       const { pathToFileURL } = require('url');
-      const { getOmcRoot } = await import(
+      const { getOmacRoot } = await import(
         pathToFileURL(join(pluginRoot, 'dist', 'lib', 'worktree-paths.js')).href
       );
-      return getOmcRoot(directory);
+      return getOmacRoot(directory);
     } catch {
       // dist not built or unavailable — fall through to inline fallback
     }
   }
 
-  // Inline fallback: respects OMC_STATE_DIR with simplified project identifier
-  const customDir = process.env.OMC_STATE_DIR;
+  // Inline fallback: respects OMAC_STATE_DIR with simplified project identifier
+  const customDir = process.env.OMAC_STATE_DIR;
   if (customDir) {
     const hash = createHash('sha256').update(directory).digest('hex').slice(0, 16);
     const dirName = basename(directory).replace(/[^a-zA-Z0-9_-]/g, '_');
     return join(customDir, `${dirName}-${hash}`);
   }
-  return join(directory, '.omc');
+  return join(directory, '.omac');
 }
 
 /**
@@ -70,17 +70,17 @@ async function resolveSessionStatePathsForHook(directory, stateName, sessionId) 
   }
 
   // Inline fallback: basic session-scoped path derivation (production always uses dist above)
-  const omcRoot = await resolveOmcStateRoot(directory);
+  const omacRoot = await resolveOmacStateRoot(directory);
   const normalizedName = stateName.endsWith('-state') ? stateName : `${stateName}-state`;
-  const legacy = join(omcRoot, 'state', `${normalizedName}.json`);
+  const legacy = join(omacRoot, 'state', `${normalizedName}.json`);
   if (!sessionId) {
     return { readPath: legacy, writePath: legacy };
   }
-  const sessionScoped = join(omcRoot, 'state', 'sessions', sessionId, `${normalizedName}.json`);
+  const sessionScoped = join(omacRoot, 'state', 'sessions', sessionId, `${normalizedName}.json`);
   // effectiveRead probes the session-scoped file first and falls back to the
   // legacy path when it does not exist yet (mirrors resolveSessionStatePaths).
   const readPath = existsSync(sessionScoped) ? sessionScoped : legacy;
   return { readPath, writePath: sessionScoped };
 }
 
-module.exports = { resolveOmcStateRoot, resolveSessionStatePathsForHook };
+module.exports = { resolveOmacStateRoot, resolveSessionStatePathsForHook };

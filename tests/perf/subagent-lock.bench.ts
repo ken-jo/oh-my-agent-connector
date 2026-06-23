@@ -77,9 +77,9 @@ describe("subagent-lock benchmark", () => {
   });
 
   function makeTempDir(): string {
-    const dir = join(tmpdir(), `omc-bench-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    // Create the .omc/state dir so resolveSessionStatePaths can resolve paths
-    mkdirSync(join(dir, ".omc", "state"), { recursive: true });
+    const dir = join(tmpdir(), `omac-bench-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    // Create the .omac/state dir so resolveSessionStatePaths can resolve paths
+    mkdirSync(join(dir, ".omac", "state"), { recursive: true });
     dirs.push(dir);
     return dir;
   }
@@ -94,7 +94,7 @@ describe("subagent-lock benchmark", () => {
       const state = makeEmptyState();
       state.agents.push({
         agent_id: `agent-${i}`,
-        agent_type: "oh-my-claudecode:executor",
+        agent_type: "oh-my-agent-connector:executor",
         started_at: new Date().toISOString(),
         parent_mode: "ultrawork",
         status: "running",

@@ -705,19 +705,19 @@ function generatePromptForComponent(
 
 function selectAgentType(component: Component): string {
   const roleToAgent: Record<ComponentRole, string> = {
-    frontend: 'oh-my-claudecode:designer',
-    backend: 'oh-my-claudecode:executor',
-    database: 'oh-my-claudecode:executor',
-    api: 'oh-my-claudecode:executor',
-    ui: 'oh-my-claudecode:designer',
-    shared: 'oh-my-claudecode:executor',
-    testing: 'oh-my-claudecode:qa-tester',
-    docs: 'oh-my-claudecode:writer',
-    config: 'oh-my-claudecode:executor',
-    module: 'oh-my-claudecode:executor'
+    frontend: 'oh-my-agent-connector:designer',
+    backend: 'oh-my-agent-connector:executor',
+    database: 'oh-my-agent-connector:executor',
+    api: 'oh-my-agent-connector:executor',
+    ui: 'oh-my-agent-connector:designer',
+    shared: 'oh-my-agent-connector:executor',
+    testing: 'oh-my-agent-connector:qa-tester',
+    docs: 'oh-my-agent-connector:writer',
+    config: 'oh-my-agent-connector:executor',
+    module: 'oh-my-agent-connector:executor'
   };
 
-  return roleToAgent[component.role] || 'oh-my-claudecode:executor';
+  return roleToAgent[component.role] || 'oh-my-agent-connector:executor';
 }
 
 function selectModelTier(component: Component): 'low' | 'medium' | 'high' {

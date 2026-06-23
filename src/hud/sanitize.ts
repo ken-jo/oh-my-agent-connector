@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Output Sanitizer
+ * OMAC HUD - Output Sanitizer
  *
  * Sanitizes HUD output to prevent terminal rendering corruption
  * when Claude Code's Ink renderer is concurrently updating the display.

@@ -10,7 +10,7 @@
 import { existsSync, readFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { atomicWriteJson, ensureDirWithMode, validateResolvedPath } from './fs-utils.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 import type { BridgeConfig, McpWorkerMember } from './types.js';
 
 export interface RestartPolicy {
@@ -35,7 +35,7 @@ const DEFAULT_POLICY: RestartPolicy = {
 };
 
 function getRestartStatePath(workingDirectory: string, teamName: string, workerName: string): string {
-  return join(getOmcRoot(workingDirectory), 'state', 'team-bridge', teamName, `${workerName}.restart.json`);
+  return join(getOmacRoot(workingDirectory), 'state', 'team-bridge', teamName, `${workerName}.restart.json`);
 }
 
 /**
@@ -97,12 +97,12 @@ export function recordRestart(
   policy: RestartPolicy = DEFAULT_POLICY
 ): void {
   const statePath = getRestartStatePath(workingDirectory, teamName, workerName);
-  // statePath lives under getOmcRoot(...)/state/team-bridge, which in a
-  // .omc-workspace layout is ABOVE workingDirectory. Validate against the shared
+  // statePath lives under getOmacRoot(...)/state/team-bridge, which in a
+  // .omac-workspace layout is ABOVE workingDirectory. Validate against the shared
   // team-bridge dir (still catches teamName/workerName traversal) not the sub-repo.
-  validateResolvedPath(statePath, join(getOmcRoot(workingDirectory), 'state', 'team-bridge'));
+  validateResolvedPath(statePath, join(getOmacRoot(workingDirectory), 'state', 'team-bridge'));
 
-  const dir = join(getOmcRoot(workingDirectory), 'state', 'team-bridge', teamName);
+  const dir = join(getOmacRoot(workingDirectory), 'state', 'team-bridge', teamName);
   ensureDirWithMode(dir);
 
   const existing = readRestartState(workingDirectory, teamName, workerName);

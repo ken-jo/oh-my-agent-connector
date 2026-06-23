@@ -35,7 +35,7 @@ describe('Wiki Session Hooks', () => {
 
   it('respects autoCapture=false from the active CLAUDE_CONFIG_DIR', () => {
     fs.writeFileSync(
-      path.join(configDir, '.omc-config.json'),
+      path.join(configDir, '.omac-config.json'),
       JSON.stringify({ wiki: { autoCapture: false } }),
     );
 

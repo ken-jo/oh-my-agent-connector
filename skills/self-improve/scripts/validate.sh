@@ -2,7 +2,7 @@
 # validate.sh — Sealed file enforcement + plan schema validation for self-improvement loop.
 # Usage:
 #   ./validate.sh --worktree /path --settings /path/to/settings.json plan.json
-#   ./validate.sh --project-root /path/to/omc/project --topic "Improve tests" plan.json
+#   ./validate.sh --project-root /path/to/omac/project --topic "Improve tests" plan.json
 #   ./validate.sh plan.json
 #   ./validate.sh
 
@@ -92,20 +92,20 @@ resolve_settings_from_project_root() {
 discover_settings_from_search_root() {
     local search_dir="$1"
     while [[ "${search_dir}" != "/" ]]; do
-        if [[ -f "${search_dir}/.omc/self-improve/config/settings.json" ]]; then
-            SETTINGS="${search_dir}/.omc/self-improve/config/settings.json"
+        if [[ -f "${search_dir}/.omac/self-improve/config/settings.json" ]]; then
+            SETTINGS="${search_dir}/.omac/self-improve/config/settings.json"
             return 0
         fi
 
         shopt -s nullglob
-        local scoped_candidates=( "${search_dir}"/.omc/self-improve/topics/*/config/settings.json )
+        local scoped_candidates=( "${search_dir}"/.omac/self-improve/topics/*/config/settings.json )
         shopt -u nullglob
         if [[ "${#scoped_candidates[@]}" -eq 1 ]]; then
             SETTINGS="${scoped_candidates[0]}"
             return 0
         fi
         if [[ "${#scoped_candidates[@]}" -gt 1 ]]; then
-            err "Multiple self-improve topics exist under ${search_dir}/.omc/self-improve/topics/. Pass --settings, --project-root with --topic/--slug, or set SELF_IMPROVE_SETTINGS_PATH."
+            err "Multiple self-improve topics exist under ${search_dir}/.omac/self-improve/topics/. Pass --settings, --project-root with --topic/--slug, or set SELF_IMPROVE_SETTINGS_PATH."
             exit 1
         fi
 

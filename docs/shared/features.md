@@ -2,7 +2,7 @@
 
 ## Session Notepad (Short-Term Memory)
 
-Compaction-resilient memory system at `.omc/notepad.md` with three tiers:
+Compaction-resilient memory system at `.omac/notepad.md` with three tiers:
 
 | Section | Behavior | Use For |
 |---------|----------|---------|
@@ -10,11 +10,11 @@ Compaction-resilient memory system at `.omc/notepad.md` with three tiers:
 | **Working Memory** | Timestamped entries, auto-pruned after 7 days | Debugging breadcrumbs, temporary findings |
 | **MANUAL** | Never auto-pruned | Team contacts, deployment info, permanent notes |
 
-**User skill:** `/oh-my-claudecode:note`
-- `/oh-my-claudecode:note <content>` - Add to Working Memory
-- `/oh-my-claudecode:note --priority <content>` - Add to Priority Context
-- `/oh-my-claudecode:note --manual <content>` - Add to MANUAL section
-- `/oh-my-claudecode:note --show` - Display notepad contents
+**User skill:** `/oh-my-agent-connector:note`
+- `/oh-my-agent-connector:note <content>` - Add to Working Memory
+- `/oh-my-agent-connector:note --priority <content>` - Add to Priority Context
+- `/oh-my-agent-connector:note --manual <content>` - Add to MANUAL section
+- `/oh-my-agent-connector:note --show` - Display notepad contents
 
 **Automatic capture:** `<remember>` tags in Task agent output are automatically captured:
 - `<remember>content</remember>` → Working Memory with timestamp
@@ -26,7 +26,7 @@ Compaction-resilient memory system at `.omc/notepad.md` with three tiers:
 
 Plan-scoped wisdom capture for learnings, decisions, issues, and problems.
 
-**Location:** `.omc/notepads/{plan-name}/`
+**Location:** `.omac/notepads/{plan-name}/`
 
 | File | Purpose |
 |------|---------|
@@ -86,7 +86,7 @@ Sequential agent chaining with data passing between stages.
 
 Smart cancellation that auto-detects active mode.
 
-**Usage:** `/cancel` or just say "cancelomc", "stopomc"
+**Usage:** `/cancel` or just say "cancelomac", "stopomac"
 
 Auto-detects and cancels: autopilot, ralph, ultrawork, ultraqa, pipeline
 Use `--force` or `--all` to clear ALL states.
@@ -104,8 +104,8 @@ Reusable verification protocol for workflows.
 Standardized state file locations.
 
 **Standard paths for all mode state files:**
-- Primary: `.omc/state/{name}.json` (local, per-project)
-- Global backup: `~/.omc/state/{name}.json` (global, session continuity)
+- Primary: `.omac/state/{name}.json` (local, per-project)
+- Global backup: `~/.omac/state/{name}.json` (global, session continuity)
 
 **Mode State Files:**
 | Mode | State File |
@@ -118,6 +118,6 @@ Standardized state file locations.
 | ultraqa | `ultraqa-state.json` |
 | pipeline | `pipeline-state.json` |
 
-**Important:** Never store OMC state in `~/.claude/` - that directory is reserved for Claude Code itself.
+**Important:** Never store OMAC state in `~/.claude/` - that directory is reserved for Claude Code itself.
 
 Legacy locations auto-migrated on read.

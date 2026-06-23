@@ -171,17 +171,17 @@ export function formatSessionIdle(payload: NotificationPayload): string {
 /** Matches ANSI escape sequences (CSI and two-character escapes). */
 const ANSI_ESCAPE_RE = /\x1b(?:[@-Z\\-_]|\[[0-9;]*[a-zA-Z])/g;
 
-/** Lines starting with these characters are OMC UI chrome, not output. */
+/** Lines starting with these characters are OMAC UI chrome, not output. */
 const UI_CHROME_RE = /^[●⎿✻·◼]/;
 
-/** Matches the "ctrl+o to expand" hint injected by OMC. */
+/** Matches the "ctrl+o to expand" hint injected by OMAC. */
 const CTRL_O_RE = /ctrl\+o to expand/i;
 
 /** Lines composed entirely of box-drawing characters and whitespace. */
 const BOX_DRAWING_RE = /^[\s─═│║┌┐└┘┬┴├┤╔╗╚╝╠╣╦╩╬╟╢╤╧╪━┃┏┓┗┛┣┫┳┻╋┠┨┯┷┿╂]+$/;
 
-/** OMC HUD status lines: [OMC#...] or [OMC] (unversioned). */
-const OMC_HUD_RE = /\[OMC[#\]]/;
+/** OMAC HUD status lines: [OMAC#...] or [OMAC] (unversioned). */
+const OMAC_HUD_RE = /\[OMAC[#\]]/;
 
 /** Bypass-permissions indicator lines starting with ⏵. */
 const BYPASS_PERM_RE = /^⏵/;
@@ -337,7 +337,7 @@ function stripLeadingNoisePrefix(lines: string[]): string[] {
 /**
  * Parse raw tmux output into clean, human-readable lines.
  * - Strips ANSI escape codes
- * - Drops lines starting with OMC chrome characters (●, ⎿, ✻, ·, ◼)
+ * - Drops lines starting with OMAC chrome characters (●, ⎿, ✻, ·, ◼)
  * - Drops "ctrl+o to expand" hint lines
  * - Returns at most `maxLines` non-empty lines (default 10)
  */
@@ -352,7 +352,7 @@ export function parseTmuxTail(raw: string, maxLines: number = DEFAULT_MAX_TAIL_L
     if (UI_CHROME_RE.test(trimmed)) continue;
     if (CTRL_O_RE.test(trimmed)) continue;
     if (BOX_DRAWING_RE.test(trimmed)) continue;
-    if (OMC_HUD_RE.test(trimmed)) continue;
+    if (OMAC_HUD_RE.test(trimmed)) continue;
     if (BYPASS_PERM_RE.test(trimmed)) continue;
     if (BARE_PROMPT_RE.test(trimmed)) continue;
     if (DIFF_HEADER_LINE_RE.test(trimmed)) continue;

@@ -5,16 +5,16 @@
 import { join } from 'path';
 import { homedir } from 'os';
 import { getClaudeConfigDir } from '../../utils/config-dir.js';
-import { OmcPaths } from '../../lib/worktree-paths.js';
+import { OmacPaths } from '../../lib/worktree-paths.js';
 
 /** User-level skills directory (read by skill-injector.mjs hook) */
-export const USER_SKILLS_DIR = join(getClaudeConfigDir(), 'skills', 'omc-learned');
+export const USER_SKILLS_DIR = join(getClaudeConfigDir(), 'skills', 'omac-learned');
 
-/** Global skills directory (new preferred location: ~/.omc/skills) */
-export const GLOBAL_SKILLS_DIR = join(homedir(), '.omc', 'skills');
+/** Global skills directory (new preferred location: ~/.omac/skills) */
+export const GLOBAL_SKILLS_DIR = join(homedir(), '.omac', 'skills');
 
 /** Project-level skills subdirectory */
-export const PROJECT_SKILLS_SUBDIR = OmcPaths.SKILLS;
+export const PROJECT_SKILLS_SUBDIR = OmacPaths.SKILLS;
 
 /** Project-level compatibility skills subdirectory (read-only compatibility source) */
 export const PROJECT_AGENT_SKILLS_SUBDIR = join('.agents', 'skills');
@@ -44,4 +44,4 @@ export const REQUIRED_METADATA_FIELDS = ['id', 'name', 'description', 'triggers'
 export const MAX_SKILLS_PER_SESSION = 10;
 
 /** Debug mode enabled */
-export const DEBUG_ENABLED = process.env.OMC_DEBUG === '1';
+export const DEBUG_ENABLED = process.env.OMAC_DEBUG === '1';

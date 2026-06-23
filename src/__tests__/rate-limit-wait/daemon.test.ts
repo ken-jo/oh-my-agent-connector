@@ -16,7 +16,7 @@ import {
 import type { DaemonState, DaemonConfig, RateLimitStatus } from '../../features/rate-limit-wait/types.js';
 
 describe('daemon', () => {
-  const testDir = join(tmpdir(), 'omc-daemon-test-' + Date.now());
+  const testDir = join(tmpdir(), 'omac-daemon-test-' + Date.now());
   const testConfig: DaemonConfig = {
     stateFilePath: join(testDir, 'state.json'),
     pidFilePath: join(testDir, 'daemon.pid'),

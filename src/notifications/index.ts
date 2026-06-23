@@ -1,7 +1,7 @@
 /**
  * Notification System - Public API
  *
- * Multi-platform lifecycle notifications for oh-my-claudecode.
+ * Multi-platform lifecycle notifications for oh-my-agent-connector.
  * Sends notifications to Discord, Telegram, Slack, and generic webhooks
  * on session lifecycle events.
  *
@@ -113,7 +113,7 @@ import { getCurrentTmuxSession } from "./tmux.js";
 import { getHookConfig, resolveEventTemplate } from "./hook-config.js";
 import { interpolateTemplate } from "./template-engine.js";
 import { basename, join } from "path";
-import { getOmcRoot } from "../lib/worktree-paths.js";
+import { getOmacRoot } from "../lib/worktree-paths.js";
 
 /**
  * High-level notification function.
@@ -129,8 +129,8 @@ export async function notify(
   event: NotificationEvent,
   data: Partial<NotificationPayload> & { sessionId: string; profileName?: string },
 ): Promise<DispatchResult | null> {
-  // OMC_NOTIFY=0 suppresses all CCNotifier events (set by `omc --notify false`)
-  if (process.env.OMC_NOTIFY === '0') {
+  // OMAC_NOTIFY=0 suppresses all CCNotifier events (set by `omac --notify false`)
+  if (process.env.OMAC_NOTIFY === '0') {
     return null;
   }
 
@@ -203,7 +203,7 @@ export async function notify(
         );
         const tailLines = getTmuxTailLines(config);
         const rawTail = payload.projectPath
-          ? getNewPaneTail(payload.tmuxPaneId, join(getOmcRoot(payload.projectPath), "state"), tailLines)
+          ? getNewPaneTail(payload.tmuxPaneId, join(getOmacRoot(payload.projectPath), "state"), tailLines)
           : capturePaneContent(payload.tmuxPaneId, tailLines);
         if (rawTail) {
           payload.tmuxTail = rawTail;

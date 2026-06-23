@@ -28,10 +28,10 @@ export function getClaudeConfigDir() {
   return stripTrailingSep(normalize(configured));
 }
 
-export function getOmcConfigDir() {
-  return join(getClaudeConfigDir(), '.omc');
+export function getOmacConfigDir() {
+  return join(getClaudeConfigDir(), '.omac');
 }
 
 export function getUpdateCheckCachePath() {
-  return join(getOmcConfigDir(), 'update-check.json');
+  return join(getOmacConfigDir(), 'update-check.json');
 }

@@ -10,13 +10,13 @@ import { mkdirSync, rmSync, existsSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 
-// Mock getOmcRoot to use our test directory
-const mockGetOmcRoot = vi.fn<(worktreeRoot?: string) => string>();
+// Mock getOmacRoot to use our test directory
+const mockGetOmacRoot = vi.fn<(worktreeRoot?: string) => string>();
 vi.mock('../lib/worktree-paths.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../lib/worktree-paths.js')>();
   return {
     ...actual,
-    getOmcRoot: (...args: [string?]) => mockGetOmcRoot(...args),
+    getOmacRoot: (...args: [string?]) => mockGetOmacRoot(...args),
     validateWorkingDirectory: (dir?: string) => dir || '/tmp',
   };
 });
@@ -26,16 +26,16 @@ import * as fileLock from '../lib/file-lock.js';
 
 describe('writeEntry lock timeout', () => {
   let testDir: string;
-  let omcDir: string;
+  let omacDir: string;
 
   beforeEach(() => {
     testDir = join(
       tmpdir(),
       `shared-memory-lock-timeout-${Date.now()}-${Math.random().toString(36).slice(2)}`,
     );
-    omcDir = join(testDir, '.omc');
-    mkdirSync(omcDir, { recursive: true });
-    mockGetOmcRoot.mockReturnValue(omcDir);
+    omacDir = join(testDir, '.omac');
+    mkdirSync(omacDir, { recursive: true });
+    mockGetOmacRoot.mockReturnValue(omacDir);
   });
 
   afterEach(() => {
@@ -107,7 +107,7 @@ describe('writeEntry lock timeout', () => {
     writeEntry('myns', 'mykey', 'v');
 
     const [lockPath] = spy.mock.calls[0];
-    const entryPath = join(omcDir, 'state', 'shared-memory', 'myns', 'mykey.json');
+    const entryPath = join(omacDir, 'state', 'shared-memory', 'myns', 'mykey.json');
     expect(lockPath).toBe(entryPath + '.lock');
   });
 });

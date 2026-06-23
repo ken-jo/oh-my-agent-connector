@@ -13,7 +13,7 @@ describe("getVerbosity", () => {
   };
 
   beforeEach(() => {
-    vi.stubEnv("OMC_NOTIFY_VERBOSITY", "");
+    vi.stubEnv("OMAC_NOTIFY_VERBOSITY", "");
   });
 
   afterEach(() => {
@@ -40,18 +40,18 @@ describe("getVerbosity", () => {
   });
 
   it("returns env var value when set (overrides config)", () => {
-    vi.stubEnv("OMC_NOTIFY_VERBOSITY", "verbose");
+    vi.stubEnv("OMAC_NOTIFY_VERBOSITY", "verbose");
     const config: NotificationConfig = { ...baseConfig, verbosity: "minimal" };
     expect(getVerbosity(config)).toBe("verbose");
   });
 
   it("returns 'session' for invalid env var value", () => {
-    vi.stubEnv("OMC_NOTIFY_VERBOSITY", "invalid-level");
+    vi.stubEnv("OMAC_NOTIFY_VERBOSITY", "invalid-level");
     expect(getVerbosity(baseConfig)).toBe("session");
   });
 
   it("returns config value when env var is invalid", () => {
-    vi.stubEnv("OMC_NOTIFY_VERBOSITY", "invalid");
+    vi.stubEnv("OMAC_NOTIFY_VERBOSITY", "invalid");
     const config: NotificationConfig = { ...baseConfig, verbosity: "agent" };
     expect(getVerbosity(config)).toBe("agent");
   });
@@ -151,7 +151,7 @@ describe("getTmuxTailLines", () => {
   };
 
   beforeEach(() => {
-    vi.stubEnv("OMC_NOTIFY_TMUX_TAIL_LINES", "");
+    vi.stubEnv("OMAC_NOTIFY_TMUX_TAIL_LINES", "");
   });
 
   afterEach(() => {
@@ -168,13 +168,13 @@ describe("getTmuxTailLines", () => {
   });
 
   it("returns env var value when set (overrides config)", () => {
-    vi.stubEnv("OMC_NOTIFY_TMUX_TAIL_LINES", "30");
+    vi.stubEnv("OMAC_NOTIFY_TMUX_TAIL_LINES", "30");
     const config: NotificationConfig = { ...baseConfig, tmuxTailLines: 25 };
     expect(getTmuxTailLines(config)).toBe(30);
   });
 
   it("ignores invalid env var values", () => {
-    vi.stubEnv("OMC_NOTIFY_TMUX_TAIL_LINES", "0");
+    vi.stubEnv("OMAC_NOTIFY_TMUX_TAIL_LINES", "0");
     const config: NotificationConfig = { ...baseConfig, tmuxTailLines: 22 };
     expect(getTmuxTailLines(config)).toBe(22);
   });

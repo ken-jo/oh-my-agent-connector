@@ -2,8 +2,8 @@
  * Regression test for workspace-marker path resolution in shared-state.
  *
  * When initInteropSession (and all other writers) are called from a sub-repo
- * inside a .omc-workspace multi-repo layout, interop state must land at the
- * workspace root's .omc/, not at the sub-repo's .omc/.
+ * inside a .omac-workspace multi-repo layout, interop state must land at the
+ * workspace root's .omac/, not at the sub-repo's .omac/.
  */
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -20,14 +20,14 @@ describe('shared-state workspace-marker path resolution', () => {
 
   beforeEach(() => {
     // Build fixture:
-    //   A/              ← workspace root (contains .omc-workspace marker)
+    //   A/              ← workspace root (contains .omac-workspace marker)
     //   A/sub/          ← child git repo (git init'd)
-    workspaceRoot = mkdtempSync(join(tmpdir(), 'omc-workspace-'));
+    workspaceRoot = mkdtempSync(join(tmpdir(), 'omac-workspace-'));
     subDir = join(workspaceRoot, 'sub');
     mkdirSync(subDir, { recursive: true });
 
     // Place the workspace marker at the workspace root.
-    writeFileSync(join(workspaceRoot, '.omc-workspace'), '');
+    writeFileSync(join(workspaceRoot, '.omac-workspace'), '');
 
     // Initialize a real git repo inside sub/ so git-based resolution
     // (getWorktreeRoot) would otherwise anchor to subDir, not workspaceRoot.
@@ -47,14 +47,14 @@ describe('shared-state workspace-marker path resolution', () => {
     clearWorktreeCache();
   });
 
-  it('writes interop config to the workspace root .omc/, not the sub-repo .omc/', () => {
+  it('writes interop config to the workspace root .omac/, not the sub-repo .omac/', () => {
     // Call initInteropSession from the child sub-repo directory.
     initInteropSession('test-session', subDir);
 
     // Expected: file is at workspace root
-    const expectedPath = join(workspaceRoot, '.omc', 'state', 'interop', 'config.json');
+    const expectedPath = join(workspaceRoot, '.omac', 'state', 'interop', 'config.json');
     // Regression: file would be at sub-repo root if the bug were present
-    const wrongPath = join(subDir, '.omc', 'state', 'interop', 'config.json');
+    const wrongPath = join(subDir, '.omac', 'state', 'interop', 'config.json');
 
     expect(existsSync(expectedPath)).toBe(true);
     expect(existsSync(wrongPath)).toBe(false);

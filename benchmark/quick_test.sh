@@ -88,11 +88,11 @@ echo ""
 VANILLA_STATUS=$?
 echo ""
 
-# Step 2: Run quick OMC test
-log_step "Step 2/2: Quick OMC test ($TEST_LIMIT instances)..."
+# Step 2: Run quick OMAC test
+log_step "Step 2/2: Quick OMAC test ($TEST_LIMIT instances)..."
 echo ""
-"$SCRIPT_DIR/run_omc.sh" --limit $TEST_LIMIT --model "$MODEL" --timeout $TIMEOUT
-OMC_STATUS=$?
+"$SCRIPT_DIR/run_omac.sh" --limit $TEST_LIMIT --model "$MODEL" --timeout $TIMEOUT
+OMAC_STATUS=$?
 echo ""
 
 # Calculate elapsed time
@@ -105,12 +105,12 @@ SECONDS=$((ELAPSED % 60))
 log_header "Quick Test Complete!"
 echo ""
 
-if [ $VANILLA_STATUS -eq 0 ] && [ $OMC_STATUS -eq 0 ]; then
+if [ $VANILLA_STATUS -eq 0 ] && [ $OMAC_STATUS -eq 0 ]; then
     log_info "Both tests passed successfully!"
     echo ""
     log_info "Results:"
     log_info "  Vanilla: $SCRIPT_DIR/predictions/vanilla/"
-    log_info "  OMC:     $SCRIPT_DIR/predictions/omc/"
+    log_info "  OMAC:     $SCRIPT_DIR/predictions/omac/"
     echo ""
     log_info "Time: ${MINUTES}m ${SECONDS}s"
     echo ""
@@ -122,7 +122,7 @@ else
     log_error "One or more tests failed!"
     echo ""
     [ $VANILLA_STATUS -ne 0 ] && log_error "  Vanilla test: FAILED (exit code $VANILLA_STATUS)"
-    [ $OMC_STATUS -ne 0 ] && log_error "  OMC test: FAILED (exit code $OMC_STATUS)"
+    [ $OMAC_STATUS -ne 0 ] && log_error "  OMAC test: FAILED (exit code $OMAC_STATUS)"
     echo ""
     log_info "Check logs in: $SCRIPT_DIR/logs/"
     echo ""

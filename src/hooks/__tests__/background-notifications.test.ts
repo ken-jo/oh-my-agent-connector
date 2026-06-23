@@ -10,7 +10,7 @@ vi.mock("child_process", () => ({
 describe("dispatchNotificationInBackground", () => {
   beforeEach(() => {
     spawnMock.mockReturnValue({ unref: unrefMock });
-    delete process.env.OMC_NOTIFY;
+    delete process.env.OMAC_NOTIFY;
   });
 
   afterEach(() => {
@@ -34,14 +34,14 @@ describe("dispatchNotificationInBackground", () => {
         detached: true,
         stdio: "ignore",
         windowsHide: true,
-        env: expect.objectContaining({ OMC_HOOK_BACKGROUND_CHILD: "1" }),
+        env: expect.objectContaining({ OMAC_HOOK_BACKGROUND_CHILD: "1" }),
       }),
     );
     expect(unrefMock).toHaveBeenCalledOnce();
   });
 
   it("does not spawn when notifications are explicitly disabled", async () => {
-    vi.stubEnv("OMC_NOTIFY", "0");
+    vi.stubEnv("OMAC_NOTIFY", "0");
     const { dispatchNotificationInBackground } = await import("../background-notifications.js");
 
     dispatchNotificationInBackground("session-idle", { sessionId: "sess-1" });

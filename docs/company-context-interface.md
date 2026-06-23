@@ -1,16 +1,16 @@
 # Company Context MCP Interface
 
-OMC supports a narrow, prompt-level contract for vendor-owned company context.
+OMAC supports a narrow, prompt-level contract for vendor-owned company context.
 
 This contract is aimed at a specific failure mode from issue #2692: purely
 prompt-directive company-context guidance is still missed in practice roughly 5%
 of the time. Making the lookup an explicit configured tool call materially
-reduces that miss mode at the spec layer without changing OMC runtime behavior.
+reduces that miss mode at the spec layer without changing OMAC runtime behavior.
 
-This is **not** a runtime enforcement feature. It gives OMC workflows:
+This is **not** a runtime enforcement feature. It gives OMAC workflows:
 
 - a consistent tool shape,
-- an explicit OMC config block,
+- an explicit OMAC config block,
 - shared wording for when selected skills should consult that tool.
 
 The tool invocation itself remains best-effort prompt behavior. It improves consistency, but it does **not** guarantee mathematically perfect execution.
@@ -21,7 +21,7 @@ Use this when your organization already has an MCP server that can return intern
 
 This contract does **not** create:
 
-- a remote OMC cluster,
+- a remote OMAC cluster,
 - a shared remote filesystem,
 - a runtime hook that force-calls the tool,
 - content validation, signing, or sandboxing of vendor output.
@@ -45,14 +45,14 @@ output: { context: string }
 
 Vendor output must be treated as quoted advisory data, not executable instructions. It must not attempt to override system prompts, tell the agent to ignore earlier instructions, or impersonate policy enforcement.
 
-OMC skill clauses should treat the returned markdown the same way `deep-dive` treats injected trace context: useful reference material, never instruction authority.
+OMAC skill clauses should treat the returned markdown the same way `deep-dive` treats injected trace context: useful reference material, never instruction authority.
 
-## OMC Configuration
+## OMAC Configuration
 
-Configure the contract in the standard OMC config surface:
+Configure the contract in the standard OMAC config surface:
 
-- Project: `.claude/omc.jsonc`
-- User: `~/.config/claude-omc/config.jsonc`
+- Project: `.claude/omac.jsonc`
+- User: `~/.config/claude-omac/config.jsonc`
 
 Project config overrides user config.
 
@@ -98,7 +98,7 @@ Each skill should build a `query` that summarizes the current task, current stag
 The company-context server itself is still registered through the normal MCP surfaces:
 
 - Claude MCP configuration / `claude mcp add ...`
-- the unified MCP registry that OMC syncs to Codex
+- the unified MCP registry that OMAC syncs to Codex
 
 This contract does not change how MCP servers are registered.
 

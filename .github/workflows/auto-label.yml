@@ -50,7 +50,7 @@ jobs:
             }
 
             // Agent-related
-            if (body.includes('agent') || body.includes('architect') || body.includes('omc') ||
+            if (body.includes('agent') || body.includes('architect') || body.includes('omac') ||
                 body.includes('planner') || body.includes('ultrawork') || body.includes('chillwork')) {
               labels.push('agents');
             }

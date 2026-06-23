@@ -80,8 +80,8 @@ describe('spawnWorkerInPane', () => {
       teamName: 'safe-team',
       workerName: 'worker-1',
       envVars: {
-        OMC_TEAM_NAME: 'safe-team',
-        OMC_TEAM_WORKER: 'safe-team/worker-1',
+        OMAC_TEAM_NAME: 'safe-team',
+        OMAC_TEAM_WORKER: 'safe-team/worker-1',
       },
       launchBinary: 'codex',
       launchArgs: ['--full-auto', '--model', 'gpt-5;touch /tmp/pwn'],
@@ -107,8 +107,8 @@ describe('spawnWorkerInPane', () => {
       teamName: 'safe-team',
       workerName: 'worker-1',
       envVars: {
-        OMC_TEAM_NAME: 'safe-team',
-        OMC_TEAM_WORKER: 'safe-team/worker-1',
+        OMAC_TEAM_NAME: 'safe-team',
+        OMAC_TEAM_WORKER: 'safe-team/worker-1',
       },
       launchBinary: 'codex',
       launchArgs: ['--full-auto'],
@@ -162,8 +162,8 @@ describe('spawnWorkerInPane', () => {
         teamName: 'safe-team',
         workerName: 'worker-1',
         envVars: {
-          OMC_TEAM_NAME: 'safe-team',
-          OMC_TEAM_WORKER: 'safe-team/worker-1',
+          OMAC_TEAM_NAME: 'safe-team',
+          OMAC_TEAM_WORKER: 'safe-team/worker-1',
         },
         launchBinary: 'codex',
         launchArgs: ['--full-auto'],
@@ -182,9 +182,9 @@ describe('spawnWorkerInPane', () => {
       teamName: 'safe-team',
       workerName: 'worker-1',
       envVars: {
-        OMC_TEAM_NAME: 'safe-team',
-        OMC_TEAM_WORKER: 'safe-team/worker-1',
-        OMC_TEAM_LONG_VALUE: 'x'.repeat(160),
+        OMAC_TEAM_NAME: 'safe-team',
+        OMAC_TEAM_WORKER: 'safe-team/worker-1',
+        OMAC_TEAM_LONG_VALUE: 'x'.repeat(160),
       },
       launchBinary: 'codex',
       launchArgs: ['--full-auto', '--model', 'gpt-5.5', '--reasoning-effort', 'high'],
@@ -203,8 +203,8 @@ describe('spawnWorkerInPane', () => {
         teamName: 'safe-team',
         workerName: 'worker-1',
         envVars: {
-          OMC_TEAM_NAME: 'safe-team',
-          OMC_TEAM_WORKER: 'safe-team/worker-1',
+          OMAC_TEAM_NAME: 'safe-team',
+          OMAC_TEAM_WORKER: 'safe-team/worker-1',
         },
         launchBinary: 'codex',
         launchArgs: ['--full-auto'],
@@ -220,7 +220,7 @@ describe('spawnWorkerInPane', () => {
       spawnWorkerInPane('session:0', '%2', {
         teamName: 'Bad-Team',
         workerName: 'worker-1',
-        envVars: { OMC_TEAM_NAME: 'Bad-Team' },
+        envVars: { OMAC_TEAM_NAME: 'Bad-Team' },
         launchBinary: 'codex',
         launchArgs: ['--full-auto'],
         cwd: '/tmp',
@@ -245,7 +245,7 @@ describe('spawnWorkerInPane', () => {
       spawnWorkerInPane('session:0', '%2', {
         teamName: 'safe-team',
         workerName: 'worker-1',
-        envVars: { OMC_TEAM_NAME: 'safe-team' },
+        envVars: { OMAC_TEAM_NAME: 'safe-team' },
         launchBinary: 'codex;touch /tmp/pwn',
         cwd: '/tmp',
       })

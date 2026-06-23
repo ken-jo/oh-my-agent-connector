@@ -19,7 +19,7 @@ describe("planning/artifacts", () => {
 
   beforeEach(() => {
     testDir = mkdtempSync(join(tmpdir(), "artifacts-test-"));
-    plansDir = join(testDir, ".omc", "plans");
+    plansDir = join(testDir, ".omac", "plans");
     mkdirSync(plansDir, { recursive: true });
   });
 
@@ -42,7 +42,7 @@ describe("planning/artifacts", () => {
         "## Requirement coverage map",
         "- req -> impl",
         "",
-        'omc team 3:claude "implement auth"',
+        'omac team 3:claude "implement auth"',
         "",
       ].join("\n"),
     );
@@ -116,7 +116,7 @@ describe("planning/artifacts", () => {
       expect(result.testSpecPaths[0]).toContain(join(".omx", "plans", "test-spec-omx.md"));
     });
 
-    it("prefers the lexicographically latest artifact name across .omc and .omx plan roots", () => {
+    it("prefers the lexicographically latest artifact name across .omac and .omx plan roots", () => {
       const omxPlansDir = join(testDir, ".omx", "plans");
       mkdirSync(omxPlansDir, { recursive: true });
       writeFileSync(join(plansDir, "prd-aaa.md"), "# PRD A");
@@ -126,7 +126,7 @@ describe("planning/artifacts", () => {
 
       expect(result.prdPaths).toHaveLength(2);
       expect(result.prdPaths[0]).toContain(join(".omx", "plans", "prd-zzz.md"));
-      expect(result.prdPaths[1]).toContain(join(".omc", "plans", "prd-aaa.md"));
+      expect(result.prdPaths[1]).toContain(join(".omac", "plans", "prd-aaa.md"));
     });
 
     it("orders timestamped artifacts after legacy names by timestamp", () => {
@@ -439,7 +439,7 @@ describe("planning/artifacts", () => {
           "## Requirement coverage map",
           "- req -> impl",
           "",
-          'omc team 3:claude "implement auth"',
+          'omac team 3:claude "implement auth"',
           "",
         ].join("\n"),
       );
@@ -479,7 +479,7 @@ describe("planning/artifacts", () => {
           "## Requirement coverage map",
           "- req -> impl",
           "",
-          'Run: omc team "implement the feature"',
+          'Run: omac team "implement the feature"',
           "",
         ].join("\n"),
       );
@@ -491,8 +491,8 @@ describe("planning/artifacts", () => {
     });
 
     it("resolves exact team launch hints by command when tasks repeat", () => {
-      const firstCommand = 'omc team 2:claude "ship it"';
-      const secondCommand = 'omc team 4:codex "ship it"';
+      const firstCommand = 'omac team 2:claude "ship it"';
+      const secondCommand = 'omac team 4:codex "ship it"';
       writeFileSync(
         join(plansDir, "prd-feature.md"),
         [
@@ -547,7 +547,7 @@ describe("planning/artifacts", () => {
           "## Requirement coverage map",
           "- req -> impl",
           "",
-          'omc ralph-verify "do the work"',
+          'omac ralph-verify "do the work"',
           "",
         ].join("\n"),
       );
@@ -607,7 +607,7 @@ describe("planning/artifacts", () => {
           "## Requirement coverage map",
           "- req -> impl",
           "",
-          'omc team 2:codex "fix the bug" --linked-ralph',
+          'omac team 2:codex "fix the bug" --linked-ralph',
           "",
         ].join("\n"),
       );
@@ -628,7 +628,7 @@ describe("planning/artifacts", () => {
           "## Requirement coverage map",
           "- req -> impl",
           "",
-          'omc ralph "do the work"',
+          'omac ralph "do the work"',
           "",
         ].join("\n"),
       );
@@ -647,7 +647,7 @@ describe("planning/artifacts", () => {
     it("still parses launch hints even when quality gates fail", () => {
       writeFileSync(
         join(plansDir, "prd-feature.md"),
-        '# PRD\n\nRun: omc team "new task"\n',
+        '# PRD\n\nRun: omac team "new task"\n',
       );
       writeFileSync(
         join(plansDir, "test-spec-feature.md"),

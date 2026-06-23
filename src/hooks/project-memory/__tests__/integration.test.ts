@@ -18,12 +18,12 @@ describe("Project Memory Integration", () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    delete process.env.OMC_STATE_DIR;
+    delete process.env.OMAC_STATE_DIR;
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "integration-test-"));
   });
 
   afterEach(async () => {
-    delete process.env.OMC_STATE_DIR;
+    delete process.env.OMAC_STATE_DIR;
     contextCollector.clear("test-session-1");
     contextCollector.clear("test-session-2");
     contextCollector.clear("test-session-3a");
@@ -70,20 +70,20 @@ describe("Project Memory Integration", () => {
       expect(memory?.techStack.packageManager).toBe("pnpm");
       expect(memory?.build.buildCommand).toBe("pnpm build");
 
-      const omcDir = path.join(tempDir, ".omc");
-      const omcStat = await fs.stat(omcDir);
-      expect(omcStat.isDirectory()).toBe(true);
+      const omacDir = path.join(tempDir, ".omac");
+      const omacStat = await fs.stat(omacDir);
+      expect(omacStat.isDirectory()).toBe(true);
 
       const pending = contextCollector.getPending(sessionId);
       expect(pending.merged).toContain("[Project Environment]");
     });
 
-    it("should persist to centralized state dir without creating local .omc when OMC_STATE_DIR is set", async () => {
+    it("should persist to centralized state dir without creating local .omac when OMAC_STATE_DIR is set", async () => {
       const stateDir = await fs.mkdtemp(
         path.join(os.tmpdir(), "integration-state-"),
       );
       try {
-        process.env.OMC_STATE_DIR = stateDir;
+        process.env.OMAC_STATE_DIR = stateDir;
 
         const packageJson = {
           name: "test-app",
@@ -107,10 +107,10 @@ describe("Project Memory Integration", () => {
         const content = await fs.readFile(memoryPath, "utf-8");
         expect(JSON.parse(content).projectRoot).toBe(tempDir);
         await expect(
-          fs.access(path.join(tempDir, ".omc", "project-memory.json")),
+          fs.access(path.join(tempDir, ".omac", "project-memory.json")),
         ).rejects.toThrow();
       } finally {
-        delete process.env.OMC_STATE_DIR;
+        delete process.env.OMAC_STATE_DIR;
         contextCollector.clear("test-session-centralized");
         await fs.rm(stateDir, { recursive: true, force: true });
       }

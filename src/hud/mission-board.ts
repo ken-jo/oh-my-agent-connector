@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { atomicWriteJsonSync } from '../lib/atomic-write.js';
 import { withFileLockSync } from '../lib/file-lock.js';
 import {
-  getOmcRoot,
+  getOmacRoot,
   getProcessSessionId,
   isLegacyStateMigrationEnabled,
   resolveSessionStatePaths,
@@ -190,7 +190,7 @@ function readJsonLinesSafe<T>(path: string): T[] {
 
 /**
  * Perform a one-shot legacy → session-scoped migration when:
- *   - OMC_MIGRATE_LEGACY_STATE=1 is set, AND
+ *   - OMAC_MIGRATE_LEGACY_STATE=1 is set, AND
  *   - the session-scoped file does not yet exist, AND
  *   - a legacy file exists.
  * Uses a `.migrating` sentinel + atomic rename for crash safety.
@@ -255,7 +255,7 @@ function latest(...values: Array<string | undefined | null>): string | undefined
 }
 
 function shortAgentType(agentType: string): string {
-  return agentType.replace(/^oh-my-claudecode:/, '').trim() || 'agent';
+  return agentType.replace(/^oh-my-agent-connector:/, '').trim() || 'agent';
 }
 
 function sessionAgentName(agentType: string, agentId: string): string {
@@ -573,7 +573,7 @@ export function refreshMissionBoardState(directory: string, rawConfig: MissionBo
   const effectiveSessionId = sessionId ?? getProcessSessionId();
   const config = resolveConfig(rawConfig);
   const previous = readMissionBoardState(directory, effectiveSessionId);
-  const teamsRoot = join(getOmcRoot(directory), 'state', 'team');
+  const teamsRoot = join(getOmacRoot(directory), 'state', 'team');
   const teamMissions = existsSync(teamsRoot)
     ? readdirSync(teamsRoot, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())

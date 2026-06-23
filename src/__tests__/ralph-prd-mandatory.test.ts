@@ -31,8 +31,8 @@ describe('Ralph PRD-Mandatory', () => {
   beforeEach(() => {
     testDir = join(tmpdir(), `ralph-prd-mandatory-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(testDir, { recursive: true });
-    // Create .omc/state directory for ralph state files
-    mkdirSync(join(testDir, '.omc', 'state'), { recursive: true });
+    // Create .omac/state directory for ralph state files
+    mkdirSync(join(testDir, '.omac', 'state'), { recursive: true });
   });
 
   afterEach(() => {
@@ -379,7 +379,7 @@ describe('Ralph PRD-Mandatory', () => {
       });
 
       expect(prompt).toContain('[CODEX CRITIC VERIFICATION REQUIRED');
-      expect(prompt).toContain('omc ask codex --agent-prompt critic');
+      expect(prompt).toContain('omac ask codex --agent-prompt critic');
       expect(prompt).toContain('<ralph-approved critic="codex" request-id="req-codex">VERIFIED_COMPLETE</ralph-approved>');
     });
 

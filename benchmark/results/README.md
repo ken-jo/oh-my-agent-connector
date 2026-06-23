@@ -5,7 +5,7 @@
 | Mode | Pass Rate | Avg Tokens | Avg Time | Total Cost |
 |------|-----------|------------|----------|------------|
 | Vanilla | -% | - | -m | $- |
-| OMC | -% | - | -m | $- |
+| OMAC | -% | - | -m | $- |
 
 **Delta:** - percentage points improvement
 
@@ -28,11 +28,11 @@
 ### Vanilla Configuration
 
 Standard Claude Code with default settings:
-- No OMC extensions loaded
+- No OMAC extensions loaded
 - Default system prompt
 - Single-agent execution
 
-### OMC Configuration
+### OMAC Configuration
 
 Oh-My-ClaudeCode enhanced with:
 - Multi-agent orchestration
@@ -52,7 +52,7 @@ Oh-My-ClaudeCode enhanced with:
 
 ### By Repository
 
-| Repository | Vanilla | OMC | Delta |
+| Repository | Vanilla | OMAC | Delta |
 |------------|---------|-----|-------|
 | django | -/- | -/- | - |
 | flask | -/- | -/- | - |
@@ -61,7 +61,7 @@ Oh-My-ClaudeCode enhanced with:
 
 ### By Difficulty
 
-| Difficulty | Vanilla | OMC | Delta |
+| Difficulty | Vanilla | OMAC | Delta |
 |------------|---------|-----|-------|
 | Easy | -% | -% | - |
 | Medium | -% | -% | - |
@@ -75,13 +75,13 @@ Top failure categories for each mode:
 1. Category: N failures (N%)
 2. ...
 
-**OMC:**
+**OMAC:**
 1. Category: N failures (N%)
 2. ...
 
 ## Improvements
 
-Instances that OMC solved but vanilla failed:
+Instances that OMAC solved but vanilla failed:
 
 | Instance ID | Category | Notes |
 |-------------|----------|-------|
@@ -89,7 +89,7 @@ Instances that OMC solved but vanilla failed:
 
 ## Regressions
 
-Instances that vanilla solved but OMC failed:
+Instances that vanilla solved but OMAC failed:
 
 | Instance ID | Category | Notes |
 |-------------|----------|-------|
@@ -103,7 +103,7 @@ Instances that vanilla solved but OMC failed:
 # Install SWE-bench
 pip install swebench
 
-# Install oh-my-claudecode (if testing OMC)
+# Install oh-my-agent-connector (if testing OMAC)
 # Follow setup instructions in main README
 ```
 
@@ -117,26 +117,26 @@ python run_benchmark.py --mode vanilla --dataset swe-bench-verified --output res
 python evaluate.py --predictions results/vanilla/predictions.json --output results/vanilla/
 ```
 
-### Running OMC
+### Running OMAC
 
 ```bash
-# Generate predictions with OMC
-python run_benchmark.py --mode omc --dataset swe-bench-verified --output results/omc/
+# Generate predictions with OMAC
+python run_benchmark.py --mode omac --dataset swe-bench-verified --output results/omac/
 
 # Evaluate
-python evaluate.py --predictions results/omc/predictions.json --output results/omc/
+python evaluate.py --predictions results/omac/predictions.json --output results/omac/
 ```
 
 ### Comparing Results
 
 ```bash
-python compare_results.py --vanilla results/vanilla/ --omc results/omc/ --output comparison/
+python compare_results.py --vanilla results/vanilla/ --omac results/omac/ --output comparison/
 ```
 
 ### Analyzing Failures
 
 ```bash
-python analyze_failures.py --vanilla results/vanilla/ --omc results/omc/ --compare --output analysis/
+python analyze_failures.py --vanilla results/vanilla/ --omac results/omac/ --compare --output analysis/
 ```
 
 ## Files
@@ -148,7 +148,7 @@ results/
 │   ├── summary.json          # Evaluation summary
 │   ├── report.md             # Human-readable report
 │   └── logs/                 # Per-instance logs
-├── omc/
+├── omac/
 │   ├── predictions.json
 │   ├── summary.json
 │   ├── report.md

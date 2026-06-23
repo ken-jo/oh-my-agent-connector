@@ -27,15 +27,15 @@ describe('validateConfigPath guardrails', () => {
   const claudeConfigDir = '/home/user/.claude';
 
   it('rejects path outside home', () => {
-    expect(validateConfigPath('/tmp/.omc/config.json', home, claudeConfigDir)).toBe(false);
+    expect(validateConfigPath('/tmp/.omac/config.json', home, claudeConfigDir)).toBe(false);
   });
 
   it('rejects path not under trusted subpaths', () => {
     expect(validateConfigPath('/home/user/project/config.json', home, claudeConfigDir)).toBe(false);
   });
 
-  it('accepts trusted .omc path under home', () => {
-    expect(validateConfigPath('/home/user/project/.omc/state/config.json', home, claudeConfigDir)).toBe(true);
+  it('accepts trusted .omac path under home', () => {
+    expect(validateConfigPath('/home/user/project/.omac/state/config.json', home, claudeConfigDir)).toBe(true);
   });
 });
 

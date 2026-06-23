@@ -10,19 +10,19 @@
  * Manual hook verification (stdin test):
  *   echo '{"tool_name":"Agent","toolInput":{},"cwd":"/tmp"}' | \
  *     ANTHROPIC_MODEL='global.anthropic.claude-sonnet-4-6[1m]' \
- *     OMC_ROUTING_FORCE_INHERIT=true \
+ *     OMAC_ROUTING_FORCE_INHERIT=true \
  *     node scripts/pre-tool-enforcer.mjs
  *   → expect: continue (stripped ID is provider-specific — inheritance is safe)
  *
  *   echo '{"tool_name":"Agent","toolInput":{},"cwd":"/tmp"}' | \
  *     ANTHROPIC_MODEL='claude-sonnet-4-6[1m]' \
- *     OMC_ROUTING_FORCE_INHERIT=true \
+ *     OMAC_ROUTING_FORCE_INHERIT=true \
  *     node scripts/pre-tool-enforcer.mjs
  *   → expect: deny (stripped ID is a bare Anthropic model ID, invalid on Bedrock)
  *
  *   echo '{"tool_name":"Agent","toolInput":{"model":"us.anthropic.claude-sonnet-4-5-20250929-v1:0"},"cwd":"/tmp"}' | \
  *     ANTHROPIC_MODEL='global.anthropic.claude-sonnet-4-6[1m]' \
- *     OMC_ROUTING_FORCE_INHERIT=true \
+ *     OMAC_ROUTING_FORCE_INHERIT=true \
  *     node scripts/pre-tool-enforcer.mjs
  *   → expect: continue (allowed through as valid Bedrock ID)
  */
@@ -41,7 +41,7 @@ import { saveAndClear, restore } from '../config/__tests__/test-helpers.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOOK_PATH = resolve(__dirname, '../../scripts/pre-tool-enforcer.mjs');
 
-const ENV_KEYS = ['ANTHROPIC_MODEL', 'CLAUDE_MODEL', 'OMC_ROUTING_FORCE_INHERIT', 'OMC_SUBAGENT_MODEL'] as const;
+const ENV_KEYS = ['ANTHROPIC_MODEL', 'CLAUDE_MODEL', 'OMAC_ROUTING_FORCE_INHERIT', 'OMAC_SUBAGENT_MODEL'] as const;
 
 // ---------------------------------------------------------------------------
 // Hook ALLOW path: explicit model param is a valid provider-specific ID
@@ -130,7 +130,7 @@ describe('session model [1m] detection — hasExtendedContextSuffix', () => {
 // ---------------------------------------------------------------------------
 // Provider-specific check still correct for Bedrock IDs used in guidance
 // ---------------------------------------------------------------------------
-describe('isProviderSpecificModelId — Bedrock IDs used in OMC_SUBAGENT_MODEL guidance', () => {
+describe('isProviderSpecificModelId — Bedrock IDs used in OMAC_SUBAGENT_MODEL guidance', () => {
   it('accepts the model from the 400 error message', () => {
     expect(isProviderSpecificModelId('us.anthropic.claude-sonnet-4-5-20250929-v1:0')).toBe(true);
   });
@@ -205,10 +205,10 @@ function runHook(
     env: {
       ...process.env,
       // Reset tier-resolution chain so host env doesn't leak into tests.
-      OMC_SUBAGENT_MODEL: '',
-      OMC_MODEL_LOW: '',
-      OMC_MODEL_MEDIUM: '',
-      OMC_MODEL_HIGH: '',
+      OMAC_SUBAGENT_MODEL: '',
+      OMAC_MODEL_LOW: '',
+      OMAC_MODEL_MEDIUM: '',
+      OMAC_MODEL_HIGH: '',
       CLAUDE_CODE_BEDROCK_HAIKU_MODEL: '',
       CLAUDE_CODE_BEDROCK_SONNET_MODEL: '',
       CLAUDE_CODE_BEDROCK_OPUS_MODEL: '',
@@ -216,7 +216,7 @@ function runHook(
       ANTHROPIC_DEFAULT_SONNET_MODEL: '',
       ANTHROPIC_DEFAULT_OPUS_MODEL: '',
       ...env,
-      OMC_ROUTING_FORCE_INHERIT: 'true',
+      OMAC_ROUTING_FORCE_INHERIT: 'true',
     },
     timeout: 10000,
   });
@@ -278,12 +278,12 @@ describe('hook integration — force-inherit + [1m] scenarios', () => {
     expect(result.reason).toMatch(/model="sonnet"/);
   });
 
-  it('derives tier alias from OMC_SUBAGENT_MODEL when set (backward compat)', () => {
+  it('derives tier alias from OMAC_SUBAGENT_MODEL when set (backward compat)', () => {
     const result = runHook(
       {},
       {
         ANTHROPIC_MODEL: 'global.anthropic.claude-sonnet-4-6[1m]',
-        OMC_SUBAGENT_MODEL: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+        OMAC_SUBAGENT_MODEL: 'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
       },
     );
     expect(result.denied).toBe(true);

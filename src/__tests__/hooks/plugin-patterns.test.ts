@@ -10,7 +10,7 @@ import {
 } from '../../hooks/plugin-patterns/index.js';
 
 function makeTempDir(): string {
-  const dir = join(tmpdir(), `omc-plugin-patterns-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const dir = join(tmpdir(), `omac-plugin-patterns-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(dir, { recursive: true });
   return dir;
 }

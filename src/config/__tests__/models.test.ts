@@ -13,9 +13,9 @@ import {
 import { saveAndClear, restore } from './test-helpers.js';
 
 const TIER_MODEL_ENV_KEYS = [
-  'OMC_MODEL_HIGH',
-  'OMC_MODEL_MEDIUM',
-  'OMC_MODEL_LOW',
+  'OMAC_MODEL_HIGH',
+  'OMAC_MODEL_MEDIUM',
+  'OMAC_MODEL_LOW',
   'CLAUDE_CODE_BEDROCK_OPUS_MODEL',
   'CLAUDE_CODE_BEDROCK_SONNET_MODEL',
   'CLAUDE_CODE_BEDROCK_HAIKU_MODEL',
@@ -31,7 +31,7 @@ const ALL_KEYS = [
   'CLAUDE_MODEL',
   'ANTHROPIC_MODEL',
   'ANTHROPIC_BASE_URL',
-  'OMC_ROUTING_FORCE_INHERIT',
+  'OMAC_ROUTING_FORCE_INHERIT',
   ...TIER_MODEL_ENV_KEYS,
 ] as const;
 
@@ -136,7 +136,7 @@ describe('isVertexAI()', () => {
   });
 
   it('detects Vertex model IDs from tier model env vars', () => {
-    process.env.OMC_MODEL_MEDIUM = 'vertex_ai/claude-sonnet-4-6@20250301';
+    process.env.OMAC_MODEL_MEDIUM = 'vertex_ai/claude-sonnet-4-6@20250301';
     expect(isVertexAI()).toBe(true);
   });
 
@@ -184,8 +184,8 @@ describe('isNonClaudeProvider()', () => {
     expect(isNonClaudeProvider()).toBe(true);
   });
 
-  it('returns true when OMC_ROUTING_FORCE_INHERIT=true', () => {
-    process.env.OMC_ROUTING_FORCE_INHERIT = 'true';
+  it('returns true when OMAC_ROUTING_FORCE_INHERIT=true', () => {
+    process.env.OMAC_ROUTING_FORCE_INHERIT = 'true';
     expect(isNonClaudeProvider()).toBe(true);
   });
 
@@ -194,13 +194,13 @@ describe('isNonClaudeProvider()', () => {
     expect(isNonClaudeProvider()).toBe(true);
   });
 
-  it('returns true when OMC tier defaults target a non-Claude provider', () => {
-    process.env.OMC_MODEL_MEDIUM = 'glm-5.1:cloud';
+  it('returns true when OMAC tier defaults target a non-Claude provider', () => {
+    process.env.OMAC_MODEL_MEDIUM = 'glm-5.1:cloud';
     expect(isNonClaudeProvider()).toBe(true);
   });
 
   it('does not globally force inheritance for tier-only non-Claude defaults', () => {
-    process.env.OMC_MODEL_HIGH = 'glm-5.1:cloud';
+    process.env.OMAC_MODEL_HIGH = 'glm-5.1:cloud';
 
     expect(isNonClaudeProvider()).toBe(true);
     expect(shouldAutoForceInherit()).toBe(false);
@@ -222,14 +222,14 @@ describe('isNonClaudeProvider()', () => {
 
   it('lets a direct Claude CLAUDE_MODEL beat stale non-Claude tier defaults', () => {
     process.env.CLAUDE_MODEL = 'claude-sonnet-4-6';
-    process.env.OMC_MODEL_MEDIUM = 'glm-5.1:cloud';
+    process.env.OMAC_MODEL_MEDIUM = 'glm-5.1:cloud';
 
     expect(isNonClaudeProvider()).toBe(false);
   });
 
   it('lets a direct Claude ANTHROPIC_MODEL beat stale non-Claude tier defaults', () => {
     process.env.ANTHROPIC_MODEL = 'claude-sonnet-4-6';
-    process.env.OMC_MODEL_MEDIUM = 'glm-5.1:cloud';
+    process.env.OMAC_MODEL_MEDIUM = 'glm-5.1:cloud';
 
     expect(isNonClaudeProvider()).toBe(false);
   });
@@ -273,8 +273,8 @@ describe('resolveInheritedModelFromEnv()', () => {
     expect(resolveInheritedModelFromEnv()).toBe('kimi-k2.6:cloud');
   });
 
-  it('uses OMC tier model env vars as inherit fallback when provider envs are absent', () => {
-    process.env.OMC_MODEL_MEDIUM = 'gpt-5.3:proxy';
+  it('uses OMAC tier model env vars as inherit fallback when provider envs are absent', () => {
+    process.env.OMAC_MODEL_MEDIUM = 'gpt-5.3:proxy';
 
     expect(resolveInheritedModelFromEnv()).toBe('gpt-5.3:proxy');
   });

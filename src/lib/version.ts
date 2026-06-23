@@ -35,10 +35,10 @@ export function getRuntimePackageVersion(): string {
 
   // Fallback: extract version from the plugin cache directory path.
   // When package.json is missing (e.g. Claude Code plugin system didn't copy it),
-  // the path itself contains the version: .../oh-my-claudecode/4.11.2/dist/lib/version.js
+  // the path itself contains the version: .../oh-my-agent-connector/4.11.2/dist/lib/version.js
   try {
     const __filename = fileURLToPath(import.meta.url);
-    const pathMatch = __filename.match(/oh-my-claudecode\/(\d+\.\d+\.\d+[^/]*)\//);
+    const pathMatch = __filename.match(/oh-my-agent-connector\/(\d+\.\d+\.\d+[^/]*)\//);
     if (pathMatch?.[1]) {
       return pathMatch[1];
     }
@@ -50,7 +50,7 @@ export function getRuntimePackageVersion(): string {
 }
 
 /**
- * Detect whether OMC is running from a local fork / dev install rather
+ * Detect whether OMAC is running from a local fork / dev install rather
  * than from the npm-published package.
  *
  * Signals (any one triggers "local"):
@@ -103,7 +103,7 @@ export function isRuntimePackageLocal(): boolean {
     }
 
     // Signal 3b: check ancestors for symlink/junction (covers cases where
-    // a parent dir like ~/.claude/plugins/marketplaces/omc is the junction).
+    // a parent dir like ~/.claude/plugins/marketplaces/omac is the junction).
     let cursor = pkgRoot;
     for (let i = 0; i < 6; i++) {
       const parent = dirname(cursor);

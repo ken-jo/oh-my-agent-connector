@@ -29,7 +29,7 @@ import {
 
 /** Map canonical team role → KnownAgentName key (matches PluginConfig.agents.*). */
 const ROLE_TO_AGENT: Record<CanonicalTeamRole, KnownAgentName> = {
-  orchestrator: 'omc',
+  orchestrator: 'omac',
   planner: 'planner',
   analyst: 'analyst',
   architect: 'architect',

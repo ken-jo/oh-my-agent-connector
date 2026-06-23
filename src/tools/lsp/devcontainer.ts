@@ -53,7 +53,7 @@ export function resolveDevContainerContext(workspaceRoot: string): DevContainerC
   const hostWorkspaceRoot = resolve(workspaceRoot);
   const configFilePath = resolveDevContainerConfigPath(hostWorkspaceRoot);
   const config = readDevContainerConfig(configFilePath);
-  const overrideContainerId = process.env.OMC_LSP_CONTAINER_ID?.trim();
+  const overrideContainerId = process.env.OMAC_LSP_CONTAINER_ID?.trim();
 
   if (overrideContainerId) {
     return buildContextFromContainer(overrideContainerId, hostWorkspaceRoot, configFilePath, config);

@@ -58,9 +58,9 @@ describe('Wiki Storage', () => {
   });
 
   describe('getWikiDir', () => {
-    it('should return .omc/wiki path', () => {
+    it('should return .omac/wiki path', () => {
       const dir = getWikiDir(tempDir);
-      expect(dir).toBe(path.join(tempDir, '.omc', 'wiki'));
+      expect(dir).toBe(path.join(tempDir, '.omac', 'wiki'));
     });
   });
 
@@ -72,29 +72,29 @@ describe('Wiki Storage', () => {
 
     it('should create .gitignore with wiki/ entry', () => {
       ensureWikiDir(tempDir);
-      const gitignorePath = path.join(tempDir, '.omc', '.gitignore');
+      const gitignorePath = path.join(tempDir, '.omac', '.gitignore');
       expect(fs.existsSync(gitignorePath)).toBe(true);
       expect(fs.readFileSync(gitignorePath, 'utf-8')).toContain('wiki/');
     });
 
     it('should append to existing .gitignore', () => {
-      const omcDir = path.join(tempDir, '.omc');
-      fs.mkdirSync(omcDir, { recursive: true });
-      fs.writeFileSync(path.join(omcDir, '.gitignore'), 'state/\n');
+      const omacDir = path.join(tempDir, '.omac');
+      fs.mkdirSync(omacDir, { recursive: true });
+      fs.writeFileSync(path.join(omacDir, '.gitignore'), 'state/\n');
 
       ensureWikiDir(tempDir);
-      const content = fs.readFileSync(path.join(omcDir, '.gitignore'), 'utf-8');
+      const content = fs.readFileSync(path.join(omacDir, '.gitignore'), 'utf-8');
       expect(content).toContain('state/');
       expect(content).toContain('wiki/');
     });
 
     it('should not duplicate wiki/ in .gitignore', () => {
-      const omcDir = path.join(tempDir, '.omc');
-      fs.mkdirSync(omcDir, { recursive: true });
-      fs.writeFileSync(path.join(omcDir, '.gitignore'), 'wiki/\n');
+      const omacDir = path.join(tempDir, '.omac');
+      fs.mkdirSync(omacDir, { recursive: true });
+      fs.writeFileSync(path.join(omacDir, '.gitignore'), 'wiki/\n');
 
       ensureWikiDir(tempDir);
-      const content = fs.readFileSync(path.join(omcDir, '.gitignore'), 'utf-8');
+      const content = fs.readFileSync(path.join(omacDir, '.gitignore'), 'utf-8');
       const matches = content.match(/wiki\//g);
       expect(matches?.length).toBe(1);
     });

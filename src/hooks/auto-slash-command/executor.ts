@@ -9,7 +9,7 @@
 import { existsSync, readdirSync, readFileSync } from 'fs';
 import { join, basename } from 'path';
 import { getClaudeConfigDir } from '../../utils/config-dir.js';
-import { getOmcRoot } from '../../lib/worktree-paths.js';
+import { getOmacRoot } from '../../lib/worktree-paths.js';
 import type {
   ParsedSlashCommand,
   CommandInfo,
@@ -19,7 +19,7 @@ import type {
 } from './types.js';
 import { resolveLiveData } from './live-data.js';
 import { parseFrontmatter, parseFrontmatterAliases, stripOptionalQuotes } from '../../utils/frontmatter.js';
-import { rewriteOmcCliInvocations } from '../../utils/omc-cli-rendering.js';
+import { rewriteOmacCliInvocations } from '../../utils/omac-cli-rendering.js';
 import { parseSkillPipelineMetadata, renderSkillPipelineGuidance } from '../../utils/skill-pipeline.js';
 import { renderSkillResourcesGuidance } from '../../utils/skill-resources.js';
 import { renderSkillRuntimeGuidance } from '../../features/builtin-skills/runtime-guidance.js';
@@ -31,7 +31,7 @@ const CLAUDE_CONFIG_DIR = getClaudeConfigDir();
 /**
  * Claude Code native commands that must not be shadowed by user skills.
  * Skills whose canonical name or alias matches one of these will be prefixed
- * with `omc-` to avoid overriding built-in CC slash commands.
+ * with `omac-` to avoid overriding built-in CC slash commands.
  */
 const CC_NATIVE_COMMANDS = new Set([
   'review',
@@ -49,7 +49,7 @@ const CC_NATIVE_COMMANDS = new Set([
 function toSafeSkillName(name: string): string {
   const normalized = name.trim();
   return CC_NATIVE_COMMANDS.has(normalized.toLowerCase())
-    ? `omc-${normalized}`
+    ? `omac-${normalized}`
     : normalized;
 }
 
@@ -193,24 +193,24 @@ export function discoverAllCommands(): CommandInfo[] {
   const userCommandsDir = join(CLAUDE_CONFIG_DIR, 'commands');
   const projectCommandsDir = join(process.cwd(), '.claude', 'commands');
   const projectClaudeSkillsDir = join(process.cwd(), '.claude', 'skills');
-  const projectOmcSkillsDir = join(getOmcRoot(), 'skills');
+  const projectOmacSkillsDir = join(getOmacRoot(), 'skills');
   const projectAgentSkillsDir = join(process.cwd(), '.agents', 'skills');
   const userSkillsDir = join(CLAUDE_CONFIG_DIR, 'skills');
 
   const userCommands = discoverCommandsFromDir(userCommandsDir, 'user');
   const projectCommands = discoverCommandsFromDir(projectCommandsDir, 'project');
   const projectClaudeSkills = discoverSkillsFromDir(projectClaudeSkillsDir);
-  const projectOmcSkills = discoverSkillsFromDir(projectOmcSkillsDir);
+  const projectOmacSkills = discoverSkillsFromDir(projectOmacSkillsDir);
   const projectAgentSkills = discoverSkillsFromDir(projectAgentSkillsDir);
   const userSkills = discoverSkillsFromDir(userSkillsDir);
   const builtinSkills = discoverSkillsFromDir(getSkillsDir());
 
-  // Priority: project commands > user commands > project Claude Code skills > project OMC skills > project compatibility skills > user skills > builtin skills
+  // Priority: project commands > user commands > project Claude Code skills > project OMAC skills > project compatibility skills > user skills > builtin skills
   const prioritized = [
     ...projectCommands,
     ...userCommands,
     ...projectClaudeSkills,
-    ...projectOmcSkills,
+    ...projectOmacSkills,
     ...projectAgentSkills,
     ...userSkills,
     ...builtinSkills,
@@ -267,8 +267,8 @@ function renderDeepInterviewAutoresearchGuidance(args: string): string {
     '- If the mission is not already clear, start by asking: "What should autoresearch improve or prove for this repo?"',
     '- Treat evaluator clarity as a required readiness gate before launch.',
     '- When the mission and evaluator are ready, write setup artifacts and hand off with:',
-    '  `Skill("oh-my-claudecode:autoresearch")`',
-    '- Do **not** hand off to `omc-plan`, `autopilot`, `ralph`, `team`, or the hard-deprecated `omc autoresearch` CLI in this mode.',
+    '  `Skill("oh-my-agent-connector:autoresearch")`',
+    '- Do **not** hand off to `omac-plan`, `autopilot`, `ralph`, `team`, or the hard-deprecated `omac autoresearch` CLI in this mode.',
   ];
 
   if (missionSeed) {
@@ -323,7 +323,7 @@ function formatCommandTemplate(cmd: CommandInfo, args: string): string {
   const baseContent = resolveLiveData(resolvedContent);
   const injectedContent = cmd.scope === 'skill'
     ? renderBundledSkillBody(cmd.metadata.name, baseContent)
-    : rewriteOmcCliInvocations(baseContent);
+    : rewriteOmacCliInvocations(baseContent);
   const runtimeGuidance = cmd.scope === 'skill' && !isDeepInterviewAutoresearch
     ? renderSkillRuntimeGuidance(cmd.metadata.name)
     : '';

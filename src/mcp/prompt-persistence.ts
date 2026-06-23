@@ -1,14 +1,14 @@
 /**
  * Prompt Persistence - Audit trail for external model prompts and responses
  *
- * Writes assembled prompts and model responses to .omc/prompts/ before/after
+ * Writes assembled prompts and model responses to .omac/prompts/ before/after
  * sending to Codex/Gemini, providing visibility, debugging, and compliance audit trail.
  */
 
 import { mkdirSync, writeFileSync, readFileSync, existsSync, renameSync, readdirSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { randomBytes } from 'crypto';
-import { getWorktreeRoot, getOmcRoot } from '../lib/worktree-paths.js';
+import { getWorktreeRoot, getOmacRoot } from '../lib/worktree-paths.js';
 import {
   createArtifactDescriptorFromPath,
   type ArtifactDescriptor,
@@ -25,7 +25,7 @@ let _dbInitAttempted = false;
 // Allows job management handlers to find JSON status files for cross-directory jobs.
 // Keyed by provider:jobId to avoid collisions (8-hex IDs are short).
 const jobWorkingDirs = new Map<string, string>();
-const PROMPT_PERSISTENCE_PRODUCER = { system: 'omc', component: 'prompt-persistence' } as const;
+const PROMPT_PERSISTENCE_PRODUCER = { system: 'omac', component: 'prompt-persistence' } as const;
 type PromptPersistenceArtifactKind = 'prompt' | 'response';
 
 function ensureJobDb(workingDirectory?: string): void {
@@ -171,7 +171,7 @@ export interface BackgroundJobMeta {
  */
 export function getPromptsDir(workingDirectory?: string): string {
   const root = getWorktreeRoot(workingDirectory) || workingDirectory || process.cwd();
-  return join(getOmcRoot(root), 'prompts');
+  return join(getOmacRoot(root), 'prompts');
 }
 
 /**

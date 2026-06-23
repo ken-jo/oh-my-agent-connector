@@ -3,7 +3,7 @@
  *
  * Tests that processHook routes each HookType correctly, handles
  * invalid/unknown types gracefully, validates input normalization,
- * and respects the OMC_SKIP_HOOKS env kill-switch.
+ * and respects the OMAC_SKIP_HOOKS env kill-switch.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -21,7 +21,7 @@ import {
 import { flushPendingWrites } from '../subagent-tracker/index.js';
 
 function writeCanonicalTeamState(tempDir: string, sessionId: string, teamName: string, phase: string): void {
-  const canonicalTeamDir = join(tempDir, '.omc', 'state', 'team', teamName);
+  const canonicalTeamDir = join(tempDir, '.omac', 'state', 'team', teamName);
   mkdirSync(canonicalTeamDir, { recursive: true });
   writeFileSync(
     join(canonicalTeamDir, 'manifest.json'),
@@ -35,7 +35,7 @@ function writeCanonicalTeamState(tempDir: string, sessionId: string, teamName: s
       },
       created_at: new Date().toISOString(),
       leader_cwd: tempDir,
-      team_state_root: join(tempDir, '.omc', 'state'),
+      team_state_root: join(tempDir, '.omac', 'state'),
     }, null, 2),
   );
   writeFileSync(
@@ -56,8 +56,8 @@ describe('processHook - Routing Matrix', () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    delete process.env.DISABLE_OMC;
-    delete process.env.OMC_SKIP_HOOKS;
+    delete process.env.DISABLE_OMAC;
+    delete process.env.OMAC_SKIP_HOOKS;
     resetSkipHooksCache();
   });
 
@@ -201,7 +201,7 @@ Read src/hooks/bridge.ts before editing.`,
         expect(result.message).toContain('notepad_read');
         expect(result.message).toContain('src/hooks/bridge.ts');
 
-        const prereqStatePath = join(process.cwd(), '.omc', 'state', 'sessions', sessionId, 'prompt-prerequisites-state.json');
+        const prereqStatePath = join(process.cwd(), '.omac', 'state', 'sessions', sessionId, 'prompt-prerequisites-state.json');
         expect(existsSync(prereqStatePath)).toBe(true);
 
         const prereqState = JSON.parse(readFileSync(prereqStatePath, 'utf-8')) as {
@@ -213,7 +213,7 @@ Read src/hooks/bridge.ts before editing.`,
         expect(prereqState.required_tool_calls).toEqual(['notepad_read', 'project_memory_read']);
         expect(prereqState.required_file_paths).toEqual(['src/hooks/bridge.ts']);
       } finally {
-        rmSync(join(process.cwd(), '.omc', 'state', 'sessions', 'keyword-prereq-session'), { recursive: true, force: true });
+        rmSync(join(process.cwd(), '.omac', 'state', 'sessions', 'keyword-prereq-session'), { recursive: true, force: true });
       }
     });
 
@@ -286,7 +286,7 @@ Read src/hooks/bridge.ts first.`,
         expect(allowed.continue).toBe(true);
         expect((allowed as unknown as Record<string, unknown>).hookSpecificOutput).toBeUndefined();
       } finally {
-        rmSync(join(process.cwd(), '.omc', 'state', 'sessions', 'prereq-pretool-session'), { recursive: true, force: true });
+        rmSync(join(process.cwd(), '.omac', 'state', 'sessions', 'prereq-pretool-session'), { recursive: true, force: true });
       }
     });
 
@@ -332,7 +332,7 @@ Read src/hooks/bridge.ts first.`,
         expect(keywordResult.continue).toBe(true);
         expect(keywordResult.message).toContain('[RALPH + ULTRAWORK MODE ACTIVATED]');
 
-        const sessionDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+        const sessionDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
         const ralphState = JSON.parse(readFileSync(join(sessionDir, 'ralph-state.json'), 'utf-8')) as {
           awaiting_confirmation?: boolean;
           awaiting_confirmation_set_at?: string;
@@ -372,14 +372,14 @@ Read src/hooks/bridge.ts first.`,
 
         const keywordResult = await processHook('keyword-detector', {
           sessionId,
-          prompt: 'OMC Ultrawork = "special ops". how much would it cost?',
+          prompt: 'OMAC Ultrawork = "special ops". how much would it cost?',
           directory: tempDir,
         });
 
         expect(keywordResult.continue).toBe(true);
         expect(keywordResult.message).toBeUndefined();
 
-        const sessionDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+        const sessionDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
         expect(existsSync(join(sessionDir, 'ultrawork-state.json'))).toBe(false);
 
         const stopResult = await processHook('persistent-mode', {
@@ -406,7 +406,7 @@ Read src/hooks/bridge.ts first.`,
           prompt: `Investigate why this pasted transcript branched sessions:
 
 [MAGIC KEYWORD: RALPH]
-Skill: oh-my-claudecode:ralph
+Skill: oh-my-agent-connector:ralph
 User request:
 ralph fix parser`,
           directory: tempDir,
@@ -415,7 +415,7 @@ ralph fix parser`,
         expect(result.continue).toBe(true);
         expect(result.message).toBeUndefined();
 
-        const sessionDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+        const sessionDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
         expect(existsSync(join(sessionDir, 'ralph-state.json'))).toBe(false);
         expect(existsSync(join(sessionDir, 'ultrawork-state.json'))).toBe(false);
       } finally {
@@ -440,7 +440,7 @@ $ ultrawork search the codebase`,
         expect(result.continue).toBe(true);
         expect(result.message).toBeUndefined();
 
-        const sessionDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+        const sessionDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
         expect(existsSync(join(sessionDir, 'ralph-state.json'))).toBe(false);
         expect(existsSync(join(sessionDir, 'ultrawork-state.json'))).toBe(false);
       } finally {
@@ -464,7 +464,7 @@ $ ultrawork search the codebase`,
         expect(keywordResult.continue).toBe(true);
         expect(keywordResult.message).toContain('[MODE: AUTOPILOT]');
 
-        const autopilotPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'autopilot-state.json');
+        const autopilotPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'autopilot-state.json');
         expect(existsSync(autopilotPath)).toBe(true);
 
         const autopilotState = JSON.parse(readFileSync(autopilotPath, 'utf-8')) as {
@@ -511,7 +511,7 @@ $ ultrawork search the codebase`,
         expect(keywordResult.continue).toBe(true);
         expect(keywordResult.message).toContain('[MODE: RALPLAN]');
 
-        const ralplanPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ralplan-state.json');
+        const ralplanPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ralplan-state.json');
         expect(existsSync(ralplanPath)).toBe(true);
 
         const ralplanState = JSON.parse(readFileSync(ralplanPath, 'utf-8')) as {
@@ -549,15 +549,15 @@ $ ultrawork search the codebase`,
         const input: HookInput = {
           sessionId,
           toolName: 'Skill',
-          toolInput: { skill: 'oh-my-claudecode:ralph' },
+          toolInput: { skill: 'oh-my-agent-connector:ralph' },
           directory: tempDir,
         };
 
         const result = await processHook('post-tool-use', input);
         expect(result.continue).toBe(true);
 
-        const ralphPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ralph-state.json');
-        const ultraworkPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ultrawork-state.json');
+        const ralphPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ralph-state.json');
+        const ultraworkPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ultrawork-state.json');
 
         expect(existsSync(ralphPath)).toBe(true);
         expect(existsSync(ultraworkPath)).toBe(true);
@@ -589,9 +589,9 @@ $ ultrawork search the codebase`,
 
         expect(result.continue).toBe(true);
 
-        const ralphPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ralph-state.json');
-        const prdPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'prd.json');
-        const legacyPrdPath = join(tempDir, '.omc', 'prd.json');
+        const ralphPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ralph-state.json');
+        const prdPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'prd.json');
+        const legacyPrdPath = join(tempDir, '.omac', 'prd.json');
         expect(existsSync(ralphPath)).toBe(true);
         expect(existsSync(prdPath)).toBe(true);
         expect(existsSync(legacyPrdPath)).toBe(false);
@@ -611,7 +611,7 @@ $ ultrawork search the codebase`,
       try {
         execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
         const sessionId = 'confirm-ralph-session';
-        const sessionDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+        const sessionDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
         mkdirSync(sessionDir, { recursive: true });
         writeFileSync(
           join(sessionDir, 'ralph-state.json'),
@@ -642,7 +642,7 @@ $ ultrawork search the codebase`,
         const result = await processHook('pre-tool-use', {
           sessionId,
           toolName: 'Skill',
-          toolInput: { skill: 'oh-my-claudecode:ralph' },
+          toolInput: { skill: 'oh-my-agent-connector:ralph' },
           directory: tempDir,
         });
 
@@ -675,13 +675,13 @@ $ ultrawork search the codebase`,
         const result = await processHook('pre-tool-use', {
           sessionId,
           toolName: 'Skill',
-          toolInput: { skill: 'oh-my-claudecode:ralplan' },
+          toolInput: { skill: 'oh-my-agent-connector:ralplan' },
           directory: tempDir,
         });
 
         expect(result.continue).toBe(true);
 
-        const ralplanPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ralplan-state.json');
+        const ralplanPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ralplan-state.json');
         expect(existsSync(ralplanPath)).toBe(true);
 
         const ralplanState = JSON.parse(readFileSync(ralplanPath, 'utf-8')) as {
@@ -726,7 +726,7 @@ $ ultrawork search the codebase`,
 
         const informationalStatePath = join(
           tempDir,
-          '.omc',
+          '.omac',
           'state',
           'sessions',
           informationalSessionId,
@@ -757,7 +757,7 @@ $ ultrawork search the codebase`,
 
         const invocationStatePath = join(
           tempDir,
-          '.omc',
+          '.omac',
           'state',
           'sessions',
           invocationSessionId,
@@ -800,7 +800,7 @@ $ ultrawork search the codebase`,
 
         const result = await processHook('keyword-detector', {
           sessionId,
-          prompt: '/oh-my-claudecode:ralplan issue #2622',
+          prompt: '/oh-my-agent-connector:ralplan issue #2622',
           directory: tempDir,
         });
 
@@ -810,9 +810,9 @@ $ ultrawork search the codebase`,
         expect(result.message).toBeUndefined();
         expect(hookSpecificOutput.hookEventName).toBe('UserPromptSubmit');
         expect(hookSpecificOutput.additionalContext).toContain('[RALPLAN INIT]');
-        expect(hookSpecificOutput.additionalContext).toContain('/oh-my-claudecode:ralplan issue #2622');
+        expect(hookSpecificOutput.additionalContext).toContain('/oh-my-agent-connector:ralplan issue #2622');
 
-        const ralplanPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ralplan-state.json');
+        const ralplanPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ralplan-state.json');
         expect(existsSync(ralplanPath)).toBe(true);
 
         const ralplanState = JSON.parse(readFileSync(ralplanPath, 'utf-8')) as {
@@ -857,7 +857,7 @@ $ ultrawork search the codebase`,
         expect(result.continue).toBe(true);
         expect(result.message).toBeUndefined();
         expect((result as unknown as Record<string, unknown>).hookSpecificOutput).toBeUndefined();
-        expect(existsSync(join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ralplan-state.json'))).toBe(false);
+        expect(existsSync(join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ralplan-state.json'))).toBe(false);
       } finally {
         rmSync(tempDir, { recursive: true, force: true });
       }
@@ -878,7 +878,7 @@ $ ultrawork search the codebase`,
         expect(result.continue).toBe(true);
         expect(result.message).toBeUndefined();
         expect((result as unknown as Record<string, unknown>).hookSpecificOutput).toBeUndefined();
-        expect(existsSync(join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ralplan-state.json'))).toBe(false);
+        expect(existsSync(join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ralplan-state.json'))).toBe(false);
       } finally {
         rmSync(tempDir, { recursive: true, force: true });
       }
@@ -894,7 +894,7 @@ $ ultrawork search the codebase`,
           sessionId,
           toolName: 'Skill',
           toolInput: {
-            skill: 'oh-my-claudecode:plan',
+            skill: 'oh-my-agent-connector:plan',
             args: '--consensus issue #1926',
           },
           directory: tempDir,
@@ -902,7 +902,7 @@ $ ultrawork search the codebase`,
 
         expect(result.continue).toBe(true);
 
-        const ralplanPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ralplan-state.json');
+        const ralplanPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ralplan-state.json');
         expect(existsSync(ralplanPath)).toBe(true);
 
         const ralplanState = JSON.parse(readFileSync(ralplanPath, 'utf-8')) as {
@@ -928,21 +928,21 @@ $ ultrawork search the codebase`,
         await processHook('pre-tool-use', {
           sessionId,
           toolName: 'Skill',
-          toolInput: { skill: 'oh-my-claudecode:ralplan' },
+          toolInput: { skill: 'oh-my-agent-connector:ralplan' },
           directory: tempDir,
         });
 
         const postResult = await processHook('post-tool-use', {
           sessionId,
           toolName: 'Skill',
-          toolInput: { skill: 'oh-my-claudecode:ralplan' },
+          toolInput: { skill: 'oh-my-agent-connector:ralplan' },
           toolOutput: { ok: true },
           directory: tempDir,
         });
 
         expect(postResult.continue).toBe(true);
 
-        const ralplanPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'ralplan-state.json');
+        const ralplanPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'ralplan-state.json');
         const ralplanState = JSON.parse(readFileSync(ralplanPath, 'utf-8')) as {
           active?: boolean;
           current_phase?: string;
@@ -976,13 +976,13 @@ $ ultrawork search the codebase`,
 
         const result = await processHook('keyword-detector', {
           sessionId,
-          prompt: '/oh-my-claudecode:deep-interview explore auth flows',
+          prompt: '/oh-my-agent-connector:deep-interview explore auth flows',
           directory: tempDir,
         });
 
         expect(result.continue).toBe(true);
 
-        const slotPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'skill-active-state.json');
+        const slotPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'skill-active-state.json');
         expect(existsSync(slotPath)).toBe(true);
 
         const slot = JSON.parse(readFileSync(slotPath, 'utf-8')) as {
@@ -1011,7 +1011,7 @@ $ ultrawork search the codebase`,
 
         expect(result.continue).toBe(true);
 
-        const slotPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'skill-active-state.json');
+        const slotPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'skill-active-state.json');
         expect(existsSync(slotPath)).toBe(true);
 
         const slot = JSON.parse(readFileSync(slotPath, 'utf-8')) as {
@@ -1026,7 +1026,7 @@ $ ultrawork search the codebase`,
       }
     });
 
-    it('seeds workflow slot when Skill tool invokes oh-my-claudecode:deep-interview', async () => {
+    it('seeds workflow slot when Skill tool invokes oh-my-agent-connector:deep-interview', async () => {
       const tempDir = mkdtempSync(join(tmpdir(), 'bridge-routing-di-skill-'));
       try {
         execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
@@ -1035,13 +1035,13 @@ $ ultrawork search the codebase`,
         const result = await processHook('pre-tool-use', {
           sessionId,
           toolName: 'Skill',
-          toolInput: { skill: 'oh-my-claudecode:deep-interview' },
+          toolInput: { skill: 'oh-my-agent-connector:deep-interview' },
           directory: tempDir,
         });
 
         expect(result.continue).toBe(true);
 
-        const slotPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'skill-active-state.json');
+        const slotPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'skill-active-state.json');
         expect(existsSync(slotPath)).toBe(true);
 
         const slot = JSON.parse(readFileSync(slotPath, 'utf-8')) as {
@@ -1056,7 +1056,7 @@ $ ultrawork search the codebase`,
       }
     });
 
-    it('seeds workflow slot when Skill tool invokes oh-my-claudecode:self-improve', async () => {
+    it('seeds workflow slot when Skill tool invokes oh-my-agent-connector:self-improve', async () => {
       const tempDir = mkdtempSync(join(tmpdir(), 'bridge-routing-si-skill-'));
       try {
         execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
@@ -1065,13 +1065,13 @@ $ ultrawork search the codebase`,
         const result = await processHook('pre-tool-use', {
           sessionId,
           toolName: 'Skill',
-          toolInput: { skill: 'oh-my-claudecode:self-improve' },
+          toolInput: { skill: 'oh-my-agent-connector:self-improve' },
           directory: tempDir,
         });
 
         expect(result.continue).toBe(true);
 
-        const slotPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'skill-active-state.json');
+        const slotPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'skill-active-state.json');
         expect(existsSync(slotPath)).toBe(true);
 
         const slot = JSON.parse(readFileSync(slotPath, 'utf-8')) as {
@@ -1108,7 +1108,7 @@ $ ultrawork search the codebase`,
         } as HookInput);
 
         expect(result.continue).toBe(true);
-        const markerPath = join(tempDir, '.omc', 'state', 'sessions', sessionId, 'session-started.json');
+        const markerPath = join(tempDir, '.omac', 'state', 'sessions', sessionId, 'session-started.json');
         expect(existsSync(markerPath)).toBe(true);
         const marker = JSON.parse(readFileSync(markerPath, 'utf-8')) as Record<string, unknown>;
         expect(marker.session_id).toBe(sessionId);
@@ -1125,7 +1125,7 @@ $ ultrawork search the codebase`,
         execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
         const staleSessionId = 'stale-durable-abandoned-session';
         const currentSessionId = 'current-reconcile-session';
-        const staleSessionDir = join(tempDir, '.omc', 'state', 'sessions', staleSessionId);
+        const staleSessionDir = join(tempDir, '.omac', 'state', 'sessions', staleSessionId);
         mkdirSync(staleSessionDir, { recursive: true });
         writeFileSync(
           join(staleSessionDir, 'ralph-state.json'),
@@ -1144,9 +1144,9 @@ $ ultrawork search the codebase`,
             boot_id: 'definitely-not-the-current-boot-id',
           }),
         );
-        const missionStatePath = join(tempDir, '.omc', 'state', 'mission-state.json');
-        const legacyRalphStatePath = join(tempDir, '.omc', 'state', 'ralph-state.json');
-        const otherLegacyAutopilotStatePath = join(tempDir, '.omc', 'state', 'autopilot-state.json');
+        const missionStatePath = join(tempDir, '.omac', 'state', 'mission-state.json');
+        const legacyRalphStatePath = join(tempDir, '.omac', 'state', 'ralph-state.json');
+        const otherLegacyAutopilotStatePath = join(tempDir, '.omac', 'state', 'autopilot-state.json');
         writeFileSync(
           legacyRalphStatePath,
           JSON.stringify({
@@ -1172,16 +1172,16 @@ $ ultrawork search the codebase`,
           }),
         );
 
-        const previousTestBootId = process.env.OMC_TEST_BOOT_ID;
-        process.env.OMC_TEST_BOOT_ID = 'current-test-boot-id';
+        const previousTestBootId = process.env.OMAC_TEST_BOOT_ID;
+        process.env.OMAC_TEST_BOOT_ID = 'current-test-boot-id';
         const result = await processHook('session-start', {
           sessionId: currentSessionId,
           directory: tempDir,
         } as HookInput);
         if (previousTestBootId === undefined) {
-          delete process.env.OMC_TEST_BOOT_ID;
+          delete process.env.OMAC_TEST_BOOT_ID;
         } else {
-          process.env.OMC_TEST_BOOT_ID = previousTestBootId;
+          process.env.OMAC_TEST_BOOT_ID = previousTestBootId;
         }
 
         expect(result.continue).toBe(true);
@@ -1191,7 +1191,7 @@ $ ultrawork search the codebase`,
           missions: Array<{ id: string; source: string }>;
         };
         expect(missionState.missions).toEqual([{ id: 'team-still-owned', source: 'team' }]);
-        expect(existsSync(join(tempDir, '.omc', 'state', 'sessions', currentSessionId, 'session-started.json'))).toBe(true);
+        expect(existsSync(join(tempDir, '.omac', 'state', 'sessions', currentSessionId, 'session-started.json'))).toBe(true);
         expect(existsSync(legacyRalphStatePath)).toBe(true);
         expect(existsSync(otherLegacyAutopilotStatePath)).toBe(true);
       } finally {
@@ -1205,7 +1205,7 @@ $ ultrawork search the codebase`,
         execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
         const priorSessionId = 'prior-same-boot-session';
         const currentSessionId = 'current-same-boot-session';
-        const priorSessionDir = join(tempDir, '.omc', 'state', 'sessions', priorSessionId);
+        const priorSessionDir = join(tempDir, '.omac', 'state', 'sessions', priorSessionId);
         mkdirSync(priorSessionDir, { recursive: true });
         writeFileSync(
           join(priorSessionDir, 'ultrawork-state.json'),
@@ -1241,7 +1241,7 @@ $ ultrawork search the codebase`,
         execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
         const priorSessionId = 'prior-ambiguous-session';
         const currentSessionId = 'current-ambiguous-session';
-        const priorSessionDir = join(tempDir, '.omc', 'state', 'sessions', priorSessionId);
+        const priorSessionDir = join(tempDir, '.omac', 'state', 'sessions', priorSessionId);
         mkdirSync(priorSessionDir, { recursive: true });
         writeFileSync(
           join(priorSessionDir, 'team-state.json'),
@@ -1271,7 +1271,7 @@ $ ultrawork search the codebase`,
     it('should restore canonical team context when coarse team-state drifts away', async () => {
       const tempDir = process.cwd();
       const sessionId = 'canonical-team-session';
-      const canonicalTeamDir = join(tempDir, '.omc', 'state', 'team', 'canonical-team');
+      const canonicalTeamDir = join(tempDir, '.omac', 'state', 'team', 'canonical-team');
       try {
         writeCanonicalTeamState(tempDir, sessionId, 'canonical-team', 'executing');
 
@@ -1293,7 +1293,7 @@ $ ultrawork search the codebase`,
       try {
         execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
         const sessionId = 'session-start-ralplan';
-        const sessionDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+        const sessionDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
         mkdirSync(sessionDir, { recursive: true });
         writeFileSync(
           join(sessionDir, 'ralplan-state.json'),
@@ -1335,7 +1335,7 @@ $ ultrawork search the codebase`,
       const sessionId = 'team-stage-enforced';
       try {
         execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
-        const teamStateDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+        const teamStateDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
         mkdirSync(teamStateDir, { recursive: true });
         writeFileSync(
           join(teamStateDir, 'team-state.json'),
@@ -1362,7 +1362,7 @@ $ ultrawork search the codebase`,
       const sessionId = 'team-stage-auth-bypass';
       try {
         execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
-        const teamStateDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+        const teamStateDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
         mkdirSync(teamStateDir, { recursive: true });
         writeFileSync(
           join(teamStateDir, 'team-state.json'),
@@ -1389,14 +1389,14 @@ $ ultrawork search the codebase`,
       const sessionId = 'ralplan-team-double-block';
       try {
         execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
-        const sessionStateDir = join(tempDir, '.omc', 'state', 'sessions', sessionId);
+        const sessionStateDir = join(tempDir, '.omac', 'state', 'sessions', sessionId);
         mkdirSync(sessionStateDir, { recursive: true });
         writeFileSync(
           join(sessionStateDir, 'ralplan-state.json'),
           JSON.stringify({ active: true, session_id: sessionId, current_phase: 'ralplan' }, null, 2)
         );
 
-        const globalStateDir = join(tempDir, '.omc', 'state');
+        const globalStateDir = join(tempDir, '.omac', 'state');
         mkdirSync(globalStateDir, { recursive: true });
         writeFileSync(
           join(globalStateDir, 'team-state.json'),
@@ -1520,12 +1520,12 @@ $ ultrawork search the codebase`,
   });
 
   // --------------------------------------------------------------------------
-  // OMC_SKIP_HOOKS environment variable
+  // OMAC_SKIP_HOOKS environment variable
   // --------------------------------------------------------------------------
 
-  describe('OMC_SKIP_HOOKS kill-switch', () => {
+  describe('OMAC_SKIP_HOOKS kill-switch', () => {
     it('should skip a specific hook type when listed', async () => {
-      process.env.OMC_SKIP_HOOKS = 'keyword-detector';
+      process.env.OMAC_SKIP_HOOKS = 'keyword-detector';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -1539,7 +1539,7 @@ $ ultrawork search the codebase`,
     });
 
     it('should not skip hooks not in the list', async () => {
-      process.env.OMC_SKIP_HOOKS = 'keyword-detector';
+      process.env.OMAC_SKIP_HOOKS = 'keyword-detector';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -1552,7 +1552,7 @@ $ ultrawork search the codebase`,
     });
 
     it('should skip multiple comma-separated hooks', async () => {
-      process.env.OMC_SKIP_HOOKS = 'keyword-detector,pre-tool-use,post-tool-use';
+      process.env.OMAC_SKIP_HOOKS = 'keyword-detector,pre-tool-use,post-tool-use';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -1571,7 +1571,7 @@ $ ultrawork search the codebase`,
     });
 
     it('should handle whitespace around hook names', async () => {
-      process.env.OMC_SKIP_HOOKS = ' keyword-detector , pre-tool-use ';
+      process.env.OMAC_SKIP_HOOKS = ' keyword-detector , pre-tool-use ';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -1583,8 +1583,8 @@ $ ultrawork search the codebase`,
       expect(result).toEqual({ continue: true });
     });
 
-    it('should process normally with empty OMC_SKIP_HOOKS', async () => {
-      process.env.OMC_SKIP_HOOKS = '';
+    it('should process normally with empty OMAC_SKIP_HOOKS', async () => {
+      process.env.OMAC_SKIP_HOOKS = '';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -1598,12 +1598,12 @@ $ ultrawork search the codebase`,
   });
 
   // --------------------------------------------------------------------------
-  // DISABLE_OMC env kill-switch
+  // DISABLE_OMAC env kill-switch
   // --------------------------------------------------------------------------
 
-  describe('DISABLE_OMC kill-switch', () => {
-    it('should return continue:true for all hooks when DISABLE_OMC=1', async () => {
-      process.env.DISABLE_OMC = '1';
+  describe('DISABLE_OMAC kill-switch', () => {
+    it('should return continue:true for all hooks when DISABLE_OMAC=1', async () => {
+      process.env.DISABLE_OMAC = '1';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -1615,8 +1615,8 @@ $ ultrawork search the codebase`,
       expect(result).toEqual({ continue: true });
     });
 
-    it('should return continue:true when DISABLE_OMC=true', async () => {
-      process.env.DISABLE_OMC = 'true';
+    it('should return continue:true when DISABLE_OMAC=true', async () => {
+      process.env.DISABLE_OMAC = 'true';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -1628,8 +1628,8 @@ $ ultrawork search the codebase`,
       expect(result).toEqual({ continue: true });
     });
 
-    it('should process normally when DISABLE_OMC=false', async () => {
-      process.env.DISABLE_OMC = 'false';
+    it('should process normally when DISABLE_OMAC=false', async () => {
+      process.env.DISABLE_OMAC = 'false';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -1642,9 +1642,9 @@ $ ultrawork search the codebase`,
       expect(result.continue).toBe(true);
     });
 
-    it('DISABLE_OMC takes precedence over OMC_SKIP_HOOKS', async () => {
-      process.env.DISABLE_OMC = '1';
-      process.env.OMC_SKIP_HOOKS = 'keyword-detector';
+    it('DISABLE_OMAC takes precedence over OMAC_SKIP_HOOKS', async () => {
+      process.env.DISABLE_OMAC = '1';
+      process.env.OMAC_SKIP_HOOKS = 'keyword-detector';
 
       const input: HookInput = {
         sessionId: 'test-session',
@@ -1863,8 +1863,8 @@ $ ultrawork search the codebase`,
       const testDir = process.cwd();
       try {
         const sessionId = 'autopilot-blockers-session';
-        const sessionDir = join(testDir, '.omc', 'state', 'sessions', sessionId);
-        const teamRoot = join(testDir, '.omc', 'state', 'team', 'bridge-autopilot-demo-team');
+        const sessionDir = join(testDir, '.omac', 'state', 'sessions', sessionId);
+        const teamRoot = join(testDir, '.omac', 'state', 'team', 'bridge-autopilot-demo-team');
         mkdirSync(sessionDir, { recursive: true });
         mkdirSync(join(teamRoot, 'tasks'), { recursive: true });
         writeFileSync(join(sessionDir, 'autopilot-state.json'), JSON.stringify({
@@ -1902,8 +1902,8 @@ $ ultrawork search the codebase`,
         expect(result.message).toContain('[AUTOPILOT - Phase: PLANNING]');
         expect(result.message).toContain('[bridge-autopilot-demo-team] task-1 depends on missing task ids [13]');
       } finally {
-        rmSync(join(testDir, '.omc', 'state', 'sessions', 'autopilot-blockers-session'), { recursive: true, force: true });
-        rmSync(join(testDir, '.omc', 'state', 'team', 'bridge-autopilot-demo-team'), { recursive: true, force: true });
+        rmSync(join(testDir, '.omac', 'state', 'sessions', 'autopilot-blockers-session'), { recursive: true, force: true });
+        rmSync(join(testDir, '.omac', 'state', 'team', 'bridge-autopilot-demo-team'), { recursive: true, force: true });
       }
     });
   });
@@ -2045,7 +2045,7 @@ $ ultrawork search the codebase`,
         const result = await processHook('pre-compact', rawInput);
         expect(result.continue).toBe(true);
         // If cwd reached the handler, it will have created the checkpoint dir
-        const checkpointDir = join(tempDir, '.omc', 'state', 'checkpoints');
+        const checkpointDir = join(tempDir, '.omac', 'state', 'checkpoints');
         expect(existsSync(checkpointDir)).toBe(true);
       } finally {
         rmSync(tempDir, { recursive: true, force: true });
@@ -2070,8 +2070,8 @@ $ ultrawork search the codebase`,
         const specific = out.hookSpecificOutput as Record<string, unknown>;
         expect(specific.hookEventName).toBe('Setup');
         const context = String(specific.additionalContext ?? '');
-        expect(context).toContain('OMC maintenance completed:');
-        expect(context).not.toContain('OMC initialized:');
+        expect(context).toContain('OMAC maintenance completed:');
+        expect(context).not.toContain('OMAC initialized:');
       } finally {
         rmSync(tempDir, { recursive: true, force: true });
       }
@@ -2107,7 +2107,7 @@ $ ultrawork search the codebase`,
 
         flushPendingWrites();
 
-        const trackingPath = join(tempDir, '.omc', 'state', 'sessions', 'test-session-858-subagent', 'subagent-tracking-state.json');
+        const trackingPath = join(tempDir, '.omac', 'state', 'sessions', 'test-session-858-subagent', 'subagent-tracking-state.json');
         expect(existsSync(trackingPath)).toBe(true);
 
         const tracking = JSON.parse(readFileSync(trackingPath, 'utf-8')) as {

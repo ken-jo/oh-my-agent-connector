@@ -21,7 +21,7 @@ Use **AskUserQuestion** with **one question at a time** and **no more than 3 opt
 **Question:** "What kind of MCP setup would you like?"
 
 **Options:**
-1. **Recommended starter setup** - Fast path for the most common OMC MCP additions
+1. **Recommended starter setup** - Fast path for the most common OMAC MCP additions
 2. **Individual popular server** - Pick one built-in server from a short follow-up menu
 3. **Custom server** - Add your own stdio or HTTP MCP server
 
@@ -159,10 +159,10 @@ TROUBLESHOOTING:
 - If MCP servers don't appear, run `claude mcp list` to check status
 - Ensure you have Node.js 18+ installed for npx-based servers
 - For GitHub Docker option, ensure Docker is installed and running
-- Run /oh-my-claudecode:omc-doctor to diagnose issues
+- Run /oh-my-agent-connector:omac-doctor to diagnose issues
 
 MANAGING MCP SERVERS:
-- Add more servers: /oh-my-claudecode:mcp-setup or `claude mcp add ...`
+- Add more servers: /oh-my-agent-connector:mcp-setup or `claude mcp add ...`
 - List servers: `claude mcp list`
 - Remove a server: `claude mcp remove <server-name>`
 ```
@@ -201,7 +201,7 @@ claude mcp add --transport http --header "Authorization: Bearer <token>" <server
 
 ### Company-context convention
 
-If the custom server is meant to provide organization-specific reference material to OMC workflows, prefer a single tool named `get_company_context` that returns markdown via `{ context: string }`.
+If the custom server is meant to provide organization-specific reference material to OMAC workflows, prefer a single tool named `get_company_context` that returns markdown via `{ context: string }`.
 
 Example local registration:
 
@@ -209,7 +209,7 @@ Example local registration:
 claude mcp add company-context -- node examples/vendor-mcp-server/server.mjs
 ```
 
-Then point OMC at the full tool name in `.claude/omc.jsonc` or `~/.config/claude-omc/config.jsonc`:
+Then point OMAC at the full tool name in `.claude/omac.jsonc` or `~/.config/claude-omac/config.jsonc`:
 
 ```jsonc
 {

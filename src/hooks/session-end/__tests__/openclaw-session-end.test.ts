@@ -12,7 +12,7 @@ vi.mock("../../../notifications/index.js", () => ({
 }));
 
 vi.mock("../../../features/auto-update.js", () => ({
-  getOMCConfig: vi.fn(() => ({})),
+  getOMACConfig: vi.fn(() => ({})),
 }));
 
 vi.mock("../../../notifications/config.js", () => ({
@@ -43,7 +43,7 @@ describe("session-end OpenClaw behavior (issue #1456)", () => {
   let transcriptPath: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omc-session-end-claw-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omac-session-end-claw-"));
     transcriptPath = path.join(tmpDir, "transcript.jsonl");
     // Write a minimal transcript so processSessionEnd doesn't fail
     fs.writeFileSync(
@@ -63,8 +63,8 @@ describe("session-end OpenClaw behavior (issue #1456)", () => {
     vi.restoreAllMocks();
   });
 
-  it("wakes OpenClaw from the bridge during session-end when OMC_OPENCLAW=1", async () => {
-    process.env.OMC_OPENCLAW = "1";
+  it("wakes OpenClaw from the bridge during session-end when OMAC_OPENCLAW=1", async () => {
+    process.env.OMAC_OPENCLAW = "1";
     const wakeSpy = vi.spyOn(_openclaw, "wake");
 
     await processHook("session-end", {
@@ -98,7 +98,7 @@ describe("session-end OpenClaw behavior (issue #1456)", () => {
   });
 
   it("does not call wakeOpenClaw directly when processSessionEnd is invoked without the bridge", async () => {
-    process.env.OMC_OPENCLAW = "1";
+    process.env.OMAC_OPENCLAW = "1";
 
     await processSessionEnd({
       session_id: "session-claw-2",
@@ -112,8 +112,8 @@ describe("session-end OpenClaw behavior (issue #1456)", () => {
     expect(wakeOpenClaw).not.toHaveBeenCalled();
   });
 
-  it("does not call wakeOpenClaw when OMC_OPENCLAW is not set", async () => {
-    delete process.env.OMC_OPENCLAW;
+  it("does not call wakeOpenClaw when OMAC_OPENCLAW is not set", async () => {
+    delete process.env.OMAC_OPENCLAW;
 
     await processHook("session-end", {
       session_id: "session-claw-3",
@@ -130,7 +130,7 @@ describe("session-end OpenClaw behavior (issue #1456)", () => {
   });
 
   it("does not throw even if wakeOpenClaw mock is configured to reject", async () => {
-    process.env.OMC_OPENCLAW = "1";
+    process.env.OMAC_OPENCLAW = "1";
     vi.mocked(wakeOpenClaw).mockRejectedValueOnce(new Error("gateway down"));
 
     await expect(

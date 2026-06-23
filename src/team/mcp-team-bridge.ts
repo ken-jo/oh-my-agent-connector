@@ -15,7 +15,7 @@ import { spawn, execSync, ChildProcess } from "child_process";
 import { existsSync, openSync, readSync, closeSync } from "fs";
 import { join } from "path";
 import { writeFileWithMode, ensureDirWithMode } from "./fs-utils.js";
-import { getOmcRoot } from "../lib/worktree-paths.js";
+import { getOmacRoot } from "../lib/worktree-paths.js";
 import type {
   BridgeConfig,
   TaskFile,
@@ -323,7 +323,7 @@ function writePromptFile(
   taskId: string,
   prompt: string,
 ): string {
-  const dir = join(getOmcRoot(config.workingDirectory), "prompts");
+  const dir = join(getOmacRoot(config.workingDirectory), "prompts");
   ensureDirWithMode(dir);
   const filename = `team-${config.teamName}-task-${taskId}-${Date.now()}.md`;
   const filePath = join(dir, filename);
@@ -333,7 +333,7 @@ function writePromptFile(
 
 /** Get output file path for a task */
 function getOutputPath(config: BridgeConfig, taskId: string): string {
-  const dir = join(getOmcRoot(config.workingDirectory), "outputs");
+  const dir = join(getOmacRoot(config.workingDirectory), "outputs");
   ensureDirWithMode(dir);
   const suffix = Math.random().toString(36).slice(2, 8);
   return join(

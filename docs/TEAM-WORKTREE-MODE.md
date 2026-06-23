@@ -1,6 +1,6 @@
 # Native Team Worktree Mode
 
-Native team worktree mode is the opt-in rollout path for running `omc team` workers in dedicated git worktrees while keeping one leader-owned team-specific coordination root. It is intended for runtime-v2 team sessions and is designed to make worker edits isolated without fragmenting task, mailbox, status, or manifest state.
+Native team worktree mode is the opt-in rollout path for running `omac team` workers in dedicated git worktrees while keeping one leader-owned team-specific coordination root. It is intended for runtime-v2 team sessions and is designed to make worker edits isolated without fragmenting task, mailbox, status, or manifest state.
 
 ## Availability
 
@@ -10,17 +10,17 @@ Native team worktree mode is the opt-in rollout path for running `omc team` work
 
 ## Workspace contract
 
-When worktree mode is active, OMC uses this stable layout:
+When worktree mode is active, OMAC uses this stable layout:
 
 | Field | Contract |
 | --- | --- |
-| Worktree root | `<repo>/.omc/team/<team-name>/worktrees/<worker-name>` |
-| Team-specific coordination root | `<repo>/.omc/state/team/<team-name>` in the leader workspace |
+| Worktree root | `<repo>/.omac/team/<team-name>/worktrees/<worker-name>` |
+| Team-specific coordination root | `<repo>/.omac/state/team/<team-name>` in the leader workspace |
 | Worker cwd | The worker's `worktree_path` |
-| Worker coordination | `OMC_TEAM_STATE_ROOT` points back to the team-specific leader-owned coordination root |
+| Worker coordination | `OMAC_TEAM_STATE_ROOT` points back to the team-specific leader-owned coordination root |
 | Worker instructions | Worktree-root `AGENTS.md` is installed with backup/restore safeguards |
 
-Workers must keep using `omc team api ...` lifecycle and mailbox operations against the team-specific coordination root. They must not create or mutate a separate local `.omc/state` inside their worker worktree when `OMC_TEAM_STATE_ROOT` is available; for worktree-backed workers it should point at `<repo>/.omc/state/team/<team-name>`.
+Workers must keep using `omac team api ...` lifecycle and mailbox operations against the team-specific coordination root. They must not create or mutate a separate local `.omac/state` inside their worker worktree when `OMAC_TEAM_STATE_ROOT` is available; for worktree-backed workers it should point at `<repo>/.omac/state/team/<team-name>`.
 
 ## Persisted fields
 
@@ -36,11 +36,11 @@ Config, manifest, worker identity, and status surfaces should expose the same lo
 - `worktree_detached`
 - `worktree_created`
 
-`workspace_mode` should be `worktree` for worktree-backed sessions and `single` for the existing shared-workspace behavior. `team_state_root` means the team-specific coordination root (`<repo>/.omc/state/team/<team-name>`); if a future feature needs the broader `.omc/state` base, use a separately named field such as `state_base_root`.
+`workspace_mode` should be `worktree` for worktree-backed sessions and `single` for the existing shared-workspace behavior. `team_state_root` means the team-specific coordination root (`<repo>/.omac/state/team/<team-name>`); if a future feature needs the broader `.omac/state` base, use a separately named field such as `state_base_root`.
 
 ## Safety rules
 
-- OMC must check the leader workspace before provisioning worktrees. If the leader repo is dirty, startup should refuse worktree provisioning rather than copying an unsafe base state.
+- OMAC must check the leader workspace before provisioning worktrees. If the leader repo is dirty, startup should refuse worktree provisioning rather than copying an unsafe base state.
 - Existing compatible clean worker worktrees may be reused.
 - Dirty worker worktrees must be preserved and surfaced as warnings/events. Cleanup must not force-remove dirty worker edits.
 - Branch/path mismatches should fail instead of reusing the wrong workspace.
@@ -49,7 +49,7 @@ Config, manifest, worker identity, and status surfaces should expose the same lo
 
 ## CLI and status expectations
 
-`omc team status <team-name> --json` should make the workspace contract observable. JSON consumers should be able to find `workspace_mode`, `worktree_mode`, `team_state_root`, and each worker's worktree metadata without reading private files directly.
+`omac team status <team-name> --json` should make the workspace contract observable. JSON consumers should be able to find `workspace_mode`, `worktree_mode`, `team_state_root`, and each worker's worktree metadata without reading private files directly.
 
 Human status output should also surface the mode and worktree path/branch details enough for users to understand where worker changes live and whether cleanup preserved a dirty worktree.
 
@@ -60,7 +60,7 @@ Use the source PRD/test-spec checklist when modifying this area. At minimum, cha
 1. Worktree planning disabled/no-op and active path modes.
 2. Fresh, reused, dirty, and mismatched worktree lifecycle cases.
 3. Runtime-v2 startup/spawn state: worker cwd, env, config, manifest, and identity all agree.
-4. Bootstrap prompts and trigger paths use `$OMC_TEAM_STATE_ROOT` for worktree-backed workers.
+4. Bootstrap prompts and trigger paths use `$OMAC_TEAM_STATE_ROOT` for worktree-backed workers.
 5. Scale-up workers inherit the same team-specific coordination root and worktree instruction strategy.
 6. Shutdown/cleanup removes safe clean worktrees, preserves dirty ones, and reports warnings.
 7. CLI help/status tests cover the opt-in rollout and locked status field set.

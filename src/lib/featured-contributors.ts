@@ -6,8 +6,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export const FEATURED_CONTRIBUTORS_START_MARKER = '<!-- OMC:FEATURED-CONTRIBUTORS:START -->';
-export const FEATURED_CONTRIBUTORS_END_MARKER = '<!-- OMC:FEATURED-CONTRIBUTORS:END -->';
+export const FEATURED_CONTRIBUTORS_START_MARKER = '<!-- OMAC:FEATURED-CONTRIBUTORS:START -->';
+export const FEATURED_CONTRIBUTORS_END_MARKER = '<!-- OMAC:FEATURED-CONTRIBUTORS:END -->';
 export const FEATURED_CONTRIBUTORS_TITLE = '## Featured by OmC Contributors';
 export const FEATURED_CONTRIBUTORS_MIN_STARS = 100;
 const DEFAULT_README_PATH = 'README.md';
@@ -102,7 +102,7 @@ function getGitHubHeaders(): Record<string, string> {
 
   return {
     Accept: 'application/vnd.github+json',
-    'User-Agent': 'oh-my-claudecode-featured-contributors-generator',
+    'User-Agent': 'oh-my-agent-connector-featured-contributors-generator',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
@@ -288,7 +288,7 @@ export function renderFeaturedContributorsSection(
     FEATURED_CONTRIBUTORS_START_MARKER,
     FEATURED_CONTRIBUTORS_TITLE,
     '',
-    `Top personal non-fork, non-archived repos from all-time OMC contributors (${minStars}+ GitHub stars).`,
+    `Top personal non-fork, non-archived repos from all-time OMAC contributors (${minStars}+ GitHub stars).`,
     '',
   ];
 

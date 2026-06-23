@@ -88,13 +88,13 @@ describe("wakeOpenClaw", () => {
     vi.clearAllMocks();
   });
 
-  it("returns null when OMC_OPENCLAW is not set", async () => {
+  it("returns null when OMAC_OPENCLAW is not set", async () => {
     vi.mocked(getOpenClawConfig).mockReturnValue(null);
     const result = await wakeOpenClaw("session-start", {});
     expect(result).toBeNull();
   });
 
-  it("returns null when config is null (OMC_OPENCLAW not '1')", async () => {
+  it("returns null when config is null (OMAC_OPENCLAW not '1')", async () => {
     vi.mocked(getOpenClawConfig).mockReturnValue(null);
     const result = await wakeOpenClaw("session-start", { sessionId: "sid-1" });
     expect(result).toBeNull();
@@ -140,7 +140,7 @@ describe("wakeOpenClaw", () => {
 
     expect(mockGetNewPaneTail).toHaveBeenCalledWith(
       "%7",
-      join("/home/user/myproject", ".omc", "state"),
+      join("/home/user/myproject", ".omac", "state"),
       15,
     );
     const payload = vi.mocked(wakeGateway).mock.calls[0]?.[2];
@@ -225,8 +225,8 @@ describe("wakeOpenClaw", () => {
     expect(Object.keys(payloadContext)).toEqual(["sessionId"]);
   });
 
-  it("debug logging fires when OMC_OPENCLAW_DEBUG=1", async () => {
-    vi.stubEnv("OMC_OPENCLAW_DEBUG", "1");
+  it("debug logging fires when OMAC_OPENCLAW_DEBUG=1", async () => {
+    vi.stubEnv("OMAC_OPENCLAW_DEBUG", "1");
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     // Re-import to pick up env change — since DEBUG is a module-level const,
@@ -505,7 +505,7 @@ describe("burst dedupe for attached multi-pane sessions", () => {
   let projectDir: string;
 
   beforeEach(() => {
-    projectDir = mkdtempSync(join(tmpdir(), "omc-openclaw-dedupe-"));
+    projectDir = mkdtempSync(join(tmpdir(), "omac-openclaw-dedupe-"));
     vi.mocked(getOpenClawConfig).mockReturnValue(mockConfig);
     vi.mocked(resolveGateway).mockReturnValue(mockResolvedGateway);
     vi.mocked(wakeGateway).mockResolvedValue({

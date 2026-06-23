@@ -10,11 +10,11 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  OMC_PLUGIN_MARKETPLACE_SLUG,
-  OMC_PLUGIN_PACKAGE_NAME,
-  OMC_HUD_DIST_REL,
+  OMAC_PLUGIN_MARKETPLACE_SLUG,
+  OMAC_PLUGIN_PACKAGE_NAME,
+  OMAC_HUD_DIST_REL,
 } from '../lib/paths.js';
-import { OMC_PLUGIN_ROOT_ENV } from '../lib/env-vars.js';
+import { OMAC_PLUGIN_ROOT_ENV } from '../lib/env-vars.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..', '..');
@@ -33,18 +33,18 @@ describe('paths consistency — TS constants vs. non-TS template files', () => {
   describe('scripts/lib/hud-wrapper-template.txt', () => {
     const template = existsSync(TEMPLATE_TXT) ? readFileSync(TEMPLATE_TXT, 'utf8') : '';
 
-    it(`contains OMC_PLUGIN_ROOT_ENV ("${OMC_PLUGIN_ROOT_ENV}")`, () => {
-      expect(template).toContain(OMC_PLUGIN_ROOT_ENV);
+    it(`contains OMAC_PLUGIN_ROOT_ENV ("${OMAC_PLUGIN_ROOT_ENV}")`, () => {
+      expect(template).toContain(OMAC_PLUGIN_ROOT_ENV);
     });
 
-    it(`contains OMC_PLUGIN_MARKETPLACE_SLUG ("${OMC_PLUGIN_MARKETPLACE_SLUG}") and OMC_PLUGIN_PACKAGE_NAME ("${OMC_PLUGIN_PACKAGE_NAME}")`, () => {
+    it(`contains OMAC_PLUGIN_MARKETPLACE_SLUG ("${OMAC_PLUGIN_MARKETPLACE_SLUG}") and OMAC_PLUGIN_PACKAGE_NAME ("${OMAC_PLUGIN_PACKAGE_NAME}")`, () => {
       // These appear as path fragments in the template's path.join(...) calls.
-      expect(template).toContain(`"${OMC_PLUGIN_MARKETPLACE_SLUG}"`);
-      expect(template).toContain(OMC_PLUGIN_PACKAGE_NAME);
+      expect(template).toContain(`"${OMAC_PLUGIN_MARKETPLACE_SLUG}"`);
+      expect(template).toContain(OMAC_PLUGIN_PACKAGE_NAME);
     });
 
-    it(`contains OMC_HUD_DIST_REL ("${OMC_HUD_DIST_REL}")`, () => {
-      expect(template).toContain(OMC_HUD_DIST_REL);
+    it(`contains OMAC_HUD_DIST_REL ("${OMAC_HUD_DIST_REL}")`, () => {
+      expect(template).toContain(OMAC_HUD_DIST_REL);
     });
   });
 });

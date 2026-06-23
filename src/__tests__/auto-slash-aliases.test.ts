@@ -20,8 +20,8 @@ async function loadExecutor() {
 
 describe('auto slash aliases + skill guidance', () => {
   beforeEach(() => {
-    tempConfigDir = join(tmpdir(), `omc-auto-slash-config-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    tempProjectDir = join(tmpdir(), `omc-auto-slash-project-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tempConfigDir = join(tmpdir(), `omac-auto-slash-config-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tempProjectDir = join(tmpdir(), `omac-auto-slash-project-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(tempConfigDir, { recursive: true });
     mkdirSync(tempProjectDir, { recursive: true });
     process.env.CLAUDE_CONFIG_DIR = tempConfigDir;
@@ -56,9 +56,9 @@ description: Setup router
 
 ## Routing
 
-- doctor -> /oh-my-claudecode:omc-doctor with remaining args
-- mcp -> /oh-my-claudecode:mcp-setup with remaining args
-- otherwise -> /oh-my-claudecode:omc-setup with remaining args`
+- doctor -> /oh-my-agent-connector:omac-doctor with remaining args
+- mcp -> /oh-my-agent-connector:mcp-setup with remaining args
+- otherwise -> /oh-my-agent-connector:omac-setup with remaining args`
     );
 
     const { executeSlashCommand } = await loadExecutor();
@@ -69,7 +69,7 @@ description: Setup router
     });
 
     expect(result.success).toBe(true);
-    expect(result.replacementText).toContain('doctor -> /oh-my-claudecode:omc-doctor with remaining args');
+    expect(result.replacementText).toContain('doctor -> /oh-my-agent-connector:omac-doctor with remaining args');
     expect(result.replacementText).not.toContain('{{ARGUMENTS_AFTER_DOCTOR}}');
     expect(result.replacementText).not.toContain('{{ARGUMENTS_AFTER_MCP}}');
   });
@@ -84,19 +84,19 @@ description: Worktree-first manager
 aliases: [psm]
 ---
 
-> **Quick Start (worktree-first):** Start with \`omc teleport\` before tmux sessions.`
+> **Quick Start (worktree-first):** Start with \`omac teleport\` before tmux sessions.`
     );
 
     const { executeSlashCommand } = await loadExecutor();
     const result = executeSlashCommand({
       command: 'psm',
-      args: 'fix omc#42',
-      raw: '/psm fix omc#42',
+      args: 'fix omac#42',
+      raw: '/psm fix omac#42',
     });
 
     expect(result.success).toBe(true);
     expect(result.replacementText).toContain('Quick Start (worktree-first)');
-    expect(result.replacementText).toContain('`omc teleport`');
+    expect(result.replacementText).toContain('`omac teleport`');
     expect(result.replacementText).toContain('Deprecated Alias');
   });
 
@@ -148,7 +148,7 @@ Advanced: ambiguity ≤ 20%
     );
     writeFileSync(
       join(tempConfigDir, 'settings.json'),
-      JSON.stringify({ omc: { deepInterview: { ambiguityThreshold: 0.15 } } }),
+      JSON.stringify({ omac: { deepInterview: { ambiguityThreshold: 0.15 } } }),
     );
 
     const { executeSlashCommand } = await loadExecutor();
@@ -188,7 +188,7 @@ description: Deep interview
 pipeline: [deep-interview, plan, autopilot]
 next-skill: plan
 next-skill-args: --consensus --direct
-handoff: .omc/specs/deep-interview-{slug}.md
+handoff: .omac/specs/deep-interview-{slug}.md
 ---
 
 Deep interview body`
@@ -205,8 +205,8 @@ Deep interview body`
     expect(result.replacementText).toContain('## Skill Pipeline');
     expect(result.replacementText).toContain('Pipeline: `deep-interview → plan → autopilot`');
     expect(result.replacementText).toContain('Next skill arguments: `--consensus --direct`');
-    expect(result.replacementText).toContain('Skill("oh-my-claudecode:plan")');
-    expect(result.replacementText).toContain('`.omc/specs/deep-interview-{slug}.md`');
+    expect(result.replacementText).toContain('Skill("oh-my-agent-connector:plan")');
+    expect(result.replacementText).toContain('`.omac/specs/deep-interview-{slug}.md`');
   });
 
   it('discovers project-local compatibility skills from .agents/skills', async () => {
@@ -242,7 +242,7 @@ Compatibility body`
     expect(result.replacementText).toContain('`templates/`');
   });
 
-  it('discovers workspace-local Claude Code skills from .claude/skills before OMC compatibility skills', async () => {
+  it('discovers workspace-local Claude Code skills from .claude/skills before OMAC compatibility skills', async () => {
     mkdirSync(join(tempProjectDir, '.claude', 'skills', 'workspace-skill', 'references'), { recursive: true });
     writeFileSync(
       join(tempProjectDir, '.claude', 'skills', 'workspace-skill', 'SKILL.md'),
@@ -298,7 +298,7 @@ description: Deep interview
 pipeline: [deep-interview, plan, autopilot]
 next-skill: plan
 next-skill-args: --consensus --direct
-handoff: .omc/specs/deep-interview-{slug}.md
+handoff: .omac/specs/deep-interview-{slug}.md
 ---
 
 Deep interview body`
@@ -313,12 +313,12 @@ Deep interview body`
 
     expect(result.success).toBe(true);
     expect(result.replacementText).toContain('## Autoresearch Setup Mode');
-    expect(result.replacementText).toContain('Skill("oh-my-claudecode:autoresearch")');
+    expect(result.replacementText).toContain('Skill("oh-my-agent-connector:autoresearch")');
     expect(result.replacementText).toContain('Mission seed from invocation: `improve startup performance`');
     expect(result.replacementText).not.toContain('## Skill Pipeline');
   });
 
-  it('renders plugin-safe autoresearch guidance when omc is unavailable in slash mode', async () => {
+  it('renders plugin-safe autoresearch guidance when omac is unavailable in slash mode', async () => {
     process.env.CLAUDE_PLUGIN_ROOT = '/plugin-root';
     process.env.PATH = '';
 
@@ -342,7 +342,7 @@ Deep interview body`
 
     expect(result.success).toBe(true);
     expect(result.replacementText)
-      .toContain('Skill("oh-my-claudecode:autoresearch")');
+      .toContain('Skill("oh-my-agent-connector:autoresearch")');
   });
 
   it('routes /ccg advisor asks through the plugin bridge inside an active Claude session when CLAUDE_PLUGIN_ROOT is set', async () => {
@@ -361,7 +361,7 @@ Deep interview body`
     expect(result.success).toBe(true);
     expect(result.replacementText).toContain('`node "$CLAUDE_PLUGIN_ROOT"/bridge/cli.cjs ask codex "<codex prompt>"`');
     expect(result.replacementText).toContain('`node "$CLAUDE_PLUGIN_ROOT"/bridge/cli.cjs ask gemini "<gemini prompt>"`');
-    expect(result.replacementText).not.toContain('`omc ask codex "<codex prompt>"`');
-    expect(result.replacementText).not.toContain('`omc ask gemini "<gemini prompt>"`');
+    expect(result.replacementText).not.toContain('`omac ask codex "<codex prompt>"`');
+    expect(result.replacementText).not.toContain('`omac ask gemini "<gemini prompt>"`');
   });
 });

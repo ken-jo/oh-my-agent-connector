@@ -12,7 +12,7 @@
 
 import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
-import { getOmcRoot } from '../../lib/worktree-paths.js';
+import { getOmacRoot } from '../../lib/worktree-paths.js';
 
 // ============================================================================
 // Types
@@ -67,14 +67,14 @@ export function getProgressPath(directory: string): string {
 }
 
 /**
- * Get the path to progress.txt in .omc subdirectory
+ * Get the path to progress.txt in .omac subdirectory
  */
-export function getOmcProgressPath(directory: string): string {
-  return join(getOmcRoot(directory), PROGRESS_FILENAME);
+export function getOmacProgressPath(directory: string): string {
+  return join(getOmacRoot(directory), PROGRESS_FILENAME);
 }
 
 /**
- * Find progress.txt in a directory (checks both root and .omc)
+ * Find progress.txt in a directory (checks both root and .omac)
  */
 export function findProgressPath(directory: string): string | null {
   const rootPath = getProgressPath(directory);
@@ -82,9 +82,9 @@ export function findProgressPath(directory: string): string | null {
     return rootPath;
   }
 
-  const omcPath = getOmcProgressPath(directory);
-  if (existsSync(omcPath)) {
-    return omcPath;
+  const omacPath = getOmacProgressPath(directory);
+  if (existsSync(omacPath)) {
+    return omacPath;
   }
 
   return null;
@@ -226,16 +226,16 @@ export function readProgress(directory: string): ProgressLog | null {
  * Initialize a new progress.txt file
  */
 export function initProgress(directory: string): boolean {
-  const omcDir = getOmcRoot(directory);
-  if (!existsSync(omcDir)) {
+  const omacDir = getOmacRoot(directory);
+  if (!existsSync(omacDir)) {
     try {
-      mkdirSync(omcDir, { recursive: true });
+      mkdirSync(omacDir, { recursive: true });
     } catch {
       return false;
     }
   }
 
-  const progressPath = getOmcProgressPath(directory);
+  const progressPath = getOmacProgressPath(directory);
   const now = new Date().toISOString();
 
   const content = `# Ralph Progress Log
@@ -270,7 +270,7 @@ export function appendProgress(
     if (!initProgress(directory)) {
       return false;
     }
-    progressPath = getOmcProgressPath(directory);
+    progressPath = getOmacProgressPath(directory);
   }
 
   const now = new Date().toISOString();

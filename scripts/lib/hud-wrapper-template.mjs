@@ -6,7 +6,7 @@
  * src/__tests__/hud-wrapper-template-sync.test.ts.
  *
  * Used by scripts/plugin-setup.mjs (Path B: Claude Code plugin marketplace).
- * The TS module is used by src/installer/index.ts (Path A: `omc setup` / npm).
+ * The TS module is used by src/installer/index.ts (Path A: `omac setup` / npm).
  */
 
 import { readFileSync } from 'node:fs';

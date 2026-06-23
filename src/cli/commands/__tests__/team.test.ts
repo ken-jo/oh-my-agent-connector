@@ -19,7 +19,7 @@ async function captureLog(fn: () => Promise<void>): Promise<string[]> {
 
 /** Helper: init minimal team state on disk */
 async function initTeamState(teamName: string, wd: string): Promise<void> {
-  const base = join(wd, '.omc', 'state', 'team', teamName);
+  const base = join(wd, '.omac', 'state', 'team', teamName);
   await mkdir(join(base, 'tasks'), { recursive: true });
   await mkdir(join(base, 'workers', 'worker-1'), { recursive: true });
   await mkdir(join(base, 'mailbox'), { recursive: true });
@@ -37,31 +37,31 @@ async function initTeamState(teamName: string, wd: string): Promise<void> {
 describe('teamCommand help output', () => {
   it('prints team help for --help', async () => {
     const logs = await captureLog(() => teamCommand(['--help']));
-    expect(logs[0]).toContain('omc team api <operation>');
+    expect(logs[0]).toContain('omac team api <operation>');
   });
 
   it('prints team help for help alias', async () => {
     const logs = await captureLog(() => teamCommand(['help']));
-    expect(logs[0]).toContain('omc team api <operation>');
+    expect(logs[0]).toContain('omac team api <operation>');
   });
 
-  it('prints api help for omc team api --help', async () => {
+  it('prints api help for omac team api --help', async () => {
     const logs = await captureLog(() => teamCommand(['api', '--help']));
     expect(logs[0]).toContain('Supported operations');
     expect(logs[0]).toContain('send-message');
     expect(logs[0]).toContain('transition-task-status');
   });
 
-  it('prints operation-specific help for omc team api <op> --help', async () => {
+  it('prints operation-specific help for omac team api <op> --help', async () => {
     const logs = await captureLog(() => teamCommand(['api', 'send-message', '--help']));
-    expect(logs[0]).toContain('Usage: omc team api send-message');
+    expect(logs[0]).toContain('Usage: omac team api send-message');
     expect(logs[0]).toContain('from_worker');
     expect(logs[0]).toContain('to_worker');
   });
 
-  it('prints operation-specific help for omc team api --help <op>', async () => {
+  it('prints operation-specific help for omac team api --help <op>', async () => {
     const logs = await captureLog(() => teamCommand(['api', '--help', 'claim-task']));
-    expect(logs[0]).toContain('Usage: omc team api claim-task');
+    expect(logs[0]).toContain('Usage: omac team api claim-task');
     expect(logs[0]).toContain('expected_version');
   });
 });
@@ -89,7 +89,7 @@ describe('teamCommand api operations', () => {
   });
 
   it('executes send-message with stable JSON envelope', async () => {
-    wd = await mkdtemp(join(tmpdir(), 'omc-team-cli-'));
+    wd = await mkdtemp(join(tmpdir(), 'omac-team-cli-'));
     previousCwd = process.cwd();
     process.chdir(wd);
     await initTeamState('cli-test', wd);
@@ -110,12 +110,12 @@ describe('teamCommand api operations', () => {
     const envelope = JSON.parse(logs[0]);
     expect(envelope.schema_version).toBe('1.0');
     expect(envelope.ok).toBe(true);
-    expect(envelope.command).toBe('omc team api send-message');
+    expect(envelope.command).toBe('omac team api send-message');
     expect(envelope.data.message.body).toBe('ACK');
   });
 
   it('supports claim-safe lifecycle: create -> claim -> transition', async () => {
-    wd = await mkdtemp(join(tmpdir(), 'omc-team-lifecycle-'));
+    wd = await mkdtemp(join(tmpdir(), 'omac-team-lifecycle-'));
     previousCwd = process.cwd();
     process.chdir(wd);
     await initTeamState('lifecycle', wd);
@@ -176,22 +176,22 @@ describe('teamCommand api operations', () => {
   });
 
   it('blocks team start when running inside worker context', async () => {
-    const previousWorker = process.env.OMC_TEAM_WORKER;
+    const previousWorker = process.env.OMAC_TEAM_WORKER;
     try {
-      process.env.OMC_TEAM_WORKER = 'demo-team/worker-1';
+      process.env.OMAC_TEAM_WORKER = 'demo-team/worker-1';
       const logs = await captureLog(() => teamCommand(['1:executor', 'do work']));
-      expect(logs[0]).toContain('omc team [N:agent-type[:role]]');
+      expect(logs[0]).toContain('omac team [N:agent-type[:role]]');
       expect(process.exitCode).toBe(1);
     } finally {
-      process.env.OMC_TEAM_WORKER = previousWorker;
+      process.env.OMAC_TEAM_WORKER = previousWorker;
       process.exitCode = 0;
     }
   });
 
 
   it('ignores stale team state without a live tmux session when enforcing leader spawn gate', async () => {
-    wd = await mkdtemp(join(tmpdir(), 'omc-team-stale-gate-'));
-    const stale = join(wd, '.omc', 'state', 'team', 'stale-team');
+    wd = await mkdtemp(join(tmpdir(), 'omac-team-stale-gate-'));
+    const stale = join(wd, '.omac', 'state', 'team', 'stale-team');
     await mkdir(stale, { recursive: true });
     await writeFile(join(stale, 'config.json'), JSON.stringify({
       name: 'stale-team',
@@ -203,16 +203,16 @@ describe('teamCommand api operations', () => {
       next_task_id: 1,
     }, null, 2));
 
-    delete process.env.OMC_TEAM_WORKER;
+    delete process.env.OMAC_TEAM_WORKER;
     delete process.env.OMX_TEAM_WORKER;
     await expect(assertTeamSpawnAllowed(wd)).resolves.toBeUndefined();
   });
 
   it('allows nested team spawn only when parent governance enables it', async () => {
-    wd = await mkdtemp(join(tmpdir(), 'omc-team-governance-'));
+    wd = await mkdtemp(join(tmpdir(), 'omac-team-governance-'));
     previousCwd = process.cwd();
     process.chdir(wd);
-    const base = join(wd, '.omc', 'state', 'team', 'demo-team');
+    const base = join(wd, '.omac', 'state', 'team', 'demo-team');
     await mkdir(base, { recursive: true });
     await writeFile(join(base, 'manifest.json'), JSON.stringify({
       schema_version: 2,
@@ -248,12 +248,12 @@ describe('teamCommand api operations', () => {
       resize_hook_target: null,
     }));
 
-    const previousWorker = process.env.OMC_TEAM_WORKER;
+    const previousWorker = process.env.OMAC_TEAM_WORKER;
     try {
-      process.env.OMC_TEAM_WORKER = 'demo-team/worker-1';
+      process.env.OMAC_TEAM_WORKER = 'demo-team/worker-1';
       await expect(assertTeamSpawnAllowed(wd, process.env)).resolves.toBeUndefined();
     } finally {
-      process.env.OMC_TEAM_WORKER = previousWorker;
+      process.env.OMAC_TEAM_WORKER = previousWorker;
     }
   });
 });
@@ -375,8 +375,8 @@ describe('parseTeamArgs comma-separated multi-type specs', () => {
     const parsed = parseTeamArgs(['abcdefghijklmnopqrstuvwxyz abc', 'task body']);
     expect(parsed.teamName.endsWith('-')).toBe(false);
 
-    const slugWd = await mkdtemp(join(tmpdir(), 'omc-team-slug-'));
-    await mkdir(join(slugWd, '.omc', 'state', 'team', parsed.teamName), { recursive: true });
+    const slugWd = await mkdtemp(join(tmpdir(), 'omac-team-slug-'));
+    await mkdir(join(slugWd, '.omac', 'state', 'team', parsed.teamName), { recursive: true });
     expect(resolveAvailableTeamName(parsed.teamName, slugWd)).toBe(`${parsed.teamName.slice(0, 28).replace(/-$/g, '')}-2`);
     await rm(slugWd, { recursive: true, force: true });
   });

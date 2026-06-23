@@ -1,7 +1,7 @@
 /**
  * Background Agent Manager
  *
- * Manages background tasks for the OMC system.
+ * Manages background tasks for the OMAC system.
  * This is a simplified version that tracks tasks launched via Claude Code's
  * native Task tool with run_in_background: true.
  *
@@ -26,10 +26,10 @@ import type {
 const DEFAULT_TASK_TTL_MS = 30 * 60 * 1000;
 
 /** Storage directory for task state */
-const BACKGROUND_TASKS_DIR = join(getClaudeConfigDir(), '.omc', 'background-tasks');
+const BACKGROUND_TASKS_DIR = join(getClaudeConfigDir(), '.omac', 'background-tasks');
 
 /**
- * Manages background tasks for the OMC system.
+ * Manages background tasks for the OMAC system.
  */
 export class BackgroundManager {
   private tasks: Map<string, BackgroundTask> = new Map();

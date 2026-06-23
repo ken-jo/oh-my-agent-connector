@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * OMC Context Guard Hook (Stop)
+ * OMAC Context Guard Hook (Stop)
  *
  * Suggests session refresh when context usage exceeds a warning threshold.
  * This complements persistent-mode.cjs — it fires BEFORE modes like Ralph
  * or Ultrawork process the stop, providing an early warning.
  *
- * Configurable via OMC_CONTEXT_GUARD_THRESHOLD env var (default: 75%).
+ * Configurable via OMAC_CONTEXT_GUARD_THRESHOLD env var (default: 75%).
  *
  * Safety rules:
  *   - Never block context_limit stops (would cause compaction deadlock)
@@ -26,7 +26,7 @@ import { execSync } from 'node:child_process';
 import { getClaudeConfigDir } from './lib/config-dir.mjs';
 import { readStdin } from './lib/stdin.mjs';
 
-const THRESHOLD = parseInt(process.env.OMC_CONTEXT_GUARD_THRESHOLD || '75', 10);
+const THRESHOLD = parseInt(process.env.OMAC_CONTEXT_GUARD_THRESHOLD || '75', 10);
 const CRITICAL_THRESHOLD = 95;
 const MAX_BLOCKS = 2;
 const SESSION_ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,255}$/;
@@ -185,7 +185,7 @@ function estimateContextPercent(transcriptPath) {
  */
 function getGuardFilePath(sessionId) {
   const configDir = getClaudeConfigDir();
-  const guardDir = join(configDir, 'projects', '.omc-guards');
+  const guardDir = join(configDir, 'projects', '.omac-guards');
   try {
     mkdirSync(guardDir, { recursive: true, mode: 0o700 });
   } catch (err) {
@@ -222,10 +222,10 @@ function incrementBlockCount(sessionId) {
 
 function buildStopRecoveryAdvice(contextPercent, blockCount) {
   const severity = contextPercent >= 90 ? 'CRITICAL' : 'HIGH';
-  return `[OMC ${severity}] Context at ${contextPercent}% (threshold: ${THRESHOLD}%). ` +
+  return `[OMAC ${severity}] Context at ${contextPercent}% (threshold: ${THRESHOLD}%). ` +
     `Run /compact immediately before continuing. If /compact cannot complete, ` +
     `stop spawning new agents and recover in a fresh session using existing checkpoints ` +
-    `(.omc/state, .omc/notepad.md). (Block ${blockCount}/${MAX_BLOCKS})`;
+    `(.omac/state, .omac/notepad.md). (Block ${blockCount}/${MAX_BLOCKS})`;
 }
 
 async function main() {

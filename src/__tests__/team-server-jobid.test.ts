@@ -21,14 +21,14 @@ describe('team-server job ID entropy', () => {
     const now = Date.now();
     const ids = new Set<string>();
     for (let i = 0; i < 100; i++) {
-      ids.add(`omc-${now.toString(36)}${randomUUID().slice(0, 8)}`);
+      ids.add(`omac-${now.toString(36)}${randomUUID().slice(0, 8)}`);
     }
     expect(ids.size).toBe(100);
   });
 
   it('generates IDs matching the validation pattern', () => {
     const { randomUUID } = require('node:crypto');
-    const jobId = `omc-${Date.now().toString(36)}${randomUUID().slice(0, 8)}`;
-    expect(jobId).toMatch(/^omc-[a-z0-9]{1,16}$/);
+    const jobId = `omac-${Date.now().toString(36)}${randomUUID().slice(0, 8)}`;
+    expect(jobId).toMatch(/^omac-[a-z0-9]{1,16}$/);
   });
 });

@@ -27,7 +27,7 @@ describe('project-session-manager session filtering', () => {
   });
 
   it('returns only active review/fix sessions for cleanup scans', () => {
-    const home = mkdtempSync(join(tmpdir(), 'omc-psm-sessions-'));
+    const home = mkdtempSync(join(tmpdir(), 'omac-psm-sessions-'));
     tempDirs.push(home);
     const psmRoot = join(home, '.psm');
     mkdirSync(psmRoot, { recursive: true });

@@ -4,7 +4,7 @@ import { render } from '../../hud/render.js';
 import { DEFAULT_HUD_CONFIG, PRESET_CONFIGS, type HudRenderContext, type HudConfig } from '../../hud/types.js';
 import { stringWidth } from '../../utils/string-width.js';
 
-// Force non-local so the OMC banner omits the "L" local-build suffix under test.
+// Force non-local so the OMAC banner omits the "L" local-build suffix under test.
 vi.mock('../../lib/version.js', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../lib/version.js')>()),
   isRuntimePackageLocal: () => false,
@@ -44,9 +44,9 @@ describe('limitOutputLines', () => {
     });
 
     it('preserves the first (header) line when truncating', () => {
-      const lines = ['[OMC] Header Line', 'Agents: ...', 'Todos: ...', 'Analytics: ...', 'Extra: ...'];
+      const lines = ['[OMAC] Header Line', 'Agents: ...', 'Todos: ...', 'Analytics: ...', 'Extra: ...'];
       const result = limitOutputLines(lines, 3);
-      expect(result[0]).toBe('[OMC] Header Line');
+      expect(result[0]).toBe('[OMAC] Header Line');
       expect(result).toHaveLength(3);
       expect(result[2]).toBe('... (+3 lines)');
     });
@@ -155,7 +155,7 @@ describe('limitOutputLines', () => {
   describe('Issue #222 scenario simulation', () => {
     it('prevents input field shrinkage by limiting excessive HUD output', () => {
       const excessiveOutput = [
-        '[OMC] Rate: 45% | Context: 30%',
+        '[OMAC] Rate: 45% | Context: 30%',
         'agents: architect(5m) | executor(2m) | explorer',
         'todos: [1/5] Implementing feature X',
         'Analytics: $1.23 | 50k tokens | Cache: 67%',
@@ -168,7 +168,7 @@ describe('limitOutputLines', () => {
       const result = limitOutputLines(excessiveOutput, 4);
 
       expect(result).toHaveLength(4);
-      expect(result[0]).toContain('[OMC]');
+      expect(result[0]).toContain('[OMAC]');
       expect(result[3]).toBe('... (+5 lines)');
     });
 
@@ -196,7 +196,7 @@ describe('gitInfoPosition configuration', () => {
     pendingPermission: null,
     thinkingState: null,
     sessionHealth: { durationMinutes: 10, messageCount: 5, health: 'healthy' },
-    omcVersion: '4.5.4',
+    omacVersion: '4.5.4',
     updateAvailable: null,
     toolCallCount: 0,
     agentCallCount: 0,
@@ -215,7 +215,7 @@ describe('gitInfoPosition configuration', () => {
       gitRepo: true,
       gitBranch: true,
       gitInfoPosition,
-      omcLabel: true,
+      omacLabel: true,
       rateLimits: false,
       ralph: false,
       autopilot: false,
@@ -266,7 +266,7 @@ describe('gitInfoPosition configuration', () => {
       expect(lines[0]).toContain('repo:my-repo');
       expect(lines[0]).toContain('branch:main');
       // Second line should be the main HUD header (with ANSI codes from bold())
-      expect(lines[1]).toMatch(/\[OMC/);
+      expect(lines[1]).toMatch(/\[OMAC/);
     });
 
     it('maintains traditional layout with git info above', async () => {
@@ -280,7 +280,7 @@ describe('gitInfoPosition configuration', () => {
       // Git info comes first
       expect(lines[0]).toContain('~/workspace/project');
       // Main header comes second (with ANSI codes from bold())
-      expect(lines[1]).toMatch(/\[OMC/);
+      expect(lines[1]).toMatch(/\[OMAC/);
     });
   });
 
@@ -293,7 +293,7 @@ describe('gitInfoPosition configuration', () => {
       const lines = result.split('\n');
 
       // First line should be the main HUD header (with ANSI codes from bold())
-      expect(lines[0]).toMatch(/\[OMC/);
+      expect(lines[0]).toMatch(/\[OMAC/);
       // Second line should be git info
       expect(lines[1]).toContain('repo:my-repo');
       expect(lines[1]).toContain('branch:main');
@@ -308,7 +308,7 @@ describe('gitInfoPosition configuration', () => {
 
       expect(lines.length).toBeGreaterThanOrEqual(2);
       // Main header comes first (with ANSI codes from bold())
-      expect(lines[0]).toMatch(/\[OMC/);
+      expect(lines[0]).toMatch(/\[OMAC/);
       // Git info comes second
       expect(lines[1]).toContain('~/workspace/project');
     });
@@ -331,7 +331,7 @@ describe('gitInfoPosition configuration', () => {
       // Should default to above behavior
       // Git info should be in the first line (if present)
       const firstLineIsGitInfo = lines[0]?.includes('repo:') || lines[0]?.includes('branch:');
-      const firstLineIsHeader = lines[0]?.includes('[OMC]');
+      const firstLineIsHeader = lines[0]?.includes('[OMAC]');
 
       // Either git info is first, or if no git info, header is first
       expect(firstLineIsGitInfo || firstLineIsHeader).toBe(true);
@@ -380,7 +380,7 @@ describe('maxWidth wrapMode behavior', () => {
     pendingPermission: null,
     thinkingState: null,
     sessionHealth: null,
-    omcVersion: '4.5.4',
+    omacVersion: '4.5.4',
     updateAvailable: null,
     toolCallCount: 0,
     agentCallCount: 0,
@@ -399,7 +399,7 @@ describe('maxWidth wrapMode behavior', () => {
     preset: 'focused',
     elements: {
       ...DEFAULT_HUD_CONFIG.elements,
-      omcLabel: true,
+      omacLabel: true,
       rateLimits: false,
       ralph: false,
       autopilot: false,
@@ -444,7 +444,7 @@ describe('maxWidth wrapMode behavior', () => {
     const lines = result.split('\n');
 
     expect(lines.length).toBeGreaterThan(1);
-    expect(lines[0]).toContain('[OMC');
+    expect(lines[0]).toContain('[OMAC');
     lines.forEach(line => {
       expect(stringWidth(line)).toBeLessThanOrEqual(24);
     });
@@ -497,7 +497,7 @@ describe('token usage rendering', () => {
     sessionHealth: { durationMinutes: 10, messageCount: 5, health: 'healthy' },
     lastRequestTokenUsage: { inputTokens: 1250, outputTokens: 340, reasoningTokens: 120 },
     sessionTotalTokens: 6590,
-    omcVersion: '4.5.4',
+    omacVersion: '4.5.4',
     updateAvailable: null,
     toolCallCount: 0,
     agentCallCount: 0,
@@ -512,7 +512,7 @@ describe('token usage rendering', () => {
     preset: 'focused',
     elements: {
       ...DEFAULT_HUD_CONFIG.elements,
-      omcLabel: true,
+      omacLabel: true,
       rateLimits: false,
       ralph: false,
       autopilot: false,
@@ -568,7 +568,7 @@ describe('layout element ordering', () => {
     pendingPermission: null,
     thinkingState: null,
     sessionHealth: { durationMinutes: 10, messageCount: 5, health: 'healthy' },
-    omcVersion: '4.5.4',
+    omacVersion: '4.5.4',
     updateAvailable: null,
     toolCallCount: 5,
     agentCallCount: 1,
@@ -583,7 +583,7 @@ describe('layout element ordering', () => {
     preset: 'focused',
     elements: {
       ...DEFAULT_HUD_CONFIG.elements,
-      omcLabel: true,
+      omacLabel: true,
       contextBar: true,
       gitBranch: true,
       rateLimits: false,
@@ -618,64 +618,64 @@ describe('layout element ordering', () => {
     const result = await render(context, config);
     const lines = result.split('\n');
 
-    // line1 has gitBranch, main has [OMC]
+    // line1 has gitBranch, main has [OMAC]
     expect(lines[0]).toContain('branch:');
-    expect(lines[1]).toContain('[OMC');
+    expect(lines[1]).toContain('[OMAC');
   });
 
   it('reorders main elements according to layout.main', async () => {
     const context = createMockContext();
-    // Put contextBar before omcLabel
+    // Put contextBar before omacLabel
     const config = createLayoutConfig({
-      main: ['contextBar', 'omcLabel', 'session', 'callCounts'],
+      main: ['contextBar', 'omacLabel', 'session', 'callCounts'],
     });
 
     const result = await render(context, config);
     const lines = result.split('\n');
 
-    // Find the main line (has [OMC])
-    const mainLine = lines.find(l => l.includes('[OMC'));
+    // Find the main line (has [OMAC])
+    const mainLine = lines.find(l => l.includes('[OMAC'));
     expect(mainLine).toBeDefined();
 
-    // contextBar should appear before [OMC]
+    // contextBar should appear before [OMAC]
     const ctxIdx = mainLine!.indexOf('ctx:');
-    const omcIdx = mainLine!.indexOf('[OMC');
-    expect(ctxIdx).toBeLessThan(omcIdx);
+    const omacIdx = mainLine!.indexOf('[OMAC');
+    expect(ctxIdx).toBeLessThan(omacIdx);
   });
 
   it('moves elements between groups via layout', async () => {
     const context = createMockContext();
-    // Move omcLabel to line1, gitBranch stays in line1 too
+    // Move omacLabel to line1, gitBranch stays in line1 too
     const config = createLayoutConfig({
-      line1: ['omcLabel', 'gitBranch'],
+      line1: ['omacLabel', 'gitBranch'],
       main: ['contextBar', 'session', 'callCounts'],
     });
 
     const result = await render(context, config);
     const lines = result.split('\n');
 
-    // line1 should have both [OMC] and branch:
-    expect(lines[0]).toContain('[OMC');
+    // line1 should have both [OMAC] and branch:
+    expect(lines[0]).toContain('[OMAC');
     expect(lines[0]).toContain('branch:');
 
-    // main should have contextBar but not [OMC]
+    // main should have contextBar but not [OMAC]
     expect(lines[1]).toContain('ctx:');
-    expect(lines[1]).not.toContain('[OMC');
+    expect(lines[1]).not.toContain('[OMAC');
   });
 
   it('skips elements not in layout silently', async () => {
     const context = createMockContext();
-    // Only include omcLabel in main, skip everything else
+    // Only include omacLabel in main, skip everything else
     const config = createLayoutConfig({
       line1: [],
-      main: ['omcLabel'],
+      main: ['omacLabel'],
       detail: [],
     });
 
     const result = await render(context, config);
 
-    // Should only have the OMC label, no other elements
-    expect(result).toContain('[OMC');
+    // Should only have the OMAC label, no other elements
+    expect(result).toContain('[OMAC');
     expect(result).not.toContain('ctx:');
     expect(result).not.toContain('branch:');
   });
@@ -683,27 +683,27 @@ describe('layout element ordering', () => {
   it('ignores unknown element names in layout', async () => {
     const context = createMockContext();
     const config = createLayoutConfig({
-      main: ['nonExistentElement', 'omcLabel'],
+      main: ['nonExistentElement', 'omacLabel'],
     });
 
     const result = await render(context, config);
 
-    // Should still render omcLabel without error
-    expect(result).toContain('[OMC');
+    // Should still render omacLabel without error
+    expect(result).toContain('[OMAC');
   });
 
   it('produces no line1 output when line1 layout is empty', async () => {
     const context = createMockContext();
     const config = createLayoutConfig({
       line1: [],
-      main: ['omcLabel'],
+      main: ['omacLabel'],
     });
 
     const result = await render(context, config);
     const lines = result.split('\n');
 
-    // First line should be main (OMC), no git info line
-    expect(lines[0]).toContain('[OMC');
+    // First line should be main (OMAC), no git info line
+    expect(lines[0]).toContain('[OMAC');
     expect(lines).toHaveLength(1);
   });
 
@@ -711,7 +711,7 @@ describe('layout element ordering', () => {
     const context = createMockContext();
     // Only specify main order; line1 and detail use defaults
     const config = createLayoutConfig({
-      main: ['contextBar', 'omcLabel'],
+      main: ['contextBar', 'omacLabel'],
     });
 
     const result = await render(context, config);
@@ -720,57 +720,57 @@ describe('layout element ordering', () => {
     // line1 should use default order (gitBranch)
     expect(lines[0]).toContain('branch:');
 
-    // main should use custom order (ctx before OMC)
-    const mainLine = lines.find(l => l.includes('[OMC'));
+    // main should use custom order (ctx before OMAC)
+    const mainLine = lines.find(l => l.includes('[OMAC'));
     expect(mainLine).toBeDefined();
     const ctxIdx = mainLine!.indexOf('ctx:');
-    const omcIdx = mainLine!.indexOf('[OMC');
-    expect(ctxIdx).toBeLessThan(omcIdx);
+    const omacIdx = mainLine!.indexOf('[OMAC');
+    expect(ctxIdx).toBeLessThan(omacIdx);
   });
 
   it('reorders main elements according to elementOrder and appends unspecified defaults', async () => {
     const context = createMockContext();
-    const config = createElementOrderConfig(['contextBar', 'omcLabel']);
+    const config = createElementOrderConfig(['contextBar', 'omacLabel']);
 
     const result = await render(context, config);
     const lines = result.split('\n');
-    const mainLine = lines.find(l => l.includes('[OMC'));
+    const mainLine = lines.find(l => l.includes('[OMAC'));
 
     expect(mainLine).toBeDefined();
     expect(mainLine!).toContain('ctx:');
     expect(mainLine!).toContain('session:');
     expect(mainLine!).toMatch(/(?:🔧5|T:5)/);
-    expect(mainLine!.indexOf('ctx:')).toBeLessThan(mainLine!.indexOf('[OMC'));
-    expect(mainLine!.indexOf('[OMC')).toBeLessThan(mainLine!.indexOf('session:'));
+    expect(mainLine!.indexOf('ctx:')).toBeLessThan(mainLine!.indexOf('[OMAC'));
+    expect(mainLine!.indexOf('[OMAC')).toBeLessThan(mainLine!.indexOf('session:'));
   });
 
   it('ignores unknown names in elementOrder silently', async () => {
     const context = createMockContext();
-    const config = createElementOrderConfig(['unknownElement', 'contextBar', 'omcLabel']);
+    const config = createElementOrderConfig(['unknownElement', 'contextBar', 'omacLabel']);
 
     const result = await render(context, config);
     const lines = result.split('\n');
-    const mainLine = lines.find(l => l.includes('[OMC'));
+    const mainLine = lines.find(l => l.includes('[OMAC'));
 
     expect(mainLine).toBeDefined();
-    expect(mainLine!.indexOf('ctx:')).toBeLessThan(mainLine!.indexOf('[OMC'));
+    expect(mainLine!.indexOf('ctx:')).toBeLessThan(mainLine!.indexOf('[OMAC'));
   });
 
   it('lets layout.main override elementOrder when both are present', async () => {
     const context = createMockContext();
     const config: HudConfig = {
-      ...createElementOrderConfig(['contextBar', 'omcLabel']),
+      ...createElementOrderConfig(['contextBar', 'omacLabel']),
       layout: {
-        main: ['omcLabel', 'contextBar'],
+        main: ['omacLabel', 'contextBar'],
       },
     };
 
     const result = await render(context, config);
     const lines = result.split('\n');
-    const mainLine = lines.find(l => l.includes('[OMC'));
+    const mainLine = lines.find(l => l.includes('[OMAC'));
 
     expect(mainLine).toBeDefined();
-    expect(mainLine!.indexOf('[OMC')).toBeLessThan(mainLine!.indexOf('ctx:'));
+    expect(mainLine!.indexOf('[OMAC')).toBeLessThan(mainLine!.indexOf('ctx:'));
   });
 });
 
@@ -793,7 +793,7 @@ describe('optional HUD line defaults', () => {
       pendingPermission: null,
       thinkingState: null,
       sessionHealth: { durationMinutes: 10, messageCount: 5, health: 'healthy' },
-      omcVersion: '4.5.4',
+      omacVersion: '4.5.4',
       updateAvailable: null,
       toolCallCount: 0,
       agentCallCount: 0,
@@ -808,7 +808,7 @@ describe('optional HUD line defaults', () => {
       ...DEFAULT_HUD_CONFIG,
       elements: {
         ...DEFAULT_HUD_CONFIG.elements,
-        omcLabel: false,
+        omacLabel: false,
         rateLimits: false,
         permissionStatus: false,
         thinking: false,
@@ -854,7 +854,7 @@ describe('HUD model display', () => {
     pendingPermission: null,
     thinkingState: null,
     sessionHealth: null,
-    omcVersion: '4.14.0',
+    omacVersion: '4.14.0',
     updateAvailable: null,
     toolCallCount: 0,
     agentCallCount: 0,
@@ -870,7 +870,7 @@ describe('HUD model display', () => {
     elements: {
       ...DEFAULT_HUD_CONFIG.elements,
       model: true,
-      omcLabel: true,
+      omacLabel: true,
       rateLimits: false,
       permissionStatus: false,
       thinking: false,
@@ -892,7 +892,7 @@ describe('HUD model display', () => {
     },
     layout: {
       line1: [],
-      main: ['omcLabel', 'model'],
+      main: ['omacLabel', 'model'],
       detail: [],
     },
   };
@@ -901,7 +901,7 @@ describe('HUD model display', () => {
     const output = await render(createModelContext('Claude Sonnet 4.5'), modelConfig);
 
     expect(output.split('\n')).toHaveLength(1);
-    expect(output).toContain('[OMC#4.14.0]');
+    expect(output).toContain('[OMAC#4.14.0]');
     expect(output).toContain('Model: Sonnet 4.5');
   });
 
@@ -937,7 +937,7 @@ describe('HUD model display', () => {
   it('omits the model segment when model metadata is unavailable', async () => {
     const output = await render(createModelContext(null), modelConfig);
 
-    expect(output).toBe('\u001b[1m[OMC#4.14.0]\u001b[0m');
+    expect(output).toBe('\u001b[1m[OMAC#4.14.0]\u001b[0m');
     expect(output).not.toContain('Unknown');
   });
 });

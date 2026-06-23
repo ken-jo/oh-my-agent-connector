@@ -36,18 +36,18 @@ describe('tmux clipboard configuration', () => {
       return '';
     });
 
-    configureTmuxClipboardForSession('omc-session', { stripTmux: true, stdio: 'ignore' });
+    configureTmuxClipboardForSession('omac-session', { stripTmux: true, stdio: 'ignore' });
 
     expect(mocks.tmuxExec).toHaveBeenCalledWith(
-      ['set-option', '-t', 'omc-session', 'set-clipboard', 'on'],
+      ['set-option', '-t', 'omac-session', 'set-clipboard', 'on'],
       { stripTmux: true, stdio: 'ignore' },
     );
     expect(mocks.tmuxExec).toHaveBeenCalledWith(
-      ['show-options', '-t', 'omc-session', '-v', 'terminal-features'],
+      ['show-options', '-t', 'omac-session', '-v', 'terminal-features'],
       { stripTmux: true, stdio: 'ignore' },
     );
     expect(mocks.tmuxExec).toHaveBeenCalledWith(
-      ['set-option', '-at', 'omc-session', 'terminal-features', ',*:clipboard'],
+      ['set-option', '-at', 'omac-session', 'terminal-features', ',*:clipboard'],
       { stripTmux: true, stdio: 'ignore' },
     );
   });
@@ -58,10 +58,10 @@ describe('tmux clipboard configuration', () => {
       return '';
     });
 
-    configureTmuxClipboardForSession('omc-session');
+    configureTmuxClipboardForSession('omac-session');
 
     expect(mocks.tmuxExec).not.toHaveBeenCalledWith(
-      ['set-option', '-at', 'omc-session', 'terminal-features', ',*:clipboard'],
+      ['set-option', '-at', 'omac-session', 'terminal-features', ',*:clipboard'],
       expect.anything(),
     );
   });
@@ -86,9 +86,9 @@ describe('tmux clipboard configuration', () => {
       return { stdout: '', stderr: '' };
     });
 
-    await configureTmuxClipboardForSessionAsync('omc-team');
+    await configureTmuxClipboardForSessionAsync('omac-team');
 
-    expect(mocks.tmuxExecAsync).toHaveBeenCalledWith(['set-option', '-t', 'omc-team', 'set-clipboard', 'on'], undefined);
-    expect(mocks.tmuxExecAsync).toHaveBeenCalledWith(['set-option', '-at', 'omc-team', 'terminal-features', ',*:clipboard'], undefined);
+    expect(mocks.tmuxExecAsync).toHaveBeenCalledWith(['set-option', '-t', 'omac-team', 'set-clipboard', 'on'], undefined);
+    expect(mocks.tmuxExecAsync).toHaveBeenCalledWith(['set-option', '-at', 'omac-team', 'terminal-features', ',*:clipboard'], undefined);
   });
 });

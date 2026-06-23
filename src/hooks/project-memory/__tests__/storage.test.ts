@@ -40,39 +40,39 @@ describe('Project Memory Storage', () => {
 
   beforeEach(async () => {
     // Create temporary directory
-    delete process.env.OMC_STATE_DIR;
+    delete process.env.OMAC_STATE_DIR;
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'project-memory-test-'));
     projectRoot = tempDir;
   });
 
   afterEach(async () => {
     // Clean up temporary directory
-    delete process.env.OMC_STATE_DIR;
+    delete process.env.OMAC_STATE_DIR;
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
   describe('getMemoryPath', () => {
     it('should return correct memory file path', () => {
       const memoryPath = getMemoryPath(projectRoot);
-      expect(memoryPath).toBe(path.join(projectRoot, '.omc', 'project-memory.json'));
+      expect(memoryPath).toBe(path.join(projectRoot, '.omac', 'project-memory.json'));
     });
 
-    it('should return centralized memory file path when OMC_STATE_DIR is set', async () => {
+    it('should return centralized memory file path when OMAC_STATE_DIR is set', async () => {
       const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), 'project-memory-state-'));
       try {
-        process.env.OMC_STATE_DIR = stateDir;
+        process.env.OMAC_STATE_DIR = stateDir;
 
         const memoryPath = getMemoryPath(projectRoot);
         expect(memoryPath).toBe(path.join(stateDir, getProjectIdentifier(projectRoot), 'project-memory.json'));
       } finally {
-        delete process.env.OMC_STATE_DIR;
+        delete process.env.OMAC_STATE_DIR;
         await fs.rm(stateDir, { recursive: true, force: true });
       }
     });
   });
 
   describe('saveProjectMemory', () => {
-    it('should create .omc directory and save memory file', async () => {
+    it('should create .omac directory and save memory file', async () => {
       const memory = createBaseMemory(projectRoot, {
         techStack: {
           languages: [{ name: 'TypeScript', version: '5.0.0', confidence: 'high', markers: ['tsconfig.json'] }],
@@ -104,10 +104,10 @@ describe('Project Memory Storage', () => {
 
       await saveProjectMemory(projectRoot, memory);
 
-      // Verify .omc directory exists
-      const omcDir = path.join(projectRoot, '.omc');
-      const omcStat = await fs.stat(omcDir);
-      expect(omcStat.isDirectory()).toBe(true);
+      // Verify .omac directory exists
+      const omacDir = path.join(projectRoot, '.omac');
+      const omacStat = await fs.stat(omacDir);
+      expect(omacStat.isDirectory()).toBe(true);
 
       // Verify memory file exists
       const memoryPath = getMemoryPath(projectRoot);
@@ -121,10 +121,10 @@ describe('Project Memory Storage', () => {
       expect(parsed.projectRoot).toBe(projectRoot);
     });
 
-    it('should save to centralized state dir without creating local .omc when OMC_STATE_DIR is set', async () => {
+    it('should save to centralized state dir without creating local .omac when OMAC_STATE_DIR is set', async () => {
       const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), 'project-memory-state-'));
       try {
-        process.env.OMC_STATE_DIR = stateDir;
+        process.env.OMAC_STATE_DIR = stateDir;
 
         const memory = createBaseMemory(projectRoot, {
           techStack: { languages: [], frameworks: [], packageManager: null, runtime: null },
@@ -139,9 +139,9 @@ describe('Project Memory Storage', () => {
         const centralizedPath = path.join(stateDir, getProjectIdentifier(projectRoot), 'project-memory.json');
         const centralizedContent = await fs.readFile(centralizedPath, 'utf-8');
         expect(JSON.parse(centralizedContent).projectRoot).toBe(projectRoot);
-        await expect(fs.access(path.join(projectRoot, '.omc', 'project-memory.json'))).rejects.toThrow();
+        await expect(fs.access(path.join(projectRoot, '.omac', 'project-memory.json'))).rejects.toThrow();
       } finally {
-        delete process.env.OMC_STATE_DIR;
+        delete process.env.OMAC_STATE_DIR;
         await fs.rm(stateDir, { recursive: true, force: true });
       }
     });
@@ -251,9 +251,9 @@ describe('Project Memory Storage', () => {
     });
 
     it('should return null for invalid JSON', async () => {
-      // Create .omc directory
-      const omcDir = path.join(projectRoot, '.omc');
-      await fs.mkdir(omcDir, { recursive: true });
+      // Create .omac directory
+      const omacDir = path.join(projectRoot, '.omac');
+      await fs.mkdir(omacDir, { recursive: true });
 
       // Write invalid JSON
       const memoryPath = getMemoryPath(projectRoot);
@@ -264,9 +264,9 @@ describe('Project Memory Storage', () => {
     });
 
     it('should return null for memory with missing required fields', async () => {
-      // Create .omc directory
-      const omcDir = path.join(projectRoot, '.omc');
-      await fs.mkdir(omcDir, { recursive: true });
+      // Create .omac directory
+      const omacDir = path.join(projectRoot, '.omac');
+      await fs.mkdir(omacDir, { recursive: true });
 
       // Write incomplete memory
       const memoryPath = getMemoryPath(projectRoot);

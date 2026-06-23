@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { getOmcRoot, getWorktreeRoot } from '../../lib/worktree-paths.js';
+import { getOmacRoot, getWorktreeRoot } from '../../lib/worktree-paths.js';
 import { getClaudeConfigDir } from '../../utils/config-dir.js';
 
 export interface PermissionRequestInput {
@@ -598,7 +598,7 @@ export function isHeredocWithSafeBase(command: string): boolean {
  * Check if an active mode (autopilot/ultrawork/ralph/team) is running
  */
 export function isActiveModeRunning(directory: string): boolean {
-  const stateDir = path.join(getOmcRoot(directory), 'state');
+  const stateDir = path.join(getOmacRoot(directory), 'state');
 
   if (!fs.existsSync(stateDir)) {
     return false;
@@ -609,7 +609,7 @@ export function isActiveModeRunning(directory: string): boolean {
     'ralph-state.json',
     'ultrawork-state.json',
     'team-state.json',
-    'omc-teams-state.json',
+    'omac-teams-state.json',
   ];
 
   for (const stateFile of activeStateFiles) {

@@ -70,7 +70,7 @@ describe('runtime-v2 role routing — processCliWorkerVerdicts (AC-7)', () => {
     invalidVerdictJson?: boolean;
   }): Promise<{ teamRoot: string; outputFile: string; taskPath: string }> {
     const teamName = 'role-routing-team';
-    const teamRoot = join(cwd, '.omc', 'state', 'team', teamName);
+    const teamRoot = join(cwd, '.omac', 'state', 'team', teamName);
     await mkdir(join(teamRoot, 'tasks'), { recursive: true });
     await mkdir(join(teamRoot, 'workers', 'worker-1'), { recursive: true });
     const outputFile = join(teamRoot, 'workers', 'worker-1', 'verdict.json');
@@ -157,7 +157,7 @@ describe('runtime-v2 role routing — processCliWorkerVerdicts (AC-7)', () => {
   }
 
   it('approve verdict transitions task to completed and renames verdict file', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-routing-approve-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-routing-approve-'));
     const { outputFile, taskPath } = await bootstrap({ verdict: 'approve' });
 
     const { processCliWorkerVerdicts } = await import('../runtime-v2.js');
@@ -181,7 +181,7 @@ describe('runtime-v2 role routing — processCliWorkerVerdicts (AC-7)', () => {
   });
 
   it('revise verdict transitions task to failed with verdict metadata', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-routing-revise-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-routing-revise-'));
     const { taskPath } = await bootstrap({ verdict: 'revise' });
 
     const { processCliWorkerVerdicts } = await import('../runtime-v2.js');
@@ -199,7 +199,7 @@ describe('runtime-v2 role routing — processCliWorkerVerdicts (AC-7)', () => {
   });
 
   it('reject verdict transitions task to failed', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-routing-reject-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-routing-reject-'));
     const { taskPath } = await bootstrap({ verdict: 'reject' });
 
     const { processCliWorkerVerdicts } = await import('../runtime-v2.js');
@@ -214,7 +214,7 @@ describe('runtime-v2 role routing — processCliWorkerVerdicts (AC-7)', () => {
   });
 
   it('skips workers whose pane is still alive', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-routing-alive-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-routing-alive-'));
     const { taskPath } = await bootstrap({ verdict: 'approve', paneAlive: true });
 
     const { processCliWorkerVerdicts } = await import('../runtime-v2.js');
@@ -226,7 +226,7 @@ describe('runtime-v2 role routing — processCliWorkerVerdicts (AC-7)', () => {
   });
 
   it('reports file_missing when verdict file does not exist', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-routing-missing-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-routing-missing-'));
     await bootstrap({ verdict: 'approve', omitVerdictFile: true });
 
     const { processCliWorkerVerdicts } = await import('../runtime-v2.js');
@@ -237,7 +237,7 @@ describe('runtime-v2 role routing — processCliWorkerVerdicts (AC-7)', () => {
   });
 
   it('reports parse_failed and emits warning event for malformed verdict JSON', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-routing-parse-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-routing-parse-'));
     await bootstrap({ verdict: 'approve', invalidVerdictJson: true });
 
     const { processCliWorkerVerdicts } = await import('../runtime-v2.js');
@@ -249,9 +249,9 @@ describe('runtime-v2 role routing — processCliWorkerVerdicts (AC-7)', () => {
   });
 
   it('returns empty when no workers have output_file (claude-only teams)', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-routing-claude-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-routing-claude-'));
     const teamName = 'claude-only';
-    const teamRoot = join(cwd, '.omc', 'state', 'team', teamName);
+    const teamRoot = join(cwd, '.omac', 'state', 'team', teamName);
     await mkdir(join(teamRoot, 'workers', 'worker-1'), { recursive: true });
     await mkdir(join(teamRoot, 'tasks'), { recursive: true });
     await writeFile(
@@ -295,7 +295,7 @@ describe('runtime-v2 role routing — processCliWorkerVerdicts (AC-7)', () => {
   });
 
   it('returns empty when team config is missing', async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-runtime-routing-noconfig-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-runtime-routing-noconfig-'));
     const { processCliWorkerVerdicts } = await import('../runtime-v2.js');
     const results = await processCliWorkerVerdicts('nonexistent-team', cwd);
     expect(results).toEqual([]);

@@ -1,68 +1,68 @@
 /**
- * Tests for --plugin-dir support in `omc doctor` and `omc doctor conflicts`.
+ * Tests for --plugin-dir support in `omac doctor` and `omac doctor conflicts`.
  *
  * Section 1 (applyPluginDirOption unit tests): tests the helper directly.
  * Section 2 (Commander integration tests): constructs the actual program via
  *   buildProgram() and calls parseAsync() to verify the flag is wired end-to-end.
  *
- * OMC_CLI_SKIP_PARSE prevents index.ts from calling program.parse() at import
+ * OMAC_CLI_SKIP_PARSE prevents index.ts from calling program.parse() at import
  * time (which would trigger launchCommand → process.exit inside the test
  * worker that inherits CLAUDECODE from the parent Claude Code session).
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { resolve } from 'path';
-import { OMC_PLUGIN_ROOT_ENV } from '../../lib/env-vars.js';
+import { OMAC_PLUGIN_ROOT_ENV } from '../../lib/env-vars.js';
 
 // Prevent auto-parse when index.ts is imported
-process.env.OMC_CLI_SKIP_PARSE = '1';
+process.env.OMAC_CLI_SKIP_PARSE = '1';
 
 describe('applyPluginDirOption', () => {
   let savedEnv: string | undefined;
   let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    savedEnv = process.env[OMC_PLUGIN_ROOT_ENV];
-    delete process.env[OMC_PLUGIN_ROOT_ENV];
+    savedEnv = process.env[OMAC_PLUGIN_ROOT_ENV];
+    delete process.env[OMAC_PLUGIN_ROOT_ENV];
     warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
 
   afterEach(() => {
     if (savedEnv === undefined) {
-      delete process.env[OMC_PLUGIN_ROOT_ENV];
+      delete process.env[OMAC_PLUGIN_ROOT_ENV];
     } else {
-      process.env[OMC_PLUGIN_ROOT_ENV] = savedEnv;
+      process.env[OMAC_PLUGIN_ROOT_ENV] = savedEnv;
     }
     warnSpy.mockRestore();
   });
 
-  it('sets OMC_PLUGIN_ROOT for an absolute path', async () => {
+  it('sets OMAC_PLUGIN_ROOT for an absolute path', async () => {
     const { applyPluginDirOption } = await import('../index.js');
     applyPluginDirOption('/tmp/foo');
-    expect(process.env[OMC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/foo'));
+    expect(process.env[OMAC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/foo'));
   });
 
   it('resolves a relative path to absolute', async () => {
     const { applyPluginDirOption } = await import('../index.js');
     applyPluginDirOption('./rel/path');
-    expect(process.env[OMC_PLUGIN_ROOT_ENV]).toBe(resolve('./rel/path'));
+    expect(process.env[OMAC_PLUGIN_ROOT_ENV]).toBe(resolve('./rel/path'));
   });
 
   it('is a no-op when rawPath is undefined', async () => {
     const { applyPluginDirOption } = await import('../index.js');
     applyPluginDirOption(undefined);
-    expect(process.env[OMC_PLUGIN_ROOT_ENV]).toBeUndefined();
+    expect(process.env[OMAC_PLUGIN_ROOT_ENV]).toBeUndefined();
   });
 
-  it('wins over a pre-set OMC_PLUGIN_ROOT env var', async () => {
-    process.env[OMC_PLUGIN_ROOT_ENV] = '/tmp/existing';
+  it('wins over a pre-set OMAC_PLUGIN_ROOT env var', async () => {
+    process.env[OMAC_PLUGIN_ROOT_ENV] = '/tmp/existing';
     const { applyPluginDirOption } = await import('../index.js');
     applyPluginDirOption('/tmp/override');
-    expect(process.env[OMC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/override'));
+    expect(process.env[OMAC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/override'));
   });
 
   it('logs a warning when overriding a pre-set env var (flag wins, warning emitted)', async () => {
-    process.env[OMC_PLUGIN_ROOT_ENV] = '/tmp/existing';
+    process.env[OMAC_PLUGIN_ROOT_ENV] = '/tmp/existing';
     const { applyPluginDirOption } = await import('../index.js');
     applyPluginDirOption('/tmp/override');
     expect(warnSpy).toHaveBeenCalledWith(
@@ -81,9 +81,9 @@ describe('applyPluginDirOption', () => {
 
   it('relative path (subcommand form) is resolved to absolute', async () => {
     const { applyPluginDirOption } = await import('../index.js');
-    // Simulates: omc doctor conflicts --plugin-dir ./mydir
+    // Simulates: omac doctor conflicts --plugin-dir ./mydir
     applyPluginDirOption('./mydir');
-    expect(process.env[OMC_PLUGIN_ROOT_ENV]).toBe(resolve('./mydir'));
+    expect(process.env[OMAC_PLUGIN_ROOT_ENV]).toBe(resolve('./mydir'));
   });
 });
 
@@ -125,28 +125,28 @@ describe('Commander integration: doctor --plugin-dir wiring', () => {
     expect(opt).toBeDefined();
   });
 
-  it('parseAsync doctor conflicts --plugin-dir /tmp/foo sets OMC_PLUGIN_ROOT', async () => {
+  it('parseAsync doctor conflicts --plugin-dir /tmp/foo sets OMAC_PLUGIN_ROOT', async () => {
     // Mock the doctorConflictsCommand so the action completes without real IO
     // and without calling process.exit.
     vi.mock('../commands/doctor-conflicts.js', () => ({
       doctorConflictsCommand: vi.fn().mockResolvedValue(0),
     }));
 
-    const savedEnv = process.env[OMC_PLUGIN_ROOT_ENV];
-    delete process.env[OMC_PLUGIN_ROOT_ENV];
+    const savedEnv = process.env[OMAC_PLUGIN_ROOT_ENV];
+    delete process.env[OMAC_PLUGIN_ROOT_ENV];
     const exitSpy = vi.spyOn(process, 'exit').mockImplementation((() => {}) as () => never);
 
     try {
       const { buildProgram } = await import('../index.js');
       const prog = buildProgram();
-      await prog.parseAsync(['node', 'omc', 'doctor', 'conflicts', '--plugin-dir', '/tmp/foo']);
-      expect(process.env[OMC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/foo'));
+      await prog.parseAsync(['node', 'omac', 'doctor', 'conflicts', '--plugin-dir', '/tmp/foo']);
+      expect(process.env[OMAC_PLUGIN_ROOT_ENV]).toBe(resolve('/tmp/foo'));
     } finally {
       exitSpy.mockRestore();
       if (savedEnv === undefined) {
-        delete process.env[OMC_PLUGIN_ROOT_ENV];
+        delete process.env[OMAC_PLUGIN_ROOT_ENV];
       } else {
-        process.env[OMC_PLUGIN_ROOT_ENV] = savedEnv;
+        process.env[OMAC_PLUGIN_ROOT_ENV] = savedEnv;
       }
     }
   });

@@ -10,13 +10,13 @@
  * - save: Write current filesystem state as manifest
  * - check: Return whether manifest exists and is valid
  *
- * @see https://github.com/Yeachan-Heo/oh-my-claudecode/issues/1719
+ * @see https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/1719
  */
 
 import { z } from 'zod';
 import { readdirSync, statSync, readFileSync, existsSync, realpathSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { validateWorkingDirectory, getOmcRoot } from '../lib/worktree-paths.js';
+import { validateWorkingDirectory, getOmacRoot } from '../lib/worktree-paths.js';
 import { atomicWriteJsonSync } from '../lib/atomic-write.js';
 import { TOOL_CATEGORIES } from '../constants/names.js';
 import type { ToolDefinition } from './types.js';
@@ -324,7 +324,7 @@ export function computeDiff(
 // =============================================================================
 
 function resolveManifestPath(root: string): string {
-  return join(getOmcRoot(root), 'deepinit-manifest.json');
+  return join(getOmacRoot(root), 'deepinit-manifest.json');
 }
 
 function handleDiff(root: string, mode: string): { content: Array<{ type: 'text'; text: string }> } {

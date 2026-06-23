@@ -1,7 +1,7 @@
 /**
  * Hook Notification Config Reader
  *
- * Reads omc_config.hook.json for user-customizable message templates.
+ * Reads omac_config.hook.json for user-customizable message templates.
  * Follows the OpenClaw config reader pattern (file-based, cached).
  */
 
@@ -15,7 +15,7 @@ import type {
   NotificationPlatform,
 } from "./types.js";
 
-const DEFAULT_CONFIG_PATH = join(getClaudeConfigDir(), "omc_config.hook.json");
+const DEFAULT_CONFIG_PATH = join(getClaudeConfigDir(), "omac_config.hook.json");
 
 /** Cached hook config. `undefined` = not yet read, `null` = read but absent/disabled. */
 let cachedConfig: HookNotificationConfig | null | undefined;
@@ -26,12 +26,12 @@ let cachedConfig: HookNotificationConfig | null | undefined;
  * - Returns null when file does not exist (no error)
  * - Returns null when file has `enabled: false`
  * - Caches after first read for performance
- * - File path overridable via OMC_HOOK_CONFIG env var (for testing)
+ * - File path overridable via OMAC_HOOK_CONFIG env var (for testing)
  */
 export function getHookConfig(): HookNotificationConfig | null {
   if (cachedConfig !== undefined) return cachedConfig;
 
-  const configPath = process.env.OMC_HOOK_CONFIG || DEFAULT_CONFIG_PATH;
+  const configPath = process.env.OMAC_HOOK_CONFIG || DEFAULT_CONFIG_PATH;
 
   if (!existsSync(configPath)) {
     cachedConfig = null;
@@ -90,8 +90,8 @@ export function resolveEventTemplate(
  * Merge hook config event enabled/disabled flags into a NotificationConfig.
  *
  * Hook config takes precedence for event gating:
- * - hook event `enabled: false` overrides `.omc-config.json` event `enabled: true`
- * - Platform credentials are NOT affected (they stay in .omc-config.json)
+ * - hook event `enabled: false` overrides `.omac-config.json` event `enabled: true`
+ * - Platform credentials are NOT affected (they stay in .omac-config.json)
  */
 export function mergeHookConfigIntoNotificationConfig(
   hookConfig: HookNotificationConfig,

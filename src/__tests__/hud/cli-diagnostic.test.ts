@@ -70,7 +70,7 @@ describe('HUD CLI diagnostic (no stdin, no watch mode)', () => {
       writeHudState: vi.fn(() => true),
     }));
 
-    vi.doMock('../../hud/omc-state.js', () => ({
+    vi.doMock('../../hud/omac-state.js', () => ({
       readRalphStateForHud: vi.fn(() => null),
       readUltraworkStateForHud: vi.fn(() => null),
       readPrdStateForHud: vi.fn(() => null),
@@ -90,7 +90,7 @@ describe('HUD CLI diagnostic (no stdin, no watch mode)', () => {
     vi.doMock('../../lib/worktree-paths.js', () => ({
       resolveToWorktreeRoot: vi.fn((cwd?: string) => cwd ?? '/tmp'),
       resolveTranscriptPath: vi.fn((tp?: string) => tp),
-      getOmcRoot: vi.fn(() => '/tmp/.omc'),
+      getOmacRoot: vi.fn(() => '/tmp/.omac'),
     }));
     vi.doMock('../../utils/config-dir.js', () => ({
       getClaudeConfigDir: vi.fn(() => overrides.configDir ?? tempConfigDir),
@@ -108,7 +108,7 @@ describe('HUD CLI diagnostic (no stdin, no watch mode)', () => {
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     // Create a temp config dir for each test
-    tempConfigDir = join(tmpdir(), `omc-hud-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    tempConfigDir = join(tmpdir(), `omac-hud-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     mkdirSync(join(tempConfigDir, 'hud'), { recursive: true });
   });
 
@@ -118,7 +118,7 @@ describe('HUD CLI diagnostic (no stdin, no watch mode)', () => {
     vi.doUnmock('../../hud/stdin.js');
     vi.doUnmock('../../hud/transcript.js');
     vi.doUnmock('../../hud/state.js');
-    vi.doUnmock('../../hud/omc-state.js');
+    vi.doUnmock('../../hud/omac-state.js');
     vi.doUnmock('../../hud/usage-api.js');
     vi.doUnmock('../../hud/custom-rate-provider.js');
     vi.doUnmock('../../hud/render.js');
@@ -142,12 +142,12 @@ describe('HUD CLI diagnostic (no stdin, no watch mode)', () => {
     await hud.main(false, false);
 
     const output = consoleLogSpy.mock.calls.map((c: unknown[]) => c[0]).join('\n');
-    expect(output).toContain('[OMC] HUD v4.10.1');
+    expect(output).toContain('[OMAC] HUD v4.10.1');
     expect(output).toContain('preset: focused');
-    expect(output).not.toContain('run /omc-setup to install properly');
+    expect(output).not.toContain('run /omac-setup to install properly');
   });
 
-  it('shows HUD script as MISSING when omc-hud.mjs does not exist', async () => {
+  it('shows HUD script as MISSING when omac-hud.mjs does not exist', async () => {
     const hud = await importHudModule();
     await hud.main(false, false);
 
@@ -156,8 +156,8 @@ describe('HUD CLI diagnostic (no stdin, no watch mode)', () => {
     expect(output).toContain('MISSING');
   });
 
-  it('shows HUD script as installed when omc-hud.mjs exists', async () => {
-    writeFileSync(join(tempConfigDir, 'hud', 'omc-hud.mjs'), '// stub');
+  it('shows HUD script as installed when omac-hud.mjs exists', async () => {
+    writeFileSync(join(tempConfigDir, 'hud', 'omac-hud.mjs'), '// stub');
     const hud = await importHudModule();
     await hud.main(false, false);
 
@@ -165,11 +165,11 @@ describe('HUD CLI diagnostic (no stdin, no watch mode)', () => {
     expect(output).toContain('installed');
   });
 
-  it('shows statusLine as configured when settings.json has omc-hud command', async () => {
-    writeFileSync(join(tempConfigDir, 'hud', 'omc-hud.mjs'), '// stub');
+  it('shows statusLine as configured when settings.json has omac-hud command', async () => {
+    writeFileSync(join(tempConfigDir, 'hud', 'omac-hud.mjs'), '// stub');
     writeFileSync(
       join(tempConfigDir, 'settings.json'),
-      JSON.stringify({ statusLine: { type: 'command', command: 'node $HOME/.claude/hud/omc-hud.mjs' } }),
+      JSON.stringify({ statusLine: { type: 'command', command: 'node $HOME/.claude/hud/omac-hud.mjs' } }),
     );
     const hud = await importHudModule();
     await hud.main(false, false);
@@ -187,14 +187,14 @@ describe('HUD CLI diagnostic (no stdin, no watch mode)', () => {
 
     const output = consoleLogSpy.mock.calls.map((c: unknown[]) => c[0]).join('\n');
     expect(output).toContain('NOT configured');
-    expect(output).toContain('Run /oh-my-claudecode:hud setup to fix.');
+    expect(output).toContain('Run /oh-my-agent-connector:hud setup to fix.');
   });
 
   it('handles legacy string statusLine format', async () => {
-    writeFileSync(join(tempConfigDir, 'hud', 'omc-hud.mjs'), '// stub');
+    writeFileSync(join(tempConfigDir, 'hud', 'omac-hud.mjs'), '// stub');
     writeFileSync(
       join(tempConfigDir, 'settings.json'),
-      JSON.stringify({ statusLine: '~/.claude/hud/omc-hud.mjs' }),
+      JSON.stringify({ statusLine: '~/.claude/hud/omac-hud.mjs' }),
     );
     const hud = await importHudModule();
     await hud.main(false, false);
@@ -208,7 +208,7 @@ describe('HUD CLI diagnostic (no stdin, no watch mode)', () => {
     await hud.main(false, false);
 
     const output = consoleLogSpy.mock.calls.map((c: unknown[]) => c[0]).join('\n');
-    expect(output).toContain('[OMC] HUD v5.0.0');
+    expect(output).toContain('[OMAC] HUD v5.0.0');
   });
 
   it('suggests setup fix when HUD script is missing', async () => {
@@ -216,6 +216,6 @@ describe('HUD CLI diagnostic (no stdin, no watch mode)', () => {
     await hud.main(false, false);
 
     const output = consoleLogSpy.mock.calls.map((c: unknown[]) => c[0]).join('\n');
-    expect(output).toContain('Run /oh-my-claudecode:hud setup to fix.');
+    expect(output).toContain('Run /oh-my-agent-connector:hud setup to fix.');
   });
 });

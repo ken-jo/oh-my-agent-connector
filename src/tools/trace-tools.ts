@@ -15,7 +15,7 @@ import {
 } from '../hooks/subagent-tracker/session-replay.js';
 import {
   validateWorkingDirectory,
-  getOmcRoot,
+  getOmacRoot,
 } from '../lib/worktree-paths.js';
 import { ToolDefinition } from './types.js';
 import { sessionSearchTool } from './session-history-tools.js';
@@ -30,7 +30,7 @@ const REPLAY_PREFIX = 'agent-replay-';
  * Find the latest session ID from replay files
  */
 function findLatestSessionId(directory: string): string | null {
-  const stateDir = join(getOmcRoot(directory), 'state');
+  const stateDir = join(getOmacRoot(directory), 'state');
   try {
     const files = readdirSync(stateDir)
       .filter(f => f.startsWith(REPLAY_PREFIX) && f.endsWith('.jsonl'))

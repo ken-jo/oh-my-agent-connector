@@ -51,7 +51,7 @@ async function getSgModule(): Promise<typeof import("@ast-grep/napi") | null> {
 
 /**
  * Validate that a tool path is within the project root boundary.
- * Only enforced when OMC_RESTRICT_TOOL_PATHS=true.
+ * Only enforced when OMAC_RESTRICT_TOOL_PATHS=true.
  *
  * @param inputPath - The path parameter from tool invocation
  * @returns The resolved absolute path
@@ -73,7 +73,7 @@ export function validateToolPath(inputPath: string): string {
   if (rel.startsWith("..") || isAbsolute(rel)) {
     throw new Error(
       `Path restricted: '${inputPath}' is outside the project root '${projectRoot}'. ` +
-        `Disable via security.restrictToolPaths in .claude/omc.jsonc or unset OMC_SECURITY.`,
+        `Disable via security.restrictToolPaths in .claude/omac.jsonc or unset OMAC_SECURITY.`,
     );
   }
 

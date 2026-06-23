@@ -1,5 +1,5 @@
 /**
- * OMC HUD - Last Tool Element
+ * OMAC HUD - Last Tool Element
  *
  * Renders the name of the most recently called tool in this session.
  */

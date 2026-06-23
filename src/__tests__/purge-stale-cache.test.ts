@@ -107,7 +107,7 @@ describe('purgeStalePluginCacheVersions', () => {
   it('handles multiple marketplaces and plugins', () => {
     const cacheDir = '/mock/.claude/plugins/cache';
     const active1 = join(cacheDir, 'official/hookify/aa11');
-    const active2 = join(cacheDir, 'omc/oh-my-claudecode/4.3.0');
+    const active2 = join(cacheDir, 'omac/oh-my-agent-connector/4.3.0');
     const stale1 = join(cacheDir, 'official/hookify/bb22');
     const stale2 = join(cacheDir, 'official/hookify/cc33');
 
@@ -123,17 +123,17 @@ describe('purgeStalePluginCacheVersions', () => {
       version: 2,
       plugins: {
         'hookify@official': [{ installPath: active1 }],
-        'oh-my-claudecode@omc': [{ installPath: active2 }],
+        'oh-my-agent-connector@omac': [{ installPath: active2 }],
       },
     }));
 
     mockedReaddirSync.mockImplementation((p, _opts?) => {
       const ps = String(p);
-      if (ps === cacheDir) return [dirent('official'), dirent('omc')] as any;
+      if (ps === cacheDir) return [dirent('official'), dirent('omac')] as any;
       if (ps.endsWith('official')) return [dirent('hookify')] as any;
       if (ps.endsWith('hookify')) return [dirent('aa11'), dirent('bb22'), dirent('cc33')] as any;
-      if (ps.endsWith('omc')) return [dirent('oh-my-claudecode')] as any;
-      if (ps.endsWith('oh-my-claudecode')) return [dirent('4.3.0')] as any;
+      if (ps.endsWith('omac')) return [dirent('oh-my-agent-connector')] as any;
+      if (ps.endsWith('oh-my-agent-connector')) return [dirent('4.3.0')] as any;
       return [] as any;
     });
 
@@ -147,7 +147,7 @@ describe('purgeStalePluginCacheVersions', () => {
 
   it('does nothing when all cache versions are active', () => {
     const cacheDir = '/mock/.claude/plugins/cache';
-    const active = join(cacheDir, 'omc/oh-my-claudecode/4.3.0');
+    const active = join(cacheDir, 'omac/oh-my-agent-connector/4.3.0');
 
     mockedExistsSync.mockImplementation((p) => {
       const ps = String(p);
@@ -159,15 +159,15 @@ describe('purgeStalePluginCacheVersions', () => {
     mockedReadFileSync.mockReturnValue(JSON.stringify({
       version: 2,
       plugins: {
-        'oh-my-claudecode@omc': [{ installPath: active }],
+        'oh-my-agent-connector@omac': [{ installPath: active }],
       },
     }));
 
     mockedReaddirSync.mockImplementation((p, _opts?) => {
       const ps = String(p);
-      if (ps === cacheDir) return [dirent('omc')] as any;
-      if (ps.endsWith('omc')) return [dirent('oh-my-claudecode')] as any;
-      if (ps.endsWith('oh-my-claudecode')) return [dirent('4.3.0')] as any;
+      if (ps === cacheDir) return [dirent('omac')] as any;
+      if (ps.endsWith('omac')) return [dirent('oh-my-agent-connector')] as any;
+      if (ps.endsWith('oh-my-agent-connector')) return [dirent('4.3.0')] as any;
       return [] as any;
     });
 
@@ -189,13 +189,13 @@ describe('purgeStalePluginCacheVersions', () => {
   // --- C2 fix: trailing slash in installPath ---
   it('matches installPath with trailing slash correctly', () => {
     const cacheDir = '/mock/.claude/plugins/cache';
-    const versionDir = join(cacheDir, 'omc/plugin/1.0.0');
+    const versionDir = join(cacheDir, 'omac/plugin/1.0.0');
 
     mockedExistsSync.mockReturnValue(true);
     mockedReadFileSync.mockReturnValue(JSON.stringify({
       version: 2,
       plugins: {
-        'plugin@omc': [{
+        'plugin@omac': [{
           // installPath has trailing slash
           installPath: versionDir + '/',
         }],
@@ -204,8 +204,8 @@ describe('purgeStalePluginCacheVersions', () => {
 
     mockedReaddirSync.mockImplementation((p, _opts?) => {
       const ps = String(p);
-      if (ps === cacheDir) return [dirent('omc')] as any;
-      if (ps.endsWith('omc')) return [dirent('plugin')] as any;
+      if (ps === cacheDir) return [dirent('omac')] as any;
+      if (ps.endsWith('omac')) return [dirent('plugin')] as any;
       if (ps.endsWith('plugin')) return [dirent('1.0.0')] as any;
       return [] as any;
     });
@@ -219,13 +219,13 @@ describe('purgeStalePluginCacheVersions', () => {
   // --- C2 fix: installPath points to subdirectory ---
   it('preserves version when installPath points to a subdirectory', () => {
     const cacheDir = '/mock/.claude/plugins/cache';
-    const versionDir = join(cacheDir, 'omc/plugin/2.0.0');
+    const versionDir = join(cacheDir, 'omac/plugin/2.0.0');
 
     mockedExistsSync.mockReturnValue(true);
     mockedReadFileSync.mockReturnValue(JSON.stringify({
       version: 2,
       plugins: {
-        'plugin@omc': [{
+        'plugin@omac': [{
           // installPath points into a subdirectory
           installPath: versionDir + '/dist',
         }],
@@ -234,8 +234,8 @@ describe('purgeStalePluginCacheVersions', () => {
 
     mockedReaddirSync.mockImplementation((p, _opts?) => {
       const ps = String(p);
-      if (ps === cacheDir) return [dirent('omc')] as any;
-      if (ps.endsWith('omc')) return [dirent('plugin')] as any;
+      if (ps === cacheDir) return [dirent('omac')] as any;
+      if (ps.endsWith('omac')) return [dirent('plugin')] as any;
       if (ps.endsWith('plugin')) return [dirent('2.0.0')] as any;
       return [] as any;
     });
@@ -252,12 +252,12 @@ describe('purgeStalePluginCacheVersions', () => {
     mockedExistsSync.mockReturnValue(true);
     mockedReadFileSync.mockReturnValue(JSON.stringify({
       version: 2,
-      plugins: { 'plugin@omc': [{ installPath: '/other/path' }] },
+      plugins: { 'plugin@omac': [{ installPath: '/other/path' }] },
     }));
     mockedReaddirSync.mockImplementation((p, _opts?) => {
       const ps = String(p);
-      if (ps === cacheDir) return [dirent('omc')] as any;
-      if (ps.endsWith('omc')) return [dirent('plugin')] as any;
+      if (ps === cacheDir) return [dirent('omac')] as any;
+      if (ps.endsWith('omac')) return [dirent('plugin')] as any;
       if (ps.endsWith('plugin')) return [dirent('1.0.0')] as any;
       return [] as any;
     });
@@ -306,8 +306,8 @@ describe('purgeStalePluginCacheVersions', () => {
     // Scenario: CLAUDE_PLUGIN_ROOT=4.14.4 in a running session; 4.14.5 installed;
     // purge runs after grace period.  4.14.4 must become a symlink, not disappear.
     const cacheDir = '/mock/.claude/plugins/cache';
-    const activeVersion = join(cacheDir, 'omc/oh-my-claudecode/4.14.5');
-    const staleVersion = join(cacheDir, 'omc/oh-my-claudecode/4.14.4');
+    const activeVersion = join(cacheDir, 'omac/oh-my-agent-connector/4.14.5');
+    const staleVersion = join(cacheDir, 'omac/oh-my-agent-connector/4.14.4');
 
     mockedExistsSync.mockImplementation((p) => {
       const ps = String(p);
@@ -320,15 +320,15 @@ describe('purgeStalePluginCacheVersions', () => {
     mockedReadFileSync.mockReturnValue(JSON.stringify({
       version: 2,
       plugins: {
-        'oh-my-claudecode@omc': [{ installPath: activeVersion, version: '4.14.5' }],
+        'oh-my-agent-connector@omac': [{ installPath: activeVersion, version: '4.14.5' }],
       },
     }));
 
     mockedReaddirSync.mockImplementation((p, _opts?) => {
       const ps = String(p);
-      if (ps === cacheDir) return [dirent('omc')] as any;
-      if (ps.endsWith('omc')) return [dirent('oh-my-claudecode')] as any;
-      if (ps.endsWith('oh-my-claudecode')) return [dirent('4.14.4'), dirent('4.14.5')] as any;
+      if (ps === cacheDir) return [dirent('omac')] as any;
+      if (ps.endsWith('omac')) return [dirent('oh-my-agent-connector')] as any;
+      if (ps.endsWith('oh-my-agent-connector')) return [dirent('4.14.4'), dirent('4.14.5')] as any;
       return [] as any;
     });
 
@@ -349,21 +349,21 @@ describe('purgeStalePluginCacheVersions', () => {
     // When the active installPath is outside the plugin namespace there is no
     // live version to redirect to, so deletion (original behaviour) applies.
     const cacheDir = '/mock/.claude/plugins/cache';
-    const staleVersion = join(cacheDir, 'omc/plugin/1.0.0');
+    const staleVersion = join(cacheDir, 'omac/plugin/1.0.0');
 
     mockedExistsSync.mockReturnValue(true);
     mockedReadFileSync.mockReturnValue(JSON.stringify({
       version: 2,
       plugins: {
-        // installPath is outside the omc/plugin namespace
+        // installPath is outside the omac/plugin namespace
         'plugin@other': [{ installPath: '/completely/different/path/2.0.0' }],
       },
     }));
 
     mockedReaddirSync.mockImplementation((p, _opts?) => {
       const ps = String(p);
-      if (ps === cacheDir) return [dirent('omc')] as any;
-      if (ps.endsWith('omc')) return [dirent('plugin')] as any;
+      if (ps === cacheDir) return [dirent('omac')] as any;
+      if (ps.endsWith('omac')) return [dirent('plugin')] as any;
       if (ps.endsWith('plugin')) return [dirent('1.0.0')] as any;
       return [] as any;
     });
@@ -381,21 +381,21 @@ describe('purgeStalePluginCacheVersions', () => {
     // readdirSync with withFileTypes returns isDirectory()=false for symlinks on
     // Linux/macOS. The purge loop must leave these alone.
     const cacheDir = '/mock/.claude/plugins/cache';
-    const activeVersion = join(cacheDir, 'omc/oh-my-claudecode/4.14.5');
+    const activeVersion = join(cacheDir, 'omac/oh-my-agent-connector/4.14.5');
 
     mockedExistsSync.mockReturnValue(true);
     mockedReadFileSync.mockReturnValue(JSON.stringify({
       version: 2,
       plugins: {
-        'oh-my-claudecode@omc': [{ installPath: activeVersion }],
+        'oh-my-agent-connector@omac': [{ installPath: activeVersion }],
       },
     }));
 
     mockedReaddirSync.mockImplementation((p, _opts?) => {
       const ps = String(p);
-      if (ps === cacheDir) return [dirent('omc')] as any;
-      if (ps.endsWith('omc')) return [dirent('oh-my-claudecode')] as any;
-      if (ps.endsWith('oh-my-claudecode')) {
+      if (ps === cacheDir) return [dirent('omac')] as any;
+      if (ps.endsWith('omac')) return [dirent('oh-my-agent-connector')] as any;
+      if (ps.endsWith('oh-my-agent-connector')) {
         // 4.14.4 is a symlink (isDirectory returns false), 4.14.5 is a real dir
         return [
           { name: '4.14.4', isDirectory: () => false },

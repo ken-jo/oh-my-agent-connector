@@ -8,12 +8,12 @@ const root = resolve(__dirname, '..', '..', '..');
 const wrapperSource = join(root, 'scripts', 'lib', 'hud-cache-wrapper.sh');
 
 function stageWrapper() {
-  const dir = mkdtempSync(join(tmpdir(), 'omc-hud-cache-wrapper-'));
+  const dir = mkdtempSync(join(tmpdir(), 'omac-hud-cache-wrapper-'));
   const hudDir = join(dir, 'hud');
   const cacheDir = join(hudDir, 'cache');
   mkdirSync(cacheDir, { recursive: true });
-  const wrapperPath = join(hudDir, 'omc-hud-cache.sh');
-  const hudPath = join(hudDir, 'omc-hud.mjs');
+  const wrapperPath = join(hudDir, 'omac-hud-cache.sh');
+  const hudPath = join(hudDir, 'omac-hud.mjs');
   writeFileSync(wrapperPath, readFileSync(wrapperSource, 'utf8'), 'utf8');
   chmodSync(wrapperPath, 0o755);
   return { dir, hudDir, cacheDir, wrapperPath, hudPath };
@@ -41,7 +41,7 @@ describe('HUD cached statusLine launcher', () => {
           ...process.env,
           PATH: `${fakeBin}:/usr/bin:/bin`,
           CLAUDE_CONFIG_DIR: staged.dir,
-          OMC_HUD_CACHE_DIR: staged.cacheDir,
+          OMAC_HUD_CACHE_DIR: staged.cacheDir,
         },
         timeout: 1000,
       });
@@ -57,7 +57,7 @@ describe('HUD cached statusLine launcher', () => {
   it('first render renders synchronously so the user never sees the placeholder when stdin is available', () => {
     // Claude Code v2.1.x does not re-poll the statusLine until the user
     // interacts with the pane, so an async first-frame fallback to
-    // "[OMC] Starting..." would stay visible until the next keystroke.
+    // "[OMAC] Starting..." would stay visible until the next keystroke.
     // The wrapper therefore blocks on a synchronous Node render the first
     // time it has stdin but no cached output for the session.
     const staged = stageWrapper();
@@ -78,8 +78,8 @@ describe('HUD cached statusLine launcher', () => {
           ...process.env,
           PATH: `${fakeBin}:/usr/bin:/bin`,
           CLAUDE_CONFIG_DIR: staged.dir,
-          OMC_HUD_CACHE_DIR: staged.cacheDir,
-          OMC_HUD_SYNC_REFRESH: '1',
+          OMAC_HUD_CACHE_DIR: staged.cacheDir,
+          OMAC_HUD_SYNC_REFRESH: '1',
         },
         timeout: 1000,
       });
@@ -112,14 +112,14 @@ describe('HUD cached statusLine launcher', () => {
           ...process.env,
           PATH: `${fakeBin}:/usr/bin:/bin`,
           CLAUDE_CONFIG_DIR: staged.dir,
-          OMC_HUD_CACHE_DIR: staged.cacheDir,
-          OMC_HUD_SYNC_REFRESH: '1',
+          OMAC_HUD_CACHE_DIR: staged.cacheDir,
+          OMAC_HUD_SYNC_REFRESH: '1',
         },
         timeout: 1000,
       });
 
       expect(result.status).toBe(0);
-      expect(result.stdout).toBe('[OMC] Starting...\n');
+      expect(result.stdout).toBe('[OMAC] Starting...\n');
     } finally {
       rmSync(staged.dir, { recursive: true, force: true });
     }
@@ -145,7 +145,7 @@ describe('HUD cached statusLine launcher', () => {
           ...process.env,
           PATH: `${fakeBin}:/usr/bin:/bin`,
           CLAUDE_CONFIG_DIR: staged.dir,
-          OMC_HUD_CACHE_DIR: staged.cacheDir,
+          OMAC_HUD_CACHE_DIR: staged.cacheDir,
         },
         timeout: 1000,
       });
@@ -177,7 +177,7 @@ describe('HUD cached statusLine launcher', () => {
           PATH: `${fakeBin}:/usr/bin:/bin`,
           CLAUDE_CONFIG_DIR: staged.dir,
           CLAUDE_SESSION_ID: 'env-session-123',
-          OMC_HUD_CACHE_DIR: staged.cacheDir,
+          OMAC_HUD_CACHE_DIR: staged.cacheDir,
         },
         timeout: 1000,
       });
@@ -210,7 +210,7 @@ describe('HUD cached statusLine launcher', () => {
           PATH: `${fakeBin}:/usr/bin:/bin`,
           CLAUDE_CONFIG_DIR: staged.dir,
           CLAUDE_SESSION_ID: sessionId,
-          OMC_HUD_CACHE_DIR: staged.cacheDir,
+          OMAC_HUD_CACHE_DIR: staged.cacheDir,
         },
         timeout: 1000,
       });
@@ -239,7 +239,7 @@ describe('HUD cached statusLine launcher', () => {
         PATH: `${fakeBin}:/usr/bin:/bin`,
         CLAUDE_CONFIG_DIR: staged.dir,
         CLAUDECODE_SESSION_ID: 'legacy-env-session-123',
-        OMC_HUD_CACHE_DIR: staged.cacheDir,
+        OMAC_HUD_CACHE_DIR: staged.cacheDir,
       };
       delete env.CLAUDE_SESSION_ID;
 
@@ -279,7 +279,7 @@ describe('HUD cached statusLine launcher', () => {
           CLAUDE_CONFIG_DIR: staged.dir,
           CLAUDE_SESSION_ID: 'new-env-session',
           CLAUDECODE_SESSION_ID: 'legacy-env-session',
-          OMC_HUD_CACHE_DIR: staged.cacheDir,
+          OMAC_HUD_CACHE_DIR: staged.cacheDir,
         },
         timeout: 1000,
       });

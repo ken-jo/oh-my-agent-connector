@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * OMC Pre-Tool-Use Hook (Node.js)
+ * OMAC Pre-Tool-Use Hook (Node.js)
  * Enforces delegation by warning when orchestrator attempts direct source file edits.
  * Also activates skill-active state for Stop hook protection (issue #1033).
  */
@@ -16,7 +16,7 @@ const __dirname = dirname(__filename);
 
 // Dynamic import for the shared stdin module
 const { readStdin } = await import(pathToFileURL(path.join(__dirname, 'lib', 'stdin.mjs')).href);
-const { resolveOmcStateRoot } = await import(pathToFileURL(path.join(__dirname, 'lib', 'state-root.mjs')).href);
+const { resolveOmacStateRoot } = await import(pathToFileURL(path.join(__dirname, 'lib', 'state-root.mjs')).href);
 
 // ---------------------------------------------------------------------------
 // Skill Active State (issue #1033)
@@ -41,17 +41,17 @@ const PROTECTION_CONFIGS = {
 const SKILL_PROTECTION = {
   // Already have mode state → no protection needed
   autopilot: 'none', ralph: 'none', ultrawork: 'none', team: 'none',
-  'omc-teams': 'none', ultraqa: 'none', cancel: 'none',
+  'omac-teams': 'none', ultraqa: 'none', cancel: 'none',
   // Instant / read-only → no protection needed
-  trace: 'none', hud: 'none', 'omc-doctor': 'none', 'omc-help': 'none',
-  'learn-about-omc': 'none', note: 'none',
+  trace: 'none', hud: 'none', 'omac-doctor': 'none', 'omac-help': 'none',
+  'learn-about-omac': 'none', note: 'none',
   // Light protection (3 reinforcements)
   tdd: 'light', 'build-fix': 'light', analyze: 'light', skill: 'light',
   'configure-notifications': 'light',
   // Medium protection (5 reinforcements)
   'code-review': 'medium', 'security-review': 'medium', plan: 'medium',
   ralplan: 'medium', review: 'medium', 'external-context': 'medium',
-  sciomc: 'medium', skillify: 'medium', learner: 'medium', 'omc-setup': 'medium',
+  sciomac: 'medium', skillify: 'medium', learner: 'medium', 'omac-setup': 'medium',
   'mcp-setup': 'medium', 'project-session-manager': 'medium',
   'writer-memory': 'medium', 'ralph-init': 'medium', ccg: 'medium',
   // Heavy protection (10 reinforcements)
@@ -59,7 +59,7 @@ const SKILL_PROTECTION = {
 };
 
 function getSkillProtection(skillName) {
-  const normalized = (skillName || '').toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = (skillName || '').toLowerCase().replace(/^oh-my-agent-connector:/, '');
   return SKILL_PROTECTION[normalized] || 'light';
 }
 
@@ -79,7 +79,7 @@ async function writeSkillActiveState(directory, skillName, sessionId) {
 
   const config = PROTECTION_CONFIGS[protection];
   const now = new Date().toISOString();
-  const normalized = (skillName || '').toLowerCase().replace(/^oh-my-claudecode:/, '');
+  const normalized = (skillName || '').toLowerCase().replace(/^oh-my-agent-connector:/, '');
 
   const state = {
     active: true,
@@ -92,7 +92,7 @@ async function writeSkillActiveState(directory, skillName, sessionId) {
     stale_ttl_ms: config.staleTtlMs,
   };
 
-  const stateDir = path.join(await resolveOmcStateRoot(directory), 'state');
+  const stateDir = path.join(await resolveOmacStateRoot(directory), 'state');
 
   // Write to session-scoped path when sessionId is available (must match persistent-mode.mjs reads)
   const safeSessionId = sessionId && SESSION_ID_ALLOWLIST.test(sessionId) ? sessionId : '';
@@ -115,12 +115,12 @@ async function writeSkillActiveState(directory, skillName, sessionId) {
 
 
 async function clearAwaitingConfirmationFlag(directory, stateName, sessionId) {
-  const stateDir = path.join(await resolveOmcStateRoot(directory), 'state');
+  const stateDir = path.join(await resolveOmacStateRoot(directory), 'state');
   const safeSessionId = sessionId && SESSION_ID_ALLOWLIST.test(sessionId) ? sessionId : '';
   const paths = [
     safeSessionId ? path.join(stateDir, 'sessions', safeSessionId, `${stateName}-state.json`) : null,
     path.join(stateDir, `${stateName}-state.json`),
-    path.join(homedir(), '.omc', 'state', `${stateName}-state.json`),
+    path.join(homedir(), '.omac', 'state', `${stateName}-state.json`),
   ].filter(Boolean);
 
   for (const statePath of paths) {
@@ -165,7 +165,7 @@ async function confirmSkillModeStates(directory, skillName, sessionId) {
 // Allowed path patterns (no warning)
 // Paths are normalized to forward slashes before matching
 const ALLOWED_PATH_PATTERNS = [
-  /^\.omc\//,          // .omc/** (anchored)
+  /^\.omac\//,          // .omac/** (anchored)
   /^\.claude\//,       // .claude/** (anchored)
   /\/\.claude\//,      // any /.claude/ path (intentionally unanchored for absolute paths)
   /CLAUDE\.md$/,
@@ -216,7 +216,7 @@ const WORKER_BLOCKED_TEAM_CLI_PATTERN = /\bom[cx]\s+team\b(?!\s+api\b)/i;
 const WORKER_BLOCKED_SKILL_PATTERN = /\$(team|ultrawork|autopilot|ralph)\b/i;
 
 function teamWorkerIdentity() {
-  return (process.env.OMC_TEAM_WORKER || process.env.OMX_TEAM_WORKER || '').trim();
+  return (process.env.OMAC_TEAM_WORKER || process.env.OMX_TEAM_WORKER || '').trim();
 }
 
 function workerCommandViolation(command) {
@@ -225,7 +225,7 @@ function workerCommandViolation(command) {
     return 'Team worker cannot run tmux pane/session orchestration commands.';
   }
   if (WORKER_BLOCKED_TEAM_CLI_PATTERN.test(command)) {
-    return 'Team worker cannot run team orchestration commands (except `omc team api ...`).';
+    return 'Team worker cannot run team orchestration commands (except `omac team api ...`).';
   }
   if (WORKER_BLOCKED_SKILL_PATTERN.test(command)) {
     return 'Team worker cannot invoke orchestration skills (`$team`, `$ultrawork`, `$autopilot`, `$ralph`).';
@@ -243,7 +243,7 @@ function checkBashCommand(command) {
     return `[DELEGATION NOTICE] Bash command may modify source files: ${command}
 
 Recommended: Delegate to executor agent instead:
-  Task(subagent_type="oh-my-claudecode:executor", model="sonnet", prompt="...")
+  Task(subagent_type="oh-my-agent-connector:executor", model="sonnet", prompt="...")
 
 This is a soft warning. Operation will proceed.`;
   }
@@ -355,7 +355,7 @@ async function main() {
     const warning = `[DELEGATION NOTICE] Direct ${toolName} on source file: ${filePath}
 
 Recommended: Delegate to executor agent instead:
-  Task(subagent_type="oh-my-claudecode:executor", model="sonnet", prompt="...")
+  Task(subagent_type="oh-my-agent-connector:executor", model="sonnet", prompt="...")
 
 This is a soft warning. Operation will proceed.`;
 

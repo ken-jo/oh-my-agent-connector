@@ -19,10 +19,10 @@ const MODEL_ENV_KEYS = [
   'ANTHROPIC_DEFAULT_OPUS_MODEL',
   'ANTHROPIC_DEFAULT_SONNET_MODEL',
   'ANTHROPIC_DEFAULT_HAIKU_MODEL',
-  'OMC_MODEL_HIGH',
-  'OMC_MODEL_MEDIUM',
-  'OMC_MODEL_LOW',
-  'OMC_ROUTING_FORCE_INHERIT',
+  'OMAC_MODEL_HIGH',
+  'OMAC_MODEL_MEDIUM',
+  'OMAC_MODEL_LOW',
+  'OMAC_ROUTING_FORCE_INHERIT',
 ] as const;
 
 describe('Agent Registry Validation', () => {
@@ -88,7 +88,7 @@ describe('Agent Registry Validation', () => {
     process.env.CLAUDE_CODE_BEDROCK_SONNET_MODEL = 'us.anthropic.claude-sonnet-4-6-v1:0';
     process.env.CLAUDE_CODE_BEDROCK_HAIKU_MODEL = 'us.anthropic.claude-haiku-4-5-v1:0';
 
-    process.env.OMC_ROUTING_FORCE_INHERIT = 'false';
+    process.env.OMAC_ROUTING_FORCE_INHERIT = 'false';
 
     const agents = getAgentDefinitions();
 
@@ -150,7 +150,7 @@ describe('Agent Registry Validation', () => {
   });
 
   test('partial tier env override does not collapse all agents to inherit', () => {
-    process.env.OMC_MODEL_HIGH = 'glm-5.1:cloud';
+    process.env.OMAC_MODEL_HIGH = 'glm-5.1:cloud';
 
     const agents = getAgentDefinitions();
 

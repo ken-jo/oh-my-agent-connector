@@ -67,7 +67,7 @@ async function drain(injector: (request: TeamDispatchRequest) => Promise<Injecti
 }
 
 beforeEach(async () => {
-  root = await mkdtemp(join(tmpdir(), 'omc-dispatch-cooldown-'));
+  root = await mkdtemp(join(tmpdir(), 'omac-dispatch-cooldown-'));
   stateDir = join(root, 'state');
   logsDir = join(root, 'logs');
   teamDir = join(stateDir, 'team', TEAM);
@@ -75,10 +75,10 @@ beforeEach(async () => {
   await writeFile(join(teamDir, 'config.json'), JSON.stringify({ tmux_session: 'sess' }));
 
   savedEnv = { ...process.env };
-  delete process.env.OMC_TEAM_WORKER;
+  delete process.env.OMAC_TEAM_WORKER;
   // Keep both cooldowns active and large so any stamped cooldown would gate.
-  process.env.OMC_TEAM_DISPATCH_ISSUE_COOLDOWN_MS = '600000';
-  process.env.OMC_TEAM_DISPATCH_TRIGGER_COOLDOWN_MS = '600000';
+  process.env.OMAC_TEAM_DISPATCH_ISSUE_COOLDOWN_MS = '600000';
+  process.env.OMAC_TEAM_DISPATCH_TRIGGER_COOLDOWN_MS = '600000';
 });
 
 afterEach(async () => {

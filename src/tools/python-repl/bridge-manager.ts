@@ -89,15 +89,15 @@ export function trackOwnedBridgeSession(sessionId: string): void {
  * Handles both ESM and CJS contexts (for bundled MCP server).
  */
 function getBridgeScriptPath(): string {
-  // Check for OMC_BRIDGE_SCRIPT environment variable first (set by MCP server context)
-  if (process.env.OMC_BRIDGE_SCRIPT) {
-    const override = path.resolve(process.env.OMC_BRIDGE_SCRIPT);
+  // Check for OMAC_BRIDGE_SCRIPT environment variable first (set by MCP server context)
+  if (process.env.OMAC_BRIDGE_SCRIPT) {
+    const override = path.resolve(process.env.OMAC_BRIDGE_SCRIPT);
     const overrideBasename = path.basename(override);
     if (overrideBasename !== 'gyoshu_bridge.py') {
-      throw new Error(`OMC_BRIDGE_SCRIPT must point to gyoshu_bridge.py, got: ${overrideBasename}`);
+      throw new Error(`OMAC_BRIDGE_SCRIPT must point to gyoshu_bridge.py, got: ${overrideBasename}`);
     }
     if (!fs.existsSync(override)) {
-      throw new Error(`OMC_BRIDGE_SCRIPT file not found: ${override}`);
+      throw new Error(`OMAC_BRIDGE_SCRIPT file not found: ${override}`);
     }
     return override;
   }
@@ -400,8 +400,8 @@ export async function spawnBridgeServer(
     env: {
       ...process.env,
       PYTHONUNBUFFERED: '1',
-      OMC_PARENT_PID: String(process.pid),
-      ...(isPythonSandboxEnabled() ? { OMC_PYTHON_SANDBOX: '1' } : {}),
+      OMAC_PARENT_PID: String(process.pid),
+      ...(isPythonSandboxEnabled() ? { OMAC_PYTHON_SANDBOX: '1' } : {}),
     },
     detached: true,
   });

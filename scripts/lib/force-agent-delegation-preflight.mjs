@@ -5,7 +5,7 @@
 // Read/Edit/Write/Grep/Glob when delegation rules indicate the work should be
 // routed to a specialised agent instead.
 //
-// Opt-in: default OFF. Enable via `.omc/config.json`:
+// Opt-in: default OFF. Enable via `.omac/config.json`:
 //
 //   {
 //     "routing": {
@@ -15,7 +15,7 @@
 //           {
 //             "pattern": "Read",
 //             "threshold": { "count": 10, "windowSeconds": 120 },
-//             "denyMessage": "10+ raw Reads in 2 min — spawn Agent(subagent_type='oh-my-claudecode:explore', model='haiku', ...). Bypass: ALLOW_RAW_READ=1.",
+//             "denyMessage": "10+ raw Reads in 2 min — spawn Agent(subagent_type='oh-my-agent-connector:explore', model='haiku', ...). Bypass: ALLOW_RAW_READ=1.",
 //             "bypassEnv": "ALLOW_RAW_READ"
 //           }
 //         ]
@@ -92,9 +92,9 @@ function countInWindow(events, pattern, windowSeconds) {
   ).length;
 }
 
-function readDelegationConfig(loadOmcConfig) {
+function readDelegationConfig(loadOmacConfig) {
   try {
-    const cfg = typeof loadOmcConfig === 'function' ? loadOmcConfig() : null;
+    const cfg = typeof loadOmacConfig === 'function' ? loadOmacConfig() : null;
     return cfg?.routing?.forceDelegation ?? null;
   } catch {
     return null;
@@ -107,9 +107,9 @@ function readDelegationConfig(loadOmcConfig) {
  * @param {object} args
  * @param {string} args.toolName - Claude Code tool name (Read|Edit|Write|...)
  * @param {string} [args.stateDir] - Directory used to persist the event window.
- *   Typically `<cwd>/.omc/state` to mirror the rest of OMC state storage.
+ *   Typically `<cwd>/.omac/state` to mirror the rest of OMAC state storage.
  * @param {object} [args.env=process.env] - Environment for bypass-flag lookup.
- * @param {Function} [args.loadOmcConfig] - Function returning the resolved OMC
+ * @param {Function} [args.loadOmacConfig] - Function returning the resolved OMAC
  *   config object. Injecting it keeps this module decoupled from the existing
  *   loader inside scripts/pre-tool-enforcer.mjs.
  * @returns {null | { decision: 'block', reason: string }}
@@ -120,11 +120,11 @@ export function evaluateForceAgentDelegation({
   toolName,
   stateDir,
   env = process.env,
-  loadOmcConfig,
+  loadOmacConfig,
 } = {}) {
   if (!toolName) return null;
 
-  const cfg = readDelegationConfig(loadOmcConfig);
+  const cfg = readDelegationConfig(loadOmacConfig);
   if (!cfg || cfg.enforce !== true || !Array.isArray(cfg.rules)) {
     return null;
   }
@@ -155,7 +155,7 @@ export function evaluateForceAgentDelegation({
           reason:
             typeof rule.denyMessage === 'string' && rule.denyMessage
               ? rule.denyMessage
-              : `[OMC] Force-agent-delegation: ${observed} ${toolName} in last ${windowSeconds}s ` +
+              : `[OMAC] Force-agent-delegation: ${observed} ${toolName} in last ${windowSeconds}s ` +
                 `(threshold ${count}). Delegate to an Agent instead. ` +
                 `Bypass: ${rule.bypassEnv || 'ALLOW_RAW_READ'}=1.`,
         };

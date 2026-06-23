@@ -36,7 +36,7 @@ function renderPlanRuntimeGuidance(availability: SkillRuntimeAvailability): stri
 
   return [
     '## Provider Runtime Availability',
-    'Codex CLI is installed and available. When `--architect codex` or `--critic codex` flags are present, use `omc ask codex --agent-prompt <role> "<prompt>"` for those passes. Do NOT report Codex as unavailable.',
+    'Codex CLI is installed and available. When `--architect codex` or `--critic codex` flags are present, use `omac ask codex --agent-prompt <role> "<prompt>"` for those passes. Do NOT report Codex as unavailable.',
   ].join('\n');
 }
 
@@ -47,7 +47,7 @@ function renderRalphRuntimeGuidance(availability: SkillRuntimeAvailability): str
 
   return [
     '## Provider Runtime Availability',
-    'Codex CLI is installed and available. When `--critic=codex` is set, use `omc ask codex --agent-prompt critic "<prompt>"` for the approval pass. Do NOT report Codex as unavailable.',
+    'Codex CLI is installed and available. When `--critic=codex` is set, use `omac ask codex --agent-prompt critic "<prompt>"` for the approval pass. Do NOT report Codex as unavailable.',
   ].join('\n');
 }
 
@@ -76,7 +76,7 @@ export function renderSkillRuntimeGuidance(
     case 'deep-interview':
       return renderDeepInterviewRuntimeGuidance(availability ?? detectSkillRuntimeAvailability());
     case 'ralplan':
-    case 'omc-plan':
+    case 'omac-plan':
     case 'plan':
       return renderPlanRuntimeGuidance(availability ?? detectSkillRuntimeAvailability());
     case 'ralph':

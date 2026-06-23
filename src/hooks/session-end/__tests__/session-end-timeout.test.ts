@@ -39,7 +39,7 @@ vi.mock('../../../notifications/index.js', () => ({
 }));
 
 vi.mock('../../../features/auto-update.js', () => ({
-  getOMCConfig: vi.fn(() => ({})),
+  getOMACConfig: vi.fn(() => ({})),
 }));
 
 vi.mock('../../../notifications/config.js', () => ({
@@ -79,7 +79,7 @@ import { cleanupBridgeSessions } from '../../../tools/python-repl/bridge-manager
 
 function decodeSpawnedCleanupPayload(): { sessionId?: string; initialTeamNames?: string[] } {
   const spawnArgs = (childProcessMocks.spawn.mock.calls as unknown as Array<[unknown, string[]]>)[0]?.[1];
-  const encodedPayload = spawnArgs?.[spawnArgs.indexOf('--omc-session-end-cleanup-worker') + 1];
+  const encodedPayload = spawnArgs?.[spawnArgs.indexOf('--omac-session-end-cleanup-worker') + 1];
   return JSON.parse(Buffer.from(encodedPayload ?? '', 'base64url').toString('utf-8'));
 }
 
@@ -88,7 +88,7 @@ describe('SessionEnd fire-and-forget notifications (issue #1700)', () => {
   let transcriptPath: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'omc-session-end-timeout-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'omac-session-end-timeout-'));
     transcriptPath = path.join(tmpDir, 'transcript.jsonl');
     fs.writeFileSync(
       transcriptPath,
@@ -110,7 +110,7 @@ describe('SessionEnd fire-and-forget notifications (issue #1700)', () => {
   it('processSessionEnd captures session team state in the detached cleanup payload', async () => {
     const sessionId = 'timeout-test-team-payload';
     const cwd = process.cwd();
-    const sessionDir = path.join(cwd, '.omc', 'state', 'sessions', sessionId);
+    const sessionDir = path.join(cwd, '.omac', 'state', 'sessions', sessionId);
     fs.mkdirSync(sessionDir, { recursive: true });
     fs.writeFileSync(
       path.join(sessionDir, 'team-state.json'),
@@ -149,7 +149,7 @@ describe('SessionEnd fire-and-forget notifications (issue #1700)', () => {
 
     expect(childProcessMocks.spawn).toHaveBeenCalledWith(
       process.execPath,
-      expect.arrayContaining(['--omc-session-end-cleanup-worker']),
+      expect.arrayContaining(['--omac-session-end-cleanup-worker']),
       expect.objectContaining({ detached: true, stdio: 'ignore' }),
     );
     expect(cleanupBridgeSessions).not.toHaveBeenCalled();
@@ -185,9 +185,9 @@ describe('SessionEnd fire-and-forget notifications (issue #1700)', () => {
 
   it('resolves bounded cleanup budget from env with sane defaults and cap', () => {
     expect(resolveSessionEndCleanupBudgetMs({})).toBe(2000);
-    expect(resolveSessionEndCleanupBudgetMs({ OMC_SESSIONEND_CLEANUP_BUDGET_MS: '250' })).toBe(250);
-    expect(resolveSessionEndCleanupBudgetMs({ OMC_SESSIONEND_CLEANUP_BUDGET_MS: '25000' })).toBe(10000);
-    expect(resolveSessionEndCleanupBudgetMs({ OMC_SESSIONEND_CLEANUP_BUDGET_MS: 'not-a-number' })).toBe(2000);
+    expect(resolveSessionEndCleanupBudgetMs({ OMAC_SESSIONEND_CLEANUP_BUDGET_MS: '250' })).toBe(250);
+    expect(resolveSessionEndCleanupBudgetMs({ OMAC_SESSIONEND_CLEANUP_BUDGET_MS: '25000' })).toBe(10000);
+    expect(resolveSessionEndCleanupBudgetMs({ OMAC_SESSIONEND_CLEANUP_BUDGET_MS: 'not-a-number' })).toBe(2000);
   });
 
   it('processSessionEnd completes well before slow notifications finish', async () => {

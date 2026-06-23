@@ -1,12 +1,12 @@
 /**
- * OMC HUD - Background Task Management
+ * OMAC HUD - Background Task Management
  *
  * Functions for tracking background tasks via hooks.
  * Called from bridge.ts pre-tool-use and post-tool-use handlers.
  */
 
 import { readHudState, writeHudState, createEmptyHudState } from './state.js';
-import type { BackgroundTask, OmcHudState } from './types.js';
+import type { BackgroundTask, OmacHudState } from './types.js';
 
 const MAX_TASK_HISTORY = 20;
 const TASK_EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
@@ -117,7 +117,7 @@ export function remapBackgroundTaskId(
 }
 
 function findMostRecentMatchingRunningTask(
-  state: OmcHudState,
+  state: OmacHudState,
   description: string,
   agentType?: string
 ): BackgroundTask | undefined {
@@ -193,7 +193,7 @@ export function remapMostRecentMatchingBackgroundTaskId(
 /**
  * Clean up old and expired tasks from state.
  */
-function cleanupTasks(state: OmcHudState): OmcHudState {
+function cleanupTasks(state: OmacHudState): OmacHudState {
   const now = Date.now();
 
   // Filter out expired completed/failed tasks

@@ -3,7 +3,7 @@
 // Bootstraps and writes to the leader's markdown inbox, mirroring the worker
 // appendToInbox pattern from worker-bootstrap.ts:268.
 //
-// Leader inbox path: .omc/state/team/{sanitizedTeam}/leader/inbox.md
+// Leader inbox path: .omac/state/team/{sanitizedTeam}/leader/inbox.md
 // This resolves C1: leader notifications arrive via file, not tmux send-keys.
 // DO NOT register the leader as a member of the team registry (Option C, rejected).
 
@@ -27,12 +27,12 @@ Check this file periodically and after long-running operations.
  */
 export function leaderInboxPath(teamName: string, cwd: string): string {
   const safe = sanitizeName(teamName);
-  return join(cwd, `.omc/state/team/${safe}/leader/inbox.md`);
+  return join(cwd, `.omac/state/team/${safe}/leader/inbox.md`);
 }
 
 /**
  * Ensures the leader inbox directory and seed file exist.
- * Creates .omc/state/team/{team}/leader/ and seeds inbox.md with a header banner.
+ * Creates .omac/state/team/{team}/leader/ and seeds inbox.md with a header banner.
  * Returns the absolute path to inbox.md.
  * Idempotent: safe to call multiple times.
  * Validates path is within cwd to prevent traversal.
@@ -68,6 +68,6 @@ export async function appendToLeaderInbox(teamName: string, message: string, cwd
  */
 export function extendLeaderBootstrapPrompt(teamName: string): string {
   const safe = sanitizeName(teamName);
-  const path = `.omc/state/team/${safe}/leader/inbox.md`;
+  const path = `.omac/state/team/${safe}/leader/inbox.md`;
   return `Runtime notifications appear at ${path} — check this file periodically and after long-running operations.`;
 }

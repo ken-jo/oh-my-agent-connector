@@ -3,7 +3,7 @@
  *
  * Covers:
  * - Exit code propagation (runClaude direct / inside-tmux)
- * - No OMC HUD pane spawning in tmux launch paths
+ * - No OMAC HUD pane spawning in tmux launch paths
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
@@ -36,7 +36,7 @@ vi.mock('../tmux-utils.js', () => ({
   tmuxExec: vi.fn(),
 }));
 
-import { runClaude, launchCommand, extractNotifyFlag, extractOpenClawFlag, extractTelegramFlag, extractDiscordFlag, extractSlackFlag, extractWebhookFlag, normalizeClaudeLaunchArgs, isPrintMode, prepareOmcLaunchConfigDir, buildEnvExportPrefix, hasMadmaxFlag, TMUX_ENV_FORWARD } from '../launch.js';
+import { runClaude, launchCommand, extractNotifyFlag, extractOpenClawFlag, extractTelegramFlag, extractDiscordFlag, extractSlackFlag, extractWebhookFlag, normalizeClaudeLaunchArgs, isPrintMode, prepareOmacLaunchConfigDir, buildEnvExportPrefix, hasMadmaxFlag, TMUX_ENV_FORWARD } from '../launch.js';
 import {
   resolveLaunchPolicy,
   buildTmuxShellCommand,
@@ -277,24 +277,24 @@ describe('runClaude — exit code propagation', () => {
 });
 
 // ---------------------------------------------------------------------------
-// runClaude — OMC HUD pane spawning disabled
+// runClaude — OMAC HUD pane spawning disabled
 // ---------------------------------------------------------------------------
-describe('runClaude OMC HUD behavior', () => {
+describe('runClaude OMAC HUD behavior', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     (execFileSync as ReturnType<typeof vi.fn>).mockReturnValue(Buffer.from(''));
   });
 
-  it('does not build an omc hud --watch command inside tmux', () => {
+  it('does not build an omac hud --watch command inside tmux', () => {
     (resolveLaunchPolicy as ReturnType<typeof vi.fn>).mockReturnValue('inside-tmux');
 
     runClaude('/tmp/cwd', [], 'test-session');
 
     const calls = vi.mocked(buildTmuxShellCommand).mock.calls;
-    const omcHudCall = calls.find(
+    const omacHudCall = calls.find(
       ([cmd, args]) => cmd === 'node' && Array.isArray(args) && args.includes('hud'),
     );
-    expect(omcHudCall).toBeUndefined();
+    expect(omacHudCall).toBeUndefined();
   });
 
   it('does not add split-window HUD pane args when launching outside tmux', () => {
@@ -783,7 +783,7 @@ describe('launchCommand — env var propagation', () => {
   let processExitSpy: ReturnType<typeof vi.spyOn>;
 
   // Save original env values to restore after each test
-  const envKeys = ['OMC_NOTIFY', 'OMC_OPENCLAW', 'OMC_TELEGRAM', 'OMC_DISCORD', 'OMC_SLACK', 'OMC_WEBHOOK', 'CLAUDECODE'] as const;
+  const envKeys = ['OMAC_NOTIFY', 'OMAC_OPENCLAW', 'OMAC_TELEGRAM', 'OMAC_DISCORD', 'OMAC_SLACK', 'OMAC_WEBHOOK', 'CLAUDECODE'] as const;
   const savedEnv: Record<string, string | undefined> = {};
 
   beforeEach(() => {
@@ -811,82 +811,82 @@ describe('launchCommand — env var propagation', () => {
     }
   });
 
-  it('bare --telegram sets OMC_TELEGRAM to 1', async () => {
+  it('bare --telegram sets OMAC_TELEGRAM to 1', async () => {
     await launchCommand(['--telegram']);
-    expect(process.env.OMC_TELEGRAM).toBe('1');
+    expect(process.env.OMAC_TELEGRAM).toBe('1');
   });
 
-  it('bare --discord sets OMC_DISCORD to 1', async () => {
+  it('bare --discord sets OMAC_DISCORD to 1', async () => {
     await launchCommand(['--discord']);
-    expect(process.env.OMC_DISCORD).toBe('1');
+    expect(process.env.OMAC_DISCORD).toBe('1');
   });
 
-  it('bare --slack sets OMC_SLACK to 1', async () => {
+  it('bare --slack sets OMAC_SLACK to 1', async () => {
     await launchCommand(['--slack']);
-    expect(process.env.OMC_SLACK).toBe('1');
+    expect(process.env.OMAC_SLACK).toBe('1');
   });
 
-  it('bare --webhook sets OMC_WEBHOOK to 1', async () => {
+  it('bare --webhook sets OMAC_WEBHOOK to 1', async () => {
     await launchCommand(['--webhook']);
-    expect(process.env.OMC_WEBHOOK).toBe('1');
+    expect(process.env.OMAC_WEBHOOK).toBe('1');
   });
 
-  it('bare --openclaw sets OMC_OPENCLAW to 1', async () => {
+  it('bare --openclaw sets OMAC_OPENCLAW to 1', async () => {
     await launchCommand(['--openclaw']);
-    expect(process.env.OMC_OPENCLAW).toBe('1');
+    expect(process.env.OMAC_OPENCLAW).toBe('1');
   });
 
-  it('--telegram=false overrides inherited OMC_TELEGRAM=1', async () => {
-    process.env.OMC_TELEGRAM = '1';
+  it('--telegram=false overrides inherited OMAC_TELEGRAM=1', async () => {
+    process.env.OMAC_TELEGRAM = '1';
     await launchCommand(['--telegram=false']);
-    expect(process.env.OMC_TELEGRAM).toBe('0');
+    expect(process.env.OMAC_TELEGRAM).toBe('0');
   });
 
-  it('--discord=false overrides inherited OMC_DISCORD=1', async () => {
-    process.env.OMC_DISCORD = '1';
+  it('--discord=false overrides inherited OMAC_DISCORD=1', async () => {
+    process.env.OMAC_DISCORD = '1';
     await launchCommand(['--discord=false']);
-    expect(process.env.OMC_DISCORD).toBe('0');
+    expect(process.env.OMAC_DISCORD).toBe('0');
   });
 
-  it('--slack=false overrides inherited OMC_SLACK=1', async () => {
-    process.env.OMC_SLACK = '1';
+  it('--slack=false overrides inherited OMAC_SLACK=1', async () => {
+    process.env.OMAC_SLACK = '1';
     await launchCommand(['--slack=false']);
-    expect(process.env.OMC_SLACK).toBe('0');
+    expect(process.env.OMAC_SLACK).toBe('0');
   });
 
-  it('--webhook=false overrides inherited OMC_WEBHOOK=1', async () => {
-    process.env.OMC_WEBHOOK = '1';
+  it('--webhook=false overrides inherited OMAC_WEBHOOK=1', async () => {
+    process.env.OMAC_WEBHOOK = '1';
     await launchCommand(['--webhook=false']);
-    expect(process.env.OMC_WEBHOOK).toBe('0');
+    expect(process.env.OMAC_WEBHOOK).toBe('0');
   });
 
-  it('--openclaw=false overrides inherited OMC_OPENCLAW=1', async () => {
-    process.env.OMC_OPENCLAW = '1';
+  it('--openclaw=false overrides inherited OMAC_OPENCLAW=1', async () => {
+    process.env.OMAC_OPENCLAW = '1';
     await launchCommand(['--openclaw=false']);
-    expect(process.env.OMC_OPENCLAW).toBe('0');
+    expect(process.env.OMAC_OPENCLAW).toBe('0');
   });
 
-  it('--telegram=0 overrides inherited OMC_TELEGRAM=1', async () => {
-    process.env.OMC_TELEGRAM = '1';
+  it('--telegram=0 overrides inherited OMAC_TELEGRAM=1', async () => {
+    process.env.OMAC_TELEGRAM = '1';
     await launchCommand(['--telegram=0']);
-    expect(process.env.OMC_TELEGRAM).toBe('0');
+    expect(process.env.OMAC_TELEGRAM).toBe('0');
   });
 
   it('preserves inherited platform env vars when no platform flags are passed', async () => {
-    process.env.OMC_TELEGRAM = '1';
-    process.env.OMC_DISCORD = '1';
-    process.env.OMC_SLACK = '1';
-    process.env.OMC_WEBHOOK = '1';
+    process.env.OMAC_TELEGRAM = '1';
+    process.env.OMAC_DISCORD = '1';
+    process.env.OMAC_SLACK = '1';
+    process.env.OMAC_WEBHOOK = '1';
 
     await launchCommand(['--print']);
 
-    expect(process.env.OMC_TELEGRAM).toBe('1');
-    expect(process.env.OMC_DISCORD).toBe('1');
-    expect(process.env.OMC_SLACK).toBe('1');
-    expect(process.env.OMC_WEBHOOK).toBe('1');
+    expect(process.env.OMAC_TELEGRAM).toBe('1');
+    expect(process.env.OMAC_DISCORD).toBe('1');
+    expect(process.env.OMAC_SLACK).toBe('1');
+    expect(process.env.OMAC_WEBHOOK).toBe('1');
   });
 
-  it('OMC flags are stripped from args passed to Claude', async () => {
+  it('OMAC flags are stripped from args passed to Claude', async () => {
     await launchCommand(['--telegram', '--discord', '--slack', '--webhook', '--openclaw', '--print']);
 
     const calls = vi.mocked(execFileSync).mock.calls;
@@ -902,7 +902,7 @@ describe('launchCommand — env var propagation', () => {
   });
 });
 
-describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () => {
+describe('prepareOmacLaunchConfigDir / launchCommand OMAC companion loading', () => {
   const originalClaudeConfigDir = process.env.CLAUDE_CONFIG_DIR;
   const originalHome = process.env.HOME;
   let tempRoot: string | null = null;
@@ -912,7 +912,7 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
   beforeEach(() => {
     vi.resetAllMocks();
     delete process.env.CLAUDECODE;
-    tempRoot = mkdtempSync(join(tmpdir(), 'omc-launch-profile-'));
+    tempRoot = mkdtempSync(join(tmpdir(), 'omac-launch-profile-'));
     process.env.HOME = join(tempRoot, 'home');
     (execFileSync as ReturnType<typeof vi.fn>).mockReturnValue(Buffer.from(''));
     (resolveLaunchPolicy as ReturnType<typeof vi.fn>).mockReturnValue('direct');
@@ -942,21 +942,21 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
     }
   });
 
-  it('uses a runtime launch profile when a preserved CLAUDE-omc.md companion exists', async () => {
+  it('uses a runtime launch profile when a preserved CLAUDE-omac.md companion exists', async () => {
     const configDir = join(tempRoot!, '.claude');
     mkdirSync(join(configDir, 'skills'), { recursive: true });
     writeFileSync(join(configDir, 'CLAUDE.md'), '# User base config\n');
-    writeFileSync(join(configDir, 'CLAUDE-omc.md'), '<!-- OMC:START -->\n# OMC companion\n<!-- OMC:END -->\n');
+    writeFileSync(join(configDir, 'CLAUDE-omac.md'), '<!-- OMAC:START -->\n# OMAC companion\n<!-- OMAC:END -->\n');
     writeFileSync(join(configDir, 'settings.json'), '{"hooks":{}}');
 
     process.env.CLAUDE_CONFIG_DIR = configDir;
 
     await launchCommand(['--print']);
 
-    const runtimeDir = join(configDir, '.omc-launch');
+    const runtimeDir = join(configDir, '.omac-launch');
     expect(process.env.CLAUDE_CONFIG_DIR).toBe(runtimeDir);
     expect(existsSync(join(runtimeDir, 'CLAUDE.md'))).toBe(true);
-    expect(readFileSync(join(runtimeDir, 'CLAUDE.md'), 'utf-8')).toContain('# OMC companion');
+    expect(readFileSync(join(runtimeDir, 'CLAUDE.md'), 'utf-8')).toContain('# OMAC companion');
     expect(readFileSync(join(configDir, 'CLAUDE.md'), 'utf-8')).toBe('# User base config\n');
     expect(existsSync(join(runtimeDir, 'settings.json'))).toBe(true);
   });
@@ -964,7 +964,7 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
   it('repairs retired team MCP entries in the runtime settings copy', () => {
     const configDir = join(tempRoot!, '.claude');
     mkdirSync(join(configDir, 'skills'), { recursive: true });
-    writeFileSync(join(configDir, 'CLAUDE-omc.md'), '<!-- OMC:START -->\n# OMC companion\n<!-- OMC:END -->\n');
+    writeFileSync(join(configDir, 'CLAUDE-omac.md'), '<!-- OMAC:START -->\n# OMAC companion\n<!-- OMAC:END -->\n');
     writeFileSync(join(configDir, 'settings.json'), JSON.stringify({
       theme: 'dark',
       mcpServers: {
@@ -979,7 +979,7 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
       },
     }, null, 2));
 
-    const runtimeDir = prepareOmcLaunchConfigDir(configDir);
+    const runtimeDir = prepareOmacLaunchConfigDir(configDir);
     const runtimeSettings = JSON.parse(readFileSync(join(runtimeDir, 'settings.json'), 'utf-8')) as {
       theme?: string;
       mcpServers?: Record<string, unknown>;
@@ -995,12 +995,12 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
     const configDir = join(tempRoot!, '.claude');
     mkdirSync(join(configDir, 'rules'), { recursive: true });
     mkdirSync(join(configDir, 'themes'), { recursive: true });
-    writeFileSync(join(configDir, 'CLAUDE-omc.md'), '<!-- OMC:START -->\n# OMC\n<!-- OMC:END -->\n');
+    writeFileSync(join(configDir, 'CLAUDE-omac.md'), '<!-- OMAC:START -->\n# OMAC\n<!-- OMAC:END -->\n');
     writeFileSync(join(configDir, 'keybindings.json'), '{"bindings":[]}');
     writeFileSync(join(configDir, 'rules', 'my-rule.md'), '# Rule');
     writeFileSync(join(configDir, 'themes', 'custom-theme.json'), '{"name":"custom"}');
 
-    const runtimeDir = prepareOmcLaunchConfigDir(configDir);
+    const runtimeDir = prepareOmacLaunchConfigDir(configDir);
     expect(runtimeDir).not.toBe(configDir);
     expect(existsSync(join(runtimeDir, 'keybindings.json'))).toBe(true);
     expect(existsSync(join(runtimeDir, 'rules'))).toBe(true);
@@ -1016,11 +1016,11 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    writeFileSync(join(configDir, 'CLAUDE-omc.md'), '<!-- OMC:START -->\n# OMC\n<!-- OMC:END -->\n');
+    writeFileSync(join(configDir, 'CLAUDE-omac.md'), '<!-- OMAC:START -->\n# OMAC\n<!-- OMAC:END -->\n');
     writeFileSync(credentialsPath, credentialContent);
 
     try {
-      const runtimeDir = prepareOmcLaunchConfigDir(configDir);
+      const runtimeDir = prepareOmacLaunchConfigDir(configDir);
       const runtimeCredentialsPath = join(runtimeDir, '.credentials.json');
 
       expect(existsSync(runtimeCredentialsPath)).toBe(true);
@@ -1048,11 +1048,11 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
     }));
 
     try {
-      const { prepareOmcLaunchConfigDir: prepareWithFailedSymlink } = await import('../launch.js');
+      const { prepareOmacLaunchConfigDir: prepareWithFailedSymlink } = await import('../launch.js');
       const configDir = join(tempRoot!, '.claude');
       mkdirSync(configDir, { recursive: true });
       const credentialsPath = join(configDir, '.credentials.json');
-      writeFileSync(join(configDir, 'CLAUDE-omc.md'), '<!-- OMC:START -->\n# OMC\n<!-- OMC:END -->\n');
+      writeFileSync(join(configDir, 'CLAUDE-omac.md'), '<!-- OMAC:START -->\n# OMAC\n<!-- OMAC:END -->\n');
       writeFileSync(credentialsPath, '{"accessToken":"test-only-token"}');
 
       const runtimeDir = prepareWithFailedSymlink(configDir);
@@ -1069,12 +1069,12 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
   it('preserves runtime .claude.json across runtime config dir rebuilds', () => {
     const configDir = join(tempRoot!, '.claude');
     mkdirSync(configDir, { recursive: true });
-    writeFileSync(join(configDir, 'CLAUDE-omc.md'), '<!-- OMC:START -->\n# OMC\n<!-- OMC:END -->\n');
+    writeFileSync(join(configDir, 'CLAUDE-omac.md'), '<!-- OMAC:START -->\n# OMAC\n<!-- OMAC:END -->\n');
 
-    const runtimeDir = prepareOmcLaunchConfigDir(configDir);
+    const runtimeDir = prepareOmacLaunchConfigDir(configDir);
     writeFileSync(join(runtimeDir, '.claude.json'), '{"session":"keep-me"}');
 
-    const rebuiltRuntimeDir = prepareOmcLaunchConfigDir(configDir);
+    const rebuiltRuntimeDir = prepareOmacLaunchConfigDir(configDir);
 
     expect(rebuiltRuntimeDir).toBe(runtimeDir);
     expect(readFileSync(join(rebuiltRuntimeDir, '.claude.json'), 'utf-8')).toBe('{"session":"keep-me"}');
@@ -1083,7 +1083,7 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
   it('seeds missing runtime .claude.json mcpServers from source .claude.json', () => {
     const configDir = join(tempRoot!, '.claude');
     mkdirSync(configDir, { recursive: true });
-    writeFileSync(join(configDir, 'CLAUDE-omc.md'), '<!-- OMC:START -->\n# OMC\n<!-- OMC:END -->\n');
+    writeFileSync(join(configDir, 'CLAUDE-omac.md'), '<!-- OMAC:START -->\n# OMAC\n<!-- OMAC:END -->\n');
     writeFileSync(join(tempRoot!, '.claude.json'), JSON.stringify({
       mcpServers: {
         github: { command: 'node', args: ['github-mcp.js'] },
@@ -1091,7 +1091,7 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
       sourceOnly: true,
     }, null, 2));
 
-    const runtimeDir = prepareOmcLaunchConfigDir(configDir);
+    const runtimeDir = prepareOmacLaunchConfigDir(configDir);
     const runtimeClaudeJson = JSON.parse(readFileSync(join(runtimeDir, '.claude.json'), 'utf-8')) as Record<string, unknown>;
 
     expect(runtimeClaudeJson).toEqual({
@@ -1104,14 +1104,14 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
   it('refreshes runtime mcpServers from source while preserving runtime metadata', () => {
     const configDir = join(tempRoot!, '.claude');
     mkdirSync(configDir, { recursive: true });
-    writeFileSync(join(configDir, 'CLAUDE-omc.md'), '<!-- OMC:START -->\n# OMC\n<!-- OMC:END -->\n');
+    writeFileSync(join(configDir, 'CLAUDE-omac.md'), '<!-- OMAC:START -->\n# OMAC\n<!-- OMAC:END -->\n');
     writeFileSync(join(tempRoot!, '.claude.json'), JSON.stringify({
       mcpServers: {
         exa: { command: 'node', args: ['old-exa.js'] },
       },
     }, null, 2));
 
-    const runtimeDir = prepareOmcLaunchConfigDir(configDir);
+    const runtimeDir = prepareOmacLaunchConfigDir(configDir);
     writeFileSync(join(runtimeDir, '.claude.json'), JSON.stringify({
       session: 'keep-me',
       projects: { '/repo': { history: ['keep'] } },
@@ -1127,7 +1127,7 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
       sourceOnly: 'not copied',
     }, null, 2));
 
-    const rebuiltRuntimeDir = prepareOmcLaunchConfigDir(configDir);
+    const rebuiltRuntimeDir = prepareOmacLaunchConfigDir(configDir);
     const runtimeClaudeJson = JSON.parse(readFileSync(join(rebuiltRuntimeDir, '.claude.json'), 'utf-8')) as Record<string, unknown>;
 
     expect(runtimeClaudeJson).toEqual({
@@ -1143,37 +1143,37 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
   it('preserves runtime .claude.json when source .claude.json is absent, invalid, or has no mcpServers', () => {
     const configDir = join(tempRoot!, '.claude');
     mkdirSync(configDir, { recursive: true });
-    writeFileSync(join(configDir, 'CLAUDE-omc.md'), '<!-- OMC:START -->\n# OMC\n<!-- OMC:END -->\n');
+    writeFileSync(join(configDir, 'CLAUDE-omac.md'), '<!-- OMAC:START -->\n# OMAC\n<!-- OMAC:END -->\n');
 
-    const runtimeDir = prepareOmcLaunchConfigDir(configDir);
+    const runtimeDir = prepareOmacLaunchConfigDir(configDir);
     const runtimeClaudeJsonPath = join(runtimeDir, '.claude.json');
     writeFileSync(runtimeClaudeJsonPath, '{"session":"keep-absent"}');
 
-    prepareOmcLaunchConfigDir(configDir);
+    prepareOmacLaunchConfigDir(configDir);
     expect(readFileSync(runtimeClaudeJsonPath, 'utf-8')).toBe('{"session":"keep-absent"}');
 
     writeFileSync(join(tempRoot!, '.claude.json'), '{not json');
     writeFileSync(runtimeClaudeJsonPath, '{"session":"keep-invalid"}');
-    prepareOmcLaunchConfigDir(configDir);
+    prepareOmacLaunchConfigDir(configDir);
     expect(readFileSync(runtimeClaudeJsonPath, 'utf-8')).toBe('{"session":"keep-invalid"}');
 
     writeFileSync(join(tempRoot!, '.claude.json'), JSON.stringify({ projects: {} }, null, 2));
     writeFileSync(runtimeClaudeJsonPath, '{"session":"keep-no-mcp"}');
-    prepareOmcLaunchConfigDir(configDir);
+    prepareOmacLaunchConfigDir(configDir);
     expect(readFileSync(runtimeClaudeJsonPath, 'utf-8')).toBe('{"session":"keep-no-mcp"}');
   });
 
   it('removes non-mirrored runtime junk across runtime config dir rebuilds', () => {
     const configDir = join(tempRoot!, '.claude');
     mkdirSync(configDir, { recursive: true });
-    writeFileSync(join(configDir, 'CLAUDE-omc.md'), '<!-- OMC:START -->\n# OMC\n<!-- OMC:END -->\n');
+    writeFileSync(join(configDir, 'CLAUDE-omac.md'), '<!-- OMAC:START -->\n# OMAC\n<!-- OMAC:END -->\n');
 
-    const runtimeDir = prepareOmcLaunchConfigDir(configDir);
+    const runtimeDir = prepareOmacLaunchConfigDir(configDir);
     writeFileSync(join(runtimeDir, 'junk.txt'), 'remove me');
     mkdirSync(join(runtimeDir, 'junk-dir'), { recursive: true });
     writeFileSync(join(runtimeDir, 'junk-dir', 'nested.txt'), 'remove me too');
 
-    const rebuiltRuntimeDir = prepareOmcLaunchConfigDir(configDir);
+    const rebuiltRuntimeDir = prepareOmacLaunchConfigDir(configDir);
 
     expect(rebuiltRuntimeDir).toBe(runtimeDir);
     expect(existsSync(join(rebuiltRuntimeDir, 'junk.txt'))).toBe(false);
@@ -1183,10 +1183,10 @@ describe('prepareOmcLaunchConfigDir / launchCommand OMC companion loading', () =
   it('leaves CLAUDE_CONFIG_DIR unchanged when no preserved companion exists', () => {
     const configDir = join(tempRoot!, '.claude');
     mkdirSync(configDir, { recursive: true });
-    writeFileSync(join(configDir, 'CLAUDE.md'), '<!-- OMC:START -->\n# OMC base\n<!-- OMC:END -->\n');
+    writeFileSync(join(configDir, 'CLAUDE.md'), '<!-- OMAC:START -->\n# OMAC base\n<!-- OMAC:END -->\n');
 
-    expect(prepareOmcLaunchConfigDir(configDir)).toBe(configDir);
-    expect(existsSync(join(configDir, '.omc-launch'))).toBe(false);
+    expect(prepareOmacLaunchConfigDir(configDir)).toBe(configDir);
+    expect(existsSync(join(configDir, '.omac-launch'))).toBe(false);
   });
 
   it('does not keep CLAUDE_CONFIG_DIR set when it resolves to the default ~/.claude path', async () => {
@@ -1385,8 +1385,8 @@ describe('TMUX_ENV_FORWARD allowlist', () => {
     expect(TMUX_ENV_FORWARD).toContain('CLAUDE_CONFIG_DIR');
   });
 
-  it('includes all OMC launch flags', () => {
-    for (const name of ['OMC_NOTIFY', 'OMC_OPENCLAW', 'OMC_TELEGRAM', 'OMC_DISCORD', 'OMC_SLACK', 'OMC_WEBHOOK']) {
+  it('includes all OMAC launch flags', () => {
+    for (const name of ['OMAC_NOTIFY', 'OMAC_OPENCLAW', 'OMAC_TELEGRAM', 'OMAC_DISCORD', 'OMAC_SLACK', 'OMAC_WEBHOOK']) {
       expect(TMUX_ENV_FORWARD).toContain(name);
     }
   });
@@ -1438,13 +1438,13 @@ describe('runClaude outside-tmux — env forwarding', () => {
 
   it('does not inject exports when no forwarded vars are set', () => {
     delete process.env.CLAUDE_CONFIG_DIR;
-    delete process.env.OMC_NOTIFY;
-    delete process.env.OMC_OPENCLAW;
-    delete process.env.OMC_TELEGRAM;
-    delete process.env.OMC_DISCORD;
-    delete process.env.OMC_SLACK;
-    delete process.env.OMC_WEBHOOK;
-    delete process.env.OMC_PLUGIN_ROOT;
+    delete process.env.OMAC_NOTIFY;
+    delete process.env.OMAC_OPENCLAW;
+    delete process.env.OMAC_TELEGRAM;
+    delete process.env.OMAC_DISCORD;
+    delete process.env.OMAC_SLACK;
+    delete process.env.OMAC_WEBHOOK;
+    delete process.env.OMAC_PLUGIN_ROOT;
     vi.mocked(isNativeWindowsShell).mockReturnValue(false);
 
     runClaude('/tmp', [], 'sid');

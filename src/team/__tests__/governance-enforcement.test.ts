@@ -10,7 +10,7 @@ describe('team governance enforcement', () => {
   let cwd: string;
 
   beforeEach(async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-governance-enforcement-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-governance-enforcement-'));
   });
 
   afterEach(async () => {
@@ -25,7 +25,7 @@ describe('team governance enforcement', () => {
 
   it('blocks claiming code-change tasks until approval is granted when governance requires it', async () => {
     const teamName = 'approval-team';
-    await writeJson(`.omc/state/team/${teamName}/config.json`, {
+    await writeJson(`.omac/state/team/${teamName}/config.json`, {
       name: teamName,
       task: 'test',
       agent_type: 'claude',
@@ -48,7 +48,7 @@ describe('team governance enforcement', () => {
       resize_hook_name: null,
       resize_hook_target: null,
     });
-    await writeJson(`.omc/state/team/${teamName}/manifest.json`, {
+    await writeJson(`.omac/state/team/${teamName}/manifest.json`, {
       schema_version: 2,
       name: teamName,
       task: 'test',
@@ -81,7 +81,7 @@ describe('team governance enforcement', () => {
       resize_hook_name: null,
       resize_hook_target: null,
     });
-    await writeJson(`.omc/state/team/${teamName}/tasks/task-1.json`, {
+    await writeJson(`.omac/state/team/${teamName}/tasks/task-1.json`, {
       id: '1',
       subject: 'approved work',
       description: 'requires approval',
@@ -97,7 +97,7 @@ describe('team governance enforcement', () => {
       dependencies: ['approval-required'],
     });
 
-    await writeJson(`.omc/state/team/${teamName}/approvals/1.json`, {
+    await writeJson(`.omac/state/team/${teamName}/approvals/1.json`, {
       task_id: '1',
       required: true,
       status: 'approved',
@@ -112,7 +112,7 @@ describe('team governance enforcement', () => {
 
   it('allows shutdown cleanup override when governance disables inactive-worker requirement', async () => {
     const teamName = 'cleanup-team';
-    await writeJson(`.omc/state/team/${teamName}/config.json`, {
+    await writeJson(`.omac/state/team/${teamName}/config.json`, {
       name: teamName,
       task: 'test',
       agent_type: 'claude',
@@ -135,7 +135,7 @@ describe('team governance enforcement', () => {
       resize_hook_name: null,
       resize_hook_target: null,
     });
-    await writeJson(`.omc/state/team/${teamName}/tasks/task-1.json`, {
+    await writeJson(`.omac/state/team/${teamName}/tasks/task-1.json`, {
       id: '1',
       subject: 'still pending',
       description: 'pending',

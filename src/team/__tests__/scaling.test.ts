@@ -109,13 +109,13 @@ describe('scaleUp duplicate worker guard', () => {
       hud_pane_id: null,
       resize_hook_name: null,
       resize_hook_target: null,
-      team_state_root: `${resolve(cwd)}/.omc/state/team/demo-team`,
+      team_state_root: `${resolve(cwd)}/.omac/state/team/demo-team`,
     };
     return { ...base, ...overrides };
   }
 
   beforeEach(async () => {
-    cwd = await mkdtemp(join(tmpdir(), 'omc-scaling-duplicate-'));
+    cwd = await mkdtemp(join(tmpdir(), 'omac-scaling-duplicate-'));
     vi.clearAllMocks();
 
     monitorMocks.withScalingLock.mockImplementation(async (
@@ -133,9 +133,9 @@ describe('scaleUp duplicate worker guard', () => {
 
     modelContractMocks.buildWorkerArgv.mockReturnValue(['/usr/bin/claude']);
     modelContractMocks.getWorkerEnv.mockImplementation((teamName: string, workerName: string, agentType: string) => ({
-      OMC_TEAM_WORKER: `${teamName}/${workerName}`,
-      OMC_TEAM_NAME: teamName,
-      OMC_WORKER_AGENT_TYPE: agentType,
+      OMAC_TEAM_WORKER: `${teamName}/${workerName}`,
+      OMAC_TEAM_NAME: teamName,
+      OMAC_WORKER_AGENT_TYPE: agentType,
     }));
 
     tmuxUtilsMocks.tmuxSpawn.mockImplementation((args: string[]) => {
@@ -165,7 +165,7 @@ describe('scaleUp duplicate worker guard', () => {
       'claude',
       [{ subject: 'demo', description: 'demo task' }],
       cwd,
-      { OMC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
+      { OMAC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
     );
 
     expect(result).toMatchObject({ ok: true, newWorkerCount: 2, nextWorkerIndex: 3 });
@@ -192,7 +192,7 @@ describe('scaleUp duplicate worker guard', () => {
       'claude',
       [{ subject: 'demo', description: 'demo task' }],
       cwd,
-      { OMC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
+      { OMAC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
     );
 
     expect(result).toMatchObject({ ok: true, newWorkerCount: 3, nextWorkerIndex: 4 });
@@ -227,7 +227,7 @@ describe('scaleUp duplicate worker guard', () => {
       'claude',
       [{ subject: 'demo', description: 'demo task' }],
       cwd,
-      { OMC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
+      { OMAC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
     );
 
     expect(result).toMatchObject({ ok: true, newWorkerCount: 1, nextWorkerIndex: 2 });
@@ -252,7 +252,7 @@ describe('scaleUp duplicate worker guard', () => {
       'claude',
       [{ subject: 'demo', description: 'demo task' }],
       cwd,
-      { OMC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
+      { OMAC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
     );
 
     expect(result).toMatchObject({ ok: false });
@@ -288,7 +288,7 @@ describe('scaleUp duplicate worker guard', () => {
       'claude',
       [{ subject: 'demo', description: 'demo task' }],
       cwd,
-      { OMC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
+      { OMAC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
     );
 
     expect(result).toMatchObject({ ok: false });
@@ -324,7 +324,7 @@ describe('scaleUp duplicate worker guard', () => {
       'claude',
       [{ subject: 'demo', description: 'demo task' }],
       cwd,
-      { OMC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
+      { OMAC_TEAM_SCALING_ENABLED: '1' } as NodeJS.ProcessEnv,
     );
 
     expect(result).toMatchObject({ ok: false });

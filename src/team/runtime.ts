@@ -114,7 +114,7 @@ function workerName(index: number): string {
 
 function stateRoot(cwd: string, teamName: string): string {
   validateTeamName(teamName);
-  return join(cwd, `.omc/state/team/${teamName}`);
+  return join(cwd, `.omac/state/team/${teamName}`);
 }
 
 async function writeJson(filePath: string, data: unknown): Promise<void> {
@@ -172,11 +172,11 @@ function taskPath(root: string, taskId: string): string {
 }
 
 async function writePanesTrackingFileIfPresent(runtime: TeamRuntime): Promise<void> {
-  const jobId = process.env.OMC_JOB_ID;
-  const omcJobsDir = process.env.OMC_JOBS_DIR;
-  if (!jobId || !omcJobsDir) return;
+  const jobId = process.env.OMAC_JOB_ID;
+  const omacJobsDir = process.env.OMAC_JOBS_DIR;
+  if (!jobId || !omacJobsDir) return;
 
-  const panesPath = join(omcJobsDir, `${jobId}-panes.json`);
+  const panesPath = join(omacJobsDir, `${jobId}-panes.json`);
   const tempPath = `${panesPath}.tmp`;
   await writeFile(
     tempPath,
@@ -350,7 +350,7 @@ function buildInitialTaskInstruction(
   task: { subject: string; description: string },
   taskId: string
 ): string {
-  const donePath = `.omc/state/team/${teamName}/workers/${workerName}/done.json`;
+  const donePath = `.omac/state/team/${teamName}/workers/${workerName}/done.json`;
   return [
     `## Initial Task Assignment`,
     `Task ID: ${taskId}`,
@@ -726,18 +726,18 @@ export async function spawnWorkerForTask(
   // so workers don't fall back to invalid Anthropic API model names. (#1695)
   const modelForAgent = (() => {
     if (agentType === 'codex') {
-      return process.env.OMC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL
-        || process.env.OMC_CODEX_DEFAULT_MODEL
+      return process.env.OMAC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL
+        || process.env.OMAC_CODEX_DEFAULT_MODEL
         || undefined;
     }
     if (agentType === 'gemini') {
-      return process.env.OMC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL
-        || process.env.OMC_GEMINI_DEFAULT_MODEL
+      return process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL
+        || process.env.OMAC_GEMINI_DEFAULT_MODEL
         || undefined;
     }
     if (agentType === 'grok') {
-      return process.env.OMC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL
-        || process.env.OMC_GROK_DEFAULT_MODEL
+      return process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL
+        || process.env.OMAC_GROK_DEFAULT_MODEL
         || undefined;
     }
     // Claude agents: resolve Bedrock/Vertex model when on those providers
@@ -883,7 +883,7 @@ export async function assignTask(
   // Write to worker inbox
   const inboxPath = join(root, 'workers', targetWorkerName, 'inbox.md');
   await mkdir(join(inboxPath, '..'), { recursive: true });
-  const msg = `\n\n---\n## New Task Assignment\nTask ID: ${taskId}\nClaim and execute task from: .omc/state/team/${teamName}/tasks/${taskId}.json\n`;
+  const msg = `\n\n---\n## New Task Assignment\nTask ID: ${taskId}\nClaim and execute task from: .omac/state/team/${teamName}/tasks/${taskId}.json\n`;
   const { appendFile } = await import('fs/promises');
   await appendFile(inboxPath, msg, 'utf-8');
 
@@ -988,7 +988,7 @@ export async function resumeTeam(teamName: string, cwd: string): Promise<TeamRun
   if (!configData) return null;
 
   // Check if session is alive
-  const sName = configData.tmuxSession || `omc-team-${teamName}`;
+  const sName = configData.tmuxSession || `omac-team-${teamName}`;
 
   try {
     await tmuxExecAsync(['has-session', '-t', sName.split(':')[0]]);

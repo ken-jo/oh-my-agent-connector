@@ -15,10 +15,11 @@ node bin.mjs install --targets opencode --scope user --force
 
 Result: pass. The installer wrote the real user OpenCode config, not an isolated home.
 
-- Config backup: /home/ubuntu/.agent-connector/backups/opencode-2026-06-23T14-19-38-110Z-opencode.json
-- Created/updated summary: 113 created, 18 updated, 0 removed, 0 skipped, 0 warnings
+- Config backup: /home/ubuntu/.agent-connector/backups/opencode-2026-06-23T14-40-29-092Z-oh-my-agent-connector.js
+- Latest brand patch install summary: 2 created, 2 updated, 0 removed, 128 skipped, 0 warnings
 - Registered MCP key: mcp.oh-my-agent-connector in /home/ubuntu/.config/opencode/opencode.json
 - Plugin module: /home/ubuntu/.config/opencode/plugin/oh-my-agent-connector.js
+- Branded doctor command: /home/ubuntu/.config/opencode/commands/oh-my-agent-connector-doctor.md
 - Memory block: oh-my-agent-connector/orchestrator in /home/ubuntu/.config/opencode/AGENTS.md
 
 ## Config proof after install
@@ -45,7 +46,7 @@ Parsed /home/ubuntu/.config/opencode/opencode.json:
   "CLAUDE_PLUGIN_ROOT": "/home/ubuntu/workspace/github/oh-my-agent-connector",
   "pluginExists": true,
   "pluginBytes": 4842,
-  "commandCount": 31,
+  "commandCount": 32,
   "skillCount": 41,
   "agentCount": 21,
   "memoryHasBlock": true
@@ -65,7 +66,7 @@ Result: pass.
 - OpenCode config present
 - mcp.oh-my-agent-connector registered
 - plugin module present
-- commands present
+- commands present, including oh-my-agent-connector-doctor
 - skills present
 - subagents present
 - memory block intact
@@ -75,15 +76,15 @@ Result: pass.
 - MCP tools/list: 49 tools
 - Final line: doctor: all checks passed.
 
-## OMC runtime doctor proof
+## OMAC runtime doctor proof
 
-These checks exercise the ported OMC runtime doctor commands, not only the
+These checks exercise the ported OMAC runtime doctor commands, not only the
 agent-connector host doctor.
 
 Command:
 
 ```sh
-node bin/oh-my-claudecode.js doctor team-routing --plugin-dir /home/ubuntu/workspace/github/oh-my-agent-connector
+node bin.mjs doctor team-routing --plugin-dir /home/ubuntu/workspace/github/oh-my-agent-connector
 ```
 
 Result: pass.
@@ -95,20 +96,21 @@ Result: pass.
 Command:
 
 ```sh
-node bin/oh-my-claudecode.js doctor conflicts --plugin-dir /home/ubuntu/workspace/github/oh-my-agent-connector
+node bin.mjs doctor conflicts --plugin-dir /home/ubuntu/workspace/github/oh-my-agent-connector
 ```
 
 Result: warning/non-zero. The conflicts doctor intentionally reported existing
 Claude Code home conflicts, separate from the OpenCode install:
 
+- title: Oh-My-AgentConnector Conflict Diagnostic
 - existing context-mode hooks in /home/ubuntu/.claude/settings.json
 - legacy Claude skills shadowing plugin skill names: autopilot, cancel,
   deep-interview, ralph, ultrawork
-- unknown field lastUpdated in .omc-config.json
-- no unified MCP registry at /home/ubuntu/.config/omc/mcp-registry.json
+- unknown field lastUpdated in .omac-config.json
+- no unified MCP registry at /home/ubuntu/.config/omac/mcp-registry.json
 
 This does not invalidate the OpenCode proof above; it documents that the local
-Claude Code home has pre-existing OMC/context-mode state while the OpenCode
+Claude Code home has pre-existing OMAC/context-mode state while the OpenCode
 target-specific doctor passes.
 
 ## Hook honor matrix

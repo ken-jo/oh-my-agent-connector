@@ -1,6 +1,6 @@
 # MCP/Plugin Compatibility Layer
 
-The Compatibility Layer enables oh-my-claudecode to discover, register, and use external plugins, MCP servers, and tools. It provides a unified interface for managing external tools while maintaining security through an integrated permission system.
+The Compatibility Layer enables oh-my-agent-connector to discover, register, and use external plugins, MCP servers, and tools. It provides a unified interface for managing external tools while maintaining security through an integrated permission system.
 
 ## Table of Contents
 
@@ -22,11 +22,11 @@ The Compatibility Layer consists of four integrated systems working together:
 
 1. **Discovery System** - Automatically finds plugins and MCP servers from user directories
 2. **Tool Registry** - Central hub that registers and manages all external tools with conflict resolution
-3. **Permission Adapter** - Integrates with OMC's permission system for safe tool execution
+3. **Permission Adapter** - Integrates with OMAC's permission system for safe tool execution
 4. **MCP Bridge** - Connects to MCP servers and exposes their tools for use
 
 ```
-Plugins              MCP Configs          OMC Tools
+Plugins              MCP Configs          OMAC Tools
    ↓                      ↓                    ↓
  Discovery System ────────────────────────────┐
                                               ↓
@@ -43,7 +43,7 @@ Plugins              MCP Configs          OMC Tools
 
 Scans for external plugins and MCP servers from:
 
-- `~/.claude/plugins/` - OMC/Claude Code plugins directory
+- `~/.claude/plugins/` - OMAC/Claude Code plugins directory
 - `~/.claude/installed-plugins/` - Alternative plugins location
 - `~/.claude/settings.json` - Claude Code MCP server configs
 - `~/.claude/claude_desktop_config.json` - Claude Desktop MCP server configs
@@ -72,7 +72,7 @@ Central hub for tool management:
 
 ### Permission Adapter (`permission-adapter.ts`)
 
-Integrates external tools with OMC's permission system:
+Integrates external tools with OMAC's permission system:
 
 - Maintains safe patterns for read-only tools
 - Auto-approves known-safe operations
@@ -168,7 +168,7 @@ The `plugin.json` defines the plugin's metadata and tools:
 
 ### Skill and Agent Discovery
 
-**Skills** are discovered from `SKILL.md` files in supported skills directories. OMC's canonical project-local write target remains `.omc/skills/`, and it also reads Claude Code project skills from `.claude/skills/` plus project-local compatibility skills from `.agents/skills/`. Each skill directory must contain a SKILL.md with frontmatter:
+**Skills** are discovered from `SKILL.md` files in supported skills directories. OMAC's canonical project-local write target remains `.omac/skills/`, and it also reads Claude Code project skills from `.claude/skills/` plus project-local compatibility skills from `.agents/skills/`. Each skill directory must contain a SKILL.md with frontmatter:
 
 ```markdown
 ---
@@ -180,7 +180,7 @@ tags: tag1, tag2
 Skill documentation here...
 ```
 
-**Agents** are discovered from `.md` files in the agents directory with similar frontmatter structure. Supported runtime fields depend on Claude Code; OMC's bundled agent files currently rely on `name`, `description`, `model`, optional tool restrictions, and prompt body guidance. They do not currently ship an `effort:` frontmatter override, so effort inherits from the parent Claude Code session unless a custom agent explicitly adds one.
+**Agents** are discovered from `.md` files in the agents directory with similar frontmatter structure. Supported runtime fields depend on Claude Code; OMAC's bundled agent files currently rely on `name`, `description`, `model`, optional tool restrictions, and prompt body guidance. They do not currently ship an `effort:` frontmatter override, so effort inherits from the parent Claude Code session unless a custom agent explicitly adds one.
 
 ## MCP Server Discovery
 
@@ -223,14 +223,14 @@ Located at `~/.claude/settings.json`:
 }
 ```
 
-### Remote MCP / Remote OMC Shape
+### Remote MCP / Remote OMAC Shape
 
-OMC can sync and preserve **remote MCP** entries in the unified registry. That is the supported narrow answer to "connect to a remote OMC":
+OMAC can sync and preserve **remote MCP** entries in the unified registry. That is the supported narrow answer to "connect to a remote OMAC":
 
 ```json
 {
   "mcpServers": {
-    "remoteOmc": {
+    "remoteOmac": {
       "url": "https://lab.example.com/mcp",
       "timeout": 30
     }
@@ -238,7 +238,7 @@ OMC can sync and preserve **remote MCP** entries in the unified registry. That i
 }
 ```
 
-This supports remote MCP endpoints. It does **not** create a general multi-host OMC cluster or a transparent shared remote filesystem view.
+This supports remote MCP endpoints. It does **not** create a general multi-host OMAC cluster or a transparent shared remote filesystem view.
 
 ### Plugin-Embedded MCP Servers
 
@@ -898,7 +898,7 @@ registerCustomPatterns();
 **Checklist:**
 - Plugins are in `~/.claude/plugins/` or `~/.claude/installed-plugins/`
 - Each plugin has a `plugin.json` in the root or `.claude-plugin/` subdirectory
-- Plugin name doesn't conflict with reserved names (e.g., 'oh-my-claudecode')
+- Plugin name doesn't conflict with reserved names (e.g., 'oh-my-agent-connector')
 - File permissions allow reading the directory
 
 **Debug:**

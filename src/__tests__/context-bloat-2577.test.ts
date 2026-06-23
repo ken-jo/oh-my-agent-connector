@@ -29,7 +29,7 @@ import {
 function tmpDir() {
   const p = join(
     tmpdir(),
-    `omc-2577-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    `omac-2577-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
   mkdirSync(p, { recursive: true });
   return p;

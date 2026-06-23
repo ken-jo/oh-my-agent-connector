@@ -1,12 +1,12 @@
 /**
  * Worktree Path Enforcement
  *
- * Provides strict path validation and resolution for .omc/ paths,
+ * Provides strict path validation and resolution for .omac/ paths,
  * ensuring all operations stay within the worktree boundary.
  *
- * Supports OMC_STATE_DIR environment variable for centralized state storage.
- * When set, state is stored at $OMC_STATE_DIR/{project-identifier}/ instead
- * of {worktree}/.omc/. This preserves state across worktree deletions.
+ * Supports OMAC_STATE_DIR environment variable for centralized state storage.
+ * When set, state is stored at $OMAC_STATE_DIR/{project-identifier}/ instead
+ * of {worktree}/.omac/. This preserves state across worktree deletions.
  */
 
 import { createHash } from 'crypto';
@@ -18,33 +18,33 @@ import { getClaudeConfigDir } from '../utils/config-dir.js';
 
 /**
  * Workspace marker filename. A directory containing this file is treated as
- * the OMC anchor regardless of git status — enables multi-repo workspaces
+ * the OMAC anchor regardless of git status — enables multi-repo workspaces
  * where the parent dir is not itself a git repo (issue: bidchex-repos style).
  *
  * The marker can be empty or a JSON file with optional fields:
  *   { "id": "stable-workspace-identifier" }
  *
- * Resolution order in getOmcRoot(): OMC_STATE_DIR > workspace marker > git > cwd.
+ * Resolution order in getOmacRoot(): OMAC_STATE_DIR > workspace marker > git > cwd.
  */
-export const WORKSPACE_MARKER = '.omc-workspace';
+export const WORKSPACE_MARKER = '.omac-workspace';
 
-/** Standard .omc subdirectories */
-export const OmcPaths = {
-  ROOT: '.omc',
-  STATE: '.omc/state',
-  SESSIONS: '.omc/state/sessions',
-  PLANS: '.omc/plans',
-  RESEARCH: '.omc/research',
-  NOTEPAD: '.omc/notepad.md',
-  PROJECT_MEMORY: '.omc/project-memory.json',
-  DRAFTS: '.omc/drafts',
-  NOTEPADS: '.omc/notepads',
-  LOGS: '.omc/logs',
-  SCIENTIST: '.omc/scientist',
-  AUTOPILOT: '.omc/autopilot',
-  SKILLS: '.omc/skills',
-  SHARED_MEMORY: '.omc/state/shared-memory',
-  DEEPINIT_MANIFEST: '.omc/deepinit-manifest.json',
+/** Standard .omac subdirectories */
+export const OmacPaths = {
+  ROOT: '.omac',
+  STATE: '.omac/state',
+  SESSIONS: '.omac/state/sessions',
+  PLANS: '.omac/plans',
+  RESEARCH: '.omac/research',
+  NOTEPAD: '.omac/notepad.md',
+  PROJECT_MEMORY: '.omac/project-memory.json',
+  DRAFTS: '.omac/drafts',
+  NOTEPADS: '.omac/notepads',
+  LOGS: '.omac/logs',
+  SCIENTIST: '.omac/scientist',
+  AUTOPILOT: '.omac/autopilot',
+  SKILLS: '.omac/skills',
+  SHARED_MEMORY: '.omac/state/shared-memory',
+  DEEPINIT_MANIFEST: '.omac/deepinit-manifest.json',
 } as const;
 
 /**
@@ -73,7 +73,7 @@ interface WorkspaceMarkerConfig {
  * stray marker in $HOME or above as a workspace anchor.
  */
 export function findWorkspaceRoot(startDir?: string): string | null {
-  if (process.env.OMC_DISABLE_MULTIREPO === '1') return null;
+  if (process.env.OMAC_DISABLE_MULTIREPO === '1') return null;
   const effectiveStart = startDir || process.cwd();
   let current: string;
   try {
@@ -96,7 +96,7 @@ export function findWorkspaceRoot(startDir?: string): string | null {
   let cursor = current;
   let result: string | null = null;
   while (true) {
-    // Stop before scanning $HOME (or above) so a stray ~/.omc-workspace does
+    // Stop before scanning $HOME (or above) so a stray ~/.omac-workspace does
     // not collapse unrelated repos under home into one shared state root.
     if (home && cursor === home) break;
     if (existsSync(join(cursor, WORKSPACE_MARKER))) {
@@ -193,7 +193,7 @@ export function validatePath(inputPath: string): void {
 }
 
 // ============================================================================
-// OMC_STATE_DIR SUPPORT (Issue #1014)
+// OMAC_STATE_DIR SUPPORT (Issue #1014)
 // ============================================================================
 
 /** Track which dual-dir warnings have been logged to avoid repeated warnings */
@@ -203,21 +203,21 @@ const dualDirWarnings = new Set<string>();
 const siblingRetrofitWarned = new Set<string>();
 
 /**
- * Scan sibling subdirs of a workspace anchor for pre-existing .omc/state/ content.
+ * Scan sibling subdirs of a workspace anchor for pre-existing .omac/state/ content.
  * Deduplicated per session via a disk marker so repeated hook firings within the
  * same session don't re-stat siblings or re-emit. A fresh session (new sessionId)
  * will re-warn — intentional, since the user may not have seen the prior warning.
  *
  * Call this once per session (e.g. from session-start.mjs) rather than on every
- * getOmcRoot() invocation to keep the hot path free of readdirSync calls.
+ * getOmacRoot() invocation to keep the hot path free of readdirSync calls.
  */
 export function warnSiblingRetrofit(workspaceAnchor: string, sessionId?: string): void {
   if (siblingRetrofitWarned.has(workspaceAnchor)) return;
 
   // Persistent per-session disk dedupe
-  const sharedOmc = join(workspaceAnchor, OmcPaths.ROOT);
+  const sharedOmac = join(workspaceAnchor, OmacPaths.ROOT);
   if (sessionId) {
-    const markerPath = join(sharedOmc, 'state', `sibling-retrofit-warned-${sessionId}.json`);
+    const markerPath = join(sharedOmac, 'state', `sibling-retrofit-warned-${sessionId}.json`);
     if (existsSync(markerPath)) {
       siblingRetrofitWarned.add(workspaceAnchor);
       return;
@@ -237,9 +237,9 @@ export function warnSiblingRetrofit(workspaceAnchor: string, sessionId?: string)
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     const entryName = entry.name as string;
-    const siblingStateDir = join(workspaceAnchor, entryName, OmcPaths.ROOT, 'state');
+    const siblingStateDir = join(workspaceAnchor, entryName, OmacPaths.ROOT, 'state');
     if (existsSync(siblingStateDir)) {
-      legacyDirs.push(join(workspaceAnchor, entryName, OmcPaths.ROOT));
+      legacyDirs.push(join(workspaceAnchor, entryName, OmacPaths.ROOT));
     }
   }
 
@@ -247,17 +247,17 @@ export function warnSiblingRetrofit(workspaceAnchor: string, sessionId?: string)
 
   const dirList = legacyDirs.map(d => `  - ${d}`).join('\n');
   process.stderr.write(
-    `[omc] workspace-retrofit warning: .omc-workspace anchor found at ${workspaceAnchor}\n` +
-    `  but sibling repos have pre-existing local .omc/state/ content:\n${dirList}\n` +
-    `  Shared state will go to: ${sharedOmc}\n` +
-    `  To migrate legacy state: OMC_MIGRATE_LEGACY_STATE=1 omc setup\n` +
-    `  Or manually copy state files to ${sharedOmc}/state/\n`
+    `[omac] workspace-retrofit warning: .omac-workspace anchor found at ${workspaceAnchor}\n` +
+    `  but sibling repos have pre-existing local .omac/state/ content:\n${dirList}\n` +
+    `  Shared state will go to: ${sharedOmac}\n` +
+    `  To migrate legacy state: OMAC_MIGRATE_LEGACY_STATE=1 omac setup\n` +
+    `  Or manually copy state files to ${sharedOmac}/state/\n`
   );
 
   // Write disk marker so subsequent hook firings in the same session stay silent
   if (sessionId) {
     try {
-      const stateDir = join(sharedOmc, 'state');
+      const stateDir = join(sharedOmac, 'state');
       if (!existsSync(stateDir)) mkdirSync(stateDir, { recursive: true });
       const markerPath = join(stateDir, `sibling-retrofit-warned-${sessionId}.json`);
       writeFileSync(markerPath, JSON.stringify({ warnedAt: new Date().toISOString(), anchor: workspaceAnchor }));
@@ -269,14 +269,14 @@ export function warnSiblingRetrofit(workspaceAnchor: string, sessionId?: string)
 
 /**
  * Clear the sibling retrofit warning cache (useful for testing).
- * Also removes any disk markers under the given omcStateDir when provided.
+ * Also removes any disk markers under the given omacStateDir when provided.
  * @internal
  */
-export function clearSiblingRetrofitWarnings(omcStateDir?: string): void {
+export function clearSiblingRetrofitWarnings(omacStateDir?: string): void {
   siblingRetrofitWarned.clear();
-  if (omcStateDir) {
+  if (omacStateDir) {
     try {
-      const stateDir = join(omcStateDir, 'state');
+      const stateDir = join(omacStateDir, 'state');
       if (!existsSync(stateDir)) return;
       const entries = readdirSync(stateDir, { withFileTypes: true, encoding: 'utf-8' }) as import('fs').Dirent<string>[];
       for (const entry of entries) {
@@ -381,29 +381,29 @@ export function getProjectIdentifier(worktreeRoot?: string): string {
 }
 
 /**
- * Get the .omc root directory path.
+ * Get the .omac root directory path.
  *
- * When OMC_STATE_DIR is set, returns $OMC_STATE_DIR/{project-identifier}/
- * instead of {worktree}/.omc/. This allows centralized state storage that
+ * When OMAC_STATE_DIR is set, returns $OMAC_STATE_DIR/{project-identifier}/
+ * instead of {worktree}/.omac/. This allows centralized state storage that
  * survives worktree deletion.
  *
  * @param worktreeRoot - Optional worktree root
- * @returns Absolute path to the omc root directory
+ * @returns Absolute path to the omac root directory
  */
-export function getOmcRoot(worktreeRoot?: string): string {
-  const customDir = process.env.OMC_STATE_DIR;
+export function getOmacRoot(worktreeRoot?: string): string {
+  const customDir = process.env.OMAC_STATE_DIR;
   if (customDir) {
     const root = worktreeRoot || getWorktreeRoot() || process.cwd();
     const projectId = getProjectIdentifier(root);
     const centralizedPath = join(customDir, projectId);
 
-    // Log notice if both legacy .omc/ and new centralized dir exist
-    const legacyPath = join(root, OmcPaths.ROOT);
+    // Log notice if both legacy .omac/ and new centralized dir exist
+    const legacyPath = join(root, OmacPaths.ROOT);
     const warningKey = `${legacyPath}:${centralizedPath}`;
     if (!dualDirWarnings.has(warningKey) && existsSync(legacyPath) && existsSync(centralizedPath)) {
       dualDirWarnings.add(warningKey);
       console.warn(
-        `[omc] Both legacy state dir (${legacyPath}) and centralized state dir (${centralizedPath}) exist. ` +
+        `[omac] Both legacy state dir (${legacyPath}) and centralized state dir (${centralizedPath}) exist. ` +
         `Using centralized dir. Consider migrating data from the legacy dir and removing it.`
       );
     }
@@ -413,35 +413,35 @@ export function getOmcRoot(worktreeRoot?: string): string {
 
   // Workspace marker overrides git root resolution. This enables multi-repo
   // workspaces where the parent dir is not itself a git repo: all sub-repos
-  // share the same .omc/ at the marker location.
+  // share the same .omac/ at the marker location.
   const workspaceAnchor = findWorkspaceRoot(worktreeRoot);
   if (workspaceAnchor) {
-    return join(workspaceAnchor, OmcPaths.ROOT);
+    return join(workspaceAnchor, OmacPaths.ROOT);
   }
 
   const root = worktreeRoot || getWorktreeRoot() || process.cwd();
-  return join(root, OmcPaths.ROOT);
+  return join(root, OmacPaths.ROOT);
 }
 
 /**
- * Resolve a relative path under .omc/ to an absolute path.
- * Validates the path is within the omc boundary.
+ * Resolve a relative path under .omac/ to an absolute path.
+ * Validates the path is within the omac boundary.
  *
- * @param relativePath - Path relative to .omc/ (e.g., "state/ralph.json")
+ * @param relativePath - Path relative to .omac/ (e.g., "state/ralph.json")
  * @param worktreeRoot - Optional worktree root (auto-detected if not provided)
  * @returns Absolute path
- * @throws Error if path would escape omc boundary
+ * @throws Error if path would escape omac boundary
  */
-export function resolveOmcPath(relativePath: string, worktreeRoot?: string): string {
+export function resolveOmacPath(relativePath: string, worktreeRoot?: string): string {
   validatePath(relativePath);
 
-  const omcDir = getOmcRoot(worktreeRoot);
-  const fullPath = normalize(resolve(omcDir, relativePath));
+  const omacDir = getOmacRoot(worktreeRoot);
+  const fullPath = normalize(resolve(omacDir, relativePath));
 
-  // Verify resolved path is still under omc directory
-  const relativeToOmc = relative(omcDir, fullPath);
-  if (relativeToOmc.startsWith('..') || relativeToOmc.startsWith(sep + '..')) {
-    throw new Error(`Path escapes omc boundary: ${relativePath}`);
+  // Verify resolved path is still under omac directory
+  const relativeToOmac = relative(omacDir, fullPath);
+  if (relativeToOmac.startsWith('..') || relativeToOmac.startsWith(sep + '..')) {
+    throw new Error(`Path escapes omac boundary: ${relativePath}`);
   }
 
   return fullPath;
@@ -461,19 +461,19 @@ export function resolveOmcPath(relativePath: string, worktreeRoot?: string): str
 export function resolveStatePath(stateName: string, worktreeRoot?: string): string {
   // Normalize: ensure -state suffix is present, then add .json
   const normalizedName = stateName.endsWith('-state') ? stateName : `${stateName}-state`;
-  return resolveOmcPath(`state/${normalizedName}.json`, worktreeRoot);
+  return resolveOmacPath(`state/${normalizedName}.json`, worktreeRoot);
 }
 
 /**
- * Ensure a directory exists under .omc/.
+ * Ensure a directory exists under .omac/.
  * Creates parent directories as needed.
  *
- * @param relativePath - Path relative to .omc/
+ * @param relativePath - Path relative to .omac/
  * @param worktreeRoot - Optional worktree root
  * @returns Absolute path to the created directory
  */
-export function ensureOmcDir(relativePath: string, worktreeRoot?: string): string {
-  const fullPath = resolveOmcPath(relativePath, worktreeRoot);
+export function ensureOmacDir(relativePath: string, worktreeRoot?: string): string {
+  const fullPath = resolveOmacPath(relativePath, worktreeRoot);
 
   if (!existsSync(fullPath)) {
     try {
@@ -494,14 +494,14 @@ export function ensureOmcDir(relativePath: string, worktreeRoot?: string): strin
  * This version auto-detects worktree root.
  */
 export function getWorktreeNotepadPath(worktreeRoot?: string): string {
-  return join(getOmcRoot(worktreeRoot), 'notepad.md');
+  return join(getOmacRoot(worktreeRoot), 'notepad.md');
 }
 
 /**
  * Get the absolute path to the project memory file.
  */
 export function getWorktreeProjectMemoryPath(worktreeRoot?: string): string {
-  return join(getOmcRoot(worktreeRoot), 'project-memory.json');
+  return join(getOmacRoot(worktreeRoot), 'project-memory.json');
 }
 
 /**
@@ -510,7 +510,7 @@ export function getWorktreeProjectMemoryPath(worktreeRoot?: string): string {
  */
 export function resolvePlanPath(planName: string, worktreeRoot?: string): string {
   validatePath(planName);
-  return join(getOmcRoot(worktreeRoot), 'plans', `${planName}.md`);
+  return join(getOmacRoot(worktreeRoot), 'plans', `${planName}.md`);
 }
 
 /**
@@ -519,14 +519,14 @@ export function resolvePlanPath(planName: string, worktreeRoot?: string): string
  */
 export function resolveResearchPath(name: string, worktreeRoot?: string): string {
   validatePath(name);
-  return join(getOmcRoot(worktreeRoot), 'research', name);
+  return join(getOmacRoot(worktreeRoot), 'research', name);
 }
 
 /**
  * Resolve the logs directory path.
  */
 export function resolveLogsPath(worktreeRoot?: string): string {
-  return join(getOmcRoot(worktreeRoot), 'logs');
+  return join(getOmacRoot(worktreeRoot), 'logs');
 }
 
 /**
@@ -535,28 +535,28 @@ export function resolveLogsPath(worktreeRoot?: string): string {
  */
 export function resolveWisdomPath(planName: string, worktreeRoot?: string): string {
   validatePath(planName);
-  return join(getOmcRoot(worktreeRoot), 'notepads', planName);
+  return join(getOmacRoot(worktreeRoot), 'notepads', planName);
 }
 
 /**
- * Check if an absolute path is under the .omc directory.
+ * Check if an absolute path is under the .omac directory.
  * @param absolutePath - Absolute path to check
  */
-export function isPathUnderOmc(absolutePath: string, worktreeRoot?: string): boolean {
-  const omcRoot = getOmcRoot(worktreeRoot);
+export function isPathUnderOmac(absolutePath: string, worktreeRoot?: string): boolean {
+  const omacRoot = getOmacRoot(worktreeRoot);
   const normalizedPath = normalize(absolutePath);
-  const normalizedOmc = normalize(omcRoot);
-  return normalizedPath.startsWith(normalizedOmc + sep) || normalizedPath === normalizedOmc;
+  const normalizedOmac = normalize(omacRoot);
+  return normalizedPath.startsWith(normalizedOmac + sep) || normalizedPath === normalizedOmac;
 }
 
 /**
- * Ensure all standard .omc subdirectories exist.
+ * Ensure all standard .omac subdirectories exist.
  */
-export function ensureAllOmcDirs(worktreeRoot?: string): void {
-  const omcRoot = getOmcRoot(worktreeRoot);
+export function ensureAllOmacDirs(worktreeRoot?: string): void {
+  const omacRoot = getOmacRoot(worktreeRoot);
   const subdirs = ['', 'state', 'plans', 'research', 'logs', 'notepads', 'drafts'];
   for (const subdir of subdirs) {
-    const fullPath = subdir ? join(omcRoot, subdir) : omcRoot;
+    const fullPath = subdir ? join(omacRoot, subdir) : omacRoot;
     if (!existsSync(fullPath)) {
       try {
         mkdirSync(fullPath, { recursive: true });
@@ -676,10 +676,10 @@ export function isValidTranscriptPath(transcriptPath: string): boolean {
   const normalized = normalize(expandedPath);
   const home = homedir();
 
-  // Allowed: [$CLAUDE_CONFIG_DIR|~/.claude], ~/.omc/..., system temp dir
+  // Allowed: [$CLAUDE_CONFIG_DIR|~/.claude], ~/.omac/..., system temp dir
   const allowedPrefixes = [
     getClaudeConfigDir(),
-    join(home, '.omc'),
+    join(home, '.omac'),
     tmpdir(), // honors $TMPDIR; covers /tmp and macOS /var/folders defaults
     '/tmp',
     '/var/folders', // macOS temp
@@ -694,7 +694,7 @@ export function isValidTranscriptPath(transcriptPath: string): boolean {
 
 /**
  * Resolve a session-scoped state file path.
- * Path: {omcRoot}/state/sessions/{sessionId}/{mode}-state.json
+ * Path: {omacRoot}/state/sessions/{sessionId}/{mode}-state.json
  *
  * @deprecated Use resolveSessionStatePaths instead.
  * @param stateName - State name (e.g., "ralph", "ultrawork")
@@ -706,7 +706,7 @@ export function resolveSessionStatePath(stateName: string, sessionId: string, wo
   validateSessionId(sessionId);
 
   const normalizedName = stateName.endsWith('-state') ? stateName : `${stateName}-state`;
-  return resolveOmcPath(`state/sessions/${sessionId}/${normalizedName}.json`, worktreeRoot);
+  return resolveOmacPath(`state/sessions/${sessionId}/${normalizedName}.json`, worktreeRoot);
 }
 
 // ============================================================================
@@ -733,8 +733,8 @@ export type WritePath = string & { readonly __brand: 'WritePath' };
  * provided; legacy root only when sessionId is absent — back-compat mode).
  *
  * Fields:
- *  - `sessionScoped`: `.omc/state/sessions/{sessionId}/{name}.json` (or empty when no sid).
- *  - `legacy`: `.omc/state/{name}.json` — preserved for backwards-compat reads.
+ *  - `sessionScoped`: `.omac/state/sessions/{sessionId}/{name}.json` (or empty when no sid).
+ *  - `legacy`: `.omac/state/{name}.json` — preserved for backwards-compat reads.
  *  - `effectiveRead`: brand-typed path the caller should READ from.
  *    When sid is set and the session-scoped file exists, this is sessionScoped;
  *    otherwise legacy.
@@ -752,7 +752,7 @@ export interface SessionStatePaths {
  * Options for resolveSessionStatePaths.
  *
  * `migrate`: opt-in one-shot legacy→session copy. Default: false (read-legacy-as-
- * fallback, write session-only). When migrate=true OR `OMC_MIGRATE_LEGACY_STATE=1`
+ * fallback, write session-only). When migrate=true OR `OMAC_MIGRATE_LEGACY_STATE=1`
  * is set, callers that wrap their write through a migration helper will copy the
  * legacy file using a `.migrating` sentinel + atomic rename for crash recovery.
  */
@@ -791,7 +791,7 @@ export function resolveSessionStatePaths(
     };
   }
   validateSessionId(sessionId);
-  const sessionScoped = resolveOmcPath(`state/sessions/${sessionId}/${normalizedName}.json`, worktreeRoot);
+  const sessionScoped = resolveOmacPath(`state/sessions/${sessionId}/${normalizedName}.json`, worktreeRoot);
   // effectiveRead probes session-scoped first; fall back to legacy when the
   // session-scoped file does not yet exist (first-read back-compat).
   const effectiveRead = (existsSync(sessionScoped) ? sessionScoped : legacy) as ReadPath;
@@ -808,12 +808,12 @@ export function resolveSessionStatePaths(
  * Checked by writers that wrap migration around their write step.
  */
 export function isLegacyStateMigrationEnabled(): boolean {
-  return process.env.OMC_MIGRATE_LEGACY_STATE === '1';
+  return process.env.OMAC_MIGRATE_LEGACY_STATE === '1';
 }
 
 /**
  * Get the session state directory path.
- * Path: {omcRoot}/state/sessions/{sessionId}/
+ * Path: {omacRoot}/state/sessions/{sessionId}/
  *
  * @param sessionId - Session identifier
  * @param worktreeRoot - Optional worktree root
@@ -821,7 +821,7 @@ export function isLegacyStateMigrationEnabled(): boolean {
  */
 export function getSessionStateDir(sessionId: string, worktreeRoot?: string): string {
   validateSessionId(sessionId);
-  return join(getOmcRoot(worktreeRoot), 'state', 'sessions', sessionId);
+  return join(getOmacRoot(worktreeRoot), 'state', 'sessions', sessionId);
 }
 
 /**
@@ -831,7 +831,7 @@ export function getSessionStateDir(sessionId: string, worktreeRoot?: string): st
  * @returns Array of session IDs
  */
 export function listSessionIds(worktreeRoot?: string): string[] {
-  const sessionsDir = join(getOmcRoot(worktreeRoot), 'state', 'sessions');
+  const sessionsDir = join(getOmacRoot(worktreeRoot), 'state', 'sessions');
 
   if (!existsSync(sessionsDir)) {
     return [];
@@ -876,7 +876,7 @@ export function ensureSessionStateDir(sessionId: string, worktreeRoot?: string):
  * Walks up from `directory` using `git rev-parse --show-toplevel`.
  * Falls back to `getWorktreeRoot(process.cwd())`, then `process.cwd()`.
  *
- * This ensures .omc/ state is always written at the worktree root,
+ * This ensures .omac/ state is always written at the worktree root,
  * even when called from a subdirectory (fixes #576).
  *
  * @param directory - Any directory inside a git worktree (optional)
@@ -1023,7 +1023,7 @@ export function resolveTranscriptPath(transcriptPath: string | undefined, cwd?: 
  * The trusted root is derived from process.cwd(), NOT from user input.
  *
  * Always returns a git worktree root — never a subdirectory.
- * This prevents .omc/state/ from being created in subdirectories (#576).
+ * This prevents .omac/state/ from being created in subdirectories (#576).
  *
  * @param workingDirectory - User-supplied working directory
  * @returns The validated worktree root
@@ -1086,7 +1086,7 @@ export function validateWorkingDirectory(workingDirectory?: string): string {
   }
 
   // Directory is under trusted root but git failed — return trusted root,
-  // never the subdirectory, to prevent .omc/ creation in subdirs (#576).
+  // never the subdirectory, to prevent .omac/ creation in subdirs (#576).
   return trustedRoot;
 }
 

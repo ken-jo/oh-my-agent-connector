@@ -22,8 +22,8 @@ describe("AskUserQuestion notification lifecycle (issue #597)", () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    delete process.env.DISABLE_OMC;
-    delete process.env.OMC_SKIP_HOOKS;
+    delete process.env.DISABLE_OMAC;
+    delete process.env.OMAC_SKIP_HOOKS;
     resetSkipHooksCache();
     // Spy on the object-wrapped helper — avoids ESM module-internal call issue
     dispatchSpy = vi

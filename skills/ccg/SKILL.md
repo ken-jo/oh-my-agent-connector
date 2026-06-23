@@ -21,7 +21,7 @@ Use this when you want parallel external perspectives without launching tmux tea
 
 - **Codex CLI**: `npm install -g @openai/codex` (or `@openai/codex`)
 - **Gemini CLI**: `npm install -g @google/gemini-cli`
-- `omc ask` command available
+- `omac ask` command available
 - If either CLI is unavailable, continue with whichever provider is available and note the limitation
 
 ## How It Works
@@ -32,10 +32,10 @@ Use this when you want parallel external perspectives without launching tmux tea
    - Gemini prompt (UX/design/docs/alternatives)
 
 2. Claude runs via CLI (skill nesting not supported):
-   - `omc ask codex "<codex prompt>"`
-   - `omc ask gemini "<gemini prompt>"`
+   - `omac ask codex "<codex prompt>"`
+   - `omac ask gemini "<gemini prompt>"`
 
-3. Artifacts are written under `.omc/artifacts/ask/`
+3. Artifacts are written under `.omac/artifacts/ask/`
 
 4. Claude synthesizes both outputs into one final response
 ```
@@ -58,8 +58,8 @@ Split the user request into:
 Run both advisors:
 
 ```bash
-omc ask codex "<codex prompt>"
-omc ask gemini "<gemini prompt>"
+omac ask codex "<codex prompt>"
+omac ask gemini "<gemini prompt>"
 ```
 
 ### 3. Collect artifacts
@@ -67,8 +67,8 @@ omc ask gemini "<gemini prompt>"
 Read latest ask artifacts from:
 
 ```text
-.omc/artifacts/ask/codex-*.md
-.omc/artifacts/ask/gemini-*.md
+.omac/artifacts/ask/codex-*.md
+.omac/artifacts/ask/gemini-*.md
 ```
 
 ### 4. Synthesize
@@ -94,11 +94,11 @@ If both unavailable:
 ## Invocation
 
 ```bash
-/oh-my-claudecode:ccg <task description>
+/oh-my-agent-connector:ccg <task description>
 ```
 
 Example:
 
 ```bash
-/oh-my-claudecode:ccg Review this PR - architecture/security via Codex and UX/readability via Gemini
+/oh-my-agent-connector:ccg Review this PR - architecture/security via Codex and UX/readability via Gemini
 ```

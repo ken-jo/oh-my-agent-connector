@@ -1,58 +1,58 @@
-# AST-grep rules for detecting raw .omc path constructions that bypass resolveSessionStatePaths.
+# AST-grep rules for detecting raw .omac path constructions that bypass resolveSessionStatePaths.
 # Any match outside the whitelisted files is a contract violation.
 # Whitelist is enforced in check-multirepo-paths.mjs, not here.
 
 rules:
-  - id: join-omc-literal-single
+  - id: join-omac-literal-single
     language: TypeScript
     rule:
-      pattern: join($_, '.omc', $$$)
-    message: "Raw join(..., '.omc', ...) detected — use resolveSessionStatePaths() or getOmcRoot() instead"
+      pattern: join($_, '.omac', $$$)
+    message: "Raw join(..., '.omac', ...) detected — use resolveSessionStatePaths() or getOmacRoot() instead"
 
-  - id: join-omc-literal-double
+  - id: join-omac-literal-double
     language: TypeScript
     rule:
-      pattern: join($_, ".omc", $$$)
-    message: "Raw join(..., \".omc\", ...) detected — use resolveSessionStatePaths() or getOmcRoot() instead"
+      pattern: join($_, ".omac", $$$)
+    message: "Raw join(..., \".omac\", ...) detected — use resolveSessionStatePaths() or getOmacRoot() instead"
 
-  - id: template-omc-forward-slash
+  - id: template-omac-forward-slash
     language: TypeScript
     rule:
-      pattern: "`${$_}/.omc/$$$`"
-    message: "Raw template `.../.omc/...` detected — use resolveSessionStatePaths() or getOmcRoot() instead"
+      pattern: "`${$_}/.omac/$$$`"
+    message: "Raw template `.../.omac/...` detected — use resolveSessionStatePaths() or getOmacRoot() instead"
 
-  - id: template-omc-backslash
+  - id: template-omac-backslash
     language: TypeScript
     rule:
-      pattern: "`${$_}\\.omc\\$$$`"
-    message: "Raw template `...\\.omc\\...` detected — use resolveSessionStatePaths() or getOmcRoot() instead"
+      pattern: "`${$_}\\.omac\\$$$`"
+    message: "Raw template `...\\.omac\\...` detected — use resolveSessionStatePaths() or getOmacRoot() instead"
 
-  - id: path-join-omc
+  - id: path-join-omac
     language: TypeScript
     rule:
-      pattern: path.join($_, '.omc', $$$)
-    message: "Raw path.join(..., '.omc', ...) detected — use resolveSessionStatePaths() or getOmcRoot() instead"
+      pattern: path.join($_, '.omac', $$$)
+    message: "Raw path.join(..., '.omac', ...) detected — use resolveSessionStatePaths() or getOmacRoot() instead"
 
-  - id: join-omc-literal-single-js
+  - id: join-omac-literal-single-js
     language: JavaScript
     rule:
-      pattern: join($_, '.omc', $$$)
-    message: "Raw join(..., '.omc', ...) detected — use resolveOmcStateRoot() instead"
+      pattern: join($_, '.omac', $$$)
+    message: "Raw join(..., '.omac', ...) detected — use resolveOmacStateRoot() instead"
 
-  - id: join-omc-literal-double-js
+  - id: join-omac-literal-double-js
     language: JavaScript
     rule:
-      pattern: join($_, ".omc", $$$)
-    message: "Raw join(..., \".omc\", ...) detected — use resolveOmcStateRoot() instead"
+      pattern: join($_, ".omac", $$$)
+    message: "Raw join(..., \".omac\", ...) detected — use resolveOmacStateRoot() instead"
 
-  - id: template-omc-forward-slash-js
+  - id: template-omac-forward-slash-js
     language: JavaScript
     rule:
-      pattern: "`${$_}/.omc/$$$`"
-    message: "Raw template `.../.omc/...` detected — use resolveOmcStateRoot() instead"
+      pattern: "`${$_}/.omac/$$$`"
+    message: "Raw template `.../.omac/...` detected — use resolveOmacStateRoot() instead"
 
-  - id: path-join-omc-js
+  - id: path-join-omac-js
     language: JavaScript
     rule:
-      pattern: path.join($_, '.omc', $$$)
-    message: "Raw path.join(..., '.omc', ...) detected — use resolveOmcStateRoot() instead"
+      pattern: path.join($_, '.omac', $$$)
+    message: "Raw path.join(..., '.omac', ...) detected — use resolveOmacStateRoot() instead"

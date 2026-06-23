@@ -3,7 +3,7 @@
  *
  * Runtime selection:
  * - Default: v2 enabled
- * - Opt-out: set OMC_RUNTIME_V2=0|false|no|off to force legacy v1
+ * - Opt-out: set OMAC_RUNTIME_V2=0|false|no|off to force legacy v1
  * NO done.json polling. Completion is detected via:
  * - CLI API lifecycle transitions (claim-task, transition-task-status)
  * - Event-driven monitor snapshots
@@ -22,7 +22,7 @@ import { existsSync } from 'fs';
 import { mkdir, readdir, readFile, rm, writeFile } from 'fs/promises';
 import { performance } from 'perf_hooks';
 import { TeamPaths, absPath, teamStateRoot } from './state-paths.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 import { allocateTasksToWorkers } from './allocation-policy.js';
 import type { TaskAllocationInput, WorkerAllocationInput } from './allocation-policy.js';
 import {
@@ -82,7 +82,7 @@ import {
   normalizeTeamWorktreeMode,
   type TeamWorktreeMode,
 } from './git-worktree.js';
-import { formatOmcCliInvocation } from '../utils/omc-cli-rendering.js';
+import { formatOmacCliInvocation } from '../utils/omac-cli-rendering.js';
 import { createSwallowedErrorLogger } from '../lib/swallowed-error.js';
 import type { CanonicalTeamRole, PluginConfig, RoleAssignment, TeamRoleAssignmentSpec } from '../shared/types.js';
 import { CANONICAL_TEAM_ROLES } from '../shared/types.js';
@@ -425,7 +425,7 @@ export interface StartTeamV2Config {
 
 /**
  * Build the initial task instruction for v2 workers.
- * Workers use `omc team api` CLI commands for all lifecycle transitions.
+ * Workers use `omac team api` CLI commands for all lifecycle transitions.
  */
 function buildV2TaskInstruction(
   teamName: string,
@@ -434,14 +434,14 @@ function buildV2TaskInstruction(
   taskId: string,
   cliOutputContract?: string,
 ): string {
-  const claimTaskCommand = formatOmcCliInvocation(
+  const claimTaskCommand = formatOmacCliInvocation(
     `team api claim-task --input '${JSON.stringify({ team_name: teamName, task_id: taskId, worker: workerName })}' --json`,
     {},
   );
-  const completeTaskCommand = formatOmcCliInvocation(
+  const completeTaskCommand = formatOmacCliInvocation(
     `team api transition-task-status --input '${JSON.stringify({ team_name: teamName, task_id: taskId, from: 'in_progress', to: 'completed', claim_token: '<claim_token>', result: 'Summary: <what changed>\\nVerification: <tests/checks run>\\nSubagent skip reason: worker protocol forbids nested subagents; completed focused probe in-session' })}' --json`,
   );
-  const failTaskCommand = formatOmcCliInvocation(
+  const failTaskCommand = formatOmacCliInvocation(
     `team api transition-task-status --input '${JSON.stringify({ team_name: teamName, task_id: taskId, from: 'in_progress', to: 'failed', claim_token: '<claim_token>' })}' --json`,
   );
   return [
@@ -639,7 +639,7 @@ async function spawnV2Worker(opts: SpawnV2WorkerOptions): Promise<SpawnV2WorkerR
   const instruction = buildV2TaskInstruction(
     opts.teamName, opts.workerName, opts.task, opts.taskId, cliOutputContract,
   );
-  const instructionStateRoot = opts.worktreePath ? '$OMC_TEAM_STATE_ROOT' : undefined;
+  const instructionStateRoot = opts.worktreePath ? '$OMAC_TEAM_STATE_ROOT' : undefined;
   const inboxTriggerMessage = generateTriggerMessage(opts.teamName, opts.workerName, instructionStateRoot);
   const promptModeStartupPrompt = generatePromptModeStartupPrompt(
     opts.teamName, opts.workerName, instructionStateRoot, cliOutputContract,
@@ -653,10 +653,10 @@ async function spawnV2Worker(opts: SpawnV2WorkerOptions): Promise<SpawnV2WorkerR
   // Build env and launch command
   const envVars = {
     ...getModelWorkerEnv(opts.teamName, opts.workerName, opts.agentType),
-    OMC_TEAM_STATE_ROOT: teamStateRoot(opts.cwd, opts.teamName),
-    OMC_TEAM_LEADER_CWD: opts.cwd,
-    ...(opts.worktreePath ? { OMC_TEAM_WORKTREE_PATH: opts.worktreePath } : {}),
-    ...(opts.workerCwd ? { OMC_TEAM_WORKER_CWD: opts.workerCwd } : {}),
+    OMAC_TEAM_STATE_ROOT: teamStateRoot(opts.cwd, opts.teamName),
+    OMAC_TEAM_LEADER_CWD: opts.cwd,
+    ...(opts.worktreePath ? { OMAC_TEAM_WORKTREE_PATH: opts.worktreePath } : {}),
+    ...(opts.workerCwd ? { OMAC_TEAM_WORKER_CWD: opts.workerCwd } : {}),
   };
   const resolvedBinaryPath = opts.resolvedBinaryPaths[opts.agentType]
     ?? resolveValidatedBinaryPath(opts.agentType);
@@ -668,18 +668,18 @@ async function spawnV2Worker(opts: SpawnV2WorkerOptions): Promise<SpawnV2WorkerR
   // per-role routing (codex/gemini/claude-tier) is honored at spawn time.
   const modelForAgent = opts.model ?? (() => {
     if (opts.agentType === 'codex') {
-      return process.env.OMC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL
-        || process.env.OMC_CODEX_DEFAULT_MODEL
+      return process.env.OMAC_EXTERNAL_MODELS_DEFAULT_CODEX_MODEL
+        || process.env.OMAC_CODEX_DEFAULT_MODEL
         || undefined;
     }
     if (opts.agentType === 'gemini') {
-      return process.env.OMC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL
-        || process.env.OMC_GEMINI_DEFAULT_MODEL
+      return process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GEMINI_MODEL
+        || process.env.OMAC_GEMINI_DEFAULT_MODEL
         || undefined;
     }
     if (opts.agentType === 'grok') {
-      return process.env.OMC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL
-        || process.env.OMC_GROK_DEFAULT_MODEL
+      return process.env.OMAC_EXTERNAL_MODELS_DEFAULT_GROK_MODEL
+        || process.env.OMAC_GROK_DEFAULT_MODEL
         || undefined;
     }
     // Claude agents: resolve Bedrock/Vertex model when on those providers
@@ -917,7 +917,7 @@ export async function startTeamV2(config: StartTeamV2Config): Promise<TeamRuntim
   const pluginCfg: PluginConfig = config.pluginConfig ?? loadConfig();
   const resolvedRouting = buildResolvedRoutingSnapshot(pluginCfg);
   let worktreeMode: TeamWorktreeMode = normalizeTeamWorktreeMode(
-    process.env.OMC_TEAM_WORKTREE_MODE ?? pluginCfg.team?.ops?.worktreeMode,
+    process.env.OMAC_TEAM_WORKTREE_MODE ?? pluginCfg.team?.ops?.worktreeMode,
   );
 
   // Auto-merge gate (M5 + M3 hardening). Forces worktreeMode='named' so each
@@ -925,7 +925,7 @@ export async function startTeamV2(config: StartTeamV2Config): Promise<TeamRuntim
   let autoMergeLeaderBranch: string | undefined;
   if (config.autoMerge) {
     if (!isRuntimeV2Enabled()) {
-      throw new Error('auto-merge requires OMC_RUNTIME_V2=1 (this feature is v2-only).');
+      throw new Error('auto-merge requires OMAC_RUNTIME_V2=1 (this feature is v2-only).');
     }
     autoMergeLeaderBranch = resolveLeaderBranch(leaderCwd);
     const stripped = autoMergeLeaderBranch.replace(/^refs\/heads\//i, '').toLowerCase();
@@ -983,7 +983,7 @@ export async function startTeamV2(config: StartTeamV2Config): Promise<TeamRuntim
   // Create state directories
   await mkdir(absPath(leaderCwd, TeamPaths.tasks(sanitized)), { recursive: true });
   await mkdir(absPath(leaderCwd, TeamPaths.workers(sanitized)), { recursive: true });
-  await mkdir(join(getOmcRoot(leaderCwd), 'state', 'team', sanitized, 'mailbox'), { recursive: true });
+  await mkdir(join(getOmacRoot(leaderCwd), 'state', 'team', sanitized, 'mailbox'), { recursive: true });
 
   // AC-8: emit a loud team-event warning naming every missing/untrusted CLI
   // binary so the leader surfaces the fallback decision instead of silently
@@ -1082,7 +1082,7 @@ export async function startTeamV2(config: StartTeamV2Config): Promise<TeamRuntim
         })),
         cwd: leaderCwd,
         ...(config.rolePrompt ? { bootstrapInstructions: config.rolePrompt } : {}),
-        ...(workerWorktrees.has(wName) ? { instructionStateRoot: '$OMC_TEAM_STATE_ROOT' } : {}),
+        ...(workerWorktrees.has(wName) ? { instructionStateRoot: '$OMAC_TEAM_STATE_ROOT' } : {}),
       });
       const worktree = workerWorktrees.get(wName);
       if (worktree) {
@@ -1171,9 +1171,9 @@ export async function startTeamV2(config: StartTeamV2Config): Promise<TeamRuntim
     throw error;
   }
   const permissionsSnapshot = {
-    approval_mode: process.env.OMC_APPROVAL_MODE || 'default',
-    sandbox_mode: process.env.OMC_SANDBOX_MODE || 'default',
-    network_access: process.env.OMC_NETWORK_ACCESS === '1',
+    approval_mode: process.env.OMAC_APPROVAL_MODE || 'default',
+    sandbox_mode: process.env.OMAC_SANDBOX_MODE || 'default',
+    network_access: process.env.OMAC_NETWORK_ACCESS === '1',
   };
   const teamManifest: TeamManifestV2 = {
     schema_version: 2,
@@ -2062,7 +2062,7 @@ export async function shutdownTeamV2(
       shutdownRequestTimes.set(w.name, requestedAt);
       // Write shutdown inbox
       const shutdownAckPath = w.worktree_path
-        ? `$OMC_TEAM_STATE_ROOT/workers/${w.name}/shutdown-ack.json`
+        ? `$OMAC_TEAM_STATE_ROOT/workers/${w.name}/shutdown-ack.json`
         : TeamPaths.shutdownAck(sanitized, w.name);
       const shutdownInbox = `# Shutdown Request\n\nAll tasks are complete. Please wrap up and respond with a shutdown acknowledgement.\n\nWrite your ack to: ${shutdownAckPath}\nFormat: {"status":"accept","reason":"ok","updated_at":"<iso>"}\n\nThen exit your session.\n`;
       await writeWorkerInbox(sanitized, w.name, shutdownInbox, cwd);
@@ -2217,7 +2217,7 @@ export async function resumeTeamV2(
 
   // Verify tmux session is alive
   try {
-    const sessionName = config.tmux_session || `omc-team-${sanitized}`;
+    const sessionName = config.tmux_session || `omac-team-${sanitized}`;
     await tmuxExecAsync(['has-session', '-t', sessionName.split(':')[0]]);
 
     return {
@@ -2238,7 +2238,7 @@ export async function resumeTeamV2(
 // ---------------------------------------------------------------------------
 
 export async function findActiveTeamsV2(cwd: string): Promise<string[]> {
-  const root = join(getOmcRoot(cwd), 'state', 'team');
+  const root = join(getOmacRoot(cwd), 'state', 'team');
   if (!existsSync(root)) return [];
   const entries = await readdir(root, { withFileTypes: true });
   const active: string[] = [];

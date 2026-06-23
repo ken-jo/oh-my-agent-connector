@@ -9,7 +9,7 @@
  * ```bash
  * #!/bin/bash
  * INPUT=$(cat)
- * echo "$INPUT" | node ~/.claude/omc/hook-bridge.mjs --hook=keyword-detector
+ * echo "$INPUT" | node ~/.claude/omac/hook-bridge.mjs --hook=keyword-detector
  * ```
  */
 
@@ -25,10 +25,10 @@ import {
   writeFileSync,
 } from "fs";
 import { dirname, join } from "path";
-import { resolveToWorktreeRoot, getOmcRoot } from "../lib/worktree-paths.js";
+import { resolveToWorktreeRoot, getOmacRoot } from "../lib/worktree-paths.js";
 import { readModeState, writeModeState } from "../lib/mode-state-io.js";
 import { SESSION_END_MODE_STATE_FILES } from "../lib/mode-names.js";
-import { formatOmcCliInvocation } from "../utils/omc-cli-rendering.js";
+import { formatOmacCliInvocation } from "../utils/omac-cli-rendering.js";
 import { createSwallowedErrorLogger } from "../lib/swallowed-error.js";
 import { dispatchNotificationInBackground } from "./background-notifications.js";
 import { readCanonicalTeamStateCandidate } from "./team-canonical-state.js";
@@ -44,7 +44,7 @@ import {
 import {
   processOrchestratorPreTool,
   processOrchestratorPostTool,
-} from "./omc-orchestrator/index.js";
+} from "./omac-orchestrator/index.js";
 import { normalizeHookInput } from "./bridge-normalize.js";
 import {
   addBackgroundTask,
@@ -55,7 +55,7 @@ import {
   remapMostRecentMatchingBackgroundTaskId,
 } from "../hud/background-tasks.js";
 import { readHudState, writeHudState } from "../hud/state.js";
-import { compactOmcStartupGuidance, loadConfig } from "../config/loader.js";
+import { compactOmacStartupGuidance, loadConfig } from "../config/loader.js";
 import {
   activatePromptPrerequisiteState,
   buildPromptPrerequisiteDenyReason,
@@ -119,7 +119,7 @@ import { wrapUntrustedFileContent } from "../agents/prompt-helpers.js";
 const PKILL_F_FLAG_PATTERN = /\bpkill\b.*\s-f\b/;
 const PKILL_FULL_FLAG_PATTERN = /\bpkill\b.*--full\b/;
 const WORKER_BLOCKED_TMUX_PATTERN = /\btmux\s+/i;
-const WORKER_BLOCKED_TEAM_CLI_PATTERN = /\bom[cx]\s+team\b(?!\s+api\b)/i;
+const WORKER_BLOCKED_TEAM_CLI_PATTERN = /\b(?:omac|omx)\s+team\b(?!\s+api\b)/i;
 const WORKER_BLOCKED_SKILL_PATTERN = /\$(team|ultrawork|autopilot|ralph)\b/i;
 
 const TEAM_TERMINAL_VALUES = new Set([
@@ -229,7 +229,7 @@ function buildSessionStartAdditionalContext(messages: string[]): string {
 }
 
 function readLinuxBootId(): string | undefined {
-  const testBootId = process.env.OMC_TEST_BOOT_ID?.trim();
+  const testBootId = process.env.OMAC_TEST_BOOT_ID?.trim();
   if (testBootId) return testBootId;
 
   try {
@@ -242,7 +242,7 @@ function readLinuxBootId(): string | undefined {
 }
 
 function sessionStateDir(directory: string, sessionId: string): string {
-  return join(getOmcRoot(directory), "state", "sessions", sessionId);
+  return join(getOmacRoot(directory), "state", "sessions", sessionId);
 }
 
 function sessionStartedMarkerPath(directory: string, sessionId: string): string {
@@ -301,7 +301,7 @@ function removeSessionStartedMarker(directory: string, sessionId?: string): void
 }
 
 function hasSessionEndSummary(directory: string, sessionId: string): boolean {
-  return existsSync(join(getOmcRoot(directory), "sessions", `${sessionId}.json`));
+  return existsSync(join(getOmacRoot(directory), "sessions", `${sessionId}.json`));
 }
 
 function cleanupSessionModeStateFiles(directory: string, sessionId: string): void {
@@ -325,7 +325,7 @@ function cleanupSessionModeStateFiles(directory: string, sessionId: string): voi
 }
 
 function cleanupMissionStateForSession(directory: string, sessionId: string): void {
-  const missionStatePath = join(getOmcRoot(directory), "state", "mission-state.json");
+  const missionStatePath = join(getOmacRoot(directory), "state", "mission-state.json");
   const parsed = readJsonObject(missionStatePath) as {
     updatedAt?: string;
     missions?: Array<Record<string, unknown>>;
@@ -355,7 +355,7 @@ function cleanupMissionStateForSession(directory: string, sessionId: string): vo
  *
  * Claude Code SessionStart input currently provides session metadata such as
  * session_id, transcript_path, cwd, source, model, and agent_type, but no
- * stable owner process for the interactive session. In installed OMC hooks the
+ * stable owner process for the interactive session. In installed OMAC hooks the
  * immediate hook parent belongs to scripts/run.cjs and is intentionally
  * short-lived, so same-boot PID liveness checks are not reliable here. SessionEnd
  * remains the primary same-boot cleanup path; SessionStart only reconciles
@@ -375,7 +375,7 @@ function hasDurableAbandonmentEvidence(marker: SessionStartedMarker): boolean {
 }
 
 async function reconcileAbandonedSessionStarts(directory: string, currentSessionId?: string): Promise<void> {
-  const sessionsDir = join(getOmcRoot(directory), "state", "sessions");
+  const sessionsDir = join(getOmacRoot(directory), "state", "sessions");
   if (!existsSync(sessionsDir)) return;
 
   let entries: string[];
@@ -403,7 +403,7 @@ async function reconcileAbandonedSessionStarts(directory: string, currentSession
 
     if (!hasDurableAbandonmentEvidence(marker)) continue;
 
-    // Deliberately narrow: clear only OMC session-scoped mode/mission state.
+    // Deliberately narrow: clear only OMAC session-scoped mode/mission state.
     // Do not call team runtime shutdown here; SessionStart must not kill tmux PIDs.
     cleanupSessionModeStateFiles(directory, sessionId);
     cleanupMissionStateForSession(directory, sessionId);
@@ -495,7 +495,7 @@ function taskLaunchDidFail(toolOutput: unknown): boolean {
 }
 
 function getSessionStateDir(directory: string, sessionId?: string): string {
-  const stateDir = join(getOmcRoot(directory), "state");
+  const stateDir = join(getOmacRoot(directory), "state");
   if (sessionId && SAFE_SESSION_ID_PATTERN.test(sessionId)) {
     return join(stateDir, "sessions", sessionId);
   }
@@ -561,7 +561,7 @@ function recordScheduledWakeup(directory: string, sessionId: string | undefined,
 }
 
 function getModeStatePaths(directory: string, modeName: string, sessionId?: string): string[] {
-  const stateDir = join(getOmcRoot(directory), "state");
+  const stateDir = join(getOmacRoot(directory), "state");
   const safeSessionId = typeof sessionId === "string" && SAFE_SESSION_ID_PATTERN.test(sessionId)
     ? sessionId
     : undefined;
@@ -653,7 +653,7 @@ function isConsensusPlanningSkillInvocation(skillName: string | null, toolInput:
     return true;
   }
 
-  if (skillName !== "omc-plan" && skillName !== "plan") {
+  if (skillName !== "omac-plan" && skillName !== "plan") {
     return false;
   }
 
@@ -827,7 +827,7 @@ function readTeamStagedState(
   directory: string,
   sessionId?: string,
 ): TeamStagedState | null {
-  const stateDir = join(getOmcRoot(directory), "state");
+  const stateDir = join(getOmacRoot(directory), "state");
   const statePaths = sessionId
     ? [
         join(stateDir, "sessions", sessionId, "team-state.json"),
@@ -920,7 +920,7 @@ function readTeamStopBreakerCount(
   directory: string,
   sessionId?: string,
 ): number {
-  const stateDir = join(getOmcRoot(directory), "state");
+  const stateDir = join(getOmacRoot(directory), "state");
   const breakerPath = sessionId
     ? join(stateDir, "sessions", sessionId, "team-stop-breaker.json")
     : join(stateDir, "team-stop-breaker.json");
@@ -954,7 +954,7 @@ function writeTeamStopBreakerCount(
   sessionId: string | undefined,
   count: number,
 ): void {
-  const stateDir = join(getOmcRoot(directory), "state");
+  const stateDir = join(getOmacRoot(directory), "state");
   const breakerPath = sessionId
     ? join(stateDir, "sessions", sessionId, "team-stop-breaker.json")
     : join(stateDir, "team-stop-breaker.json");
@@ -1023,9 +1023,9 @@ function getTeamStagePrompt(stage: string): string {
 function teamWorkerIdentityFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): string {
-  const omc =
-    typeof env.OMC_TEAM_WORKER === "string" ? env.OMC_TEAM_WORKER.trim() : "";
-  if (omc) return omc;
+  const omac =
+    typeof env.OMAC_TEAM_WORKER === "string" ? env.OMAC_TEAM_WORKER.trim() : "";
+  if (omac) return omac;
   const omx =
     typeof env.OMX_TEAM_WORKER === "string" ? env.OMX_TEAM_WORKER.trim() : "";
   return omx;
@@ -1037,7 +1037,7 @@ function workerBashBlockReason(command: string): string | null {
     return "Team worker cannot run tmux pane/session orchestration commands.";
   }
   if (WORKER_BLOCKED_TEAM_CLI_PATTERN.test(command)) {
-    return `Team worker cannot run team orchestration commands. Use only \`${formatOmcCliInvocation("team api ... --json")}\`.`;
+    return `Team worker cannot run team orchestration commands. Use only \`${formatOmacCliInvocation("team api ... --json")}\`.`;
   }
   if (WORKER_BLOCKED_SKILL_PATTERN.test(command)) {
     return "Team worker cannot invoke orchestration skills (`$team`, `$ultrawork`, `$autopilot`, `$ralph`).";
@@ -1232,7 +1232,7 @@ function getPromptText(input: HookInput): string {
 }
 
 function isExplicitAskSlashInvocation(promptText: string): boolean {
-  return /^\s*\/(?:oh-my-claudecode:)?ask\s+(?:claude|codex|gemini|grok)\b/i.test(promptText);
+  return /^\s*\/(?:oh-my-agent-connector:)?ask\s+(?:claude|codex|gemini|grok)\b/i.test(promptText);
 }
 
 function activateRalplanStartupState(directory: string, sessionId?: string): void {
@@ -1281,7 +1281,7 @@ function seedWorkflowSlotForSkill(
   parentSkill?: string | null,
 ): boolean {
   if (!isCanonicalWorkflowSkill(skillName)) return false;
-  const normalized = skillName.toLowerCase().replace(/^oh-my-claudecode:/, "");
+  const normalized = skillName.toLowerCase().replace(/^oh-my-agent-connector:/, "");
 
   try {
     const current = readSkillActiveStateNormalized(directory, sessionId);
@@ -1328,7 +1328,7 @@ function confirmWorkflowSlot(
   sessionId?: string,
 ): boolean {
   if (!isCanonicalWorkflowSkill(skillName)) return false;
-  const normalized = skillName.toLowerCase().replace(/^oh-my-claudecode:/, "");
+  const normalized = skillName.toLowerCase().replace(/^oh-my-agent-connector:/, "");
 
   try {
     const current = readSkillActiveStateNormalized(directory, sessionId);
@@ -1354,7 +1354,7 @@ function tombstoneWorkflowSlot(
   sessionId?: string,
 ): boolean {
   if (!isCanonicalWorkflowSkill(skillName)) return false;
-  const normalized = skillName.toLowerCase().replace(/^oh-my-claudecode:/, "");
+  const normalized = skillName.toLowerCase().replace(/^oh-my-agent-connector:/, "");
   try {
     const current = readSkillActiveStateNormalized(directory, sessionId);
     if (!current.active_skills[normalized]) return false;
@@ -1369,7 +1369,7 @@ function resolveStatePathSafe(stateName: string, directory: string): string {
   try {
     // Lazy resolve to avoid a circular import; same module is imported in
     // skill-state via the mode-paths registry.
-    return join(getOmcRoot(directory), "state", `${stateName}-state.json`);
+    return join(getOmacRoot(directory), "state", `${stateName}-state.json`);
   } catch {
     return "";
   }
@@ -1382,7 +1382,7 @@ function resolveSessionStatePathSafe(
 ): string {
   try {
     return join(
-      getOmcRoot(directory),
+      getOmacRoot(directory),
       "state",
       "sessions",
       sessionId,
@@ -1430,7 +1430,7 @@ async function seedModeStateForExplicitWorkflowSlash(
 async function processKeywordDetector(input: HookInput): Promise<HookOutput> {
   // Team worker guard: prevent keyword detection inside team workers to avoid
   // infinite spawning loops (worker detects "team" -> invokes team skill -> spawns more workers)
-  if (process.env.OMC_TEAM_WORKER) {
+  if (process.env.OMAC_TEAM_WORKER) {
     return { continue: true };
   }
 
@@ -1692,10 +1692,10 @@ async function processKeywordDetector(input: HookInput): Promise<HookOutput> {
 
       case "codex":
       case "gemini": {
-        const teamStartCommand = formatOmcCliInvocation(`team start --agent ${keywordType} --count N --task "<task from user message>"`);
+        const teamStartCommand = formatOmacCliInvocation(`team start --agent ${keywordType} --count N --task "<task from user message>"`);
         messages.push(
           `[MAGIC KEYWORD: team]\n` +
-            `User intent: delegate to ${keywordType} CLI workers via ${formatOmcCliInvocation('team')}.\n` +
+            `User intent: delegate to ${keywordType} CLI workers via ${formatOmacCliInvocation('team')}.\n` +
             `Agent type: ${keywordType}. Parse N from user message (default 1).\n` +
             `Invoke: ${teamStartCommand}`,
         );
@@ -1821,7 +1821,7 @@ async function processPersistentMode(input: HookInput): Promise<HookOutput> {
       if (!isAbort && !isContextLimit) {
         // Per-session cooldown: prevent notification spam when the session idles repeatedly.
         // Uses session-scoped state so one session does not suppress another.
-        const stateDir = join(getOmcRoot(directory), "state");
+        const stateDir = join(getOmacRoot(directory), "state");
         const { getIdleNotificationRepoState } = await import("./persistent-mode/idle-repo-state.js");
         const idleRepoState = getIdleNotificationRepoState(directory);
         if (shouldWakeOpenClawOnStop(stateDir, sessionId, idleRepoState)) {
@@ -1832,7 +1832,7 @@ async function processPersistentMode(input: HookInput): Promise<HookOutput> {
           dispatchNotificationInBackground("session-idle", {
             sessionId,
             projectPath: directory,
-            profileName: process.env.OMC_NOTIFY_PROFILE,
+            profileName: process.env.OMAC_NOTIFY_PROFILE,
           });
         }
       }
@@ -1923,7 +1923,7 @@ async function processSessionStart(input: HookInput): Promise<HookOutput> {
     dispatchNotificationInBackground("session-start", {
       sessionId,
       projectPath: directory,
-      profileName: process.env.OMC_NOTIFY_PROFILE,
+      profileName: process.env.OMAC_NOTIFY_PROFILE,
     });
     // Wake OpenClaw gateway for session-start (non-blocking)
     _openclaw.wake("session-start", { sessionId, projectPath: directory });
@@ -2081,7 +2081,7 @@ Treat this as prior-session context only. Prioritize the user's newest request, 
   const agentsMdPath = join(directory, "AGENTS.md");
   if (existsSync(agentsMdPath)) {
     try {
-      let agentsContent = compactOmcStartupGuidance(
+      let agentsContent = compactOmacStartupGuidance(
         readFileSync(agentsMdPath, "utf-8"),
       ).trim();
       if (agentsContent) {
@@ -2145,13 +2145,13 @@ Please continue working on these tasks.
 This environment uses a non-standard model provider (AWS Bedrock, Google Vertex AI, or a proxy such as CC Switch / LiteLLM).
 
 How to pass \`model\` on Task/Agent calls:
-- Prefer a tier alias: \`model: "sonnet"\`, \`model: "opus"\`, or \`model: "haiku"\`. OMC's pre-tool enforcer resolves these to provider-safe IDs when one of these env vars is set: \`ANTHROPIC_DEFAULT_SONNET_MODEL\` (and sibling \`ANTHROPIC_DEFAULT_OPUS_MODEL\` / \`ANTHROPIC_DEFAULT_HAIKU_MODEL\`), \`CLAUDE_CODE_BEDROCK_SONNET_MODEL\` (and sibling \`CLAUDE_CODE_BEDROCK_OPUS_MODEL\` / \`CLAUDE_CODE_BEDROCK_HAIKU_MODEL\`), or \`OMC_SUBAGENT_MODEL\`.
+- Prefer a tier alias: \`model: "sonnet"\`, \`model: "opus"\`, or \`model: "haiku"\`. OMAC's pre-tool enforcer resolves these to provider-safe IDs when one of these env vars is set: \`ANTHROPIC_DEFAULT_SONNET_MODEL\` (and sibling \`ANTHROPIC_DEFAULT_OPUS_MODEL\` / \`ANTHROPIC_DEFAULT_HAIKU_MODEL\`), \`CLAUDE_CODE_BEDROCK_SONNET_MODEL\` (and sibling \`CLAUDE_CODE_BEDROCK_OPUS_MODEL\` / \`CLAUDE_CODE_BEDROCK_HAIKU_MODEL\`), or \`OMAC_SUBAGENT_MODEL\`.
 - If none of those env vars are configured, the enforcer will deny the tier alias with an env-var configuration hint — set one of them in your \`settings.json\` env or shell profile.
 - The enforcer denies tier aliases it cannot resolve. It also denies provider-specific IDs that carry a \`[1m]\` context-window suffix or otherwise fail subagent-safe validation (sub-agents cannot inherit \`[1m]\`). Valid provider-specific IDs without extended-context suffixes are allowed.
 
 When the session model carries a \`[1m]\` suffix, passing an explicit \`model\` is REQUIRED — omitting it will be denied (sub-agents cannot inherit the \`[1m]\` suffix). Use a tier alias (requires resolver env vars above); the Agent tool schema does not accept provider-specific IDs, so tier aliases are the only valid option.
 
-When the session model has no \`[1m]\` suffix, omitting \`model\` is safe UNLESS a custom sub-agent definition pins a bare Anthropic model ID (e.g. \`model: claude-sonnet-4-6\` in agent frontmatter). When resolver env vars are configured, the enforcer will deny that call with tier-alias guidance; when they are absent, the call is not denied by the enforcer but will fail at the provider. Either way, custom sub-agents should pin tier aliases (not bare Anthropic IDs) in their frontmatter. Shipped OMC agents already do this and are unaffected.
+When the session model has no \`[1m]\` suffix, omitting \`model\` is safe UNLESS a custom sub-agent definition pins a bare Anthropic model ID (e.g. \`model: claude-sonnet-4-6\` in agent frontmatter). When resolver env vars are configured, the enforcer will deny that call with tier-alias guidance; when they are absent, the call is not denied by the enforcer but will fail at the provider. Either way, custom sub-agents should pin tier aliases (not bare Anthropic IDs) in their frontmatter. Shipped OMAC agents already do this and are unaffected.
 
 The CLAUDE.md instruction "Pass model on Task calls: haiku, sonnet, opus" applies here — subject to the resolution prerequisites above.
 
@@ -2257,7 +2257,7 @@ export function dispatchAskUserQuestionNotification(
     projectPath: directory,
     question: questionText,
     askUserQuestionPrompts: prompts,
-    profileName: process.env.OMC_NOTIFY_PROFILE,
+    profileName: process.env.OMAC_NOTIFY_PROFILE,
   });
 }
 
@@ -2279,7 +2279,7 @@ export const _openclaw = {
     event: import("../openclaw/types.js").OpenClawHookEvent,
     context: import("../openclaw/types.js").OpenClawContext,
   ) => {
-    if (process.env.OMC_OPENCLAW !== "1") return;
+    if (process.env.OMAC_OPENCLAW !== "1") return;
     const logOpenClawWakeFailure = createSwallowedErrorLogger(
       `hooks.bridge openclaw wake failed for ${event}`,
     );
@@ -2390,7 +2390,7 @@ function processPreToolUse(input: HookInput): HookOutput {
   // src/**/__tests__/. The emitted message here is kept wording-aligned with the
   // enforcer to prevent accidental drift, but must NOT be relied on to shape LLM
   // behavior in production. Tracked for deletion — see the Open Questions entry
-  // at `.omc/plans/open-questions.md` under the model-routing alignment section.
+  // at `.omac/plans/open-questions.md` under the model-routing alignment section.
   // Force-inherit: deny Task/Agent calls that carry a `model` parameter when
   // forceInherit is enabled (Bedrock, Vertex, CC Switch, etc.).
   // Claude Code's hook protocol does not support modifiedInput, so we cannot
@@ -2501,7 +2501,7 @@ function processPreToolUse(input: HookInput): HookOutput {
   // Activate skill state when Skill tool is invoked (issue #1033)
   // This writes skill-active-state.json so the Stop hook can prevent premature
   // session termination while a skill is executing.
-  // Pass rawSkillName so writeSkillActiveState can distinguish OMC built-in
+  // Pass rawSkillName so writeSkillActiveState can distinguish OMAC built-in
   // skills from project custom skills with the same name (issue #1581).
   if (input.toolName === "Skill") {
     const skillName = getInvokedSkillName(input.toolInput);
@@ -2555,7 +2555,7 @@ function processPreToolUse(input: HookInput): HookOutput {
       projectPath: directory,
       agentName,
       agentType,
-      profileName: process.env.OMC_NOTIFY_PROFILE,
+      profileName: process.env.OMAC_NOTIFY_PROFILE,
     });
   }
 
@@ -2607,7 +2607,7 @@ function processPreToolUse(input: HookInput): HookOutput {
           reason:
             `Background process limit reached (${runningCount}/${maxBgTasks}). ` +
             `Wait for running tasks to complete before starting new ones. ` +
-            `Limit is configurable via permissions.maxBackgroundTasks in config or OMC_MAX_BACKGROUND_TASKS env var.`,
+            `Limit is configurable via permissions.maxBackgroundTasks in config or OMAC_MAX_BACKGROUND_TASKS env var.`,
         };
       }
     }
@@ -2741,9 +2741,9 @@ function getInvokedSkillName(toolInput: unknown): string | null {
 
 /**
  * Extract the raw (un-normalized) skill name from Skill tool input.
- * Used to distinguish OMC built-in skills (prefixed with 'oh-my-claudecode:')
+ * Used to distinguish OMAC built-in skills (prefixed with 'oh-my-agent-connector:')
  * from project custom skills or other plugin skills with the same bare name.
- * See: https://github.com/Yeachan-Heo/oh-my-claudecode/issues/1581
+ * See: https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/1581
  */
 function getRawSkillName(toolInput: unknown): string | undefined {
   if (!toolInput || typeof toolInput !== "object") return undefined;
@@ -2757,7 +2757,7 @@ async function processPostToolUse(input: HookInput): Promise<HookOutput> {
   const messages: string[] = [];
 
   // Ensure mode state activation also works when execution starts via Skill tool
-  // (e.g., ralplan consensus handoff into Skill("oh-my-claudecode:ralph")).
+  // (e.g., ralplan consensus handoff into Skill("oh-my-agent-connector:ralph")).
   const toolName = (input.toolName || "").toLowerCase();
   if (toolName === "skill") {
     const skillName = getInvokedSkillName(input.toolInput);
@@ -2788,13 +2788,13 @@ async function processPostToolUse(input: HookInput): Promise<HookOutput> {
     // Clear skill-active state on skill completion to prevent false-blocking.
     // Without this, every non-'none' skill falsely blocks stops until TTL expires.
     // Guard: only clear if the completing skill owns the active state.
-    // When a parent skill (e.g. omc-setup) invokes a child skill (e.g. mcp-setup),
+    // When a parent skill (e.g. omac-setup) invokes a child skill (e.g. mcp-setup),
     // the child's PostToolUse fires first — we must not delete the parent's state.
     const { clearSkillActiveState, readSkillActiveState } = await import("./skill-state/index.js");
     const currentState = readSkillActiveState(directory, input.sessionId);
     const completingSkill = (getInvokedSkillName(input.toolInput) ?? "")
       .toLowerCase()
-      .replace(/^oh-my-claudecode:/, "");
+      .replace(/^oh-my-agent-connector:/, "");
     if (!currentState || !currentState.active || currentState.skill_name === completingSkill) {
       clearSkillActiveState(directory, input.sessionId);
     }
@@ -2973,7 +2973,7 @@ async function processAutopilot(input: HookInput): Promise<HookOutput> {
   const config = loadConfig();
   const context = {
     idea: state.originalIdea,
-    specPath: state.expansion.spec_path || ".omc/autopilot/spec.md",
+    specPath: state.expansion.spec_path || ".omac/autopilot/spec.md",
     planPath: state.planning.plan_path || resolveAutopilotPlanPath(config),
     openQuestionsPath: resolveOpenQuestionsPlanPath(config),
   };
@@ -2993,13 +2993,13 @@ async function processAutopilot(input: HookInput): Promise<HookOutput> {
 }
 
 /**
- * Cached parsed OMC_SKIP_HOOKS for performance (env vars don't change during process lifetime)
+ * Cached parsed OMAC_SKIP_HOOKS for performance (env vars don't change during process lifetime)
  */
 let _cachedSkipHooks: string[] | null = null;
 function getSkipHooks(): string[] {
   if (_cachedSkipHooks === null) {
     _cachedSkipHooks =
-      process.env.OMC_SKIP_HOOKS?.split(",")
+      process.env.OMAC_SKIP_HOOKS?.split(",")
         .map((s) => s.trim())
         .filter(Boolean) ?? [];
   }
@@ -3022,7 +3022,7 @@ export async function processHook(
   rawInput: HookInput,
 ): Promise<HookOutput> {
   // Environment kill-switches for plugin coexistence
-  if (process.env.DISABLE_OMC === "1" || process.env.DISABLE_OMC === "true") {
+  if (process.env.DISABLE_OMAC === "1" || process.env.DISABLE_OMAC === "true") {
     return { continue: true };
   }
   const skipHooks = getSkipHooks();
@@ -3238,7 +3238,7 @@ export async function processHook(
 
       case "code-simplifier": {
         const directory = input.directory ?? process.cwd();
-        const stateDir = join(getOmcRoot(directory), "state");
+        const stateDir = join(getOmacRoot(directory), "state");
         const { processCodeSimplifier } =
           await import("./code-simplifier/index.js");
         const result = processCodeSimplifier(directory, stateDir);

@@ -4033,7 +4033,7 @@ var require_core = __commonJS({
       constructor(opts = {}) {
         this.schemas = {};
         this.refs = {};
-        this.formats = {};
+        this.formats = /* @__PURE__ */ Object.create(null);
         this._compilations = /* @__PURE__ */ new Set();
         this._loading = {};
         this._cache = /* @__PURE__ */ new Map();
@@ -14741,10 +14741,9 @@ var ProgressTokenSchema = union([string2(), number2().int()]);
 var CursorSchema = string2();
 var TaskCreationParamsSchema = looseObject({
   /**
-   * Time in milliseconds to keep task results available after completion.
-   * If null, the task has unlimited lifetime until manually cleaned up.
+   * Requested duration in milliseconds to retain task from creation.
    */
-  ttl: union([number2(), _null3()]).optional(),
+  ttl: number2().optional(),
   /**
    * Time in milliseconds to wait between task status requests.
    */
@@ -15044,7 +15043,11 @@ var ClientCapabilitiesSchema = object2({
   /**
    * Present if the client supports task creation.
    */
-  tasks: ClientTasksCapabilitySchema.optional()
+  tasks: ClientTasksCapabilitySchema.optional(),
+  /**
+   * Extensions that the client supports. Keys are extension identifiers (vendor-prefix/extension-name).
+   */
+  extensions: record(string2(), AssertObjectSchema).optional()
 });
 var InitializeRequestParamsSchema = BaseRequestParamsSchema.extend({
   /**
@@ -15105,7 +15108,11 @@ var ServerCapabilitiesSchema = object2({
   /**
    * Present if the server supports task creation.
    */
-  tasks: ServerTasksCapabilitySchema.optional()
+  tasks: ServerTasksCapabilitySchema.optional(),
+  /**
+   * Extensions that the server supports. Keys are extension identifiers (vendor-prefix/extension-name).
+   */
+  extensions: record(string2(), AssertObjectSchema).optional()
 });
 var InitializeResultSchema = ResultSchema.extend({
   /**
@@ -15297,6 +15304,12 @@ var ResourceSchema = object2({
    * The MIME type of this resource, if known.
    */
   mimeType: optional(string2()),
+  /**
+   * The size of the raw resource content, in bytes (i.e., before base64 encoding or any tokenization), if known.
+   *
+   * This can be used by Hosts to display file sizes and estimate context window usage.
+   */
+  size: optional(number2()),
   /**
    * Optional annotations for the client.
    */
@@ -16478,6 +16491,10 @@ var Protocol = class {
     this._progressHandlers.clear();
     this._taskProgressTokens.clear();
     this._pendingDebouncedNotifications.clear();
+    for (const info of this._timeoutInfo.values()) {
+      clearTimeout(info.timeoutId);
+    }
+    this._timeoutInfo.clear();
     for (const controller of this._requestHandlerAbortControllers.values()) {
       controller.abort();
     }
@@ -16608,7 +16625,9 @@ var Protocol = class {
         await capturedTransport?.send(errorResponse);
       }
     }).catch((error2) => this._onerror(new Error(`Failed to send response: ${error2}`))).finally(() => {
-      this._requestHandlerAbortControllers.delete(request.id);
+      if (this._requestHandlerAbortControllers.get(request.id) === abortController) {
+        this._requestHandlerAbortControllers.delete(request.id);
+      }
     });
   }
   _onprogress(notification) {
@@ -17305,6 +17324,147 @@ var ExperimentalServerTasks = class {
     return this._server.requestStream(request, resultSchema, options);
   }
   /**
+   * Sends a sampling request and returns an AsyncGenerator that yields response messages.
+   * The generator is guaranteed to end with either a 'result' or 'error' message.
+   *
+   * For task-augmented requests, yields 'taskCreated' and 'taskStatus' messages
+   * before the final result.
+   *
+   * @example
+   * ```typescript
+   * const stream = server.experimental.tasks.createMessageStream({
+   *     messages: [{ role: 'user', content: { type: 'text', text: 'Hello' } }],
+   *     maxTokens: 100
+   * }, {
+   *     onprogress: (progress) => {
+   *         // Handle streaming tokens via progress notifications
+   *         console.log('Progress:', progress.message);
+   *     }
+   * });
+   *
+   * for await (const message of stream) {
+   *     switch (message.type) {
+   *         case 'taskCreated':
+   *             console.log('Task created:', message.task.taskId);
+   *             break;
+   *         case 'taskStatus':
+   *             console.log('Task status:', message.task.status);
+   *             break;
+   *         case 'result':
+   *             console.log('Final result:', message.result);
+   *             break;
+   *         case 'error':
+   *             console.error('Error:', message.error);
+   *             break;
+   *     }
+   * }
+   * ```
+   *
+   * @param params - The sampling request parameters
+   * @param options - Optional request options (timeout, signal, task creation params, onprogress, etc.)
+   * @returns AsyncGenerator that yields ResponseMessage objects
+   *
+   * @experimental
+   */
+  createMessageStream(params, options) {
+    const clientCapabilities = this._server.getClientCapabilities();
+    if ((params.tools || params.toolChoice) && !clientCapabilities?.sampling?.tools) {
+      throw new Error("Client does not support sampling tools capability.");
+    }
+    if (params.messages.length > 0) {
+      const lastMessage = params.messages[params.messages.length - 1];
+      const lastContent = Array.isArray(lastMessage.content) ? lastMessage.content : [lastMessage.content];
+      const hasToolResults = lastContent.some((c) => c.type === "tool_result");
+      const previousMessage = params.messages.length > 1 ? params.messages[params.messages.length - 2] : void 0;
+      const previousContent = previousMessage ? Array.isArray(previousMessage.content) ? previousMessage.content : [previousMessage.content] : [];
+      const hasPreviousToolUse = previousContent.some((c) => c.type === "tool_use");
+      if (hasToolResults) {
+        if (lastContent.some((c) => c.type !== "tool_result")) {
+          throw new Error("The last message must contain only tool_result content if any is present");
+        }
+        if (!hasPreviousToolUse) {
+          throw new Error("tool_result blocks are not matching any tool_use from the previous message");
+        }
+      }
+      if (hasPreviousToolUse) {
+        const toolUseIds = new Set(previousContent.filter((c) => c.type === "tool_use").map((c) => c.id));
+        const toolResultIds = new Set(lastContent.filter((c) => c.type === "tool_result").map((c) => c.toolUseId));
+        if (toolUseIds.size !== toolResultIds.size || ![...toolUseIds].every((id) => toolResultIds.has(id))) {
+          throw new Error("ids of tool_result blocks and tool_use blocks from previous message do not match");
+        }
+      }
+    }
+    return this.requestStream({
+      method: "sampling/createMessage",
+      params
+    }, CreateMessageResultSchema, options);
+  }
+  /**
+   * Sends an elicitation request and returns an AsyncGenerator that yields response messages.
+   * The generator is guaranteed to end with either a 'result' or 'error' message.
+   *
+   * For task-augmented requests (especially URL-based elicitation), yields 'taskCreated'
+   * and 'taskStatus' messages before the final result.
+   *
+   * @example
+   * ```typescript
+   * const stream = server.experimental.tasks.elicitInputStream({
+   *     mode: 'url',
+   *     message: 'Please authenticate',
+   *     elicitationId: 'auth-123',
+   *     url: 'https://example.com/auth'
+   * }, {
+   *     task: { ttl: 300000 } // Task-augmented for long-running auth flow
+   * });
+   *
+   * for await (const message of stream) {
+   *     switch (message.type) {
+   *         case 'taskCreated':
+   *             console.log('Task created:', message.task.taskId);
+   *             break;
+   *         case 'taskStatus':
+   *             console.log('Task status:', message.task.status);
+   *             break;
+   *         case 'result':
+   *             console.log('User action:', message.result.action);
+   *             break;
+   *         case 'error':
+   *             console.error('Error:', message.error);
+   *             break;
+   *     }
+   * }
+   * ```
+   *
+   * @param params - The elicitation request parameters
+   * @param options - Optional request options (timeout, signal, task creation params, etc.)
+   * @returns AsyncGenerator that yields ResponseMessage objects
+   *
+   * @experimental
+   */
+  elicitInputStream(params, options) {
+    const clientCapabilities = this._server.getClientCapabilities();
+    const mode = params.mode ?? "form";
+    switch (mode) {
+      case "url": {
+        if (!clientCapabilities?.elicitation?.url) {
+          throw new Error("Client does not support url elicitation.");
+        }
+        break;
+      }
+      case "form": {
+        if (!clientCapabilities?.elicitation?.form) {
+          throw new Error("Client does not support form elicitation.");
+        }
+        break;
+      }
+    }
+    const normalizedParams = mode === "form" && params.mode === void 0 ? { ...params, mode: "form" } : params;
+    return this.requestStream({
+      method: "elicitation/create",
+      params: normalizedParams
+    }, ElicitResultSchema, options);
+  }
+  /**
    * Gets the current status of a task.
    *
    * @param taskId - The task identifier
@@ -17900,29 +18060,29 @@ var import_path = require("path");
 var import_os = require("os");
 
 // src/lib/worktree-paths.ts
-var WORKSPACE_MARKER = ".omc-workspace";
-var OmcPaths = {
-  ROOT: ".omc",
-  STATE: ".omc/state",
-  SESSIONS: ".omc/state/sessions",
-  PLANS: ".omc/plans",
-  RESEARCH: ".omc/research",
-  NOTEPAD: ".omc/notepad.md",
-  PROJECT_MEMORY: ".omc/project-memory.json",
-  DRAFTS: ".omc/drafts",
-  NOTEPADS: ".omc/notepads",
-  LOGS: ".omc/logs",
-  SCIENTIST: ".omc/scientist",
-  AUTOPILOT: ".omc/autopilot",
-  SKILLS: ".omc/skills",
-  SHARED_MEMORY: ".omc/state/shared-memory",
-  DEEPINIT_MANIFEST: ".omc/deepinit-manifest.json"
+var WORKSPACE_MARKER = ".omac-workspace";
+var OmacPaths = {
+  ROOT: ".omac",
+  STATE: ".omac/state",
+  SESSIONS: ".omac/state/sessions",
+  PLANS: ".omac/plans",
+  RESEARCH: ".omac/research",
+  NOTEPAD: ".omac/notepad.md",
+  PROJECT_MEMORY: ".omac/project-memory.json",
+  DRAFTS: ".omac/drafts",
+  NOTEPADS: ".omac/notepads",
+  LOGS: ".omac/logs",
+  SCIENTIST: ".omac/scientist",
+  AUTOPILOT: ".omac/autopilot",
+  SKILLS: ".omac/skills",
+  SHARED_MEMORY: ".omac/state/shared-memory",
+  DEEPINIT_MANIFEST: ".omac/deepinit-manifest.json"
 };
 var MAX_WORKTREE_CACHE_SIZE = 8;
 var worktreeCacheMap = /* @__PURE__ */ new Map();
 var workspaceCacheMap = /* @__PURE__ */ new Map();
 function findWorkspaceRoot(startDir) {
-  if (process.env.OMC_DISABLE_MULTIREPO === "1") return null;
+  if (process.env.OMAC_DISABLE_MULTIREPO === "1") return null;
   const effectiveStart = startDir || process.cwd();
   let current;
   try {
@@ -18050,28 +18210,28 @@ function getProjectIdentifier(worktreeRoot) {
   const dirName = (0, import_path2.basename)(primaryRoot).replace(/[^a-zA-Z0-9_-]/g, "_");
   return `${dirName}-${hash}`;
 }
-function getOmcRoot(worktreeRoot) {
-  const customDir = process.env.OMC_STATE_DIR;
+function getOmacRoot(worktreeRoot) {
+  const customDir = process.env.OMAC_STATE_DIR;
   if (customDir) {
     const root2 = worktreeRoot || getWorktreeRoot() || process.cwd();
     const projectId = getProjectIdentifier(root2);
     const centralizedPath = (0, import_path2.join)(customDir, projectId);
-    const legacyPath = (0, import_path2.join)(root2, OmcPaths.ROOT);
+    const legacyPath = (0, import_path2.join)(root2, OmacPaths.ROOT);
     const warningKey = `${legacyPath}:${centralizedPath}`;
     if (!dualDirWarnings.has(warningKey) && (0, import_fs.existsSync)(legacyPath) && (0, import_fs.existsSync)(centralizedPath)) {
       dualDirWarnings.add(warningKey);
       console.warn(
-        `[omc] Both legacy state dir (${legacyPath}) and centralized state dir (${centralizedPath}) exist. Using centralized dir. Consider migrating data from the legacy dir and removing it.`
+        `[omac] Both legacy state dir (${legacyPath}) and centralized state dir (${centralizedPath}) exist. Using centralized dir. Consider migrating data from the legacy dir and removing it.`
       );
     }
     return centralizedPath;
   }
   const workspaceAnchor = findWorkspaceRoot(worktreeRoot);
   if (workspaceAnchor) {
-    return (0, import_path2.join)(workspaceAnchor, OmcPaths.ROOT);
+    return (0, import_path2.join)(workspaceAnchor, OmacPaths.ROOT);
   }
   const root = worktreeRoot || getWorktreeRoot() || process.cwd();
-  return (0, import_path2.join)(root, OmcPaths.ROOT);
+  return (0, import_path2.join)(root, OmacPaths.ROOT);
 }
 
 // src/cli/tmux-utils.ts
@@ -18294,7 +18454,7 @@ async function paneInCopyMode(paneId) {
   }
 }
 function shouldAttemptAdaptiveRetry(args) {
-  if (process.env.OMC_TEAM_AUTO_INTERRUPT_RETRY === "0") return false;
+  if (process.env.OMAC_TEAM_AUTO_INTERRUPT_RETRY === "0") return false;
   if (args.retriesAttempted >= 1) return false;
   if (args.paneInCopyMode) return false;
   if (!args.paneBusy) return false;
@@ -18440,7 +18600,7 @@ async function isWorkerAlive(paneId) {
 async function killWorkerPanes(opts) {
   const { paneIds, leaderPaneId, teamName, cwd, graceMs = 1e4 } = opts;
   if (!paneIds.length) return;
-  const shutdownPath = (0, import_path4.join)(getOmcRoot(cwd), "state", "team", teamName, "shutdown.json");
+  const shutdownPath = (0, import_path4.join)(getOmacRoot(cwd), "state", "team", teamName, "shutdown.json");
   try {
     await import_promises.default.writeFile(shutdownPath, JSON.stringify({ requestedAt: Date.now() }));
     const aliveChecks = await Promise.all(paneIds.map((id) => isWorkerAlive(id)));
@@ -18478,7 +18638,7 @@ async function killTeamSession(sessionName, workerPaneIds, leaderPaneId, options
     return;
   }
   const sessionTarget = sessionName.split(":")[0] ?? sessionName;
-  if (process.env.OMC_TEAM_ALLOW_KILL_CURRENT_SESSION !== "1" && process.env.TMUX) {
+  if (process.env.OMAC_TEAM_ALLOW_KILL_CURRENT_SESSION !== "1" && process.env.TMUX) {
     try {
       const current = await tmuxCmdAsync(["display-message", "-p", "#S"]);
       const currentSessionName = current.stdout.trim();
@@ -18508,36 +18668,36 @@ function normalizeTaskFileStem(taskId) {
   return trimmed;
 }
 var TeamPaths = {
-  root: (teamName) => `.omc/state/team/${teamName}`,
-  config: (teamName) => `.omc/state/team/${teamName}/config.json`,
-  shutdown: (teamName) => `.omc/state/team/${teamName}/shutdown.json`,
-  tasks: (teamName) => `.omc/state/team/${teamName}/tasks`,
-  taskFile: (teamName, taskId) => `.omc/state/team/${teamName}/tasks/${normalizeTaskFileStem(taskId)}.json`,
-  workers: (teamName) => `.omc/state/team/${teamName}/workers`,
-  workerDir: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}`,
-  heartbeat: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/heartbeat.json`,
-  inbox: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/inbox.md`,
-  outbox: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/outbox.jsonl`,
-  ready: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/.ready`,
-  overlay: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/AGENTS.md`,
-  shutdownAck: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/shutdown-ack.json`,
-  mailbox: (teamName, workerName) => `.omc/state/team/${teamName}/mailbox/${workerName}.json`,
-  mailboxLockDir: (teamName, workerName) => `.omc/state/team/${teamName}/mailbox/.lock-${workerName}`,
-  dispatchRequests: (teamName) => `.omc/state/team/${teamName}/dispatch/requests.json`,
-  dispatchLockDir: (teamName) => `.omc/state/team/${teamName}/dispatch/.lock`,
-  workerStatus: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/status.json`,
-  workerIdleNotify: (teamName) => `.omc/state/team/${teamName}/worker-idle-notify.json`,
-  workerPrevNotifyState: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/prev-notify-state.json`,
-  events: (teamName) => `.omc/state/team/${teamName}/events.jsonl`,
-  approval: (teamName, taskId) => `.omc/state/team/${teamName}/approvals/${taskId}.json`,
-  manifest: (teamName) => `.omc/state/team/${teamName}/manifest.json`,
-  monitorSnapshot: (teamName) => `.omc/state/team/${teamName}/monitor-snapshot.json`,
-  summarySnapshot: (teamName) => `.omc/state/team/${teamName}/summary-snapshot.json`,
-  phaseState: (teamName) => `.omc/state/team/${teamName}/phase-state.json`,
-  scalingLock: (teamName) => `.omc/state/team/${teamName}/.scaling-lock`,
-  workerIdentity: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/identity.json`,
-  workerAgentsMd: (teamName) => `.omc/state/team/${teamName}/worker-agents.md`,
-  shutdownRequest: (teamName, workerName) => `.omc/state/team/${teamName}/workers/${workerName}/shutdown-request.json`
+  root: (teamName) => `.omac/state/team/${teamName}`,
+  config: (teamName) => `.omac/state/team/${teamName}/config.json`,
+  shutdown: (teamName) => `.omac/state/team/${teamName}/shutdown.json`,
+  tasks: (teamName) => `.omac/state/team/${teamName}/tasks`,
+  taskFile: (teamName, taskId) => `.omac/state/team/${teamName}/tasks/${normalizeTaskFileStem(taskId)}.json`,
+  workers: (teamName) => `.omac/state/team/${teamName}/workers`,
+  workerDir: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}`,
+  heartbeat: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/heartbeat.json`,
+  inbox: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/inbox.md`,
+  outbox: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/outbox.jsonl`,
+  ready: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/.ready`,
+  overlay: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/AGENTS.md`,
+  shutdownAck: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/shutdown-ack.json`,
+  mailbox: (teamName, workerName) => `.omac/state/team/${teamName}/mailbox/${workerName}.json`,
+  mailboxLockDir: (teamName, workerName) => `.omac/state/team/${teamName}/mailbox/.lock-${workerName}`,
+  dispatchRequests: (teamName) => `.omac/state/team/${teamName}/dispatch/requests.json`,
+  dispatchLockDir: (teamName) => `.omac/state/team/${teamName}/dispatch/.lock`,
+  workerStatus: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/status.json`,
+  workerIdleNotify: (teamName) => `.omac/state/team/${teamName}/worker-idle-notify.json`,
+  workerPrevNotifyState: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/prev-notify-state.json`,
+  events: (teamName) => `.omac/state/team/${teamName}/events.jsonl`,
+  approval: (teamName, taskId) => `.omac/state/team/${teamName}/approvals/${taskId}.json`,
+  manifest: (teamName) => `.omac/state/team/${teamName}/manifest.json`,
+  monitorSnapshot: (teamName) => `.omac/state/team/${teamName}/monitor-snapshot.json`,
+  summarySnapshot: (teamName) => `.omac/state/team/${teamName}/summary-snapshot.json`,
+  phaseState: (teamName) => `.omac/state/team/${teamName}/phase-state.json`,
+  scalingLock: (teamName) => `.omac/state/team/${teamName}/.scaling-lock`,
+  workerIdentity: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/identity.json`,
+  workerAgentsMd: (teamName) => `.omac/state/team/${teamName}/worker-agents.md`,
+  shutdownRequest: (teamName, workerName) => `.omac/state/team/${teamName}/workers/${workerName}/shutdown-request.json`
 };
 function absPath(cwd, relativePath) {
   return (0, import_path5.isAbsolute)(relativePath) ? relativePath : (0, import_path5.join)(cwd, relativePath);
@@ -19125,10 +19285,10 @@ function withFileLockSync(lockPath, fn, opts) {
 
 // src/team/git-worktree.ts
 function getWorktreePath(repoRoot, teamName, workerName) {
-  return (0, import_node_path2.join)(getOmcRoot(repoRoot), "team", sanitizeName(teamName), "worktrees", sanitizeName(workerName));
+  return (0, import_node_path2.join)(getOmacRoot(repoRoot), "team", sanitizeName(teamName), "worktrees", sanitizeName(workerName));
 }
 function getBranchName(teamName, workerName) {
-  return `omc-team/${sanitizeName(teamName)}/${sanitizeName(workerName)}`;
+  return `omac-team/${sanitizeName(teamName)}/${sanitizeName(workerName)}`;
 }
 function git(repoRoot, args, cwd = repoRoot) {
   return (0, import_node_child_process.execFileSync)("git", args, { cwd, encoding: "utf-8", stdio: "pipe" }).trim();
@@ -19177,13 +19337,13 @@ function isWorktreeDirtyExcept(wtPath, ignoredRootPaths = []) {
   }
 }
 function getMetadataPath(repoRoot, teamName) {
-  return (0, import_node_path2.join)(getOmcRoot(repoRoot), "state", "team", sanitizeName(teamName), "worktrees.json");
+  return (0, import_node_path2.join)(getOmacRoot(repoRoot), "state", "team", sanitizeName(teamName), "worktrees.json");
 }
 function getLegacyMetadataPath(repoRoot, teamName) {
-  return (0, import_node_path2.join)(getOmcRoot(repoRoot), "state", "team-bridge", sanitizeName(teamName), "worktrees.json");
+  return (0, import_node_path2.join)(getOmacRoot(repoRoot), "state", "team-bridge", sanitizeName(teamName), "worktrees.json");
 }
 function getWorkerStateDir(repoRoot, teamName, workerName) {
-  return (0, import_node_path2.join)(getOmcRoot(repoRoot), "state", "team", sanitizeName(teamName), "workers", sanitizeName(workerName));
+  return (0, import_node_path2.join)(getOmacRoot(repoRoot), "state", "team", sanitizeName(teamName), "workers", sanitizeName(workerName));
 }
 function getRootAgentsBackupPath(repoRoot, teamName, workerName) {
   return (0, import_node_path2.join)(getWorkerStateDir(repoRoot, teamName, workerName), "worktree-root-agents.json");
@@ -19195,7 +19355,7 @@ function readRootAgentsBackup(repoRoot, teamName, workerName) {
     return JSON.parse((0, import_node_fs2.readFileSync)(backupPath, "utf-8"));
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    process.stderr.write(`[omc] warning: worktree root AGENTS backup parse error: ${msg}
+    process.stderr.write(`[omac] warning: worktree root AGENTS backup parse error: ${msg}
 `);
     const error2 = new Error(`worktree_root_agents_backup_unreadable:${backupPath}:${msg}`);
     error2.code = "worktree_root_agents_backup_unreadable";
@@ -19203,13 +19363,13 @@ function readRootAgentsBackup(repoRoot, teamName, workerName) {
   }
 }
 function restoreWorktreeRootAgents(teamName, workerName, repoRoot, worktreePath) {
-  const omcRoot = getOmcRoot(repoRoot);
+  const omacRoot = getOmacRoot(repoRoot);
   const backupPath = getRootAgentsBackupPath(repoRoot, teamName, workerName);
-  validateResolvedPath(backupPath, omcRoot);
+  validateResolvedPath(backupPath, omacRoot);
   const backup = readRootAgentsBackup(repoRoot, teamName, workerName);
   if (!backup) return { restored: false, reason: "no_backup" };
   const resolvedWorktreePath = worktreePath ?? backup.worktreePath;
-  validateResolvedPath(resolvedWorktreePath, omcRoot);
+  validateResolvedPath(resolvedWorktreePath, omacRoot);
   if (!(0, import_node_fs2.existsSync)(resolvedWorktreePath)) {
     try {
       (0, import_node_fs2.unlinkSync)(backupPath);
@@ -19247,7 +19407,7 @@ function readMetadataResult(repoRoot, teamName) {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       issues.push({ path: metaPath, message });
-      process.stderr.write(`[omc] warning: worktrees.json parse error at ${metaPath}: ${message}
+      process.stderr.write(`[omac] warning: worktrees.json parse error at ${metaPath}: ${message}
 `);
     }
   }
@@ -19257,7 +19417,7 @@ function readMetadata(repoRoot, teamName) {
   return readMetadataResult(repoRoot, teamName).entries;
 }
 function listRootAgentsBackupIssues(repoRoot, teamName, entries) {
-  const workersDir = (0, import_node_path2.join)(getOmcRoot(repoRoot), "state", "team", sanitizeName(teamName), "workers");
+  const workersDir = (0, import_node_path2.join)(getOmacRoot(repoRoot), "state", "team", sanitizeName(teamName), "workers");
   if (!(0, import_node_fs2.existsSync)(workersDir)) return [];
   const knownWorkers = new Set(entries.map((entry) => sanitizeName(entry.workerName)));
   const issues = [];
@@ -19282,8 +19442,8 @@ function listRootAgentsBackupIssues(repoRoot, teamName, entries) {
 }
 function writeMetadata(repoRoot, teamName, entries) {
   const metaPath = getMetadataPath(repoRoot, teamName);
-  validateResolvedPath(metaPath, (0, import_node_path2.join)(getOmcRoot(repoRoot), "state", "team"));
-  ensureDirWithMode((0, import_node_path2.join)(getOmcRoot(repoRoot), "state", "team", sanitizeName(teamName)));
+  validateResolvedPath(metaPath, (0, import_node_path2.join)(getOmacRoot(repoRoot), "state", "team"));
+  ensureDirWithMode((0, import_node_path2.join)(getOmacRoot(repoRoot), "state", "team", sanitizeName(teamName)));
   atomicWriteJson(metaPath, entries);
 }
 function forgetMetadataUnlocked(repoRoot, teamName, workerName) {
@@ -19296,7 +19456,7 @@ function checkWorkerWorktreeRemovalSafety(teamName, workerName, repoRoot, worktr
   if (!(0, import_node_fs2.existsSync)(wtPath)) return;
   validateWorktreeRemovalTarget({
     candidatePath: wtPath,
-    expectedRoots: [(0, import_node_path2.join)(getOmcRoot(repoRoot), "team", sanitizeName(teamName), "worktrees")],
+    expectedRoots: [(0, import_node_path2.join)(getOmacRoot(repoRoot), "team", sanitizeName(teamName), "worktrees")],
     mainRepoRoots: [repoRoot]
   });
   let ignoreRootAgents = false;
@@ -19357,7 +19517,7 @@ function removeWorkerWorktree(teamName, workerName, repoRoot) {
     if ((0, import_node_fs2.existsSync)(wtPath) && !isRegisteredWorktreePath(repoRoot, wtPath)) {
       validateWorktreeRemovalTarget({
         candidatePath: wtPath,
-        expectedRoots: [(0, import_node_path2.join)(getOmcRoot(repoRoot), "team", sanitizeName(teamName), "worktrees")],
+        expectedRoots: [(0, import_node_path2.join)(getOmacRoot(repoRoot), "team", sanitizeName(teamName), "worktrees")],
         mainRepoRoots: [repoRoot]
       });
       (0, import_node_fs2.rmSync)(wtPath, { recursive: true, force: true });
@@ -19401,7 +19561,7 @@ function cleanupTeamWorktrees(teamName, repoRoot) {
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
       preserved.push({ workerName: entry.workerName, path: entry.path, reason });
-      process.stderr.write(`[omc] warning: preserved worktree ${entry.path}: ${reason}
+      process.stderr.write(`[omac] warning: preserved worktree ${entry.path}: ${reason}
 `);
     }
   }
@@ -19409,8 +19569,8 @@ function cleanupTeamWorktrees(teamName, repoRoot) {
 }
 
 // src/mcp/team-job-convergence.ts
-function readResultArtifact(omcJobsDir, jobId) {
-  const artifactPath = (0, import_path8.join)(omcJobsDir, `${jobId}-result.json`);
+function readResultArtifact(omacJobsDir, jobId) {
+  const artifactPath = (0, import_path8.join)(omacJobsDir, `${jobId}-result.json`);
   if (!(0, import_fs7.existsSync)(artifactPath)) return { kind: "none" };
   let raw;
   try {
@@ -19439,8 +19599,8 @@ function readResultArtifact(omcJobsDir, jobId) {
     };
   }
 }
-function convergeJobWithResultArtifact(job, jobId, omcJobsDir) {
-  const artifact = readResultArtifact(omcJobsDir, jobId);
+function convergeJobWithResultArtifact(job, jobId, omacJobsDir) {
+  const artifact = readResultArtifact(omacJobsDir, jobId);
   if (artifact.kind === "none") return { job, changed: false };
   if (artifact.kind === "terminal") {
     const changed2 = job.status !== artifact.status || job.result !== artifact.raw;
@@ -19479,7 +19639,7 @@ function clearScopedTeamState(job) {
       message: `team state cleanup skipped (invalid teamName): ${error2 instanceof Error ? error2.message : String(error2)}`
     };
   }
-  const stateDir = (0, import_path8.join)(getOmcRoot(job.cwd), "state", "team", job.teamName);
+  const stateDir = (0, import_path8.join)(getOmacRoot(job.cwd), "state", "team", job.teamName);
   let worktreeMessage = "worktree cleanup skipped.";
   try {
     const cleanup = cleanupTeamWorktrees(job.teamName, job.cwd);
@@ -19526,7 +19686,7 @@ function getStateDir() {
   }
   return process.env.XDG_STATE_HOME || (0, import_path9.join)((0, import_os3.homedir)(), ".local", "state");
 }
-function prefersXdgOmcDirs() {
+function prefersXdgOmacDirs() {
   return process.platform !== "win32" && process.platform !== "darwin";
 }
 function getUserHomeDir() {
@@ -19535,21 +19695,21 @@ function getUserHomeDir() {
   }
   return process.env.HOME || (0, import_os3.homedir)();
 }
-function getLegacyOmcDir() {
-  return (0, import_path9.join)(getUserHomeDir(), ".omc");
+function getLegacyOmacDir() {
+  return (0, import_path9.join)(getUserHomeDir(), ".omac");
 }
-function getGlobalOmcStateRoot() {
-  const explicitRoot = process.env.OMC_HOME?.trim();
+function getGlobalOmacStateRoot() {
+  const explicitRoot = process.env.OMAC_HOME?.trim();
   if (explicitRoot) {
     return (0, import_path9.join)(explicitRoot, "state");
   }
-  if (prefersXdgOmcDirs()) {
-    return (0, import_path9.join)(getStateDir(), "omc");
+  if (prefersXdgOmacDirs()) {
+    return (0, import_path9.join)(getStateDir(), "omac");
   }
-  return (0, import_path9.join)(getLegacyOmcDir(), "state");
+  return (0, import_path9.join)(getLegacyOmacDir(), "state");
 }
-function getGlobalOmcStatePath(...segments) {
-  return (0, import_path9.join)(getGlobalOmcStateRoot(), ...segments);
+function getGlobalOmacStatePath(...segments) {
+  return (0, import_path9.join)(getGlobalOmacStateRoot(), ...segments);
 }
 var STALE_THRESHOLD_MS = 24 * 60 * 60 * 1e3;
 
@@ -19563,14 +19723,14 @@ var __ownDir = (() => {
     return process.cwd();
   }
 })();
-var omcTeamJobs = /* @__PURE__ */ new Map();
-var OMC_JOBS_DIR = process.env.OMC_JOBS_DIR || getGlobalOmcStatePath("team-jobs");
+var omacTeamJobs = /* @__PURE__ */ new Map();
+var OMAC_JOBS_DIR = process.env.OMAC_JOBS_DIR || getGlobalOmacStatePath("team-jobs");
 var DEPRECATION_CODE = "deprecated_cli_only";
 var TEAM_CLI_REPLACEMENT_HINTS = {
-  omc_run_team_start: "omc team start",
-  omc_run_team_status: "omc team status <job_id>",
-  omc_run_team_wait: "omc team wait <job_id>",
-  omc_run_team_cleanup: "omc team cleanup <job_id>"
+  omac_run_team_start: "omac team start",
+  omac_run_team_status: "omac team status <job_id>",
+  omac_run_team_wait: "omac team wait <job_id>",
+  omac_run_team_cleanup: "omac team cleanup <job_id>"
 };
 function isDeprecatedTeamToolName(name) {
   return Object.prototype.hasOwnProperty.call(TEAM_CLI_REPLACEMENT_HINTS, name);
@@ -19587,7 +19747,7 @@ function buildCliReplacement(toolName, args) {
     return TEAM_CLI_REPLACEMENT_HINTS[toolName];
   }
   const parsed = typeof args === "object" && args !== null ? args : {};
-  if (toolName === "omc_run_team_start") {
+  if (toolName === "omac_run_team_start") {
     const teamName = typeof parsed.teamName === "string" ? parsed.teamName.trim() : "";
     const cwd = typeof parsed.cwd === "string" ? parsed.cwd.trim() : "";
     const newWindow = parsed.newWindow === true;
@@ -19595,7 +19755,7 @@ function buildCliReplacement(toolName, args) {
     const tasks = Array.isArray(parsed.tasks) ? parsed.tasks.map(
       (task) => typeof task === "object" && task !== null && typeof task.description === "string" ? task.description.trim() : ""
     ).filter(Boolean) : [];
-    const flags = ["omc", "team", "start"];
+    const flags = ["omac", "team", "start"];
     if (teamName) flags.push("--name", quoteCliValue(teamName));
     if (cwd) flags.push("--cwd", quoteCliValue(cwd));
     if (newWindow) flags.push("--new-window");
@@ -19619,16 +19779,16 @@ function buildCliReplacement(toolName, args) {
     return flags.join(" ");
   }
   const jobId = typeof parsed.job_id === "string" ? parsed.job_id.trim() : "<job_id>";
-  if (toolName === "omc_run_team_status") {
-    return `omc team status --job-id ${quoteCliValue(jobId)}`;
+  if (toolName === "omac_run_team_status") {
+    return `omac team status --job-id ${quoteCliValue(jobId)}`;
   }
-  if (toolName === "omc_run_team_wait") {
+  if (toolName === "omac_run_team_wait") {
     const timeoutMs = typeof parsed.timeout_ms === "number" && Number.isFinite(parsed.timeout_ms) ? ` --timeout-ms ${Math.floor(parsed.timeout_ms)}` : "";
-    return `omc team wait --job-id ${quoteCliValue(jobId)}${timeoutMs}`;
+    return `omac team wait --job-id ${quoteCliValue(jobId)}${timeoutMs}`;
   }
-  if (toolName === "omc_run_team_cleanup") {
+  if (toolName === "omac_run_team_cleanup") {
     const graceMs = typeof parsed.grace_ms === "number" && Number.isFinite(parsed.grace_ms) ? ` --grace-ms ${Math.floor(parsed.grace_ms)}` : "";
-    return `omc team cleanup --job-id ${quoteCliValue(jobId)}${graceMs}`;
+    return `omac team cleanup --job-id ${quoteCliValue(jobId)}${graceMs}`;
   }
   return TEAM_CLI_REPLACEMENT_HINTS[toolName];
 }
@@ -19640,7 +19800,7 @@ function createDeprecatedCliOnlyEnvelopeWithArgs(toolName, args) {
       text: JSON.stringify({
         code: DEPRECATION_CODE,
         tool: toolName,
-        message: "Legacy team MCP runtime tools are deprecated. Use the omc team CLI instead.",
+        message: "Legacy team MCP runtime tools are deprecated. Use the omac team CLI instead.",
         cli_replacement: cliReplacement
       })
     }],
@@ -19649,20 +19809,20 @@ function createDeprecatedCliOnlyEnvelopeWithArgs(toolName, args) {
 }
 function persistJob(jobId, job) {
   try {
-    if (!(0, import_fs9.existsSync)(OMC_JOBS_DIR)) (0, import_fs9.mkdirSync)(OMC_JOBS_DIR, { recursive: true });
-    (0, import_fs9.writeFileSync)((0, import_path10.join)(OMC_JOBS_DIR, `${jobId}.json`), JSON.stringify(job), "utf-8");
+    if (!(0, import_fs9.existsSync)(OMAC_JOBS_DIR)) (0, import_fs9.mkdirSync)(OMAC_JOBS_DIR, { recursive: true });
+    (0, import_fs9.writeFileSync)((0, import_path10.join)(OMAC_JOBS_DIR, `${jobId}.json`), JSON.stringify(job), "utf-8");
   } catch {
   }
 }
 function loadJobFromDisk(jobId) {
   try {
-    return JSON.parse((0, import_fs9.readFileSync)((0, import_path10.join)(OMC_JOBS_DIR, `${jobId}.json`), "utf-8"));
+    return JSON.parse((0, import_fs9.readFileSync)((0, import_path10.join)(OMAC_JOBS_DIR, `${jobId}.json`), "utf-8"));
   } catch {
     return void 0;
   }
 }
 async function loadPaneIds(jobId) {
-  const p = (0, import_path10.join)(OMC_JOBS_DIR, `${jobId}-panes.json`);
+  const p = (0, import_path10.join)(OMAC_JOBS_DIR, `${jobId}-panes.json`);
   try {
     return JSON.parse(await (0, import_promises3.readFile)(p, "utf-8"));
   } catch {
@@ -19697,12 +19857,12 @@ async function resolveCleanupPaneEvidence(job, jobId) {
   return { panes };
 }
 function validateJobId(job_id) {
-  if (!/^omc-[a-z0-9]{1,16}$/.test(job_id)) {
-    throw new Error(`Invalid job_id: "${job_id}". Must match /^omc-[a-z0-9]{1,16}$/`);
+  if (!/^omac-[a-z0-9]{1,16}$/.test(job_id)) {
+    throw new Error(`Invalid job_id: "${job_id}". Must match /^omac-[a-z0-9]{1,16}$/`);
   }
 }
 function saveJobState(jobId, job) {
-  omcTeamJobs.set(jobId, job);
+  omacTeamJobs.set(jobId, job);
   persistJob(jobId, job);
   return job;
 }
@@ -19730,33 +19890,33 @@ var startSchema = external_exports.object({
   newWindow: external_exports.boolean().optional().describe("Spawn workers in a dedicated tmux window instead of splitting the current window")
 });
 var statusSchema = external_exports.object({
-  job_id: external_exports.string().describe("Job ID returned by omc_run_team_start")
+  job_id: external_exports.string().describe("Job ID returned by omac_run_team_start")
 });
 var waitSchema = external_exports.object({
-  job_id: external_exports.string().describe("Job ID returned by omc_run_team_start"),
+  job_id: external_exports.string().describe("Job ID returned by omac_run_team_start"),
   timeout_ms: external_exports.number().optional().describe("Maximum wait time in ms (default: 300000, max: 3600000)"),
   nudge_delay_ms: external_exports.number().optional().describe("Milliseconds a pane must be idle before nudging (default: 30000)"),
   nudge_max_count: external_exports.number().optional().describe("Maximum nudges per pane (default: 3)"),
   nudge_message: external_exports.string().optional().describe('Message sent as nudge (default: "Continue working on your assigned task and report concrete progress (not ACK-only).")')
 });
 var cleanupSchema = external_exports.object({
-  job_id: external_exports.string().describe("Job ID returned by omc_run_team_start"),
+  job_id: external_exports.string().describe("Job ID returned by omac_run_team_start"),
   grace_ms: external_exports.number().optional().describe("Grace period in ms before force-killing panes (default: 10000)")
 });
 async function handleStart(args) {
   if (typeof args === "object" && args !== null && Object.prototype.hasOwnProperty.call(args, "timeoutSeconds")) {
     throw new Error(
-      "omc_run_team_start no longer accepts timeoutSeconds. Remove timeoutSeconds and use omc_run_team_wait timeout_ms to limit the wait call only (workers keep running until completion or explicit omc_run_team_cleanup)."
+      "omac_run_team_start no longer accepts timeoutSeconds. Remove timeoutSeconds and use omac_run_team_wait timeout_ms to limit the wait call only (workers keep running until completion or explicit omac_run_team_cleanup)."
     );
   }
   const input = startSchema.parse(args);
   validateTeamName(input.teamName);
-  const jobId = `omc-${Date.now().toString(36)}${(0, import_node_crypto.randomUUID)().slice(0, 8)}`;
+  const jobId = `omac-${Date.now().toString(36)}${(0, import_node_crypto.randomUUID)().slice(0, 8)}`;
   const runtimeCliPath = (0, import_path10.join)(__ownDir, "runtime-cli.cjs");
   const job = { status: "running", startedAt: Date.now(), teamName: input.teamName, cwd: input.cwd };
-  omcTeamJobs.set(jobId, job);
+  omacTeamJobs.set(jobId, job);
   const child = (0, import_child_process5.spawn)(process.execPath, [runtimeCliPath], {
-    env: { ...process.env, OMC_JOB_ID: jobId, OMC_JOBS_DIR },
+    env: { ...process.env, OMAC_JOB_ID: jobId, OMAC_JOBS_DIR },
     stdio: ["pipe", "pipe", "pipe"]
   });
   job.pid = child.pid;
@@ -19795,17 +19955,17 @@ async function handleStart(args) {
     persistJob(jobId, job);
   });
   return {
-    content: [{ type: "text", text: JSON.stringify({ jobId, pid: job.pid, message: "Team started. Poll with omc_run_team_status." }) }]
+    content: [{ type: "text", text: JSON.stringify({ jobId, pid: job.pid, message: "Team started. Poll with omac_run_team_status." }) }]
   };
 }
 async function handleStatus(args) {
   const { job_id } = statusSchema.parse(args);
   validateJobId(job_id);
-  let job = omcTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
+  let job = omacTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
   if (!job) {
     return { content: [{ type: "text", text: JSON.stringify({ error: `No job found: ${job_id}` }) }] };
   }
-  const artifactConvergence = convergeJobWithResultArtifact(job, job_id, OMC_JOBS_DIR);
+  const artifactConvergence = convergeJobWithResultArtifact(job, job_id, OMAC_JOBS_DIR);
   if (artifactConvergence.changed) {
     job = saveJobState(job_id, artifactConvergence.job);
     return makeJobResponse(job_id, job);
@@ -19833,11 +19993,11 @@ async function handleWait(args) {
     ...nudge_message != null ? { message: nudge_message } : {}
   });
   while (Date.now() < deadline) {
-    let job = omcTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
+    let job = omacTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
     if (!job) {
       return { content: [{ type: "text", text: JSON.stringify({ error: `No job found: ${job_id}` }) }] };
     }
-    const artifactConvergence = convergeJobWithResultArtifact(job, job_id, OMC_JOBS_DIR);
+    const artifactConvergence = convergeJobWithResultArtifact(job, job_id, OMAC_JOBS_DIR);
     if (artifactConvergence.changed) {
       job = saveJobState(job_id, artifactConvergence.job);
       const out = makeJobResponse(job_id, job);
@@ -19885,10 +20045,10 @@ async function handleWait(args) {
     } catch {
     }
   }
-  const startedAt = omcTeamJobs.get(job_id)?.startedAt ?? Date.now();
+  const startedAt = omacTeamJobs.get(job_id)?.startedAt ?? Date.now();
   const elapsed = ((Date.now() - startedAt) / 1e3).toFixed(1);
   const timeoutOut = {
-    error: `Timed out waiting for job ${job_id} after ${(timeout_ms / 1e3).toFixed(0)}s \u2014 workers are still running; call omc_run_team_wait again to keep waiting or omc_run_team_cleanup to stop them`,
+    error: `Timed out waiting for job ${job_id} after ${(timeout_ms / 1e3).toFixed(0)}s \u2014 workers are still running; call omac_run_team_wait again to keep waiting or omac_run_team_cleanup to stop them`,
     jobId: job_id,
     status: "running",
     elapsedSeconds: elapsed
@@ -19899,7 +20059,7 @@ async function handleWait(args) {
 async function handleCleanup(args) {
   const { job_id, grace_ms } = cleanupSchema.parse(args);
   validateJobId(job_id);
-  const job = omcTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
+  const job = omacTeamJobs.get(job_id) ?? loadJobFromDisk(job_id);
   if (!job) return { content: [{ type: "text", text: `Job ${job_id} not found` }] };
   const blockCleanup = (paneCleanupMessage2, reason) => {
     job.cleanupBlockedAt = (/* @__PURE__ */ new Date()).toISOString();
@@ -19975,8 +20135,8 @@ async function handleCleanup(args) {
 }
 var TOOLS = [
   {
-    name: "omc_run_team_start",
-    description: "[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omc team start`.",
+    name: "omac_run_team_start",
+    description: "[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omac team start`.",
     inputSchema: {
       type: "object",
       properties: {
@@ -20001,23 +20161,23 @@ var TOOLS = [
     }
   },
   {
-    name: "omc_run_team_status",
-    description: "[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omc team status <job_id>`.",
+    name: "omac_run_team_status",
+    description: "[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omac team status <job_id>`.",
     inputSchema: {
       type: "object",
       properties: {
-        job_id: { type: "string", description: "Job ID returned by omc_run_team_start" }
+        job_id: { type: "string", description: "Job ID returned by omac_run_team_start" }
       },
       required: ["job_id"]
     }
   },
   {
-    name: "omc_run_team_wait",
-    description: "[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omc team wait <job_id>`.",
+    name: "omac_run_team_wait",
+    description: "[DEPRECATED] CLI-only migration required. This tool no longer executes; use `omac team wait <job_id>`.",
     inputSchema: {
       type: "object",
       properties: {
-        job_id: { type: "string", description: "Job ID returned by omc_run_team_start" },
+        job_id: { type: "string", description: "Job ID returned by omac_run_team_start" },
         timeout_ms: { type: "number", description: "Maximum wait time in ms (default: 300000, max: 3600000)" },
         nudge_delay_ms: { type: "number", description: "Milliseconds a pane must be idle before nudging (default: 30000)" },
         nudge_max_count: { type: "number", description: "Maximum nudges per pane (default: 3)" },
@@ -20027,12 +20187,12 @@ var TOOLS = [
     }
   },
   {
-    name: "omc_run_team_cleanup",
-    description: "[DEPRECATED COMPAT] Prefer `omc team cleanup <job_id>`; this compatibility cleanup surface preserves team state when worker liveness or worktree cleanup is not proven safe.",
+    name: "omac_run_team_cleanup",
+    description: "[DEPRECATED COMPAT] Prefer `omac team cleanup <job_id>`; this compatibility cleanup surface preserves team state when worker liveness or worktree cleanup is not proven safe.",
     inputSchema: {
       type: "object",
       properties: {
-        job_id: { type: "string", description: "Job ID returned by omc_run_team_start" },
+        job_id: { type: "string", description: "Job ID returned by omac_run_team_start" },
         grace_ms: { type: "number", description: "Grace period in ms before force-killing panes (default: 10000)" }
       },
       required: ["job_id"]
@@ -20047,10 +20207,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }))
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
   try {
-    if (name === "omc_run_team_start") return await handleStart(args ?? {});
-    if (name === "omc_run_team_status") return await handleStatus(args ?? {});
-    if (name === "omc_run_team_wait") return await handleWait(args ?? {});
-    if (name === "omc_run_team_cleanup") return await handleCleanup(args ?? {});
+    if (name === "omac_run_team_start") return await handleStart(args ?? {});
+    if (name === "omac_run_team_status") return await handleStatus(args ?? {});
+    if (name === "omac_run_team_wait") return await handleWait(args ?? {});
+    if (name === "omac_run_team_cleanup") return await handleCleanup(args ?? {});
   } catch (error2) {
     return { content: [{ type: "text", text: `Error: ${error2 instanceof Error ? error2.message : String(error2)}` }], isError: true };
   }
@@ -20062,9 +20222,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("OMC Team MCP Server running on stdio");
+  console.error("OMAC Team MCP Server running on stdio");
 }
-if (process.env.OMC_TEAM_SERVER_DISABLE_AUTOSTART !== "1" && process.env.NODE_ENV !== "test") {
+if (process.env.OMAC_TEAM_SERVER_DISABLE_AUTOSTART !== "1" && process.env.NODE_ENV !== "test") {
   main().catch((error2) => {
     console.error("Failed to start server:", error2);
     process.exit(1);

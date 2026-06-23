@@ -12,12 +12,12 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import type { SkillExtractionRequest } from '../hooks/learner/types.js';
 
-describe('Claude Code compatibility for OMC-authored user skills', () => {
+describe('Claude Code compatibility for OMAC-authored user skills', () => {
   let tempDir: string;
   let originalClaudeConfigDir: string | undefined;
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-user-skill-compat-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-user-skill-compat-'));
     originalClaudeConfigDir = process.env.CLAUDE_CONFIG_DIR;
     process.env.CLAUDE_CONFIG_DIR = tempDir;
     vi.resetModules();
@@ -33,22 +33,22 @@ describe('Claude Code compatibility for OMC-authored user skills', () => {
     vi.resetModules();
   });
 
-  it('reproduces that nested omc-learned skills are invisible to flat Claude Code lookup until compat sync runs', async () => {
-    const nestedSkillPath = join(tempDir, 'skills', 'omc-learned', 'expert-review', 'SKILL.md');
+  it('reproduces that nested omac-learned skills are invisible to flat Claude Code lookup until compat sync runs', async () => {
+    const nestedSkillPath = join(tempDir, 'skills', 'omac-learned', 'expert-review', 'SKILL.md');
     mkdirSync(join(nestedSkillPath, '..'), { recursive: true });
     writeFileSync(nestedSkillPath, '---\nname: expert-review\ntriggers: [expert-review]\n---\n\nUse expert review.\n');
 
     const flatSkillPath = join(tempDir, 'skills', 'expert-review', 'SKILL.md');
     expect(existsSync(flatSkillPath)).toBe(false);
 
-    const { syncOmcLearnedUserSkillsForClaudeCode } = await import('../utils/user-skill-compat.js');
-    expect(syncOmcLearnedUserSkillsForClaudeCode()).toEqual(['expert-review']);
+    const { syncOmacLearnedUserSkillsForClaudeCode } = await import('../utils/user-skill-compat.js');
+    expect(syncOmacLearnedUserSkillsForClaudeCode()).toEqual(['expert-review']);
 
     expect(existsSync(flatSkillPath)).toBe(true);
     expect(readFileSync(flatSkillPath, 'utf-8')).toContain('Use expert review.');
   });
 
-  it('keeps new user skills in omc-learned/<name>.md and exposes a flat Claude Code SKILL.md shim', async () => {
+  it('keeps new user skills in omac-learned/<name>.md and exposes a flat Claude Code SKILL.md shim', async () => {
     const { writeSkill } = await import('../hooks/learner/writer.js');
     const request: SkillExtractionRequest = {
       problem: 'Need a reusable expert review workflow.',
@@ -60,7 +60,7 @@ describe('Claude Code compatibility for OMC-authored user skills', () => {
     const result = writeSkill(request, null, 'expert-review');
 
     expect(result.success).toBe(true);
-    expect(result.path).toBe(join(tempDir, 'skills', 'omc-learned', 'expert-review.md'));
+    expect(result.path).toBe(join(tempDir, 'skills', 'omac-learned', 'expert-review.md'));
     expect(existsSync(result.path!)).toBe(true);
 
     const flatSkillPath = join(tempDir, 'skills', 'expert-review', 'SKILL.md');
@@ -69,20 +69,20 @@ describe('Claude Code compatibility for OMC-authored user skills', () => {
   });
 
   it('does not overwrite an existing user-authored flat skill directory with the same name', async () => {
-    const nestedSkillPath = join(tempDir, 'skills', 'omc-learned', 'expert-review', 'SKILL.md');
+    const nestedSkillPath = join(tempDir, 'skills', 'omac-learned', 'expert-review', 'SKILL.md');
     const flatSkillPath = join(tempDir, 'skills', 'expert-review', 'SKILL.md');
     mkdirSync(join(nestedSkillPath, '..'), { recursive: true });
     mkdirSync(join(flatSkillPath, '..'), { recursive: true });
-    writeFileSync(nestedSkillPath, '---\nname: expert-review\ntriggers: [expert-review]\n---\n\nOMC skill.\n');
+    writeFileSync(nestedSkillPath, '---\nname: expert-review\ntriggers: [expert-review]\n---\n\nOMAC skill.\n');
     writeFileSync(flatSkillPath, '---\nname: expert-review\ntriggers: [expert-review]\n---\n\nUser flat skill.\n');
 
-    const { syncOmcLearnedUserSkillsForClaudeCode } = await import('../utils/user-skill-compat.js');
-    expect(syncOmcLearnedUserSkillsForClaudeCode()).toEqual([]);
+    const { syncOmacLearnedUserSkillsForClaudeCode } = await import('../utils/user-skill-compat.js');
+    expect(syncOmacLearnedUserSkillsForClaudeCode()).toEqual([]);
     expect(readFileSync(flatSkillPath, 'utf-8')).toContain('User flat skill.');
   });
 
-  it('uses a symlink shim when supported so edits to the omc-learned source remain visible', async () => {
-    const nestedSkillPath = join(tempDir, 'skills', 'omc-learned', 'expert-review', 'SKILL.md');
+  it('uses a symlink shim when supported so edits to the omac-learned source remain visible', async () => {
+    const nestedSkillPath = join(tempDir, 'skills', 'omac-learned', 'expert-review', 'SKILL.md');
     mkdirSync(join(nestedSkillPath, '..'), { recursive: true });
     writeFileSync(nestedSkillPath, '---\nname: expert-review\ntriggers: [expert-review]\n---\n\nBefore edit.\n');
 

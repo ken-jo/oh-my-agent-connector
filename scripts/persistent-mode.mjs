@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * OMC Persistent Mode Hook (Node.js)
- * Minimal continuation enforcer for all OMC modes.
+ * OMAC Persistent Mode Hook (Node.js)
+ * Minimal continuation enforcer for all OMAC modes.
  * Stripped down for reliability — no optional imports, no PRD, no notepad pruning.
  *
  * Supported modes: ralph, ultragoal, autopilot, ultrapilot, swarm, ultrawork, ultraqa, pipeline, team
@@ -26,7 +26,7 @@ import { join, dirname, resolve, normalize } from "path";
 import { homedir } from "os";
 import { fileURLToPath, pathToFileURL } from "url";
 import { getClaudeConfigDir } from "./lib/config-dir.mjs";
-import { resolveOmcStateRoot } from "./lib/state-root.mjs";
+import { resolveOmacStateRoot } from "./lib/state-root.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -46,12 +46,12 @@ function readJsonFile(path) {
 }
 
 /**
- * Get hard max iterations from OMC_SECURITY / config file.
+ * Get hard max iterations from OMAC_SECURITY / config file.
  * Returns 0 if unlimited (default).
  */
 function getHardMaxIterations() {
-  // OMC_SECURITY=strict → default hard max 200
-  if (process.env.OMC_SECURITY === "strict") {
+  // OMAC_SECURITY=strict → default hard max 200
+  if (process.env.OMAC_SECURITY === "strict") {
     // Check config file for override
     const configOverride = readSecurityConfigValue("hardMaxIterations");
     return typeof configOverride === "number" ? configOverride : 200;
@@ -62,12 +62,12 @@ function getHardMaxIterations() {
 }
 
 /**
- * Read a single value from the security section of omc config files.
+ * Read a single value from the security section of omac config files.
  */
 function readSecurityConfigValue(key) {
   const paths = [
-    join(process.cwd(), ".claude", "omc.jsonc"),
-    join(homedir(), ".config", "claude-omc", "config.jsonc"),
+    join(process.cwd(), ".claude", "omac.jsonc"),
+    join(homedir(), ".config", "claude-omac", "config.jsonc"),
   ];
   for (const p of paths) {
     try {
@@ -103,7 +103,7 @@ function writeJsonFile(path, data) {
 }
 
 function getIdleCooldownSeconds() {
-  const configPath = join(homedir(), ".omc", "config.json");
+  const configPath = join(homedir(), ".omac", "config.json");
   const config = readJsonFile(configPath);
   const val = config?.notificationCooldown?.sessionIdleSeconds;
   return typeof val === "number" ? val : 60;
@@ -129,7 +129,7 @@ function recordIdleNotificationSent(stateDir) {
 }
 
 function dispatchIdleNotificationInBackground(sessionId, directory) {
-  if (process.env.OMC_NOTIFY === "0") return false;
+  if (process.env.OMAC_NOTIFY === "0") return false;
 
   const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT;
   if (!pluginRoot) return false;
@@ -138,7 +138,7 @@ function dispatchIdleNotificationInBackground(sessionId, directory) {
   const payload = {
     sessionId,
     projectPath: directory,
-    profileName: process.env.OMC_NOTIFY_PROFILE,
+    profileName: process.env.OMAC_NOTIFY_PROFILE,
   };
   const childSource = `import(${JSON.stringify(notificationsModuleUrl)})\n` +
     `  .then(({ notify }) => notify("session-idle", ${JSON.stringify(payload)}))\n` +
@@ -151,7 +151,7 @@ function dispatchIdleNotificationInBackground(sessionId, directory) {
       windowsHide: true,
       env: {
         ...process.env,
-        OMC_HOOK_BACKGROUND_CHILD: "1",
+        OMAC_HOOK_BACKGROUND_CHILD: "1",
       },
     });
     child.unref();
@@ -411,7 +411,7 @@ function getAutopilotPhase(state) {
 
 function isAutopilotRoutingEchoPrompt(promptText) {
   return /^\[MAGIC KEYWORDS?(?: DETECTED)?:\s*AUTOPILOT\s*\]\s*$/i.test(promptText) ||
-    /^\/(?:oh-my-claudecode:|omc:)?autopilot(?:\s+execute)?\s*$/i.test(promptText);
+    /^\/(?:oh-my-agent-connector:|omac:)?autopilot(?:\s+execute)?\s*$/i.test(promptText);
 }
 
 function isOrphanedAutopilotRoutingEchoState(state) {
@@ -576,7 +576,7 @@ function normalizePhaseValue(value) {
     : "";
 }
 
-function isUltragoalTerminalState(state, omcRoot) {
+function isUltragoalTerminalState(state, omacRoot) {
   if (!state || typeof state !== "object") return false;
   if (state.active === false) return true;
   if (typeof state.completed_at === "string" && state.completed_at.length > 0) return true;
@@ -585,7 +585,7 @@ function isUltragoalTerminalState(state, omcRoot) {
   const phase = normalizePhaseValue(state.current_phase ?? state.phase ?? state.status);
   if (phase && ULTRAGOAL_TERMINAL_PHASES.has(phase)) return true;
 
-  const plan = readJsonFile(join(omcRoot, "ultragoal", "goals.json"));
+  const plan = readJsonFile(join(omacRoot, "ultragoal", "goals.json"));
   if (!plan || typeof plan !== "object") return false;
   if (plan.aggregateCompletion?.status === "complete") return true;
   if (!Array.isArray(plan.goals) || plan.goals.length === 0) return false;
@@ -595,7 +595,7 @@ function isUltragoalTerminalState(state, omcRoot) {
   });
 }
 
-function getUltragoalObjective(state, omcRoot) {
+function getUltragoalObjective(state, omacRoot) {
   const candidates = [
     state?.claude_goal_objective,
     state?.claudeGoalObjective,
@@ -610,7 +610,7 @@ function getUltragoalObjective(state, omcRoot) {
   for (const value of candidates) {
     if (typeof value === "string" && value.trim()) return value.trim();
   }
-  const plan = readJsonFile(join(omcRoot, "ultragoal", "goals.json"));
+  const plan = readJsonFile(join(omacRoot, "ultragoal", "goals.json"));
   if (typeof plan?.claudeObjective === "string" && plan.claudeObjective.trim()) return plan.claudeObjective.trim();
   if (typeof plan?.aggregateCompletion?.objective === "string" && plan.aggregateCompletion.objective.trim()) {
     return plan.aggregateCompletion.objective.trim();
@@ -726,9 +726,9 @@ async function countIncompleteTodos(sessionId, projectDir) {
   }
 
   // Project-local todos only
-  const omcRoot = await resolveOmcStateRoot(projectDir);
+  const omacRoot = await resolveOmacStateRoot(projectDir);
   for (const path of [
-    join(omcRoot, "todos.json"),
+    join(omacRoot, "todos.json"),
     join(projectDir, ".claude", "todos.json"),
   ]) {
     try {
@@ -794,7 +794,7 @@ function getLiveUltraworkObjective(state) {
  * Blocking these stops causes a deadlock: can't compact because can't stop,
  * can't continue because context is full.
  *
- * See: https://github.com/Yeachan-Heo/oh-my-claudecode/issues/213
+ * See: https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/213
  */
 function isContextLimitStop(data) {
   const reasons = [
@@ -958,13 +958,13 @@ async function main() {
     const sessionIdRaw = data.sessionId || data.session_id || data.sessionid || "";
     const sessionId = sanitizeSessionId(sessionIdRaw);
     const hasValidSessionId = isValidSessionId(sessionIdRaw);
-    const omcRoot = await resolveOmcStateRoot(directory);
-    const stateDir = join(omcRoot, "state");
-    const globalStateDir = join(homedir(), ".omc", "state");
+    const omacRoot = await resolveOmacStateRoot(directory);
+    const stateDir = join(omacRoot, "state");
+    const globalStateDir = join(homedir(), ".omac", "state");
 
     // CRITICAL: Never block context-limit stops.
     // Blocking these causes a deadlock where Claude Code cannot compact.
-    // See: https://github.com/Yeachan-Heo/oh-my-claudecode/issues/213
+    // See: https://github.com/Yeachan-Heo/oh-my-agent-connector/issues/213
     if (isContextLimitStop(data)) {
       console.log(JSON.stringify({ continue: true, suppressOutput: true }));
       return;
@@ -1047,10 +1047,10 @@ async function main() {
       "team-state.json",
       sessionId,
     );
-    const omcTeams = readStateFileWithSession(
+    const omacTeams = readStateFileWithSession(
       stateDir,
       globalStateDir,
-      "omc-teams-state.json",
+      "omac-teams-state.json",
       sessionId,
     );
 
@@ -1094,7 +1094,7 @@ async function main() {
           }
           writeJsonFile(ralph.path, ralph.state);
 
-          let reason = `[RALPH LOOP - ITERATION ${iteration + 1}/${maxIter}] Work is NOT done. Continue working.\nWhen FULLY complete (after Architect verification), run /oh-my-claudecode:cancel to cleanly exit ralph mode and clean up all state files. If cancel fails, retry with /oh-my-claudecode:cancel --force.\n${ralph.state.prompt ? `Task: ${ralph.state.prompt}` : ""}`;
+          let reason = `[RALPH LOOP - ITERATION ${iteration + 1}/${maxIter}] Work is NOT done. Continue working.\nWhen FULLY complete (after Architect verification), run /oh-my-agent-connector:cancel to cleanly exit ralph mode and clean up all state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force.\n${ralph.state.prompt ? `Task: ${ralph.state.prompt}` : ""}`;
           if (errorGuidance) {
             reason = errorGuidance + reason;
           }
@@ -1122,7 +1122,7 @@ async function main() {
           console.log(
             JSON.stringify({
               decision: "block",
-              reason: `[RALPH LOOP - HARD LIMIT] Reached hard max iterations (${hardMax}). Mode auto-disabled. Restart with /oh-my-claudecode:ralph if needed.`,
+              reason: `[RALPH LOOP - HARD LIMIT] Reached hard max iterations (${hardMax}). Mode auto-disabled. Restart with /oh-my-agent-connector:ralph if needed.`,
             }),
           );
           return;
@@ -1137,7 +1137,7 @@ async function main() {
         }
         writeJsonFile(ralph.path, ralph.state);
 
-        const ralphExtendedReason = `[RALPH LOOP - EXTENDED] Max iterations reached; extending to ${ralph.state.max_iterations} and continuing. When FULLY complete (after Architect verification), run /oh-my-claudecode:cancel (or --force).`;
+        const ralphExtendedReason = `[RALPH LOOP - EXTENDED] Max iterations reached; extending to ${ralph.state.max_iterations} and continuing. When FULLY complete (after Architect verification), run /oh-my-agent-connector:cancel (or --force).`;
         console.log(
           JSON.stringify({
             decision: "block",
@@ -1157,7 +1157,7 @@ async function main() {
       const sessionMatches = hasValidSessionId
         ? ultragoal.state.session_id === sessionId
         : !ultragoal.state.session_id || ultragoal.state.session_id === sessionId;
-      if (sessionMatches && !isUltragoalTerminalState(ultragoal.state, omcRoot)) {
+      if (sessionMatches && !isUltragoalTerminalState(ultragoal.state, omacRoot)) {
         const newCount = (ultragoal.state.reinforcement_count || 0) + 1;
         const maxReinforcements = ultragoal.state.max_reinforcements || 50;
 
@@ -1177,8 +1177,8 @@ async function main() {
         }
         writeJsonFile(ultragoal.path, ultragoal.state);
 
-        let reason = `[ULTRAGOAL #${newCount}/${maxReinforcements}] Ultragoal mode is active. Continue the durable goal workflow, keep the matching Claude /goal active, and checkpoint .omc/ultragoal/ledger.jsonl before stopping. When all ultragoal stories are complete and the final quality gate passes, run /oh-my-claudecode:cancel to cleanly exit.`;
-        const objective = getUltragoalObjective(ultragoal.state, omcRoot);
+        let reason = `[ULTRAGOAL #${newCount}/${maxReinforcements}] Ultragoal mode is active. Continue the durable goal workflow, keep the matching Claude /goal active, and checkpoint .omac/ultragoal/ledger.jsonl before stopping. When all ultragoal stories are complete and the final quality gate passes, run /oh-my-agent-connector:cancel to cleanly exit.`;
+        const objective = getUltragoalObjective(ultragoal.state, omacRoot);
         if (objective) reason += `\nClaude /goal objective: ${objective}`;
         if (errorGuidance) {
           reason = errorGuidance + reason;
@@ -1217,7 +1217,7 @@ async function main() {
             writeJsonFile(autopilot.path, autopilot.state);
 
             const cancelGuidance = hasValidSessionId && autopilot.state.session_id === sessionId
-              ? " When all phases are complete, run /oh-my-claudecode:cancel to cleanly exit and clean up this session's autopilot state files. If cancel fails, retry with /oh-my-claudecode:cancel --force."
+              ? " When all phases are complete, run /oh-my-agent-connector:cancel to cleanly exit and clean up this session's autopilot state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force."
               : "";
             let reason = `[AUTOPILOT - Phase: ${phase}] Autopilot not complete. Continue working.${cancelGuidance}`;
             if (errorGuidance) {
@@ -1259,7 +1259,7 @@ async function main() {
           ultrapilot.state.last_checked_at = new Date().toISOString();
           writeJsonFile(ultrapilot.path, ultrapilot.state);
 
-          let reason = `[ULTRAPILOT] ${incomplete} workers still running. Continue working. When all workers complete, run /oh-my-claudecode:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-claudecode:cancel --force.`;
+          let reason = `[ULTRAPILOT] ${incomplete} workers still running. Continue working. When all workers complete, run /oh-my-agent-connector:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`;
           if (errorGuidance) {
             reason = errorGuidance + reason;
           }
@@ -1294,7 +1294,7 @@ async function main() {
           swarmSummary.last_checked_at = new Date().toISOString();
           writeJsonFile(join(stateDir, "swarm-summary.json"), swarmSummary);
 
-          let reason = `[SWARM ACTIVE] ${pending} tasks remain. Continue working. When all tasks are done, run /oh-my-claudecode:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-claudecode:cancel --force.`;
+          let reason = `[SWARM ACTIVE] ${pending} tasks remain. Continue working. When all tasks are done, run /oh-my-agent-connector:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`;
           if (errorGuidance) {
             reason = errorGuidance + reason;
           }
@@ -1331,7 +1331,7 @@ async function main() {
           pipeline.state.last_checked_at = new Date().toISOString();
           writeJsonFile(pipeline.path, pipeline.state);
 
-          let reason = `[PIPELINE - Stage ${currentStage + 1}/${totalStages}] Pipeline not complete. Continue working. When all stages complete, run /oh-my-claudecode:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-claudecode:cancel --force.`;
+          let reason = `[PIPELINE - Stage ${currentStage + 1}/${totalStages}] Pipeline not complete. Continue working. When all stages complete, run /oh-my-agent-connector:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`;
           if (errorGuidance) {
             reason = errorGuidance + reason;
           }
@@ -1368,7 +1368,7 @@ async function main() {
             team.state.last_checked_at = new Date().toISOString();
             writeJsonFile(team.path, team.state);
 
-            let reason = `[TEAM - Phase: ${phase}] Team mode active. Continue working. When all team tasks complete, run /oh-my-claudecode:cancel to cleanly exit. If cancel fails, retry with /oh-my-claudecode:cancel --force.`;
+            let reason = `[TEAM - Phase: ${phase}] Team mode active. Continue working. When all team tasks complete, run /oh-my-agent-connector:cancel to cleanly exit. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`;
             if (errorGuidance) {
               reason = errorGuidance + reason;
             }
@@ -1385,28 +1385,28 @@ async function main() {
       }
     }
 
-    // Priority 6.5: OMC Teams (tmux CLI workers — independent of native team state)
+    // Priority 6.5: OMAC Teams (tmux CLI workers — independent of native team state)
     if (
-      omcTeams.state?.active &&
-      !isStaleState(omcTeams.state) &&
-      isStateForCurrentProject(omcTeams.state, directory, omcTeams.isGlobal)
+      omacTeams.state?.active &&
+      !isStaleState(omacTeams.state) &&
+      isStateForCurrentProject(omacTeams.state, directory, omacTeams.isGlobal)
     ) {
       const sessionMatches = hasValidSessionId
-        ? omcTeams.state.session_id === sessionId
-        : !omcTeams.state.session_id || omcTeams.state.session_id === sessionId;
+        ? omacTeams.state.session_id === sessionId
+        : !omacTeams.state.session_id || omacTeams.state.session_id === sessionId;
       if (sessionMatches) {
-        const phase = normalizeTeamPhase(omcTeams.state);
+        const phase = normalizeTeamPhase(omacTeams.state);
         if (phase) {
-          const newCount = getSafeReinforcementCount(omcTeams.state.reinforcement_count) + 1;
+          const newCount = getSafeReinforcementCount(omacTeams.state.reinforcement_count) + 1;
           if (newCount <= 20) {
             const toolError = readLastToolError(stateDir);
             const errorGuidance = getToolErrorRetryGuidance(toolError);
 
-            omcTeams.state.reinforcement_count = newCount;
-            omcTeams.state.last_checked_at = new Date().toISOString();
-            writeJsonFile(omcTeams.path, omcTeams.state);
+            omacTeams.state.reinforcement_count = newCount;
+            omacTeams.state.last_checked_at = new Date().toISOString();
+            writeJsonFile(omacTeams.path, omacTeams.state);
 
-            let reason = `[OMC TEAMS - Phase: ${phase}] OMC Teams workers active. Continue working. When all workers complete, run /oh-my-claudecode:cancel to cleanly exit. If cancel fails, retry with /oh-my-claudecode:cancel --force.`;
+            let reason = `[OMAC TEAMS - Phase: ${phase}] OMAC Teams workers active. Continue working. When all workers complete, run /oh-my-agent-connector:cancel to cleanly exit. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`;
             if (errorGuidance) {
               reason = errorGuidance + reason;
             }
@@ -1437,7 +1437,7 @@ async function main() {
         ultraqa.state.last_checked_at = new Date().toISOString();
         writeJsonFile(ultraqa.path, ultraqa.state);
 
-        let reason = `[ULTRAQA - Cycle ${cycle + 1}/${maxCycles}] Tests not all passing. Continue fixing. When all tests pass, run /oh-my-claudecode:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-claudecode:cancel --force.`;
+        let reason = `[ULTRAQA - Cycle ${cycle + 1}/${maxCycles}] Tests not all passing. Continue fixing. When all tests pass, run /oh-my-agent-connector:cancel to cleanly exit and clean up state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force.`;
         if (errorGuidance) {
           reason = errorGuidance + reason;
         }
@@ -1485,13 +1485,13 @@ async function main() {
 
       if (totalIncomplete > 0) {
         const itemType = taskCount > 0 ? "Tasks" : "todos";
-        reason += ` ${totalIncomplete} incomplete ${itemType} remain. Continue working. When all work is complete, run /oh-my-claudecode:cancel to cleanly exit ultrawork mode and clean up state files.`;
+        reason += ` ${totalIncomplete} incomplete ${itemType} remain. Continue working. When all work is complete, run /oh-my-agent-connector:cancel to cleanly exit ultrawork mode and clean up state files.`;
       } else if (newCount >= 3) {
         // Reinforce clean-exit guidance once no tracked work remains.
-        reason += ` If all work is complete, run /oh-my-claudecode:cancel to cleanly exit ultrawork mode and clean up state files. If cancel fails, retry with /oh-my-claudecode:cancel --force. Otherwise, continue working.`;
+        reason += ` If all work is complete, run /oh-my-agent-connector:cancel to cleanly exit ultrawork mode and clean up state files. If cancel fails, retry with /oh-my-agent-connector:cancel --force. Otherwise, continue working.`;
       } else {
         // Early iterations with no tasks yet still need an immediately visible exit path.
-        reason += ` No incomplete tasks detected. If all work is complete, run /oh-my-claudecode:cancel to cleanly exit ultrawork mode and clean up state files. Otherwise, continue working - create Tasks to track your progress.`;
+        reason += ` No incomplete tasks detected. If all work is complete, run /oh-my-agent-connector:cancel to cleanly exit ultrawork mode and clean up state files. Otherwise, continue working - create Tasks to track your progress.`;
       }
 
       const currentObjective = getLiveUltraworkObjective(ultrawork.state);

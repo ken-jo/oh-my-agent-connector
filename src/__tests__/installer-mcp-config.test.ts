@@ -29,14 +29,14 @@ vi.mock('fs', async () => {
   };
 });
 
-async function loadInstallerWithEnv(claudeConfigDir: string, homeDir: string, codexHome: string, omcHome: string) {
+async function loadInstallerWithEnv(claudeConfigDir: string, homeDir: string, codexHome: string, omacHome: string) {
   vi.resetModules();
   process.env.CLAUDE_CONFIG_DIR = claudeConfigDir;
   process.env.HOME = homeDir;
   process.env.CODEX_HOME = codexHome;
-  process.env.OMC_HOME = omcHome;
+  process.env.OMAC_HOME = omacHome;
   delete process.env.CLAUDE_MCP_CONFIG_PATH;
-  delete process.env.OMC_MCP_REGISTRY_PATH;
+  delete process.env.OMAC_MCP_REGISTRY_PATH;
   return import('../installer/index.js');
 }
 
@@ -45,20 +45,20 @@ describe('installer MCP config ownership (issue #1802)', () => {
   let homeDir: string;
   let claudeConfigDir: string;
   let codexHome: string;
-  let omcHome: string;
+  let omacHome: string;
   let originalEnv: NodeJS.ProcessEnv;
 
   beforeEach(() => {
-    tempRoot = mkdtempSync(join(tmpdir(), 'omc-installer-mcp-config-'));
+    tempRoot = mkdtempSync(join(tmpdir(), 'omac-installer-mcp-config-'));
     homeDir = join(tempRoot, 'home');
     claudeConfigDir = join(homeDir, '.claude');
     codexHome = join(tempRoot, '.codex');
-    omcHome = join(tempRoot, '.omc');
+    omacHome = join(tempRoot, '.omac');
 
     mkdirSync(homeDir, { recursive: true });
     mkdirSync(claudeConfigDir, { recursive: true });
     mkdirSync(codexHome, { recursive: true });
-    mkdirSync(omcHome, { recursive: true });
+    mkdirSync(omacHome, { recursive: true });
 
     originalEnv = { ...process.env };
   });
@@ -73,7 +73,7 @@ describe('installer MCP config ownership (issue #1802)', () => {
     const settingsPath = join(claudeConfigDir, 'settings.json');
     const claudeRootConfigPath = join(homeDir, '.claude.json');
     const codexConfigPath = join(codexHome, 'config.toml');
-    const registryPath = join(omcHome, 'mcp-registry.json');
+    const registryPath = join(omacHome, 'mcp-registry.json');
 
     writeFileSync(settingsPath, JSON.stringify({
       theme: 'dark',
@@ -90,7 +90,7 @@ describe('installer MCP config ownership (issue #1802)', () => {
       },
     }, null, 2));
 
-    const installer = await loadInstallerWithEnv(claudeConfigDir, homeDir, codexHome, omcHome);
+    const installer = await loadInstallerWithEnv(claudeConfigDir, homeDir, codexHome, omacHome);
     const result = installer.install({
       skipClaudeCheck: true,
       skipHud: true,
@@ -140,7 +140,7 @@ describe('installer MCP config ownership (issue #1802)', () => {
     });
 
     const codexConfig = readFileSync(codexConfigPath, 'utf-8');
-    expect(codexConfig).toContain('# BEGIN OMC MANAGED MCP REGISTRY');
+    expect(codexConfig).toContain('# BEGIN OMAC MANAGED MCP REGISTRY');
     expect(codexConfig).toContain('[mcp_servers.gitnexus]');
     expect(codexConfig).toContain('command = "gitnexus"');
   });

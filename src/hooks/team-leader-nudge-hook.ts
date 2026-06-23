@@ -76,24 +76,24 @@ const defaultTmux: TmuxRunner = {
 const DEFAULT_LEADER_STALE_MS = 120_000; // 2 minutes
 const DEFAULT_NUDGE_COOLDOWN_MS = 60_000; // 1 minute between nudges
 const DEFAULT_MAX_NUDGE_COUNT = 5;
-const INJECT_MARKER = '[OMC_TMUX_INJECT]';
+const INJECT_MARKER = '[OMAC_TMUX_INJECT]';
 
 function resolveLeaderStaleMs(): number {
-  const raw = safeString(process.env.OMC_TEAM_LEADER_STALE_MS || '');
+  const raw = safeString(process.env.OMAC_TEAM_LEADER_STALE_MS || '');
   const parsed = asNumber(raw);
   if (parsed !== null && parsed >= 10_000 && parsed <= 600_000) return parsed;
   return DEFAULT_LEADER_STALE_MS;
 }
 
 function resolveNudgeCooldownMs(): number {
-  const raw = safeString(process.env.OMC_TEAM_LEADER_NUDGE_COOLDOWN_MS || '');
+  const raw = safeString(process.env.OMAC_TEAM_LEADER_NUDGE_COOLDOWN_MS || '');
   const parsed = asNumber(raw);
   if (parsed !== null && parsed >= 5_000 && parsed <= 600_000) return parsed;
   return DEFAULT_NUDGE_COOLDOWN_MS;
 }
 
 function resolveMaxNudgeCount(): number {
-  const raw = safeString(process.env.OMC_TEAM_LEADER_MAX_NUDGE_COUNT || '');
+  const raw = safeString(process.env.OMAC_TEAM_LEADER_MAX_NUDGE_COUNT || '');
   const parsed = asNumber(raw);
   if (parsed !== null && parsed >= 1 && parsed <= 100) return parsed;
   return DEFAULT_MAX_NUDGE_COUNT;
@@ -339,7 +339,7 @@ export async function maybeNudgeLeader(params: {
   if (!leaderPaneId) return { nudged: false, reason: 'no_leader_pane_id' };
 
   // Send nudge
-  const message = `[OMC] Leader nudge (${guidance.nextAction}): ${guidance.message} ${INJECT_MARKER}`;
+  const message = `[OMAC] Leader nudge (${guidance.nextAction}): ${guidance.message} ${INJECT_MARKER}`;
   const logNudgePersistenceFailure = createSwallowedErrorLogger(
     'hooks.team-leader-nudge maybeNudgeLeader persistence failed',
   );

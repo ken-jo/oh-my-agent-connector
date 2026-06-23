@@ -1,11 +1,11 @@
 /**
- * Stale OMC Agent/Skill Cleanup Tests
+ * Stale OMAC Agent/Skill Cleanup Tests
  *
- * Verifies that the installer removes stale OMC-created files from the config
+ * Verifies that the installer removes stale OMAC-created files from the config
  * directory while preserving user-created files.
  *
  * Contract: setup must clean up ~/.claude/agents and ~/.claude/skills that were
- * created by OMC in previous versions but are no longer shipped.
+ * created by OMAC in previous versions but are no longer shipped.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -29,7 +29,7 @@ function createSkillDir(dir: string, skillName: string, name: string): void {
 }
 
 function createUserFile(dir: string, filename: string): void {
-  // User-created file without OMC frontmatter
+  // User-created file without OMAC frontmatter
   writeFileSync(join(dir, filename), `# My Custom Agent\n\nThis is a user-created agent definition.\n`);
 }
 
@@ -41,7 +41,7 @@ function createUserSkillDir(dir: string, skillName: string): void {
 }
 
 function createManagedSkillMarker(dir: string, skillName: string): void {
-  writeFileSync(join(dir, skillName, '.omc-managed'), 'omc-managed\n');
+  writeFileSync(join(dir, skillName, '.omac-managed'), 'omac-managed\n');
 }
 
 // ── Stale Agent Cleanup ──────────────────────────────────────────────────────
@@ -52,7 +52,7 @@ describe('cleanupStaleAgents', () => {
   const log = vi.fn();
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-stale-agents-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-stale-agents-'));
     originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
     process.env.CLAUDE_CONFIG_DIR = tempDir;
     log.mockClear();
@@ -67,14 +67,14 @@ describe('cleanupStaleAgents', () => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it('removes agent files that have OMC frontmatter but are no longer in the package', async () => {
+  it('removes agent files that have OMAC frontmatter but are no longer in the package', async () => {
     // Re-import with fresh CLAUDE_CONFIG_DIR
     vi.resetModules();
     const { cleanupStaleAgents: cleanup, AGENTS_DIR: agentsDir } = await import('../index.js');
 
     mkdirSync(agentsDir, { recursive: true });
 
-    // Create a fake "stale" agent that looks like OMC-created but isn't in current package
+    // Create a fake "stale" agent that looks like OMAC-created but isn't in current package
     createAgentFile(agentsDir, 'removed-agent.md', 'removed-agent');
 
     const removed = cleanup(log);
@@ -98,7 +98,7 @@ describe('cleanupStaleAgents', () => {
     expect(existsSync(join(agentsDir, 'architect.md'))).toBe(true);
   });
 
-  it('preserves user-created files without OMC frontmatter', async () => {
+  it('preserves user-created files without OMAC frontmatter', async () => {
     vi.resetModules();
     const { cleanupStaleAgents: cleanup, AGENTS_DIR: agentsDir } = await import('../index.js');
 
@@ -141,7 +141,7 @@ describe('cleanupStaleSkills', () => {
   const log = vi.fn();
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-stale-skills-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-stale-skills-'));
     originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
     process.env.CLAUDE_CONFIG_DIR = tempDir;
     log.mockClear();
@@ -156,7 +156,7 @@ describe('cleanupStaleSkills', () => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it('removes stale skills only when OMC ownership is explicitly marked', async () => {
+  it('removes stale skills only when OMAC ownership is explicitly marked', async () => {
     vi.resetModules();
     const { cleanupStaleSkills: cleanup, SKILLS_DIR: skillsDir } = await import('../index.js');
 
@@ -186,7 +186,7 @@ describe('cleanupStaleSkills', () => {
     expect(existsSync(join(skillsDir, 'ralph'))).toBe(true);
   });
 
-  it('preserves user-created skill directories without OMC frontmatter', async () => {
+  it('preserves user-created skill directories without OMAC frontmatter', async () => {
     vi.resetModules();
     const { cleanupStaleSkills: cleanup, SKILLS_DIR: skillsDir } = await import('../index.js');
 
@@ -200,7 +200,7 @@ describe('cleanupStaleSkills', () => {
     expect(existsSync(join(skillsDir, 'my-custom-skill'))).toBe(true);
   });
 
-  it('preserves third-party skills with standard frontmatter when no OMC marker is present', async () => {
+  it('preserves third-party skills with standard frontmatter when no OMAC marker is present', async () => {
     vi.resetModules();
     const { cleanupStaleSkills: cleanup, SKILLS_DIR: skillsDir } = await import('../index.js');
 
@@ -213,13 +213,13 @@ describe('cleanupStaleSkills', () => {
     expect(existsSync(join(skillsDir, 'gstack'))).toBe(true);
   });
 
-  it('preserves symlinked skill directories without an OMC marker', async () => {
+  it('preserves symlinked skill directories without an OMAC marker', async () => {
     vi.resetModules();
     const { cleanupStaleSkills: cleanup, SKILLS_DIR: skillsDir } = await import('../index.js');
 
     mkdirSync(skillsDir, { recursive: true });
 
-    const externalRoot = mkdtempSync(join(tmpdir(), 'omc-third-party-skill-'));
+    const externalRoot = mkdtempSync(join(tmpdir(), 'omac-third-party-skill-'));
     const externalSkillDir = join(externalRoot, 'linked-skill');
     mkdirSync(externalSkillDir, { recursive: true });
     writeFileSync(join(externalSkillDir, 'SKILL.md'), '---\nname: linked-skill\ndescription: external\n---\n\n# linked-skill\n');
@@ -234,19 +234,19 @@ describe('cleanupStaleSkills', () => {
     }
   });
 
-  it('preserves omc-learned directory (user-created skills)', async () => {
+  it('preserves omac-learned directory (user-created skills)', async () => {
     vi.resetModules();
     const { cleanupStaleSkills: cleanup, SKILLS_DIR: skillsDir } = await import('../index.js');
 
     mkdirSync(skillsDir, { recursive: true });
 
-    // omc-learned is the user skills directory — must never be removed
-    createSkillDir(skillsDir, 'omc-learned', 'omc-learned');
+    // omac-learned is the user skills directory — must never be removed
+    createSkillDir(skillsDir, 'omac-learned', 'omac-learned');
 
     const removed = cleanup(log);
 
-    expect(removed).not.toContain('omc-learned');
-    expect(existsSync(join(skillsDir, 'omc-learned'))).toBe(true);
+    expect(removed).not.toContain('omac-learned');
+    expect(existsSync(join(skillsDir, 'omac-learned'))).toBe(true);
   });
 
   it('returns empty array when skills directory does not exist', () => {
@@ -280,7 +280,7 @@ describe('prunePluginDuplicateSkills', () => {
   const log = vi.fn();
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-prune-dupes-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-prune-dupes-'));
     originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
     process.env.CLAUDE_CONFIG_DIR = tempDir;
     log.mockClear();
@@ -295,14 +295,14 @@ describe('prunePluginDuplicateSkills', () => {
     rmSync(tempDir, { recursive: true, force: true });
   });
 
-  it('removes standalone skills that match plugin-provided skills when marked as OMC-owned', async () => {
+  it('removes standalone skills that match plugin-provided skills when marked as OMAC-owned', async () => {
     vi.resetModules();
     const { prunePluginDuplicateSkills: prune, SKILLS_DIR: skillsDir } = await import('../index.js');
 
     mkdirSync(skillsDir, { recursive: true });
 
     // Create a standalone copy of 'ralph' (which the plugin also provides)
-    // and mark it as OMC-owned — this is what a prior `omc setup` would have done
+    // and mark it as OMAC-owned — this is what a prior `omac setup` would have done
     createSkillDir(skillsDir, 'ralph', 'ralph');
     createManagedSkillMarker(skillsDir, 'ralph');
 
@@ -312,13 +312,13 @@ describe('prunePluginDuplicateSkills', () => {
     expect(existsSync(join(skillsDir, 'ralph'))).toBe(false);
   });
 
-  it('preserves user-authored skills without OMC frontmatter even if name matches', async () => {
+  it('preserves user-authored skills without OMAC frontmatter even if name matches', async () => {
     vi.resetModules();
     const { prunePluginDuplicateSkills: prune, SKILLS_DIR: skillsDir } = await import('../index.js');
 
     mkdirSync(skillsDir, { recursive: true });
 
-    // User-created skill with a name that collides with plugin skill but no OMC frontmatter
+    // User-created skill with a name that collides with plugin skill but no OMAC frontmatter
     createUserSkillDir(skillsDir, 'ralph');
 
     const removed = prune(log);
@@ -328,8 +328,8 @@ describe('prunePluginDuplicateSkills', () => {
   });
 
   it('preserves user skills with standard frontmatter that have different content from plugin version (issue #2573)', async () => {
-    // Regression: the old `isOmcCreated` heuristic treated any skill with
-    // `---\nname:` frontmatter as OMC-owned and deleted it during update,
+    // Regression: the old `isOmacCreated` heuristic treated any skill with
+    // `---\nname:` frontmatter as OMAC-owned and deleted it during update,
     // even when the content differed from the plugin's copy.
     vi.resetModules();
     const { prunePluginDuplicateSkills: prune, SKILLS_DIR: skillsDir } = await import('../index.js');
@@ -343,7 +343,7 @@ describe('prunePluginDuplicateSkills', () => {
       join(customSkillDir, 'SKILL.md'),
       '---\nname: ralph\ndescription: My custom ralph workflow\n---\n\n# My Custom Ralph\nThis is my personalized version.\n',
     );
-    // No .omc-managed marker — this is user-owned
+    // No .omac-managed marker — this is user-owned
 
     const removed = prune(log);
 
@@ -351,53 +351,53 @@ describe('prunePluginDuplicateSkills', () => {
     expect(existsSync(join(skillsDir, 'ralph'))).toBe(true);
   });
 
-  it('removes exact-match standalone alias duplicates like omc-plan while preserving alias lookup behavior', async () => {
+  it('removes exact-match standalone alias duplicates like omac-plan while preserving alias lookup behavior', async () => {
     vi.resetModules();
     const { prunePluginDuplicateSkills: prune, SKILLS_DIR: skillsDir } = await import('../index.js');
 
     mkdirSync(skillsDir, { recursive: true });
 
     const packagePlanSkill = readFileSync(join(process.cwd(), 'skills', 'plan', 'SKILL.md'), 'utf-8');
-    const aliasSkillDir = join(skillsDir, 'omc-plan');
+    const aliasSkillDir = join(skillsDir, 'omac-plan');
     mkdirSync(aliasSkillDir, { recursive: true });
     writeFileSync(join(aliasSkillDir, 'SKILL.md'), packagePlanSkill);
 
     const removed = prune(log);
 
-    expect(removed).toContain('omc-plan');
+    expect(removed).toContain('omac-plan');
     expect(existsSync(aliasSkillDir)).toBe(false);
   });
 
-  it('preserves user-authored standalone alias skills like omc-plan when content differs from plugin copy', async () => {
+  it('preserves user-authored standalone alias skills like omac-plan when content differs from plugin copy', async () => {
     vi.resetModules();
     const { prunePluginDuplicateSkills: prune, SKILLS_DIR: skillsDir } = await import('../index.js');
 
     mkdirSync(skillsDir, { recursive: true });
 
-    const aliasSkillDir = join(skillsDir, 'omc-plan');
+    const aliasSkillDir = join(skillsDir, 'omac-plan');
     mkdirSync(aliasSkillDir, { recursive: true });
     writeFileSync(
       join(aliasSkillDir, 'SKILL.md'),
-      '---\nname: plan\ndescription: My custom alias skill\n---\n\n# Custom omc-plan\nUser-authored content.\n',
+      '---\nname: plan\ndescription: My custom alias skill\n---\n\n# Custom omac-plan\nUser-authored content.\n',
     );
 
     const removed = prune(log);
 
-    expect(removed).not.toContain('omc-plan');
+    expect(removed).not.toContain('omac-plan');
     expect(existsSync(aliasSkillDir)).toBe(true);
   });
 
-  it('preserves omc-learned directory', async () => {
+  it('preserves omac-learned directory', async () => {
     vi.resetModules();
     const { prunePluginDuplicateSkills: prune, SKILLS_DIR: skillsDir } = await import('../index.js');
 
     mkdirSync(skillsDir, { recursive: true });
-    createSkillDir(skillsDir, 'omc-learned', 'omc-learned');
+    createSkillDir(skillsDir, 'omac-learned', 'omac-learned');
 
     const removed = prune(log);
 
-    expect(removed).not.toContain('omc-learned');
-    expect(existsSync(join(skillsDir, 'omc-learned'))).toBe(true);
+    expect(removed).not.toContain('omac-learned');
+    expect(existsSync(join(skillsDir, 'omac-learned'))).toBe(true);
   });
 
   it('does not remove skills whose name does not match any plugin skill', async () => {
@@ -442,7 +442,7 @@ describe('prunePluginDuplicateAgents', () => {
   const log = vi.fn();
 
   beforeEach(() => {
-    tempDir = mkdtempSync(join(tmpdir(), 'omc-prune-agent-dupes-'));
+    tempDir = mkdtempSync(join(tmpdir(), 'omac-prune-agent-dupes-'));
     originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
     process.env.CLAUDE_CONFIG_DIR = tempDir;
     log.mockClear();
@@ -470,7 +470,7 @@ describe('prunePluginDuplicateAgents', () => {
     expect(existsSync(join(agentsDir, 'architect.md'))).toBe(false);
   });
 
-  it('preserves user-created agents without OMC frontmatter', async () => {
+  it('preserves user-created agents without OMAC frontmatter', async () => {
     vi.resetModules();
     const { prunePluginDuplicateAgents: prune, AGENTS_DIR: agentsDir } = await import('../index.js');
 

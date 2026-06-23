@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Canonical path / env-var constants live in src/lib/env-vars.ts and src/lib/paths.ts — keep in sync (see src/__tests__/paths-consistency.test.ts).
 /**
- * OMC HUD - Statusline Script
- * Wrapper that imports from OMC_PLUGIN_ROOT, plugin cache, marketplace, or npm package.
+ * OMAC HUD - Statusline Script
+ * Wrapper that imports from OMAC_PLUGIN_ROOT, plugin cache, marketplace, or npm package.
  * Generated from scripts/lib/hud-wrapper-template.txt — do not edit by hand.
  */
 
@@ -71,7 +71,7 @@ async function importHudPackage(hudPackage) {
   } catch { /* continue */ }
 
   try {
-    const cwdRequire = createRequire(join(process.cwd(), "__omc_hud__.cjs"));
+    const cwdRequire = createRequire(join(process.cwd(), "__omac_hud__.cjs"));
     const resolvedHudPath = cwdRequire.resolve(hudPackage);
     await import(pathToFileURL(resolvedHudPath).href);
     return true;
@@ -95,9 +95,9 @@ async function main() {
   let lastHudLoadError = null;
   let lastHudLoadTarget = null;
 
-  // 1. OMC_PLUGIN_ROOT — highest priority (set by `omc --plugin-dir <path>`)
+  // 1. OMAC_PLUGIN_ROOT — highest priority (set by `omac --plugin-dir <path>`)
   try {
-    const pluginRootEnv = process.env.OMC_PLUGIN_ROOT;
+    const pluginRootEnv = process.env.OMAC_PLUGIN_ROOT;
     if (pluginRootEnv && pluginRootEnv.trim().length > 0) {
       const envHudPath = join(pluginRootEnv, "dist/hud/index.js");
       if (existsSync(envHudPath)) {
@@ -115,7 +115,7 @@ async function main() {
   // 2. Plugin cache (for production installs)
   // Respect CLAUDE_CONFIG_DIR so installs under a custom config dir are found
   const configDir = getClaudeConfigDir();
-  const pluginCacheBase = join(configDir, "plugins", "cache", "omc", "oh-my-claudecode");
+  const pluginCacheBase = join(configDir, "plugins", "cache", "omac", "oh-my-agent-connector");
   if (existsSync(pluginCacheBase)) {
     try {
       // Filter to strict semver dir names only — guards against accidental
@@ -197,7 +197,7 @@ async function main() {
   }
 
   // 3. Marketplace clone (for marketplace installs without a populated cache)
-  const marketplaceHudPath = join(configDir, "plugins", "marketplaces", "omc", "dist/hud/index.js");
+  const marketplaceHudPath = join(configDir, "plugins", "marketplaces", "omac", "dist/hud/index.js");
   if (existsSync(marketplaceHudPath)) {
     try {
       await import(pathToFileURL(marketplaceHudPath).href);
@@ -209,12 +209,11 @@ async function main() {
     }
   }
 
-  // 4. npm package (current project, global install, or branded fallback)
+  // 4. npm package (current project or global install)
   // Tests can disable this fallback to avoid host-global package nondeterminism.
-  if (process.env.OMC_HUD_DISABLE_NPM_FALLBACK !== "1") {
+  if (process.env.OMAC_HUD_DISABLE_NPM_FALLBACK !== "1") {
     const npmHudPackages = [
-      "oh-my-claude-sisyphus/dist/hud/index.js",
-      "oh-my-claudecode/dist/hud/index.js",
+      "oh-my-agent-connector/dist/hud/index.js",
     ];
     for (const hudPackage of npmHudPackages) {
       if (await importHudPackage(hudPackage)) {
@@ -229,23 +228,23 @@ async function main() {
       ? lastHudLoadError.message
       : String(lastHudLoadError);
     const targetDetail = lastHudLoadTarget ? ` from ${lastHudLoadTarget}` : "";
-    console.log(`[OMC HUD] HUD import failed${targetDetail}: ${detail}`);
+    console.log(`[OMAC HUD] HUD import failed${targetDetail}: ${detail}`);
   }
 
   if (pluginCacheDir && existsSync(pluginCacheDir)) {
     const distDir = join(pluginCacheDir, "dist");
     if (!existsSync(distDir)) {
-      console.log(`[OMC HUD] Plugin installed but not built. Run: cd "${pluginCacheDir}" && npm install && npm run build`);
+      console.log(`[OMAC HUD] Plugin installed but not built. Run: cd "${pluginCacheDir}" && npm install && npm run build`);
     } else {
       const detail = lastHudLoadError && typeof lastHudLoadError.message === "string"
         ? ` (${lastHudLoadError.message})`
         : "";
-      console.log(`[OMC HUD] Plugin HUD load failed${detail}. Run: cd "${pluginCacheDir}" && npm install && npm run build`);
+      console.log(`[OMAC HUD] Plugin HUD load failed${detail}. Run: cd "${pluginCacheDir}" && npm install && npm run build`);
     }
   } else if (existsSync(pluginCacheBase)) {
-    console.log(`[OMC HUD] Plugin cache found but no versions installed. Run: /oh-my-claudecode:omc-setup`);
+    console.log(`[OMAC HUD] Plugin cache found but no versions installed. Run: /oh-my-agent-connector:omac-setup`);
   } else {
-    console.log("[OMC HUD] Plugin not installed. Run: /oh-my-claudecode:omc-setup");
+    console.log("[OMAC HUD] Plugin not installed. Run: /oh-my-agent-connector:omac-setup");
   }
 }
 

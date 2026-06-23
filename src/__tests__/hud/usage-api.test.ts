@@ -873,7 +873,7 @@ describe('getUsage routing', () => {
       const file = String(path);
       if (file.endsWith('settings.json')) {
         return JSON.stringify({
-          omcHud: {
+          omacHud: {
             usageApiPollIntervalMs: 180_000,
           },
         });
@@ -925,7 +925,7 @@ describe('getUsage routing', () => {
       const file = String(path);
       if (file.endsWith('settings.json')) {
         return JSON.stringify({
-          omcHud: {
+          omacHud: {
             usageApiPollIntervalMs: 60_000,
           },
         });
@@ -982,7 +982,7 @@ describe('getUsage routing', () => {
       const file = String(path);
       if (file.endsWith('settings.json')) {
         return JSON.stringify({
-          omcHud: {
+          omacHud: {
             usageApiPollIntervalMs: 60_000,
           },
         });
@@ -1040,7 +1040,7 @@ describe('getUsage routing', () => {
       const file = String(path);
       if (file.endsWith('settings.json')) {
         return JSON.stringify({
-          omcHud: {
+          omacHud: {
             usageApiPollIntervalMs: 60_000,
           },
         });

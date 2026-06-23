@@ -15,44 +15,44 @@ import { initInteropSession, readSharedMessages, readSharedTasks, updateSharedTa
 
 describe('interop mcp bridge gating', () => {
   it('getInteropMode normalizes invalid values to off', () => {
-    expect(getInteropMode({ OMX_OMC_INTEROP_MODE: 'ACTIVE' } as NodeJS.ProcessEnv)).toBe('active');
-    expect(getInteropMode({ OMX_OMC_INTEROP_MODE: 'observe' } as NodeJS.ProcessEnv)).toBe('observe');
-    expect(getInteropMode({ OMX_OMC_INTEROP_MODE: 'nonsense' } as NodeJS.ProcessEnv)).toBe('off');
+    expect(getInteropMode({ OMX_OMAC_INTEROP_MODE: 'ACTIVE' } as NodeJS.ProcessEnv)).toBe('active');
+    expect(getInteropMode({ OMX_OMAC_INTEROP_MODE: 'observe' } as NodeJS.ProcessEnv)).toBe('observe');
+    expect(getInteropMode({ OMX_OMAC_INTEROP_MODE: 'nonsense' } as NodeJS.ProcessEnv)).toBe('off');
   });
 
   it('canUseOmxDirectWriteBridge requires all active flags', () => {
     expect(canUseOmxDirectWriteBridge({
-      OMX_OMC_INTEROP_ENABLED: '1',
-      OMX_OMC_INTEROP_MODE: 'active',
-      OMC_INTEROP_TOOLS_ENABLED: '1',
+      OMX_OMAC_INTEROP_ENABLED: '1',
+      OMX_OMAC_INTEROP_MODE: 'active',
+      OMAC_INTEROP_TOOLS_ENABLED: '1',
     } as NodeJS.ProcessEnv)).toBe(true);
 
     expect(canUseOmxDirectWriteBridge({
-      OMX_OMC_INTEROP_ENABLED: '1',
-      OMX_OMC_INTEROP_MODE: 'observe',
-      OMC_INTEROP_TOOLS_ENABLED: '1',
+      OMX_OMAC_INTEROP_ENABLED: '1',
+      OMX_OMAC_INTEROP_MODE: 'observe',
+      OMAC_INTEROP_TOOLS_ENABLED: '1',
     } as NodeJS.ProcessEnv)).toBe(false);
 
     expect(canUseOmxDirectWriteBridge({
-      OMX_OMC_INTEROP_ENABLED: '0',
-      OMX_OMC_INTEROP_MODE: 'active',
-      OMC_INTEROP_TOOLS_ENABLED: '1',
+      OMX_OMAC_INTEROP_ENABLED: '0',
+      OMX_OMAC_INTEROP_MODE: 'active',
+      OMAC_INTEROP_TOOLS_ENABLED: '1',
     } as NodeJS.ProcessEnv)).toBe(false);
   });
 
   it('interop_send_omx_message rejects when direct write path is disabled', async () => {
-    const savedEnabled = process.env.OMX_OMC_INTEROP_ENABLED;
-    const savedMode = process.env.OMX_OMC_INTEROP_MODE;
-    const savedTools = process.env.OMC_INTEROP_TOOLS_ENABLED;
+    const savedEnabled = process.env.OMX_OMAC_INTEROP_ENABLED;
+    const savedMode = process.env.OMX_OMAC_INTEROP_MODE;
+    const savedTools = process.env.OMAC_INTEROP_TOOLS_ENABLED;
 
-    process.env.OMX_OMC_INTEROP_ENABLED = '0';
-    process.env.OMX_OMC_INTEROP_MODE = 'off';
-    process.env.OMC_INTEROP_TOOLS_ENABLED = '0';
+    process.env.OMX_OMAC_INTEROP_ENABLED = '0';
+    process.env.OMX_OMAC_INTEROP_MODE = 'off';
+    process.env.OMAC_INTEROP_TOOLS_ENABLED = '0';
 
     try {
       const response = await interopSendOmxMessageTool.handler({
         teamName: 'alpha-team',
-        fromWorker: 'omc-bridge',
+        fromWorker: 'omac-bridge',
         toWorker: 'worker-1',
         body: 'blocked',
       });
@@ -61,14 +61,14 @@ describe('interop mcp bridge gating', () => {
       const text = response.content[0]?.text ?? '';
       expect(text.toLowerCase()).toContain('disabled');
     } finally {
-      if (savedEnabled === undefined) delete process.env.OMX_OMC_INTEROP_ENABLED;
-      else process.env.OMX_OMC_INTEROP_ENABLED = savedEnabled;
+      if (savedEnabled === undefined) delete process.env.OMX_OMAC_INTEROP_ENABLED;
+      else process.env.OMX_OMAC_INTEROP_ENABLED = savedEnabled;
 
-      if (savedMode === undefined) delete process.env.OMX_OMC_INTEROP_MODE;
-      else process.env.OMX_OMC_INTEROP_MODE = savedMode;
+      if (savedMode === undefined) delete process.env.OMX_OMAC_INTEROP_MODE;
+      else process.env.OMX_OMAC_INTEROP_MODE = savedMode;
 
-      if (savedTools === undefined) delete process.env.OMC_INTEROP_TOOLS_ENABLED;
-      else process.env.OMC_INTEROP_TOOLS_ENABLED = savedTools;
+      if (savedTools === undefined) delete process.env.OMAC_INTEROP_TOOLS_ENABLED;
+      else process.env.OMAC_INTEROP_TOOLS_ENABLED = savedTools;
     }
   });
 });
@@ -113,8 +113,8 @@ describe('interop mcp bridge artifact surfacing', () => {
     const readText = readResponse.content[0]?.text ?? '';
     expect(readText).toContain('Description artifact:');
     expect(readText).toContain('Result artifact:');
-    expect(readText).toContain('.omc/state/interop/artifacts/task-description/');
-    expect(readText).toContain('.omc/state/interop/artifacts/task-result/');
+    expect(readText).toContain('.omac/state/interop/artifacts/task-description/');
+    expect(readText).toContain('.omac/state/interop/artifacts/task-result/');
   });
 
   it('reports artifact-backed shared messages', async () => {
@@ -136,6 +136,6 @@ describe('interop mcp bridge artifact surfacing', () => {
 
     const readText = readResponse.content[0]?.text ?? '';
     expect(readText).toContain('Content artifact:');
-    expect(readText).toContain('.omc/state/interop/artifacts/message-content/');
+    expect(readText).toContain('.omac/state/interop/artifacts/message-content/');
   });
 });

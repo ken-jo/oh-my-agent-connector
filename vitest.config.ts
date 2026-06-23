@@ -11,7 +11,7 @@ export default defineConfig({
       'tests/**/*.bench.ts',
       'tests/**/*.{test,spec}.ts',
     ],
-    exclude: ['node_modules', 'dist', '.omc'],
+    exclude: ['node_modules', 'dist', '.omac'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

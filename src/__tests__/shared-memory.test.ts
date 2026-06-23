@@ -3,13 +3,13 @@ import { mkdirSync, rmSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import { basename, join } from 'path';
 import { homedir, tmpdir } from 'os';
 
-// Mock getOmcRoot to use our test directory
-const mockGetOmcRoot = vi.fn<(worktreeRoot?: string) => string>();
+// Mock getOmacRoot to use our test directory
+const mockGetOmacRoot = vi.fn<(worktreeRoot?: string) => string>();
 vi.mock('../lib/worktree-paths.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../lib/worktree-paths.js')>();
   return {
     ...actual,
-    getOmcRoot: (...args: [string?]) => mockGetOmcRoot(...args),
+    getOmacRoot: (...args: [string?]) => mockGetOmacRoot(...args),
     validateWorkingDirectory: (dir?: string) => dir || '/tmp',
   };
 });
@@ -27,15 +27,15 @@ import {
 describe('Shared Memory', () => {
   const originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
   let testDir: string;
-  let omcDir: string;
+  let omacDir: string;
   let tildeConfigDir: string;
 
   beforeEach(() => {
     testDir = join(tmpdir(), `shared-memory-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    omcDir = join(testDir, '.omc');
-    tildeConfigDir = join(homedir(), `.omc-test-shared-memory-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-    mkdirSync(omcDir, { recursive: true });
-    mockGetOmcRoot.mockReturnValue(omcDir);
+    omacDir = join(testDir, '.omac');
+    tildeConfigDir = join(homedir(), `.omac-test-shared-memory-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    mkdirSync(omacDir, { recursive: true });
+    mockGetOmacRoot.mockReturnValue(omacDir);
     delete process.env.CLAUDE_CONFIG_DIR;
   });
 
@@ -102,13 +102,13 @@ describe('Shared Memory', () => {
 
     it('should create namespace directory automatically', () => {
       writeEntry('auto-ns', 'k', 'v');
-      const nsDir = join(omcDir, 'state', 'shared-memory', 'auto-ns');
+      const nsDir = join(omacDir, 'state', 'shared-memory', 'auto-ns');
       expect(existsSync(nsDir)).toBe(true);
     });
 
     it('should store entry as JSON file', () => {
       writeEntry('ns', 'mykey', { x: 1 });
-      const filePath = join(omcDir, 'state', 'shared-memory', 'ns', 'mykey.json');
+      const filePath = join(omacDir, 'state', 'shared-memory', 'ns', 'mykey.json');
       expect(existsSync(filePath)).toBe(true);
       const content = JSON.parse(readFileSync(filePath, 'utf-8'));
       expect(content.key).toBe('mykey');
@@ -141,7 +141,7 @@ describe('Shared Memory', () => {
 
     it('should auto-delete expired entries on read', () => {
       // Write entry with already-expired timestamp
-      const filePath = join(omcDir, 'state', 'shared-memory', 'ns');
+      const filePath = join(omacDir, 'state', 'shared-memory', 'ns');
       mkdirSync(filePath, { recursive: true });
       const expiredEntry = {
         key: 'expired-key',
@@ -193,7 +193,7 @@ describe('Shared Memory', () => {
       writeEntry('ns', 'live', 'ok');
 
       // Manually write an expired entry
-      const nsDir = join(omcDir, 'state', 'shared-memory', 'ns');
+      const nsDir = join(omacDir, 'state', 'shared-memory', 'ns');
       const expiredEntry = {
         key: 'dead',
         value: 'expired',
@@ -246,7 +246,7 @@ describe('Shared Memory', () => {
       writeEntry('ns', 'live', 'ok');
 
       // Manually write expired entries
-      const nsDir = join(omcDir, 'state', 'shared-memory', 'ns');
+      const nsDir = join(omacDir, 'state', 'shared-memory', 'ns');
       for (const key of ['exp1', 'exp2']) {
         writeFileSync(join(nsDir, `${key}.json`), JSON.stringify({
           key,
@@ -274,7 +274,7 @@ describe('Shared Memory', () => {
 
       // Add expired entries to both
       for (const ns of ['ns1', 'ns2']) {
-        const nsDir = join(omcDir, 'state', 'shared-memory', ns);
+        const nsDir = join(omacDir, 'state', 'shared-memory', ns);
         writeFileSync(join(nsDir, 'expired.json'), JSON.stringify({
           key: 'expired',
           value: 'old',
@@ -385,7 +385,7 @@ describe('Shared Memory', () => {
     it('should read config from the active CLAUDE_CONFIG_DIR', () => {
       const claudeConfigDir = join(testDir, 'claude-config');
       mkdirSync(claudeConfigDir, { recursive: true });
-      writeFileSync(join(claudeConfigDir, '.omc-config.json'), JSON.stringify({
+      writeFileSync(join(claudeConfigDir, '.omac-config.json'), JSON.stringify({
         agents: {
           sharedMemory: {
             enabled: false,
@@ -400,7 +400,7 @@ describe('Shared Memory', () => {
 
     it('should expand ~-prefixed CLAUDE_CONFIG_DIR values', () => {
       mkdirSync(tildeConfigDir, { recursive: true });
-      writeFileSync(join(tildeConfigDir, '.omc-config.json'), JSON.stringify({
+      writeFileSync(join(tildeConfigDir, '.omac-config.json'), JSON.stringify({
         agents: {
           sharedMemory: {
             enabled: false,
@@ -421,14 +421,14 @@ describe('Shared Memory', () => {
   describe('atomic writes', () => {
     it('should not leave temp file after successful write', () => {
       writeEntry('ns', 'clean-test', 'data');
-      const filePath = join(omcDir, 'state', 'shared-memory', 'ns', 'clean-test.json');
+      const filePath = join(omacDir, 'state', 'shared-memory', 'ns', 'clean-test.json');
       expect(existsSync(filePath)).toBe(true);
       expect(existsSync(filePath + '.tmp')).toBe(false);
     });
 
     it('should preserve original file when a leftover .tmp exists from a prior crash', () => {
       writeEntry('ns', 'crash-test', 'original');
-      const filePath = join(omcDir, 'state', 'shared-memory', 'ns', 'crash-test.json');
+      const filePath = join(omacDir, 'state', 'shared-memory', 'ns', 'crash-test.json');
 
       // Simulate a leftover .tmp from a crashed write
       writeFileSync(filePath + '.tmp', 'partial-garbage');
@@ -449,7 +449,7 @@ describe('Shared Memory', () => {
 
   describe('corrupted files', () => {
     it('should return null for corrupted entry file on read', () => {
-      const nsDir = join(omcDir, 'state', 'shared-memory', 'ns');
+      const nsDir = join(omacDir, 'state', 'shared-memory', 'ns');
       mkdirSync(nsDir, { recursive: true });
       writeFileSync(join(nsDir, 'bad.json'), 'not json{{{');
 
@@ -459,7 +459,7 @@ describe('Shared Memory', () => {
 
     it('should skip corrupted files in list', () => {
       writeEntry('ns', 'good', 'ok');
-      const nsDir = join(omcDir, 'state', 'shared-memory', 'ns');
+      const nsDir = join(omacDir, 'state', 'shared-memory', 'ns');
       writeFileSync(join(nsDir, 'bad.json'), 'corrupt');
 
       const items = listEntries('ns');

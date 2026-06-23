@@ -15,13 +15,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { existsSync, mkdtempSync, rmSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { OMC_PLUGIN_ROOT_ENV } from '../../lib/env-vars.js';
+import { OMAC_PLUGIN_ROOT_ENV } from '../../lib/env-vars.js';
 
 const SAVED_ENV_KEYS = [
   'CLAUDE_CONFIG_DIR',
-  OMC_PLUGIN_ROOT_ENV,
+  OMAC_PLUGIN_ROOT_ENV,
   'CLAUDE_PLUGIN_ROOT',
-  'OMC_DEV',
+  'OMAC_DEV',
 ] as const;
 
 type EnvSnapshot = Partial<Record<(typeof SAVED_ENV_KEYS)[number], string | undefined>>;
@@ -39,7 +39,7 @@ function isPopulated(dir: string): boolean {
 }
 
 beforeEach(() => {
-  testDir = mkdtempSync(join(tmpdir(), 'omc-pdm-e2e-'));
+  testDir = mkdtempSync(join(tmpdir(), 'omac-pdm-e2e-'));
   savedEnv = {};
   for (const key of SAVED_ENV_KEYS) {
     savedEnv[key] = process.env[key];
@@ -63,12 +63,12 @@ afterEach(() => {
 });
 
 describe('install() — plugin-dir-mode end-to-end filesystem shape', () => {
-  it('case 1: pluginDirMode=true → installs HUD/CLAUDE.md/settings/.omc-config but NOT agents/skills', async () => {
+  it('case 1: pluginDirMode=true → installs HUD/CLAUDE.md/settings/.omac-config but NOT agents/skills', async () => {
     const { install } = await freshInstaller();
     install({ verbose: false, skipClaudeCheck: true, pluginDirMode: true });
 
     // HUD wrapper present and non-empty
-    const hudPath = join(testDir, 'hud', 'omc-hud.mjs');
+    const hudPath = join(testDir, 'hud', 'omac-hud.mjs');
     expect(existsSync(hudPath)).toBe(true);
     expect(statSync(hudPath).size).toBeGreaterThan(0);
 
@@ -76,8 +76,8 @@ describe('install() — plugin-dir-mode end-to-end filesystem shape', () => {
     const claudeMdPath = join(testDir, 'CLAUDE.md');
     expect(existsSync(claudeMdPath)).toBe(true);
     const claudeMdContent = readFileSync(claudeMdPath, 'utf8');
-    expect(claudeMdContent).toContain('<!-- OMC:START -->');
-    expect(claudeMdContent).toContain('<!-- OMC:END -->');
+    expect(claudeMdContent).toContain('<!-- OMAC:START -->');
+    expect(claudeMdContent).toContain('<!-- OMAC:END -->');
 
     // settings.json present with hooks
     const settingsPath = join(testDir, 'settings.json');
@@ -85,8 +85,8 @@ describe('install() — plugin-dir-mode end-to-end filesystem shape', () => {
     const settings = JSON.parse(readFileSync(settingsPath, 'utf8'));
     expect(settings.hooks).toBeDefined();
 
-    // .omc-config.json present
-    expect(existsSync(join(testDir, '.omc-config.json'))).toBe(true);
+    // .omac-config.json present
+    expect(existsSync(join(testDir, '.omac-config.json'))).toBe(true);
 
     // agents/ NOT created
     expect(existsSync(join(testDir, 'agents'))).toBe(false);
@@ -98,20 +98,20 @@ describe('install() — plugin-dir-mode end-to-end filesystem shape', () => {
     }
   });
 
-  it('case 2: OMC_PLUGIN_ROOT env set + pluginDirMode=true → same shape as case 1', async () => {
-    // The CLI's auto-detection of OMC_PLUGIN_ROOT lives in src/cli/index.ts and
+  it('case 2: OMAC_PLUGIN_ROOT env set + pluginDirMode=true → same shape as case 1', async () => {
+    // The CLI's auto-detection of OMAC_PLUGIN_ROOT lives in src/cli/index.ts and
     // is covered by Slice C. Here we test the installer contract: setting
     // pluginDirMode produces the same on-disk shape regardless of whether
-    // OMC_PLUGIN_ROOT points anywhere real.
-    process.env[OMC_PLUGIN_ROOT_ENV] = '/tmp/fake-nonexistent-root-for-pdm-e2e';
+    // OMAC_PLUGIN_ROOT points anywhere real.
+    process.env[OMAC_PLUGIN_ROOT_ENV] = '/tmp/fake-nonexistent-root-for-pdm-e2e';
 
     const { install } = await freshInstaller();
     install({ verbose: false, skipClaudeCheck: true, pluginDirMode: true });
 
-    expect(existsSync(join(testDir, 'hud', 'omc-hud.mjs'))).toBe(true);
+    expect(existsSync(join(testDir, 'hud', 'omac-hud.mjs'))).toBe(true);
     expect(existsSync(join(testDir, 'CLAUDE.md'))).toBe(true);
     expect(existsSync(join(testDir, 'settings.json'))).toBe(true);
-    expect(existsSync(join(testDir, '.omc-config.json'))).toBe(true);
+    expect(existsSync(join(testDir, '.omac-config.json'))).toBe(true);
     expect(existsSync(join(testDir, 'agents'))).toBe(false);
     const skillsDir = join(testDir, 'skills');
     if (existsSync(skillsDir)) {
@@ -120,7 +120,7 @@ describe('install() — plugin-dir-mode end-to-end filesystem shape', () => {
   });
 
   it('case 3: pluginDirMode + noPlugin → noPlugin wins, skills and agents are populated', async () => {
-    const { install, hasEnabledOmcPlugin } = await freshInstaller();
+    const { install, hasEnabledOmacPlugin } = await freshInstaller();
     const result = install({
       verbose: false,
       skipClaudeCheck: true,
@@ -133,16 +133,16 @@ describe('install() — plugin-dir-mode end-to-end filesystem shape', () => {
     expect(isPopulated(join(testDir, 'skills'))).toBe(true);
 
     // Legacy agents are written when not running as a plugin
-    if (!hasEnabledOmcPlugin()) {
+    if (!hasEnabledOmacPlugin()) {
       expect(result.installedAgents.length).toBeGreaterThan(0);
       expect(isPopulated(join(testDir, 'agents'))).toBe(true);
     }
   });
 
   it('case 4: no flag, no env → baseline behavior populates skills and agents', async () => {
-    const { install, hasEnabledOmcPlugin } = await freshInstaller();
+    const { install, hasEnabledOmacPlugin } = await freshInstaller();
     // Fresh tmp config dir is guaranteed not to have an enabled plugin.
-    expect(hasEnabledOmcPlugin()).toBe(false);
+    expect(hasEnabledOmacPlugin()).toBe(false);
 
     const result = install({ verbose: false, skipClaudeCheck: true });
 

@@ -236,7 +236,7 @@ describe('plugin-setup.mjs hook command portability', () => {
   it('does not rewrite the source hooks manifest when run from a repository checkout', () => {
     const hooksJsonPath = join(PACKAGE_ROOT, 'hooks', 'hooks.json');
     const before = readFileSync(hooksJsonPath, 'utf-8');
-    const tempRoot = mkdtempSync(join(tmpdir(), 'omc-plugin-setup-source-hooks-'));
+    const tempRoot = mkdtempSync(join(tmpdir(), 'omac-plugin-setup-source-hooks-'));
 
     try {
       const configDir = join(tempRoot, 'claude');
@@ -270,7 +270,7 @@ describe('plugin-setup.mjs hook command portability', () => {
   });
 
   it.runIf(process.platform !== 'win32')('executes a Unix hook command with minimal PATH by resolving Volta-managed node', () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), 'omc-min-path-hook-'));
+    const tempRoot = mkdtempSync(join(tmpdir(), 'omac-min-path-hook-'));
     try {
       const tempHome = join(tempRoot, 'home');
       const tempBin = join(tempRoot, 'bin');
@@ -285,7 +285,7 @@ describe('plugin-setup.mjs hook command portability', () => {
       const fakeNode = join(voltaBin, 'node');
       writeFileSync(
         fakeNode,
-        '#!/bin/sh\nprintf "%s\\n" "$@" > "$OMC_FAKE_NODE_ARGS"\n',
+        '#!/bin/sh\nprintf "%s\\n" "$@" > "$OMAC_FAKE_NODE_ARGS"\n',
       );
       chmodSync(fakeNode, 0o755);
 
@@ -296,7 +296,7 @@ describe('plugin-setup.mjs hook command portability', () => {
           HOME: tempHome,
           PATH: tempBin,
           CLAUDE_PLUGIN_ROOT: PACKAGE_ROOT,
-          OMC_FAKE_NODE_ARGS: argsFile,
+          OMAC_FAKE_NODE_ARGS: argsFile,
         },
         stdio: 'pipe',
       });
@@ -311,7 +311,7 @@ describe('plugin-setup.mjs hook command portability', () => {
   });
 
   it.runIf(process.platform !== 'win32')('prefers concrete nvm node over a stale executable shim on PATH', () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), 'omc-min-path-nvm-'));
+    const tempRoot = mkdtempSync(join(tmpdir(), 'omac-min-path-nvm-'));
     try {
       const tempHome = join(tempRoot, 'home');
       const tempBin = join(tempRoot, 'bin');
@@ -331,7 +331,7 @@ describe('plugin-setup.mjs hook command portability', () => {
       const fakeNode = join(nvmBin, 'node');
       writeFileSync(
         fakeNode,
-        '#!/bin/sh\nprintf "%s\\n" "$@" > "$OMC_FAKE_NODE_ARGS"\n',
+        '#!/bin/sh\nprintf "%s\\n" "$@" > "$OMAC_FAKE_NODE_ARGS"\n',
       );
       chmodSync(fakeNode, 0o755);
 
@@ -341,7 +341,7 @@ describe('plugin-setup.mjs hook command portability', () => {
           HOME: tempHome,
           PATH: `${tempBin}:${asdfBin}`,
           CLAUDE_PLUGIN_ROOT: PACKAGE_ROOT,
-          OMC_FAKE_NODE_ARGS: argsFile,
+          OMAC_FAKE_NODE_ARGS: argsFile,
         },
         stdio: 'pipe',
       });
@@ -355,7 +355,7 @@ describe('plugin-setup.mjs hook command portability', () => {
   });
 
   it.runIf(process.platform !== 'win32')('prefers concrete nvm node over a stale stored nodeBinary shim', () => {
-    const tempRoot = mkdtempSync(join(tmpdir(), 'omc-stored-shim-'));
+    const tempRoot = mkdtempSync(join(tmpdir(), 'omac-stored-shim-'));
     try {
       const tempHome = join(tempRoot, 'home');
       const tempBin = join(tempRoot, 'bin');
@@ -372,13 +372,13 @@ describe('plugin-setup.mjs hook command portability', () => {
       const staleShim = join(asdfBin, 'node');
       writeFileSync(staleShim, '#!/bin/sh\nexit 127\n');
       chmodSync(staleShim, 0o755);
-      writeFileSync(join(claudeDir, '.omc-config.json'), JSON.stringify({ nodeBinary: staleShim }));
+      writeFileSync(join(claudeDir, '.omac-config.json'), JSON.stringify({ nodeBinary: staleShim }));
 
       const argsFile = join(tempRoot, 'node-args.txt');
       const fakeNode = join(nvmBin, 'node');
       writeFileSync(
         fakeNode,
-        '#!/bin/sh\nprintf "%s\\n" "$@" > "$OMC_FAKE_NODE_ARGS"\n',
+        '#!/bin/sh\nprintf "%s\\n" "$@" > "$OMAC_FAKE_NODE_ARGS"\n',
       );
       chmodSync(fakeNode, 0o755);
 
@@ -388,7 +388,7 @@ describe('plugin-setup.mjs hook command portability', () => {
           HOME: tempHome,
           PATH: tempBin,
           CLAUDE_PLUGIN_ROOT: PACKAGE_ROOT,
-          OMC_FAKE_NODE_ARGS: argsFile,
+          OMAC_FAKE_NODE_ARGS: argsFile,
         },
         stdio: 'pipe',
       });

@@ -9,7 +9,7 @@ function runTrackerWithSkip(action: "start" | "stop", skipHooks: string): unknow
     cwd: process.cwd(),
     env: {
       ...process.env,
-      OMC_SKIP_HOOKS: skipHooks,
+      OMAC_SKIP_HOOKS: skipHooks,
     },
     input: "",
     encoding: "utf8",

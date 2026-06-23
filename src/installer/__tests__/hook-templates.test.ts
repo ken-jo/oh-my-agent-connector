@@ -84,7 +84,7 @@ describe('keyword-detector packaged artifacts', () => {
       const context = JSON.stringify(result);
 
       expect(context).toContain('[MAGIC KEYWORD: RALPH]');
-      expect(context).toContain('Preferred invocation: /oh-my-claudecode:ralph');
+      expect(context).toContain('Preferred invocation: /oh-my-agent-connector:ralph');
       expect(context).toContain('Read fallback:');
       expect(context).not.toContain('name: ralph');
       expect(context).not.toContain('[RALPH + ULTRAWORK');
@@ -141,8 +141,8 @@ describe('keyword-detector packaged artifacts', () => {
     const fakeHome = mkdtempSync(join(tmpdir(), 'keyword-hook-home-'));
     try {
       for (const [scriptPath, statePath] of [
-        [templatePath, join(tempDir, '.omc', 'state', 'sessions', 'hook-session', 'ralph-state.json')],
-        [pluginPath, join(tempDir, '.omc', 'state', 'sessions', 'hook-session', 'ralph-state.json')],
+        [templatePath, join(tempDir, '.omac', 'state', 'sessions', 'hook-session', 'ralph-state.json')],
+        [pluginPath, join(tempDir, '.omac', 'state', 'sessions', 'hook-session', 'ralph-state.json')],
       ] as const) {
         execFileSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
         execFileSync('node', [scriptPath], {
@@ -162,8 +162,8 @@ describe('keyword-detector packaged artifacts', () => {
         };
         expect(state.awaiting_confirmation).toBe(true);
 
-        rmSync(join(tempDir, '.omc'), { recursive: true, force: true });
-        rmSync(join(fakeHome, '.omc'), { recursive: true, force: true });
+        rmSync(join(tempDir, '.omac'), { recursive: true, force: true });
+        rmSync(join(fakeHome, '.omac'), { recursive: true, force: true });
       }
     } finally {
       rmSync(tempDir, { recursive: true, force: true });
@@ -186,14 +186,14 @@ describe('keyword-detector packaged artifacts', () => {
       "there's an issue with ultrawork",
       'autopilot has a bug in this repo',
       'ralph-loop이 자꾸 재실행되는 문제가 있어. 점검해줘',
-      `🦌 DeerFlow vs ⚡ OMC Ultrawork - 완전 비교!
+      `🦌 DeerFlow vs ⚡ OMAC Ultrawork - 완전 비교!
 ...
-OMC Ultrawork = "특수부대 작전 반"
+OMAC Ultrawork = "특수부대 작전 반"
 ...
-결론: "순식간에 많은 작업" → OMC Ultrawork ⚡
+결론: "순식간에 많은 작업" → OMAC Ultrawork ⚡
 이런대화가 한번이라면 몇번할수있을까 오픈라우터 20달러 결제기준 api로`,
-      'The article said "OMC Ultrawork", but why is the answer the same?',
-      'OMC Ultrawork = "special ops". how much would it cost?',
+      'The article said "OMAC Ultrawork", but why is the answer the same?',
+      'OMAC Ultrawork = "special ops". how much would it cost?',
     ]) {
       expect(runKeywordHook(templatePath, prompt)).toEqual({ continue: true, suppressOutput: true });
       expect(runKeywordHook(pluginPath, prompt)).toEqual({ continue: true, suppressOutput: true });

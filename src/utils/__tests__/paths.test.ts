@@ -5,13 +5,13 @@ import {
   getDataDir,
   getConfigDir,
   getStateDir,
-  getGlobalOmcConfigRoot,
-  getGlobalOmcStateRoot,
-  getGlobalOmcConfigPath,
-  getGlobalOmcStatePath,
-  getGlobalOmcConfigCandidates,
-  getGlobalOmcStateCandidates,
-  getLegacyOmcDir,
+  getGlobalOmacConfigRoot,
+  getGlobalOmacStateRoot,
+  getGlobalOmacConfigPath,
+  getGlobalOmacStatePath,
+  getGlobalOmacConfigCandidates,
+  getGlobalOmacStateCandidates,
+  getLegacyOmacDir,
 } from '../paths.js';
 
 describe('cross-platform path utilities', () => {
@@ -148,7 +148,7 @@ describe('cross-platform path utilities', () => {
     });
   });
 
-  describe('global OMC path helpers', () => {
+  describe('global OMAC path helpers', () => {
     const originalPlatform = process.platform;
     const originalEnv = { ...process.env };
 
@@ -157,67 +157,67 @@ describe('cross-platform path utilities', () => {
       process.env = { ...originalEnv };
     });
 
-    it('should use XDG config root for global OMC config on Linux', () => {
+    it('should use XDG config root for global OMAC config on Linux', () => {
       Object.defineProperty(process, 'platform', { value: 'linux' });
       process.env.XDG_CONFIG_HOME = '/custom/config';
-      delete process.env.OMC_HOME;
+      delete process.env.OMAC_HOME;
 
-      expect(getGlobalOmcConfigRoot()).toBe('/custom/config/omc');
-      expect(getGlobalOmcConfigPath('config.json')).toBe('/custom/config/omc/config.json');
+      expect(getGlobalOmacConfigRoot()).toBe('/custom/config/omac');
+      expect(getGlobalOmacConfigPath('config.json')).toBe('/custom/config/omac/config.json');
     });
 
-    it('should use XDG state root for global OMC state on Linux', () => {
+    it('should use XDG state root for global OMAC state on Linux', () => {
       Object.defineProperty(process, 'platform', { value: 'linux' });
       process.env.XDG_STATE_HOME = '/custom/state';
-      delete process.env.OMC_HOME;
+      delete process.env.OMAC_HOME;
 
-      expect(getGlobalOmcStateRoot()).toBe('/custom/state/omc');
-      expect(getGlobalOmcStatePath('daemon.json')).toBe('/custom/state/omc/daemon.json');
+      expect(getGlobalOmacStateRoot()).toBe('/custom/state/omac');
+      expect(getGlobalOmacStatePath('daemon.json')).toBe('/custom/state/omac/daemon.json');
     });
 
-    it('should keep OMC_HOME authoritative for config and state roots', () => {
+    it('should keep OMAC_HOME authoritative for config and state roots', () => {
       Object.defineProperty(process, 'platform', { value: 'linux' });
-      process.env.OMC_HOME = '/override/omc';
+      process.env.OMAC_HOME = '/override/omac';
       process.env.XDG_CONFIG_HOME = '/custom/config';
       process.env.XDG_STATE_HOME = '/custom/state';
 
-      expect(getGlobalOmcConfigRoot()).toBe('/override/omc');
-      expect(getGlobalOmcStateRoot()).toBe('/override/omc/state');
+      expect(getGlobalOmacConfigRoot()).toBe('/override/omac');
+      expect(getGlobalOmacStateRoot()).toBe('/override/omac/state');
     });
 
-    it('should keep explicit OMC_HOME state candidates backward compatible', () => {
+    it('should keep explicit OMAC_HOME state candidates backward compatible', () => {
       Object.defineProperty(process, 'platform', { value: 'linux' });
-      process.env.OMC_HOME = '/override/omc';
+      process.env.OMAC_HOME = '/override/omac';
 
-      expect(getGlobalOmcStateCandidates('mcp-registry-state.json')).toEqual([
-        '/override/omc/state/mcp-registry-state.json',
-        '/override/omc/mcp-registry-state.json',
+      expect(getGlobalOmacStateCandidates('mcp-registry-state.json')).toEqual([
+        '/override/omac/state/mcp-registry-state.json',
+        '/override/omac/mcp-registry-state.json',
       ]);
     });
 
-    it('should fall back to legacy ~/.omc root on macOS', () => {
+    it('should fall back to legacy ~/.omac root on macOS', () => {
       Object.defineProperty(process, 'platform', { value: 'darwin' });
-      delete process.env.OMC_HOME;
+      delete process.env.OMAC_HOME;
       delete process.env.XDG_CONFIG_HOME;
       delete process.env.XDG_STATE_HOME;
 
-      expect(getGlobalOmcConfigRoot()).toBe(getLegacyOmcDir());
-      expect(getGlobalOmcStateRoot()).toBe(`${getLegacyOmcDir()}/state`);
+      expect(getGlobalOmacConfigRoot()).toBe(getLegacyOmacDir());
+      expect(getGlobalOmacStateRoot()).toBe(`${getLegacyOmacDir()}/state`);
     });
 
     it('should include legacy fallback candidates for config and state paths', () => {
       Object.defineProperty(process, 'platform', { value: 'linux' });
       process.env.XDG_CONFIG_HOME = '/custom/config';
       process.env.XDG_STATE_HOME = '/custom/state';
-      delete process.env.OMC_HOME;
+      delete process.env.OMAC_HOME;
 
-      expect(getGlobalOmcConfigCandidates('config.json')).toEqual([
-        '/custom/config/omc/config.json',
-        `${getLegacyOmcDir()}/config.json`,
+      expect(getGlobalOmacConfigCandidates('config.json')).toEqual([
+        '/custom/config/omac/config.json',
+        `${getLegacyOmacDir()}/config.json`,
       ]);
-      expect(getGlobalOmcStateCandidates('reply-session-registry.jsonl')).toEqual([
-        '/custom/state/omc/reply-session-registry.jsonl',
-        `${getLegacyOmcDir()}/state/reply-session-registry.jsonl`,
+      expect(getGlobalOmacStateCandidates('reply-session-registry.jsonl')).toEqual([
+        '/custom/state/omac/reply-session-registry.jsonl',
+        `${getLegacyOmacDir()}/state/reply-session-registry.jsonl`,
       ]);
     });
   });

@@ -14,7 +14,7 @@ describe('team-ops teamCreateTask locking', () => {
   beforeEach(() => {
     tempDir = mkdtempSync(join(tmpdir(), 'team-ops-lock-test-'));
     // Set up minimal team config
-    const root = join(tempDir, '.omc', 'state', 'team', teamName);
+    const root = join(tempDir, '.omac', 'state', 'team', teamName);
     mkdirSync(join(root, 'tasks'), { recursive: true });
     writeFileSync(join(root, 'config.json'), JSON.stringify({
       name: teamName,

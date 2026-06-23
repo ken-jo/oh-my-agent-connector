@@ -8,7 +8,7 @@
 import { z } from 'zod';
 import {
   getWorktreeNotepadPath,
-  ensureOmcDir,
+  ensureOmacDir,
   validateWorkingDirectory,
 } from '../lib/worktree-paths.js';
 import {
@@ -129,8 +129,8 @@ export const notepadWritePriorityTool: ToolDefinition<{
     try {
       const root = validateWorkingDirectory(workingDirectory);
 
-      // Ensure .omc directory exists
-      ensureOmcDir('', root);
+      // Ensure .omac directory exists
+      ensureOmacDir('', root);
 
       const result = setPriorityContext(root, content);
 
@@ -185,8 +185,8 @@ export const notepadWriteWorkingTool: ToolDefinition<{
     try {
       const root = validateWorkingDirectory(workingDirectory);
 
-      // Ensure .omc directory exists
-      ensureOmcDir('', root);
+      // Ensure .omac directory exists
+      ensureOmacDir('', root);
 
       const success = addWorkingMemoryEntry(root, content);
 
@@ -236,8 +236,8 @@ export const notepadWriteManualTool: ToolDefinition<{
     try {
       const root = validateWorkingDirectory(workingDirectory);
 
-      // Ensure .omc directory exists
-      ensureOmcDir('', root);
+      // Ensure .omac directory exists
+      ensureOmacDir('', root);
 
       const success = addManualEntry(root, content);
 

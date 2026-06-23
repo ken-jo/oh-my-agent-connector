@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * OMC Keyword Detector Hook (Node.js)
+ * OMAC Keyword Detector Hook (Node.js)
  * Detects magic keywords and invokes skill tools
  * Cross-platform: Windows, macOS, Linux
  *
  * Supported keywords (in priority order):
- * 1. cancelomc/stopomc: Stop active modes
+ * 1. cancelomac/stopomac: Stop active modes
  * 2. ralph: Persistence mode until task completion
  * 3. autopilot: Full autonomous execution
  * 4. team: Explicit-only via /team (not auto-triggered)
@@ -30,10 +30,10 @@ import { fileURLToPath } from 'url';
 import { getClaudeConfigDir } from './lib/config-dir.mjs';
 import { atomicWriteFileSync } from './lib/atomic-write.mjs';
 import { readStdin } from './lib/stdin.mjs';
-import { resolveOmcStateRoot } from './lib/state-root.mjs';
+import { resolveOmacStateRoot } from './lib/state-root.mjs';
 
-// Resolve OMC package root: CLAUDE_PLUGIN_ROOT (plugin system) or derive from this script's location
-const _omcRoot = process.env.CLAUDE_PLUGIN_ROOT ||
+// Resolve OMAC package root: CLAUDE_PLUGIN_ROOT (plugin system) or derive from this script's location
+const _omacRoot = process.env.CLAUDE_PLUGIN_ROOT ||
   join(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILL_INVOCATION_USER_REQUEST_MAX = 1200;
 
@@ -98,7 +98,7 @@ function compactHookText(text, maxChars = SKILL_INVOCATION_USER_REQUEST_MAX) {
 function getSkillPathCandidates(skillName) {
   const roots = [
     process.env.CLAUDE_PLUGIN_ROOT,
-    _omcRoot,
+    _omacRoot,
     process.cwd(),
   ].filter(Boolean);
   return [...new Set(roots.map(root => join(root, 'skills', skillName, 'SKILL.md')))];
@@ -202,11 +202,11 @@ function extractPrompt(input) {
 }
 
 function isExplicitRalplanSlashInvocation(prompt) {
-  return /^\s*\/(?:oh-my-claudecode:)?ralplan(?:\s|$)/i.test(prompt);
+  return /^\s*\/(?:oh-my-agent-connector:)?ralplan(?:\s|$)/i.test(prompt);
 }
 
 function isExplicitAskSlashInvocation(prompt) {
-  return /^\s*\/(?:oh-my-claudecode:)?ask\s+(?:claude|codex|gemini|grok)\b/i.test(prompt);
+  return /^\s*\/(?:oh-my-agent-connector:)?ask\s+(?:claude|codex|gemini|grok)\b/i.test(prompt);
 }
 
 // Sanitize text to prevent false positives from code blocks, XML tags, URLs, and file paths
@@ -428,7 +428,7 @@ const QUESTION_FOLLOWUP_PATTERNS = [
 // recognized block header. They must be stripped only in that context —
 // never standalone — because a user might legitimately start a prompt with
 // "Task: …" or similar (Codex automated review P1/P2 on #2795).
-const ECHO_CONTINUATION = '(?:\\r?\\n[ \\t]*(?:Task:\\s|When FULLY complete \\(after Architect verification\\)|run\\s+\\/oh-my-claudecode:cancel).*)*';
+const ECHO_CONTINUATION = '(?:\\r?\\n[ \\t]*(?:Task:\\s|When FULLY complete \\(after Architect verification\\)|run\\s+\\/oh-my-agent-connector:cancel).*)*';
 
 // NOTE: each pattern is a SINGLE LOGICAL BLOCK: the block header line +
 // zero-or-more continuation lines that hooks emit right after it. The whole
@@ -466,7 +466,7 @@ const SYSTEM_ECHO_BLOCK_PATTERNS = [
 // All patterns use `i` because hasActionableKeyword sees a lowercased prompt.
 const SYSTEM_ECHO_SIGNATURES = [
   /\bWhen FULLY complete \(after Architect verification\)\b/i,
-  /\brun\s+\/oh-my-claudecode:cancel\b/i,
+  /\brun\s+\/oh-my-agent-connector:cancel\b/i,
   /\[RALPH LOOP\s*-\s*ITERATION\b/i,
 ];
 
@@ -794,8 +794,8 @@ function hasActionableRalplanKeyword(text, pattern) {
 }
 
 // Create state file for a mode
-function activateState(directory, prompt, stateName, sessionId, omcRoot) {
-  const _omcRoot = omcRoot;
+function activateState(directory, prompt, stateName, sessionId, omacRoot) {
+  const _omacRoot = omacRoot;
   const now = new Date().toISOString();
   // Sanitize prompt BEFORE writing to state: prevents pasted system echoes
   // and oversized blobs from being persisted and re-emitted by Stop hook.
@@ -863,7 +863,7 @@ function activateState(directory, prompt, stateName, sessionId, omcRoot) {
   // persistent-mode.mjs's readJsonFile (which would otherwise return null
   // and temporarily drop mode enforcement).
   if (sessionId && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,255}$/.test(sessionId)) {
-    const sessionDir = join(_omcRoot, 'state', 'sessions', sessionId);
+    const sessionDir = join(_omacRoot, 'state', 'sessions', sessionId);
     if (!existsSync(sessionDir)) {
       try { mkdirSync(sessionDir, { recursive: true }); } catch {}
     }
@@ -871,16 +871,16 @@ function activateState(directory, prompt, stateName, sessionId, omcRoot) {
     return;
   }
 
-  // Fallback: write to legacy local .omc/state directory
-  const localDir = join(_omcRoot, 'state');
+  // Fallback: write to legacy local .omac/state directory
+  const localDir = join(_omacRoot, 'state');
   if (!existsSync(localDir)) {
     try { mkdirSync(localDir, { recursive: true }); } catch {}
   }
   try { atomicWriteFileSync(join(localDir, `${stateName}-state.json`), JSON.stringify(state, null, 2)); } catch {}
 }
 
-function activateRalplanStartupState(directory, prompt, sessionId, omcRoot) {
-  const _omcRoot = omcRoot;
+function activateRalplanStartupState(directory, prompt, sessionId, omacRoot) {
+  const _omacRoot = omacRoot;
   const now = new Date().toISOString();
   const state = {
     active: true,
@@ -895,7 +895,7 @@ function activateRalplanStartupState(directory, prompt, sessionId, omcRoot) {
   };
 
   if (sessionId && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,255}$/.test(sessionId)) {
-    const sessionDir = join(_omcRoot, 'state', 'sessions', sessionId);
+    const sessionDir = join(_omacRoot, 'state', 'sessions', sessionId);
     if (!existsSync(sessionDir)) {
       try { mkdirSync(sessionDir, { recursive: true }); } catch {}
     }
@@ -903,7 +903,7 @@ function activateRalplanStartupState(directory, prompt, sessionId, omcRoot) {
     return;
   }
 
-  const localDir = join(_omcRoot, 'state');
+  const localDir = join(_omacRoot, 'state');
   if (!existsSync(localDir)) {
     try { mkdirSync(localDir, { recursive: true }); } catch {}
   }
@@ -913,16 +913,16 @@ function activateRalplanStartupState(directory, prompt, sessionId, omcRoot) {
 /**
  * Clear state files for cancel operation
  */
-function clearStateFiles(directory, modeNames, sessionId, omcRoot) {
-  const _omcRoot = omcRoot;
+function clearStateFiles(directory, modeNames, sessionId, omacRoot) {
+  const _omacRoot = omacRoot;
   for (const name of modeNames) {
-    const localPath = join(_omcRoot, 'state', `${name}-state.json`);
-    const globalPath = join(homedir(), '.omc', 'state', `${name}-state.json`);
+    const localPath = join(_omacRoot, 'state', `${name}-state.json`);
+    const globalPath = join(homedir(), '.omac', 'state', `${name}-state.json`);
     try { if (existsSync(localPath)) unlinkSync(localPath); } catch {}
     try { if (existsSync(globalPath)) unlinkSync(globalPath); } catch {}
     // Clear session-scoped file too
     if (sessionId && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,255}$/.test(sessionId)) {
-      const sessionPath = join(_omcRoot, 'state', 'sessions', sessionId, `${name}-state.json`);
+      const sessionPath = join(_omacRoot, 'state', 'sessions', sessionId, `${name}-state.json`);
       try { if (existsSync(sessionPath)) unlinkSync(sessionPath); } catch {}
     }
   }
@@ -932,13 +932,13 @@ function clearStateFiles(directory, modeNames, sessionId, omcRoot) {
  * Link ralph and team state files for composition.
  * Updates both state files to reference each other.
  */
-function linkRalphTeam(directory, sessionId, omcRoot) {
-  const _omcRoot = omcRoot;
+function linkRalphTeam(directory, sessionId, omacRoot) {
+  const _omacRoot = omacRoot;
   const getStatePath = (modeName) => {
     if (sessionId && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,255}$/.test(sessionId)) {
-      return join(_omcRoot, 'state', 'sessions', sessionId, `${modeName}-state.json`);
+      return join(_omacRoot, 'state', 'sessions', sessionId, `${modeName}-state.json`);
     }
-    return join(_omcRoot, 'state', `${modeName}-state.json`);
+    return join(_omacRoot, 'state', `${modeName}-state.json`);
   };
 
   // Update ralph state with linked_team
@@ -1001,12 +1001,12 @@ Arguments: ${args}` : '';
   const skillPath = resolveSkillPath(skillName);
   const pathStatus = existsSync(skillPath)
     ? `Read fallback: open ${skillPath} and follow its SKILL.md instructions.`
-    : `Read fallback: locate skills/${skillName}/SKILL.md in the active oh-my-claudecode plugin/install and follow it.`;
+    : `Read fallback: locate skills/${skillName}/SKILL.md in the active oh-my-agent-connector plugin/install and follow it.`;
 
   return `[MAGIC KEYWORD: ${skillName.toUpperCase()}]
 
 Skill routing detected: ${skillName}
-Preferred invocation: /oh-my-claudecode:${skillName}${args ? ` ${args}` : ''}
+Preferred invocation: /oh-my-agent-connector:${skillName}${args ? ` ${args}` : ''}
 ${pathStatus}${argsSection}
 
 User request (compact echo; original prompt remains authoritative):
@@ -1029,9 +1029,9 @@ function createMultiSkillInvocation(skills, originalPrompt) {
     const argsText = s.args ? ` ${s.args}` : '';
     const pathStatus = existsSync(skillPath)
       ? `Read fallback: ${skillPath}`
-      : `Read fallback: locate skills/${s.name}/SKILL.md in the active oh-my-claudecode plugin/install`;
+      : `Read fallback: locate skills/${s.name}/SKILL.md in the active oh-my-agent-connector plugin/install`;
     return `### Skill ${i + 1}: ${s.name.toUpperCase()}
-Preferred invocation: /oh-my-claudecode:${s.name}${argsText}
+Preferred invocation: /oh-my-agent-connector:${s.name}${argsText}
 ${pathStatus}`;
   }).join('\n\n');
 
@@ -1098,16 +1098,16 @@ function createHookOutput(additionalContext) {
 
 // Main
 async function main() {
-  // Skip guard: check OMC_SKIP_HOOKS env var (see issue #838)
-  const _skipHooks = (process.env.OMC_SKIP_HOOKS || '').split(',').map(s => s.trim());
-  if (process.env.DISABLE_OMC === '1' || _skipHooks.includes('keyword-detector')) {
+  // Skip guard: check OMAC_SKIP_HOOKS env var (see issue #838)
+  const _skipHooks = (process.env.OMAC_SKIP_HOOKS || '').split(',').map(s => s.trim());
+  if (process.env.DISABLE_OMAC === '1' || _skipHooks.includes('keyword-detector')) {
     console.log(JSON.stringify({ continue: true }));
     return;
   }
 
   // Team worker guard: prevent keyword detection inside team workers to avoid
   // infinite spawning loops (worker detects "team" -> invokes team skill -> spawns more workers)
-  if (process.env.OMC_TEAM_WORKER) {
+  if (process.env.OMAC_TEAM_WORKER) {
     console.log(JSON.stringify({ continue: true, suppressOutput: true }));
     return;
   }
@@ -1123,7 +1123,7 @@ async function main() {
     try { data = JSON.parse(input); } catch {}
     const directory = data.cwd || data.directory || process.cwd();
     const sessionId = data.session_id || data.sessionId || '';
-    const omcRoot = await resolveOmcStateRoot(directory);
+    const omacRoot = await resolveOmacStateRoot(directory);
 
     const prompt = extractPrompt(input);
     if (!prompt) {
@@ -1140,7 +1140,7 @@ async function main() {
     }
 
     if (isExplicitRalplanSlashInvocation(prompt)) {
-      activateRalplanStartupState(directory, prompt, sessionId, omcRoot);
+      activateRalplanStartupState(directory, prompt, sessionId, omacRoot);
       console.log(JSON.stringify(createHookOutput(
         `[RALPLAN INIT]\n` +
         `Explicit /ralplan invoke detected during UserPromptSubmit.\n` +
@@ -1163,7 +1163,7 @@ async function main() {
     const matches = [];
 
     // Cancel keywords
-    if (hasActionableKeyword(cleanPrompt, /\b(cancelomc|stopomc)\b/i)) {
+    if (hasActionableKeyword(cleanPrompt, /\b(cancelomac|stopomac)\b/i)) {
       matches.push({ name: 'cancel', args: '' });
     }
 
@@ -1294,11 +1294,11 @@ async function main() {
       // Detect if ralplan state exists (was recently active) — serves as "prior skill = ralplan" signal
       const ralplanStatePaths = sessionId && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,255}$/.test(sessionId)
         ? [
-            join(omcRoot, 'state', 'sessions', sessionId, 'ralplan-state.json'),
+            join(omacRoot, 'state', 'sessions', sessionId, 'ralplan-state.json'),
             join(directory, '.omx', 'state', 'sessions', sessionId, 'ralplan-state.json'),
           ]
         : [
-            join(omcRoot, 'state', 'ralplan-state.json'),
+            join(omacRoot, 'state', 'ralplan-state.json'),
             join(directory, '.omx', 'state', 'ralplan-state.json'),
           ];
       const ralplanState = readRalplanFollowupState(ralplanStatePaths, sessionId);
@@ -1362,7 +1362,7 @@ async function main() {
 
     // Handle cancel specially - clear states and emit
     if (resolved.length > 0 && resolved[0].name === 'cancel') {
-      clearStateFiles(directory, ['ralph', 'ultragoal', 'autopilot', 'ultrawork', 'swarm', 'ralplan'], sessionId, omcRoot);
+      clearStateFiles(directory, ['ralph', 'ultragoal', 'autopilot', 'ultrawork', 'swarm', 'ralplan'], sessionId, omacRoot);
       console.log(JSON.stringify(createHookOutput(createSkillInvocation('cancel', prompt))));
       return;
     }
@@ -1370,7 +1370,7 @@ async function main() {
     // Activate states for modes that need them (team removed — explicit-only via /team skill)
     const stateModes = resolved.filter(m => ['ralph', 'ultragoal', 'autopilot', 'ultrawork', 'ralplan'].includes(m.name));
     for (const mode of stateModes) {
-      activateState(directory, prompt, mode.name, sessionId, omcRoot);
+      activateState(directory, prompt, mode.name, sessionId, omacRoot);
     }
 
     // Record mode changes to flow trace
@@ -1384,7 +1384,7 @@ async function main() {
     const hasRalph = resolved.some(m => m.name === 'ralph');
     const hasUltrawork = resolved.some(m => m.name === 'ultrawork');
     if (hasRalph && !hasUltrawork) {
-      activateState(directory, prompt, 'ultrawork', sessionId, omcRoot);
+      activateState(directory, prompt, 'ultrawork', sessionId, omacRoot);
     }
 
     const additionalContextParts = [];

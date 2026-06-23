@@ -22,7 +22,7 @@ import { sanitizeName } from './tmux-session.js';
 
 /**
  * Validate that a config path is under the user's home directory
- * and contains a trusted subpath (Claude config dir or ~/.omc/).
+ * and contains a trusted subpath (Claude config dir or ~/.omac/).
  * Resolves the path first to defeat traversal attacks like ~/foo/.claude/../../evil.json.
  */
 export function validateConfigPath(configPath: string, homeDir: string, claudeConfigDir: string): boolean {
@@ -31,14 +31,14 @@ export function validateConfigPath(configPath: string, homeDir: string, claudeCo
 
   const isUnderHome = resolved.startsWith(homeDir + '/') || resolved === homeDir;
   const normalizedConfigDir = resolve(claudeConfigDir);
-  const normalizedOmcDir = resolve(homeDir, '.omc');
-  const hasOmcComponent = resolved.includes('/.omc/') || resolved.endsWith('/.omc');
+  const normalizedOmacDir = resolve(homeDir, '.omac');
+  const hasOmacComponent = resolved.includes('/.omac/') || resolved.endsWith('/.omac');
   const isTrustedSubpath =
     resolved === normalizedConfigDir ||
     resolved.startsWith(normalizedConfigDir + '/') ||
-    resolved === normalizedOmcDir ||
-    resolved.startsWith(normalizedOmcDir + '/') ||
-    hasOmcComponent;
+    resolved === normalizedOmacDir ||
+    resolved.startsWith(normalizedOmacDir + '/') ||
+    hasOmacComponent;
   if (!isUnderHome || !isTrustedSubpath) return false;
 
   // Additionally verify via realpathSync on the parent directory (if it exists)
@@ -102,7 +102,7 @@ function main(): void {
   const home = homedir();
   const claudeConfigDir = getClaudeConfigDir();
   if (!validateConfigPath(configPath, home, claudeConfigDir)) {
-    console.error(`Config path must be under ~/ with ${claudeConfigDir} or ~/.omc/ subpath: ${configPath}`);
+    console.error(`Config path must be under ~/ with ${claudeConfigDir} or ~/.omac/ subpath: ${configPath}`);
     process.exit(1);
   }
 

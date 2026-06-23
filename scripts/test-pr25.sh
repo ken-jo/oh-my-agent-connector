@@ -484,11 +484,11 @@ else
     log_fail "qa-tester NOT in AGENTS.md"
 fi
 
-# Check commands/omc.md updated
-if grep -q "qa-tester" commands/omc.md 2>/dev/null; then
-    log_pass "qa-tester in commands/omc.md"
+# Check commands/omac.md updated
+if grep -q "qa-tester" commands/omac.md 2>/dev/null; then
+    log_pass "qa-tester in commands/omac.md"
 else
-    log_fail "qa-tester NOT in commands/omc.md"
+    log_fail "qa-tester NOT in commands/omac.md"
 fi
 
 # Check commands/ultrawork.md updated

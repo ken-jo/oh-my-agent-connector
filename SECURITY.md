@@ -1,13 +1,13 @@
 # Security Guide
 
-This document describes the security configuration and deployment guidelines for oh-my-claudecode (OMC).
+This document describes the security configuration and deployment guidelines for oh-my-agent-connector (OMAC).
 
 ## Quick Start: Strict Mode
 
 Enable all security features with a single environment variable:
 
 ```bash
-export OMC_SECURITY=strict
+export OMAC_SECURITY=strict
 ```
 
 This enables:
@@ -24,12 +24,12 @@ This enables:
 
 | Variable | Values | Description |
 |----------|--------|-------------|
-| `OMC_SECURITY` | `strict` | Enables all security features |
-| `OMC_SECURITY` | unset / other | Per-feature defaults apply (all off) |
+| `OMAC_SECURITY` | `strict` | Enables all security features |
+| `OMAC_SECURITY` | unset / other | Per-feature defaults apply (all off) |
 
 ### Config File
 
-Granular overrides via `.claude/omc.jsonc` (project) or `~/.config/claude-omc/config.jsonc` (user):
+Granular overrides via `.claude/omac.jsonc` (project) or `~/.config/claude-omac/config.jsonc` (user):
 
 ```jsonc
 {
@@ -71,13 +71,13 @@ Prevents Exa (web search) and Context7 (external documentation) MCP servers from
 
 ### External LLM Disable (`disableExternalLLM`)
 
-Blocks Codex (OpenAI), Gemini (Google), and Grok (xAI, "Grok Build") CLI workers from being spawned in team mode. Only Claude workers are allowed. Enforced at the `getContract()` level in the team worker contract system: any non-Claude provider throws `External LLM provider "<provider>" is blocked by security policy (disableExternalLLM)`. `OMC_SECURITY=strict` sets this on. Affects `omc team N:<provider>` and `omc ask <provider>` alike.
+Blocks Codex (OpenAI), Gemini (Google), and Grok (xAI, "Grok Build") CLI workers from being spawned in team mode. Only Claude workers are allowed. Enforced at the `getContract()` level in the team worker contract system: any non-Claude provider throws `External LLM provider "<provider>" is blocked by security policy (disableExternalLLM)`. `OMAC_SECURITY=strict` sets this on. Affects `omac team N:<provider>` and `omac ask <provider>` alike.
 
-> **Auto-approval risk class.** Headless CLI workers launch with auto-approve flags so they can run unattended: Codex uses `--dangerously-bypass-approvals-and-sandbox`, Gemini uses `--approval-mode yolo`, and Grok uses `--always-approve`. All three auto-approve the worker's own tool calls — treat them as the same risk class as Claude's `--dangerously-skip-permissions`. The resolved CLI binary path is checked against a trusted-prefix allowlist — `/usr/local/bin`, `/usr/bin`, `/opt/homebrew/`, `~/.local/bin`, `~/.nvm/`, `~/.cargo/bin`, and the Grok-specific `~/.grok/bin` (extend via `OMC_TRUSTED_CLI_DIRS`); the check is directory-boundary safe, so a sibling like `~/.grok/bin-evil` is not treated as trusted. A binary resolving outside the allowlist logs a security **warning** (advisory, not a hard block); only temp/shared-memory locations (`/tmp`, `/var/tmp`, `/dev/shm`) and relative paths are hard-rejected. Use `OMC_SECURITY=strict` (or `"disableExternalLLM": true`) to disable all external providers — including Grok — in untrusted environments.
+> **Auto-approval risk class.** Headless CLI workers launch with auto-approve flags so they can run unattended: Codex uses `--dangerously-bypass-approvals-and-sandbox`, Gemini uses `--approval-mode yolo`, and Grok uses `--always-approve`. All three auto-approve the worker's own tool calls — treat them as the same risk class as Claude's `--dangerously-skip-permissions`. The resolved CLI binary path is checked against a trusted-prefix allowlist — `/usr/local/bin`, `/usr/bin`, `/opt/homebrew/`, `~/.local/bin`, `~/.nvm/`, `~/.cargo/bin`, and the Grok-specific `~/.grok/bin` (extend via `OMAC_TRUSTED_CLI_DIRS`); the check is directory-boundary safe, so a sibling like `~/.grok/bin-evil` is not treated as trusted. A binary resolving outside the allowlist logs a security **warning** (advisory, not a hard block); only temp/shared-memory locations (`/tmp`, `/var/tmp`, `/dev/shm`) and relative paths are hard-rejected. Use `OMAC_SECURITY=strict` (or `"disableExternalLLM": true`) to disable all external providers — including Grok — in untrusted environments.
 
 ### Auto-Update Disable (`disableAutoUpdate`)
 
-Overrides `silentAutoUpdate` in OMC config. When enabled, `isSilentAutoUpdateEnabled()` always returns `false` regardless of user config, preventing unverified npm package installs.
+Overrides `silentAutoUpdate` in OMAC config. When enabled, `isSilentAutoUpdateEnabled()` always returns `false` regardless of user config, preventing unverified npm package installs.
 
 ### Hard Max Iterations (`hardMaxIterations`)
 
@@ -89,11 +89,11 @@ Caps the number of iterations in persistent modes (ralph, autopilot, ultrawork).
 
 ```bash
 # Environment
-export OMC_SECURITY=strict
+export OMAC_SECURITY=strict
 ```
 
 ```jsonc
-// .claude/omc.jsonc
+// .claude/omac.jsonc
 {
   "security": {
     "restrictToolPaths": true,
@@ -113,7 +113,7 @@ export OMC_SECURITY=strict
 - Do not set `"permission": {"*": "allow"}` in Claude Code settings; prefer `"ask"` mode
 - Avoid hook commands (`hook.command`) — they execute with `shell: true`
 - Minimize sensitive environment variables (API keys, tokens) — MCP processes inherit them
-- Install OMC manually (`oh-my-claudecode install`), not via agent
+- Install OMAC manually (`oh-my-agent-connector install`), not via agent
 - Pin to a verified version with `"disableAutoUpdate": true`
 - Clone repositories only from trusted sources — `.mcp.json` files are auto-loaded by Claude Code
 
@@ -129,4 +129,4 @@ These are structural characteristics that cannot be fully resolved by configurat
 
 ## Reporting Security Issues
 
-If you discover a security vulnerability, please report it via [GitHub Issues](https://github.com/Yeachan-Heo/oh-my-claudecode/issues) with the `security` label.
+If you discover a security vulnerability, please report it via [GitHub Issues](https://github.com/Yeachan-Heo/oh-my-agent-connector/issues) with the `security` label.

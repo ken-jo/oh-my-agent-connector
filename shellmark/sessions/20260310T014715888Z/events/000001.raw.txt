@@ -1,16 +1,16 @@
 $ npm run test
-# cwd: /home/bellman/Workspace/oh-my-claudecode
+# cwd: /home/bellman/Workspace/oh-my-agent-connector
 # status: success
 # exit_code: 0
 # duration_ms: 22145
 
 [stdout]
 
-> oh-my-claude-sisyphus@4.7.9 test
+> oh-my-agent-connector@4.7.9 test
 > vitest
 
 
-[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/bellman/Workspace/oh-my-claudecode[39m
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90m/home/bellman/Workspace/oh-my-agent-connector[39m
 
  [32m✓[39m src/hooks/persistent-mode/__tests__/error-handling.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 178[2mms[22m[39m
  [32m✓[39m src/__tests__/session-start-cache-cleanup.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 240[2mms[22m[39m
@@ -127,7 +127,7 @@ $ npm run test
  [32m✓[39m src/team/__tests__/activity-log.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 13[2mms[22m[39m
  [32m✓[39m src/tools/python-repl/__tests__/tcp-fallback.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 22[2mms[22m[39m
  [32m✓[39m src/__tests__/cleanup-validation.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 2544[2mms[22m[39m
-     [33m[2m✓[22m[39m omc-plan skill resolves correctly [33m 446[2mms[22m[39m
+     [33m[2m✓[22m[39m omac-plan skill resolves correctly [33m 446[2mms[22m[39m
      [33m[2m✓[22m[39m agent registry has 18 agents [33m 1761[2mms[22m[39m
  [32m✓[39m src/hooks/__tests__/bridge-pkill.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 17[2mms[22m[39m
  [32m✓[39m src/__tests__/post-tool-verifier.test.mjs [2m([22m[2m44 tests[22m[2m)[22m[32m 74[2mms[22m[39m
@@ -137,7 +137,7 @@ $ npm run test
  [32m✓[39m src/team/__tests__/team-registration.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 17[2mms[22m[39m
  [32m✓[39m src/hooks/subagent-tracker/__tests__/flush-race.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 18[2mms[22m[39m
  [32m✓[39m src/cli/__tests__/cli-boot.test.ts [2m([22m[2m4 tests[22m[2m)[22m[33m 2654[2mms[22m[39m
-     [33m[2m✓[22m[39m omc --madmax does not throw duplicate command error [33m 2326[2mms[22m[39m
+     [33m[2m✓[22m[39m omac --madmax does not throw duplicate command error [33m 2326[2mms[22m[39m
  [32m✓[39m src/team/__tests__/api-interop.compatibility.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 20[2mms[22m[39m
  [32m✓[39m src/__tests__/installer.test.ts [2m([22m[2m42 tests[22m[2m)[22m[32m 23[2mms[22m[39m
  [32m✓[39m src/hooks/__tests__/bridge-security.test.ts [2m([22m[2m78 tests[22m[2m)[22m[32m 30[2mms[22m[39m
@@ -221,7 +221,7 @@ $ npm run test
  [32m✓[39m src/team/__tests__/idle-nudge.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 20[2mms[22m[39m
  [32m✓[39m src/notifications/__tests__/config.test.ts [2m([22m[2m84 tests[22m[2m)[22m[32m 21[2mms[22m[39m
  [32m✓[39m src/notifications/__tests__/tmux.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 10[2mms[22m[39m
- [32m✓[39m src/__tests__/omc-tools-contract.test.ts [2m([22m[2m172 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32m✓[39m src/__tests__/omac-tools-contract.test.ts [2m([22m[2m172 tests[22m[2m)[22m[32m 30[2mms[22m[39m
  [32m✓[39m src/__tests__/purge-stale-cache.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 9[2mms[22m[39m
  [32m✓[39m src/hooks/think-mode/__tests__/index.test.ts [2m([22m[2m107 tests[22m[2m)[22m[32m 19[2mms[22m[39m
  [32m✓[39m src/__tests__/hud/usage-api.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 18[2mms[22m[39m
@@ -374,12 +374,12 @@ $ npm run test
  [32m✓[39m src/team/__tests__/bridge-entry.guardrails.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
  [32m✓[39m src/hooks/thinking-block-validator/__tests__/index.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
  [32m✓[39m src/team/__tests__/runtime-v2.feature-flag.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m src/__tests__/omc-tools-server.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/__tests__/omac-tools-server.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 8[2mms[22m[39m
  [32m✓[39m src/__tests__/disable-tools.test.ts [2m([22m[2m31 tests[22m[2m)[22m[32m 9[2mms[22m[39m
  [32m✓[39m src/team/__tests__/api-interop.command-dialect.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 3[2mms[22m[39m
  [32m✓[39m src/__tests__/hud/mission-board.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
  [32m✓[39m src/__tests__/hud/version-display.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
- [32m✓[39m src/__tests__/omc-tools-server-interop.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 4930[2mms[22m[39m
+ [32m✓[39m src/__tests__/omac-tools-server-interop.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 4930[2mms[22m[39m
      [33m[2m✓[22m[39m does not register interop tools by default [33m 4894[2mms[22m[39m
  [32m✓[39m src/__tests__/hud/render-rate-limits-priority.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
  [32m✓[39m src/__tests__/hud/max-width.test.ts [2m([22m[2m24 tests[22m[2m)[22m[32m 6[2mms[22m[39m
@@ -1067,19 +1067,19 @@ $ npm run test
 [22m[39m[job-state-db] DEPRECATED: closeJobDb() called without cwd. Use closeAllJobDbs() for explicit intent.
 
 [90mstderr[2m | src/hooks/session-end/__tests__/duplicate-notifications.test.ts[2m > [22m[2mprocessSessionEnd notification deduplication (issue #1440)[2m > [22m[2mdoes not re-dispatch session-end through notify() when config only comes from legacy stopHookCallbacks
-[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omc-session-end-dedupe-78VT3Y'[39m }
+[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omac-session-end-dedupe-78VT3Y'[39m }
 
 [90mstderr[2m | src/hooks/session-end/__tests__/session-end-bridge-cleanup.test.ts[2m > [22m[2mprocessSessionEnd python bridge cleanup[2m > [22m[2mpasses extracted python_repl sessions to cleanupBridgeSessions
-[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omc-session-end-bridge-vLDVz9'[39m }
+[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omac-session-end-bridge-vLDVz9'[39m }
 
 [90mstderr[2m | src/team/__tests__/edge-cases.test.ts[2m > [22m[2minbox-outbox edge cases[2m > [22m[2mreadNewInboxMessages with malformed JSONL mixed with valid[2m > [22m[2mskips malformed lines, advances cursor past them, and returns all valid messages
 [22m[39m[inbox-outbox] Skipping malformed JSONL line for w-malformed-test: this is not json
 
 [90mstderr[2m | src/hooks/session-end/__tests__/duplicate-notifications.test.ts[2m > [22m[2mprocessSessionEnd notification deduplication (issue #1440)[2m > [22m[2mskips the legacy Discord callback when explicit session-end notifications already cover Discord
-[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omc-session-end-dedupe-KEXZkH'[39m }
+[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omac-session-end-dedupe-KEXZkH'[39m }
 
 [90mstderr[2m | src/team/__tests__/runtime-prompt-mode.test.ts[2m > [22m[2mspawnWorkerForTask – prompt mode (Gemini & Codex)[2m > [22m[2mnon-prompt worker throws when pane never becomes ready and resets task to pending
-[22m[39m[tmux-session] waitForPaneReady: pane %42 timed out after 40ms (set OMC_SHELL_READY_TIMEOUT_MS to tune)
+[22m[39m[tmux-session] waitForPaneReady: pane %42 timed out after 40ms (set OMAC_SHELL_READY_TIMEOUT_MS to tune)
 
 [90mstderr[2m | src/__tests__/delegation-enforcement-levels.test.ts[2m > [22m[2mdelegation-enforcement-levels[2m > [22m[2mprocessPreToolUse integration via processHook[2m > [22m[2mcalls enforcement before HUD tracking
 [22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/test-project'[39m }
@@ -1159,51 +1159,51 @@ $ npm run test
 [90mstderr[2m | src/hooks/__tests__/bridge-openclaw.test.ts[2m > [22m[2mbridge-level regression tests[2m > [22m[2mpre-tool-use calls _openclaw.wake for AskUserQuestion
 [22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/test'[39m }
 
-[90mstderr[2m | src/hooks/session-end/__tests__/openclaw-session-end.test.ts[2m > [22m[2msession-end OpenClaw behavior (issue #1456)[2m > [22m[2mwakes OpenClaw from the bridge during session-end when OMC_OPENCLAW=1
-[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omc-session-end-claw-nMH8jp'[39m }
+[90mstderr[2m | src/hooks/session-end/__tests__/openclaw-session-end.test.ts[2m > [22m[2msession-end OpenClaw behavior (issue #1456)[2m > [22m[2mwakes OpenClaw from the bridge during session-end when OMAC_OPENCLAW=1
+[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omac-session-end-claw-nMH8jp'[39m }
 
-[90mstderr[2m | src/hooks/__tests__/bridge.test.ts[2m > [22m[2mprocessHook - Environment Kill-Switches[2m > [22m[2mDISABLE_OMC flag[2m > [22m[2mshould process normally when DISABLE_OMC is not set
+[90mstderr[2m | src/hooks/__tests__/bridge.test.ts[2m > [22m[2mprocessHook - Environment Kill-Switches[2m > [22m[2mDISABLE_OMAC flag[2m > [22m[2mshould process normally when DISABLE_OMAC is not set
 [22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/test'[39m }
 
-[90mstderr[2m | src/hooks/__tests__/bridge.test.ts[2m > [22m[2mprocessHook - Environment Kill-Switches[2m > [22m[2mDISABLE_OMC flag[2m > [22m[2mshould process normally when DISABLE_OMC=false
+[90mstderr[2m | src/hooks/__tests__/bridge.test.ts[2m > [22m[2mprocessHook - Environment Kill-Switches[2m > [22m[2mDISABLE_OMAC flag[2m > [22m[2mshould process normally when DISABLE_OMAC=false
 [22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/test'[39m }
 
-[90mstderr[2m | src/hooks/__tests__/bridge.test.ts[2m > [22m[2mprocessHook - Environment Kill-Switches[2m > [22m[2mOMC_SKIP_HOOKS flag[2m > [22m[2mshould process normally when hook type is not in skip list
+[90mstderr[2m | src/hooks/__tests__/bridge.test.ts[2m > [22m[2mprocessHook - Environment Kill-Switches[2m > [22m[2mOMAC_SKIP_HOOKS flag[2m > [22m[2mshould process normally when hook type is not in skip list
 [22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/test'[39m }
 
 [90mstderr[2m | src/hooks/session-end/__tests__/openclaw-session-end.test.ts[2m > [22m[2msession-end OpenClaw behavior (issue #1456)[2m > [22m[2mdoes not call wakeOpenClaw directly when processSessionEnd is invoked without the bridge
-[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omc-session-end-claw-bxVKy6'[39m }
+[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omac-session-end-claw-bxVKy6'[39m }
 
-[90mstderr[2m | src/hooks/session-end/__tests__/openclaw-session-end.test.ts[2m > [22m[2msession-end OpenClaw behavior (issue #1456)[2m > [22m[2mdoes not call wakeOpenClaw when OMC_OPENCLAW is not set
-[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omc-session-end-claw-M2QPnI'[39m }
+[90mstderr[2m | src/hooks/session-end/__tests__/openclaw-session-end.test.ts[2m > [22m[2msession-end OpenClaw behavior (issue #1456)[2m > [22m[2mdoes not call wakeOpenClaw when OMAC_OPENCLAW is not set
+[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omac-session-end-claw-M2QPnI'[39m }
 
-[90mstderr[2m | src/hooks/__tests__/bridge.test.ts[2m > [22m[2mprocessHook - Environment Kill-Switches[2m > [22m[2mOMC_SKIP_HOOKS flag[2m > [22m[2mshould process normally when OMC_SKIP_HOOKS is empty
+[90mstderr[2m | src/hooks/__tests__/bridge.test.ts[2m > [22m[2mprocessHook - Environment Kill-Switches[2m > [22m[2mOMAC_SKIP_HOOKS flag[2m > [22m[2mshould process normally when OMAC_SKIP_HOOKS is empty
 [22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/test'[39m }
 
 [90mstderr[2m | src/hooks/__tests__/bridge.test.ts[2m > [22m[2mprocessHook - Environment Kill-Switches[2m > [22m[2mPerformance[2m > [22m[2mshould have no performance impact when flags are not set
 [22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/test'[39m }
 
 [90mstderr[2m | src/hooks/session-end/__tests__/openclaw-session-end.test.ts[2m > [22m[2msession-end OpenClaw behavior (issue #1456)[2m > [22m[2mdoes not throw even if wakeOpenClaw mock is configured to reject
-[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omc-session-end-claw-N4SmwU'[39m }
+[22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/omac-session-end-claw-N4SmwU'[39m }
 
 [90mstderr[2m | src/__tests__/rate-limit-wait/integration.test.ts[2m > [22m[2mRate Limit Wait Integration Tests[2m > [22m[2mScenario: Error handling and edge cases[2m > [22m[2mshould handle API timeout gracefully
 [22m[39m[RateLimitMonitor] Error checking rate limit: Error: ETIMEDOUT
-    at [90m/home/bellman/Workspace/oh-my-claudecode/[39msrc/__tests__/rate-limit-wait/integration.test.ts:335:45
-    at [90mfile:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:145:11
-    at [90mfile:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:915:26
-    at [90mfile:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1243:20
+    at [90m/home/bellman/Workspace/oh-my-agent-connector/[39msrc/__tests__/rate-limit-wait/integration.test.ts:335:45
+    at [90mfile:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:145:11
+    at [90mfile:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:915:26
+    at [90mfile:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1243:20
     at new Promise (<anonymous>)
-    at runWithTimeout [90m(file:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1209:10[90m)[39m
-    at [90mfile:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1653:37
-    at Traces.$ [90m(file:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4mvitest[24m/dist/chunks/traces.CCmnQaNT.js:142:27[90m)[39m
-    at trace [90m(file:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js:239:21[90m)[39m
-    at runTest [90m(file:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1653:12[90m)[39m
+    at runWithTimeout [90m(file:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1209:10[90m)[39m
+    at [90mfile:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1653:37
+    at Traces.$ [90m(file:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4mvitest[24m/dist/chunks/traces.CCmnQaNT.js:142:27[90m)[39m
+    at trace [90m(file:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js:239:21[90m)[39m
+    at runTest [90m(file:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1653:12[90m)[39m
 
 [90mstderr[2m | src/__tests__/rate-limit-wait/integration.test.ts[2m > [22m[2mRate Limit Wait Integration Tests[2m > [22m[2mScenario: Error handling and edge cases[2m > [22m[2mshould handle malformed tmux output
 [22m[39m[TmuxDetector] Invalid pane ID format: output
 
 [90mstderr[2m | src/cli/commands/__tests__/team.test.ts[2m > [22m[2mteamCommand api operations[2m > [22m[2mblocks team start when running inside worker context
-[22m[39mWorker context (demo-team/worker-1) cannot start/spawn new teams. Use only "omc team api ..." operations from worker sessions.
+[22m[39mWorker context (demo-team/worker-1) cannot start/spawn new teams. Use only "omac team api ..." operations from worker sessions.
 
 [90mstderr[2m | src/hooks/__tests__/bridge-routing.test.ts[2m > [22m[2mprocessHook - Routing Matrix[2m > [22m[2mHookType routing[2m > [22m[2mshould route "persistent-mode" and return a valid HookOutput
 [22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/test-routing'[39m }
@@ -1269,16 +1269,16 @@ hint: 	git branch -m <name>
 
 [90mstderr[2m | src/hooks/session-end/__tests__/callbacks.test.ts[2m > [22m[2mtriggerStopCallbacks[2m > [22m[2mhandles file write errors gracefully
 [22m[39m[stop-callback] File write failed: Error: Permission denied
-    at [90m/home/bellman/Workspace/oh-my-claudecode/[39msrc/hooks/session-end/__tests__/callbacks.test.ts:376:13
-    at Mock [90m(file:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/spy[24m/dist/index.js:285:34[90m)[39m
-    at writeToFile [90m(/home/bellman/Workspace/oh-my-claudecode/[39msrc/hooks/session-end/callbacks.ts:124:5[90m)[39m
-    at Module.triggerStopCallbacks [90m(/home/bellman/Workspace/oh-my-claudecode/[39msrc/hooks/session-end/callbacks.ts:253:19[90m)[39m
-    at [90m/home/bellman/Workspace/oh-my-claudecode/[39msrc/hooks/session-end/__tests__/callbacks.test.ts:391:18
-    at [90mfile:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:145:11
-    at [90mfile:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:915:26
-    at [90mfile:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1243:20
+    at [90m/home/bellman/Workspace/oh-my-agent-connector/[39msrc/hooks/session-end/__tests__/callbacks.test.ts:376:13
+    at Mock [90m(file:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/spy[24m/dist/index.js:285:34[90m)[39m
+    at writeToFile [90m(/home/bellman/Workspace/oh-my-agent-connector/[39msrc/hooks/session-end/callbacks.ts:124:5[90m)[39m
+    at Module.triggerStopCallbacks [90m(/home/bellman/Workspace/oh-my-agent-connector/[39msrc/hooks/session-end/callbacks.ts:253:19[90m)[39m
+    at [90m/home/bellman/Workspace/oh-my-agent-connector/[39msrc/hooks/session-end/__tests__/callbacks.test.ts:391:18
+    at [90mfile:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:145:11
+    at [90mfile:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:915:26
+    at [90mfile:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1243:20
     at new Promise (<anonymous>)
-    at runWithTimeout [90m(file:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1209:10[90m)[39m
+    at runWithTimeout [90m(file:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1209:10[90m)[39m
 
 [90mstderr[2m | src/hooks/session-end/__tests__/callbacks.test.ts[2m > [22m[2mtriggerStopCallbacks[2m > [22m[2mhandles Telegram API errors gracefully
 [22m[39m[stop-callback] Telegram send failed: Telegram API error: 401 - undefined
@@ -1417,10 +1417,10 @@ hint: 'development'. The just-created branch can be renamed via this command:
 hint: 
 hint: 	git branch -m <name>
 [90mstderr[2m | src/cli/__tests__/launch.test.ts[2m > [22m[2mrunClaude — exit code propagation[2m > [22m[2mdirect policy[2m > [22m[2mexits with code 1 on ENOENT
-[22m[39m[omc] Error: claude CLI not found in PATH.
+[22m[39m[omac] Error: claude CLI not found in PATH.
 
 [90mstderr[2m | src/cli/__tests__/launch.test.ts[2m > [22m[2mrunClaude — exit code propagation[2m > [22m[2minside-tmux policy[2m > [22m[2mexits with code 1 on ENOENT
-[22m[39m[omc] Error: claude CLI not found in PATH.
+[22m[39m[omac] Error: claude CLI not found in PATH.
 
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
@@ -1482,8 +1482,8 @@ hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
 hint: 'development'. The just-created branch can be renamed via this command:
 hint: 
 hint: 	git branch -m <name>
-[90mstderr[2m | src/__tests__/delegation-enforcer.test.ts[2m > [22m[2mdelegation-enforcer[2m > [22m[2mprocessPreToolUse[2m > [22m[2mlogs warning only when OMC_DEBUG=true and model injected
-[22m[39m[OMC] Auto-injecting model: sonnet for executor (normalized from claude-sonnet-4-6)
+[90mstderr[2m | src/__tests__/delegation-enforcer.test.ts[2m > [22m[2mdelegation-enforcer[2m > [22m[2mprocessPreToolUse[2m > [22m[2mlogs warning only when OMAC_DEBUG=true and model injected
+[22m[39m[OMAC] Auto-injecting model: sonnet for executor (normalized from claude-sonnet-4-6)
 
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
@@ -1871,7 +1871,7 @@ hint: 'development'. The just-created branch can be renamed via this command:
 hint: 
 hint: 	git branch -m <name>
 [90mstderr[2m | src/__tests__/hooks.test.ts[2m > [22m[2mMutual Exclusion - UltraQA and Ralph[2m > [22m[2mRalph mutual exclusion[2m > [22m[2mshould fail to start Ralph when UltraQA is active
-[22m[39mCannot start Ralph Loop while UltraQA is active. Cancel UltraQA first with /oh-my-claudecode:cancel.
+[22m[39mCannot start Ralph Loop while UltraQA is active. Cancel UltraQA first with /oh-my-agent-connector:cancel.
 
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
@@ -1895,16 +1895,16 @@ hint:
 hint: 	git branch -m <name>
 [90mstderr[2m | src/__tests__/rate-limit-wait/rate-limit-monitor.test.ts[2m > [22m[2mrate-limit-monitor[2m > [22m[2mcheckRateLimitStatus[2m > [22m[2mshould handle API errors gracefully
 [22m[39m[RateLimitMonitor] Error checking rate limit: Error: API error
-    at [90m/home/bellman/Workspace/oh-my-claudecode/[39msrc/__tests__/rate-limit-wait/rate-limit-monitor.test.ts:147:45
-    at [90mfile:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:145:11
-    at [90mfile:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:915:26
-    at [90mfile:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1243:20
+    at [90m/home/bellman/Workspace/oh-my-agent-connector/[39msrc/__tests__/rate-limit-wait/rate-limit-monitor.test.ts:147:45
+    at [90mfile:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:145:11
+    at [90mfile:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:915:26
+    at [90mfile:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1243:20
     at new Promise (<anonymous>)
-    at runWithTimeout [90m(file:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1209:10[90m)[39m
-    at [90mfile:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1653:37
-    at Traces.$ [90m(file:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4mvitest[24m/dist/chunks/traces.CCmnQaNT.js:142:27[90m)[39m
-    at trace [90m(file:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js:239:21[90m)[39m
-    at runTest [90m(file:///home/bellman/Workspace/oh-my-claudecode.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1653:12[90m)[39m
+    at runWithTimeout [90m(file:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1209:10[90m)[39m
+    at [90mfile:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1653:37
+    at Traces.$ [90m(file:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4mvitest[24m/dist/chunks/traces.CCmnQaNT.js:142:27[90m)[39m
+    at trace [90m(file:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js:239:21[90m)[39m
+    at runTest [90m(file:///home/bellman/Workspace/oh-my-agent-connector.[39momx-worktrees/launch-feat-refactor-skills/node_modules/[4m@vitest/runner[24m/dist/index.js:1653:12[90m)[39m
 
 [90mstderr[2m | src/hooks/__tests__/bridge-routing.test.ts[2m > [22m[2mprocessHook - Routing Matrix[2m > [22m[2mHookType routing[2m > [22m[2mshould route "permission-request" and return a valid HookOutput
 [22m[39m[hook-bridge] validateHookInput failed for "permission-request": missing keys: toolName
@@ -1951,10 +1951,10 @@ Use '--' to separate paths from revisions, like this:
 [90mstderr[2m | src/hooks/__tests__/bridge-routing.test.ts[2m > [22m[2mprocessHook - Routing Matrix[2m > [22m[2minput normalization[2m > [22m[2mshould handle already-camelCase input without breaking
 [22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/test-routing'[39m }
 
-[90mstderr[2m | src/hooks/__tests__/bridge-routing.test.ts[2m > [22m[2mprocessHook - Routing Matrix[2m > [22m[2mOMC_SKIP_HOOKS kill-switch[2m > [22m[2mshould process normally with empty OMC_SKIP_HOOKS
+[90mstderr[2m | src/hooks/__tests__/bridge-routing.test.ts[2m > [22m[2mprocessHook - Routing Matrix[2m > [22m[2mOMAC_SKIP_HOOKS kill-switch[2m > [22m[2mshould process normally with empty OMAC_SKIP_HOOKS
 [22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/test-routing'[39m }
 
-[90mstderr[2m | src/hooks/__tests__/bridge-routing.test.ts[2m > [22m[2mprocessHook - Routing Matrix[2m > [22m[2mDISABLE_OMC kill-switch[2m > [22m[2mshould process normally when DISABLE_OMC=false
+[90mstderr[2m | src/hooks/__tests__/bridge-routing.test.ts[2m > [22m[2mprocessHook - Routing Matrix[2m > [22m[2mDISABLE_OMAC kill-switch[2m > [22m[2mshould process normally when DISABLE_OMAC=false
 [22m[39m[worktree] non-git directory provided, falling back to process root { directory: [32m'/tmp/test-routing'[39m }
 
 [90mstderr[2m | src/hooks/__tests__/bridge-routing.test.ts[2m > [22m[2mprocessHook - Routing Matrix[2m > [22m[2mRegression #858 — snake_case fields reach handlers after normalization[2m > [22m[2msession-end: snake_case input reaches handler without crashing

@@ -1,5 +1,5 @@
 /**
- * Native tmux shell launch for omc
+ * Native tmux shell launch for omac
  * Launches Claude Code with tmux session management
  */
 
@@ -33,8 +33,8 @@ import {
   tmuxExec,
 } from './tmux-utils.js';
 import { configureTmuxClipboardForCurrentSession, configureTmuxClipboardForSession } from './tmux-clipboard.js';
-import { OMC_PLUGIN_ROOT_ENV } from '../lib/env-vars.js';
-import { OMC_CONFIG_FILE_REL } from '../lib/paths.js';
+import { OMAC_PLUGIN_ROOT_ENV } from '../lib/env-vars.js';
+import { OMAC_CONFIG_FILE_REL } from '../lib/paths.js';
 
 // Flag mapping
 const MADMAX_FLAG = '--madmax';
@@ -46,12 +46,12 @@ const TELEGRAM_FLAG = '--telegram';
 const DISCORD_FLAG = '--discord';
 const SLACK_FLAG = '--slack';
 const WEBHOOK_FLAG = '--webhook';
-const OMC_RUNTIME_DIRNAME = '.omc-launch';
+const OMAC_RUNTIME_DIRNAME = '.omac-launch';
 
-function hasOmcMarkers(path: string): boolean {
+function hasOmacMarkers(path: string): boolean {
   if (!existsSync(path)) return false;
   const content = readFileSync(path, 'utf-8');
-  return content.includes('<!-- OMC:START -->') && content.includes('<!-- OMC:END -->');
+  return content.includes('<!-- OMAC:START -->') && content.includes('<!-- OMAC:END -->');
 }
 
 function ensureMirroredPath(
@@ -117,13 +117,13 @@ function refreshRuntimeClaudeJsonMcpServers(baseConfigDir: string, runtimeClaude
   writeFileSync(runtimeClaudeJsonPath, JSON.stringify(runtimeClaudeJson, null, 2));
 }
 
-export function prepareOmcLaunchConfigDir(baseConfigDir = getClaudeConfigDir()): string {
-  const companionPath = join(baseConfigDir, 'CLAUDE-omc.md');
-  if (!hasOmcMarkers(companionPath)) {
+export function prepareOmacLaunchConfigDir(baseConfigDir = getClaudeConfigDir()): string {
+  const companionPath = join(baseConfigDir, 'CLAUDE-omac.md');
+  if (!hasOmacMarkers(companionPath)) {
     return baseConfigDir;
   }
 
-  const runtimeConfigDir = join(baseConfigDir, OMC_RUNTIME_DIRNAME);
+  const runtimeConfigDir = join(baseConfigDir, OMAC_RUNTIME_DIRNAME);
   const runtimeClaudeJsonPath = join(runtimeConfigDir, '.claude.json');
   const preservedClaudeJson = existsSync(runtimeClaudeJsonPath)
     ? readFileSync(runtimeClaudeJsonPath)
@@ -147,9 +147,9 @@ export function prepareOmcLaunchConfigDir(baseConfigDir = getClaudeConfigDir()):
     'rules',
     'skills',
     'themes',
-    OMC_CONFIG_FILE_REL,
-    '.omc-version.json',
-    '.omc-silent-update.json',
+    OMAC_CONFIG_FILE_REL,
+    '.omac-version.json',
+    '.omac-silent-update.json',
     'keybindings.json',
     'settings.json',
     'settings.local.json',
@@ -177,7 +177,7 @@ export function prepareOmcLaunchConfigDir(baseConfigDir = getClaudeConfigDir()):
   }
 
   writeFileSync(
-    join(runtimeConfigDir, '.omc-launch-profile.json'),
+    join(runtimeConfigDir, '.omac-launch-profile.json'),
     JSON.stringify({ sourceConfigDir: baseConfigDir, sourceClaudeMd: companionPath }, null, 2),
   );
 
@@ -189,8 +189,8 @@ function isDefaultClaudeConfigDirPath(configDir: string): boolean {
 }
 
 /**
- * Extract the OMC-specific --notify flag from launch args.
- * --notify false  → disable notifications (OMC_NOTIFY=0)
+ * Extract the OMAC-specific --notify flag from launch args.
+ * --notify false  → disable notifications (OMAC_NOTIFY=0)
  * --notify true   → enable notifications (default)
  * This flag must be stripped before passing args to Claude CLI.
  */
@@ -221,9 +221,9 @@ export function extractNotifyFlag(args: string[]): { notifyEnabled: boolean; rem
 }
 
 /**
- * Extract the OMC-specific --openclaw flag from launch args.
+ * Extract the OMAC-specific --openclaw flag from launch args.
  * Purely presence-based (like --madmax/--yolo):
- *   --openclaw        -> enable OpenClaw (OMC_OPENCLAW=1)
+ *   --openclaw        -> enable OpenClaw (OMAC_OPENCLAW=1)
  *   --openclaw=true   -> enable OpenClaw
  *   --openclaw=false  -> disable OpenClaw
  *   --openclaw=1      -> enable OpenClaw
@@ -256,9 +256,9 @@ export function extractOpenClawFlag(args: string[]): { openclawEnabled: boolean 
 }
 
 /**
- * Extract the OMC-specific --telegram flag from launch args.
+ * Extract the OMAC-specific --telegram flag from launch args.
  * Purely presence-based:
- *   --telegram        -> enable Telegram notifications (OMC_TELEGRAM=1)
+ *   --telegram        -> enable Telegram notifications (OMAC_TELEGRAM=1)
  *   --telegram=true   -> enable
  *   --telegram=false  -> disable
  *   --telegram=1      -> enable
@@ -283,9 +283,9 @@ export function extractTelegramFlag(args: string[]): { telegramEnabled: boolean 
 }
 
 /**
- * Extract the OMC-specific --discord flag from launch args.
+ * Extract the OMAC-specific --discord flag from launch args.
  * Purely presence-based:
- *   --discord        -> enable Discord notifications (OMC_DISCORD=1)
+ *   --discord        -> enable Discord notifications (OMAC_DISCORD=1)
  *   --discord=true   -> enable
  *   --discord=false  -> disable
  *   --discord=1      -> enable
@@ -310,9 +310,9 @@ export function extractDiscordFlag(args: string[]): { discordEnabled: boolean | 
 }
 
 /**
- * Extract the OMC-specific --slack flag from launch args.
+ * Extract the OMAC-specific --slack flag from launch args.
  * Purely presence-based:
- *   --slack        -> enable Slack notifications (OMC_SLACK=1)
+ *   --slack        -> enable Slack notifications (OMAC_SLACK=1)
  *   --slack=true   -> enable
  *   --slack=false  -> disable
  *   --slack=1      -> enable
@@ -337,9 +337,9 @@ export function extractSlackFlag(args: string[]): { slackEnabled: boolean | unde
 }
 
 /**
- * Extract the OMC-specific --webhook flag from launch args.
+ * Extract the OMAC-specific --webhook flag from launch args.
  * Purely presence-based:
- *   --webhook        -> enable Webhook notifications (OMC_WEBHOOK=1)
+ *   --webhook        -> enable Webhook notifications (OMAC_WEBHOOK=1)
  *   --webhook=true   -> enable
  *   --webhook=false  -> disable
  *   --webhook=1      -> enable
@@ -421,7 +421,7 @@ export function isPrintMode(args: string[]): boolean {
 
 /**
  * Detect raw --madmax / --yolo tokens in launch args. Used before
- * normalizeClaudeLaunchArgs strips them so we can apply OMC-specific
+ * normalizeClaudeLaunchArgs strips them so we can apply OMAC-specific
  * launch contracts (e.g. tmux-mandatory on macOS).
  */
 export function hasMadmaxFlag(args: string[]): boolean {
@@ -437,11 +437,11 @@ class MadmaxTmuxRequiredError extends Error {
 
 function abortMadmaxRequiresTmux(reason: 'missing' | 'launch-failed'): never {
   if (reason === 'missing') {
-    console.error('[omc] Error: --madmax/--yolo on macOS requires tmux, but tmux is not installed.');
+    console.error('[omac] Error: --madmax/--yolo on macOS requires tmux, but tmux is not installed.');
     console.error('  Install it with: brew install tmux');
   } else {
-    console.error('[omc] Error: --madmax/--yolo on macOS requires tmux, but launching tmux failed.');
-    console.error('  Verify tmux works: tmux -V && tmux new-session -d -s _omc_probe \\; kill-session -t _omc_probe');
+    console.error('[omac] Error: --madmax/--yolo on macOS requires tmux, but launching tmux failed.');
+    console.error('  Verify tmux works: tmux -V && tmux new-session -d -s _omac_probe \\; kill-session -t _omac_probe');
   }
   process.exit(1);
   // process.exit may be intercepted by tests; throwing guarantees the caller
@@ -527,10 +527,10 @@ function runClaudeInsideTmux(cwd: string, args: string[]): void {
   } catch (error) {
     const err = error as NodeJS.ErrnoException & { status?: number | null };
     if (err.code === 'ENOENT') {
-      console.error('[omc] Error: claude CLI not found in PATH.');
+      console.error('[omac] Error: claude CLI not found in PATH.');
       process.exit(1);
     }
-    // Propagate Claude's exit code so omc does not swallow failures
+    // Propagate Claude's exit code so omac does not swallow failures
     process.exit(typeof err.status === 'number' ? err.status : 1);
   }
 }
@@ -545,13 +545,13 @@ function runClaudeInsideTmux(cwd: string, args: string[]): void {
  */
 export const TMUX_ENV_FORWARD = [
   'CLAUDE_CONFIG_DIR',
-  'OMC_NOTIFY',
-  'OMC_OPENCLAW',
-  'OMC_TELEGRAM',
-  'OMC_DISCORD',
-  'OMC_SLACK',
-  'OMC_WEBHOOK',
-  OMC_PLUGIN_ROOT_ENV,
+  'OMAC_NOTIFY',
+  'OMAC_OPENCLAW',
+  'OMAC_TELEGRAM',
+  'OMAC_DISCORD',
+  'OMAC_SLACK',
+  'OMAC_WEBHOOK',
+  OMAC_PLUGIN_ROOT_ENV,
 ];
 
 export function buildEnvExportPrefix(vars: string[]): string {
@@ -654,10 +654,10 @@ function runClaudeDirect(cwd: string, args: string[]): void {
   } catch (error) {
     const err = error as NodeJS.ErrnoException & { status?: number | null };
     if (err.code === 'ENOENT') {
-      console.error('[omc] Error: claude CLI not found in PATH.');
+      console.error('[omac] Error: claude CLI not found in PATH.');
       process.exit(1);
     }
-    // Propagate Claude's exit code so omc does not swallow failures
+    // Propagate Claude's exit code so omac does not swallow failures
     process.exit(typeof err.status === 'number' ? err.status : 1);
   }
 }
@@ -704,75 +704,75 @@ export function parsePluginDirArg(args: string[]): string | null {
 
 export async function launchCommand(args: string[]): Promise<void> {
   // Capture --plugin-dir <path> so the HUD wrapper (and any other env-aware
-  // child of Claude Code) can resolve the active plugin root via OMC_PLUGIN_ROOT.
+  // child of Claude Code) can resolve the active plugin root via OMAC_PLUGIN_ROOT.
   // Non-consuming: the flag still flows through to Claude Code untouched.
   const pluginDir = parsePluginDirArg(args);
   if (pluginDir) {
-    process.env[OMC_PLUGIN_ROOT_ENV] = pluginDir;
+    process.env[OMAC_PLUGIN_ROOT_ENV] = pluginDir;
   }
 
-  // Extract OMC-specific --notify flag before passing remaining args to Claude CLI
+  // Extract OMAC-specific --notify flag before passing remaining args to Claude CLI
   const { notifyEnabled, remainingArgs } = extractNotifyFlag(args);
   if (!notifyEnabled) {
-    process.env.OMC_NOTIFY = '0';
+    process.env.OMAC_NOTIFY = '0';
   }
 
-  // Extract OMC-specific --openclaw flag (presence-based, no value consumption)
+  // Extract OMAC-specific --openclaw flag (presence-based, no value consumption)
   const { openclawEnabled, remainingArgs: argsAfterOpenclaw } = extractOpenClawFlag(remainingArgs);
   if (openclawEnabled === true) {
-    process.env.OMC_OPENCLAW = '1';
+    process.env.OMAC_OPENCLAW = '1';
   } else if (openclawEnabled === false) {
-    process.env.OMC_OPENCLAW = '0';
+    process.env.OMAC_OPENCLAW = '0';
   }
 
-  // Extract OMC-specific --telegram flag (presence-based)
+  // Extract OMAC-specific --telegram flag (presence-based)
   const { telegramEnabled, remainingArgs: argsAfterTelegram } = extractTelegramFlag(argsAfterOpenclaw);
   if (telegramEnabled === true) {
-    process.env.OMC_TELEGRAM = '1';
+    process.env.OMAC_TELEGRAM = '1';
   } else if (telegramEnabled === false) {
-    process.env.OMC_TELEGRAM = '0';
+    process.env.OMAC_TELEGRAM = '0';
   }
 
-  // Extract OMC-specific --discord flag (presence-based)
+  // Extract OMAC-specific --discord flag (presence-based)
   const { discordEnabled, remainingArgs: argsAfterDiscord } = extractDiscordFlag(argsAfterTelegram);
   if (discordEnabled === true) {
-    process.env.OMC_DISCORD = '1';
+    process.env.OMAC_DISCORD = '1';
   } else if (discordEnabled === false) {
-    process.env.OMC_DISCORD = '0';
+    process.env.OMAC_DISCORD = '0';
   }
 
-  // Extract OMC-specific --slack flag (presence-based)
+  // Extract OMAC-specific --slack flag (presence-based)
   const { slackEnabled, remainingArgs: argsAfterSlack } = extractSlackFlag(argsAfterDiscord);
   if (slackEnabled === true) {
-    process.env.OMC_SLACK = '1';
+    process.env.OMAC_SLACK = '1';
   } else if (slackEnabled === false) {
-    process.env.OMC_SLACK = '0';
+    process.env.OMAC_SLACK = '0';
   }
 
-  // Extract OMC-specific --webhook flag (presence-based)
+  // Extract OMAC-specific --webhook flag (presence-based)
   const { webhookEnabled, remainingArgs: argsAfterWebhook } = extractWebhookFlag(argsAfterSlack);
   if (webhookEnabled === true) {
-    process.env.OMC_WEBHOOK = '1';
+    process.env.OMAC_WEBHOOK = '1';
   } else if (webhookEnabled === false) {
-    process.env.OMC_WEBHOOK = '0';
+    process.env.OMAC_WEBHOOK = '0';
   }
 
   const cwd = process.cwd();
 
   // Pre-flight: check for nested session
   if (process.env.CLAUDECODE) {
-    console.error('[omc] Error: Already inside a Claude Code session. Nested launches are not supported.');
+    console.error('[omac] Error: Already inside a Claude Code session. Nested launches are not supported.');
     process.exit(1);
   }
 
   // Pre-flight: check claude CLI availability
   if (!isClaudeAvailable()) {
-    console.error('[omc] Error: claude CLI not found. Install Claude Code first:');
+    console.error('[omac] Error: claude CLI not found. Install Claude Code first:');
     console.error('  npm install -g @anthropic-ai/claude-code');
     process.exit(1);
   }
 
-  const launchConfigDir = prepareOmcLaunchConfigDir();
+  const launchConfigDir = prepareOmacLaunchConfigDir();
   if (isDefaultClaudeConfigDirPath(launchConfigDir)) {
     delete process.env.CLAUDE_CONFIG_DIR;
   } else {
@@ -780,14 +780,14 @@ export async function launchCommand(args: string[]): Promise<void> {
   }
 
   const normalizedArgs = normalizeClaudeLaunchArgs(argsAfterWebhook);
-  const sessionId = `omc-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
+  const sessionId = `omac-${Date.now()}-${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
 
   // Phase 1: preLaunch
   try {
     await preLaunch(cwd, sessionId);
   } catch (err) {
     // preLaunch errors must NOT prevent Claude from starting
-    console.error(`[omc] preLaunch warning: ${err instanceof Error ? err.message : err}`);
+    console.error(`[omac] preLaunch warning: ${err instanceof Error ? err.message : err}`);
   }
 
   // Phase 2: run

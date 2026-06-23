@@ -1,8 +1,8 @@
 /**
  * Shared State Management for Cross-Tool Interoperability
  *
- * Manages shared state files at .omc/state/interop/ for communication
- * between OMC (Claude Code) and OMX (Codex CLI).
+ * Manages shared state files at .omac/state/interop/ for communication
+ * between OMAC (Claude Code) and OMX (Codex CLI).
  *
  * Uses atomic writes for safety and supports task/message passing.
  */
@@ -12,7 +12,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync } from 'fs
 import { z } from 'zod';
 import { atomicWriteJsonSync } from '../lib/atomic-write.js';
 import { withFileLockSync } from '../lib/file-lock.js';
-import { getOmcRoot } from '../lib/worktree-paths.js';
+import { getOmacRoot } from '../lib/worktree-paths.js';
 import {
   createArtifactHandoff,
   writeTextArtifact,
@@ -23,15 +23,15 @@ import {
 export interface InteropConfig {
   sessionId: string;
   createdAt: string;
-  omcCwd: string;
+  omacCwd: string;
   omxCwd?: string;
   status: 'active' | 'completed' | 'failed';
 }
 
 export interface SharedTask {
   id: string;
-  source: 'omc' | 'omx';
-  target: 'omc' | 'omx';
+  source: 'omac' | 'omx';
+  target: 'omac' | 'omx';
   type: 'analyze' | 'implement' | 'review' | 'test' | 'custom';
   description: string;
   descriptionArtifact?: ArtifactDescriptor;
@@ -47,8 +47,8 @@ export interface SharedTask {
 
 export interface SharedMessage {
   id: string;
-  source: 'omc' | 'omx';
-  target: 'omc' | 'omx';
+  source: 'omac' | 'omx';
+  target: 'omac' | 'omx';
   content: string;
   contentArtifact?: ArtifactDescriptor;
   metadata?: Record<string, unknown>;
@@ -66,7 +66,7 @@ type SharedStateTextHandoff = {
 
 // Zod schemas for runtime validation
 const ArtifactProducerSchema = z.object({
-  system: z.enum(['omc', 'omx']),
+  system: z.enum(['omac', 'omx']),
   component: z.string(),
   worker: z.string().optional(),
 });
@@ -85,15 +85,15 @@ const ArtifactDescriptorSchema = z.object({
 const InteropConfigSchema = z.object({
   sessionId: z.string(),
   createdAt: z.string(),
-  omcCwd: z.string(),
+  omacCwd: z.string(),
   omxCwd: z.string().optional(),
   status: z.enum(['active', 'completed', 'failed']),
 });
 
 const SharedTaskSchema = z.object({
   id: z.string(),
-  source: z.enum(['omc', 'omx']),
-  target: z.enum(['omc', 'omx']),
+  source: z.enum(['omac', 'omx']),
+  target: z.enum(['omac', 'omx']),
   type: z.enum(['analyze', 'implement', 'review', 'test', 'custom']),
   description: z.string(),
   descriptionArtifact: ArtifactDescriptorSchema.optional(),
@@ -109,8 +109,8 @@ const SharedTaskSchema = z.object({
 
 const SharedMessageSchema = z.object({
   id: z.string(),
-  source: z.enum(['omc', 'omx']),
-  target: z.enum(['omc', 'omx']),
+  source: z.enum(['omac', 'omx']),
+  target: z.enum(['omac', 'omx']),
   content: z.string(),
   contentArtifact: ArtifactDescriptorSchema.optional(),
   metadata: z.record(z.unknown()).optional(),
@@ -127,7 +127,7 @@ function createSharedStateTextHandoff(params: {
   category: SharedStateArtifactCategory;
   entityId: string;
   body: string;
-  source: 'omc' | 'omx';
+  source: 'omac' | 'omx';
   retention: ArtifactRetention;
 }): ReturnType<typeof createArtifactHandoff> {
   return createArtifactHandoff({
@@ -151,7 +151,7 @@ function resolveSharedStateTextHandoff(params: {
   category: SharedStateArtifactCategory;
   entityId: string;
   body: string;
-  source: 'omc' | 'omx';
+  source: 'omac' | 'omx';
   retention: ArtifactRetention;
 }): SharedStateTextHandoff {
   const handoff = createSharedStateTextHandoff(params);
@@ -176,7 +176,7 @@ function unlinkArtifact(descriptor?: ArtifactDescriptor): void {
  * Get the interop directory path for a worktree
  */
 export function getInteropDir(cwd: string): string {
-  return join(getOmcRoot(cwd), 'state', 'interop');
+  return join(getOmacRoot(cwd), 'state', 'interop');
 }
 
 /**
@@ -185,16 +185,16 @@ export function getInteropDir(cwd: string): string {
  */
 export function initInteropSession(
   sessionId: string,
-  omcCwd: string,
+  omacCwd: string,
   omxCwd?: string
 ): InteropConfig {
-  const interopDir = getInteropDir(omcCwd);
+  const interopDir = getInteropDir(omacCwd);
   mkdirSync(interopDir, { recursive: true });
 
   const config: InteropConfig = {
     sessionId,
     createdAt: new Date().toISOString(),
-    omcCwd,
+    omacCwd,
     omxCwd,
     status: 'active',
   };
@@ -265,8 +265,8 @@ export function addSharedTask(
  * Read all shared tasks
  */
 export function readSharedTasks(cwd: string, filter?: {
-  source?: 'omc' | 'omx';
-  target?: 'omc' | 'omx';
+  source?: 'omac' | 'omx';
+  target?: 'omac' | 'omx';
   status?: SharedTask['status'];
 }): SharedTask[] {
   const tasksDir = join(getInteropDir(cwd), 'tasks');
@@ -414,8 +414,8 @@ export function addSharedMessage(
  * Read shared messages
  */
 export function readSharedMessages(cwd: string, filter?: {
-  source?: 'omc' | 'omx';
-  target?: 'omc' | 'omx';
+  source?: 'omac' | 'omx';
+  target?: 'omac' | 'omx';
   unreadOnly?: boolean;
 }): SharedMessage[] {
   const messagesDir = join(getInteropDir(cwd), 'messages');

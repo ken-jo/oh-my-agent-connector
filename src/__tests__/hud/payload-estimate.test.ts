@@ -33,7 +33,7 @@ describe("HUD payload estimate", () => {
   });
 
   it("estimates from available transcript file size and ignores missing files", () => {
-    const dir = mkdtempSync(join(tmpdir(), "omc-payload-est-"));
+    const dir = mkdtempSync(join(tmpdir(), "omac-payload-est-"));
     try {
       const transcriptPath = join(dir, "transcript.jsonl");
       writeFileSync(transcriptPath, "");

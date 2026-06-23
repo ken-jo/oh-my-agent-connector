@@ -52,11 +52,11 @@ describe('sanitizeName', () => {
 
 describe('sessionName', () => {
   it('builds correct session name', () => {
-    expect(sessionName('myteam', 'codex1')).toBe('omc-team-myteam-codex1');
+    expect(sessionName('myteam', 'codex1')).toBe('omac-team-myteam-codex1');
   });
 
   it('sanitizes both parts', () => {
-    expect(sessionName('my team!', 'work@er')).toBe('omc-team-myteam-worker');
+    expect(sessionName('my team!', 'work@er')).toBe('omac-team-myteam-worker');
   });
 });
 
@@ -124,7 +124,7 @@ describe('buildWorkerStartCommand', () => {
     expect(() => buildWorkerStartCommand({
       teamName: 't',
       workerName: 'w',
-      envVars: { OMC_TEAM_WORKER: 't/w' },
+      envVars: { OMAC_TEAM_WORKER: 't/w' },
       launchBinary: 'C:\\Program Files\\OpenAI\\Codex\\codex.exe',
       launchArgs: ['--full-auto'],
       cwd: 'C:\\repo'
@@ -139,14 +139,14 @@ describe('buildWorkerStartCommand', () => {
     const cmd = buildWorkerStartCommand({
       teamName: 't',
       workerName: 'w',
-      envVars: { OMC_TEAM_WORKER: 'team/worker-1' },
+      envVars: { OMAC_TEAM_WORKER: 'team/worker-1' },
       launchBinary: 'C:\\Users\\tester\\AppData\\Local\\Programs\\claude\\claude.exe',
       launchArgs: ['--agent-id', 'worker-1'],
       cwd: 'C:\\repo'
     });
 
     expect(cmd).toBe(
-      "$env:OMC_TEAM_WORKER='team/worker-1'; " +
+      "$env:OMAC_TEAM_WORKER='team/worker-1'; " +
       "& 'C:\\Users\\tester\\AppData\\Local\\Programs\\claude\\claude.exe' '--agent-id' 'worker-1'"
     );
     expect(cmd).not.toContain('cmd.exe');
@@ -163,8 +163,8 @@ describe('buildWorkerStartCommand', () => {
       teamName: 't',
       workerName: 'w',
       envVars: {
-        OMC_TEAM_WORKER: "team name/worker 'one'",
-        OMC_TEAM_STATE_ROOT: 'C:\\Users\\Test User\\AppData\\Local\\omc state',
+        OMAC_TEAM_WORKER: "team name/worker 'one'",
+        OMAC_TEAM_STATE_ROOT: 'C:\\Users\\Test User\\AppData\\Local\\omac state',
         CLAUDE_CODE_USE_BEDROCK: 'value with spaces & [brackets] "quotes"',
       },
       launchBinary: 'C:\\Program Files\\Claude Code\\claude.exe',
@@ -176,8 +176,8 @@ describe('buildWorkerStartCommand', () => {
       cwd: 'C:\\repo'
     });
 
-    expect(cmd).toContain("$env:OMC_TEAM_WORKER='team name/worker ''one'''");
-    expect(cmd).toContain("$env:OMC_TEAM_STATE_ROOT='C:\\Users\\Test User\\AppData\\Local\\omc state'");
+    expect(cmd).toContain("$env:OMAC_TEAM_WORKER='team name/worker ''one'''");
+    expect(cmd).toContain("$env:OMAC_TEAM_STATE_ROOT='C:\\Users\\Test User\\AppData\\Local\\omac state'");
     expect(cmd).toContain("$env:CLAUDE_CODE_USE_BEDROCK='value with spaces & [brackets] \"quotes\"'");
     expect(cmd).toContain("& 'C:\\Program Files\\Claude Code\\claude.exe' '--model' 'sonnet \"quoted\"' '--label=worker ''one'''");
     expect(cmd).not.toContain('cmd.exe');
@@ -192,14 +192,14 @@ describe('buildWorkerStartCommand', () => {
     const cmd = buildWorkerStartCommand({
       teamName: 't',
       workerName: 'w',
-      envVars: { OMC_TEAM_WORKER: 'team/worker-1' },
+      envVars: { OMAC_TEAM_WORKER: 'team/worker-1' },
       launchBinary: 'C:\\Program Files\\OpenAI\\Codex\\codex.exe',
       launchArgs: ['--full-auto'],
       cwd: 'C:\\repo'
     });
 
     expect(cmd).toBe(
-      'C:\\Windows\\System32\\cmd.exe /d /s /c "set "OMC_TEAM_WORKER=team/worker-1" && ' +
+      'C:\\Windows\\System32\\cmd.exe /d /s /c "set "OMAC_TEAM_WORKER=team/worker-1" && ' +
       '"C:\\Program Files\\OpenAI\\Codex\\codex.exe" "--full-auto""'
     );
   });
@@ -214,17 +214,17 @@ describe('buildWorkerStartCommand', () => {
     const cmd = buildWorkerStartCommand({
       teamName: 't',
       workerName: 'w',
-      envVars: { OMC_TEAM_WORKER: 'team/worker-1' },
+      envVars: { OMAC_TEAM_WORKER: 'team/worker-1' },
       launchBinary: '/c/Program Files/Git/bin/bash.exe',
       launchArgs: ['--login'],
       cwd: '/c/repo'
     });
 
-    expect(cmd).toContain("'env' OMC_TEAM_WORKER='team/worker-1'");
+    expect(cmd).toContain("'env' OMAC_TEAM_WORKER='team/worker-1'");
     expect(cmd).toContain("'/usr/bin/bash' '-lc'");
     expect(cmd).toContain("'--' '/c/Program Files/Git/bin/bash.exe' '--login'");
     expect(cmd).not.toContain('/d /s /c');
-    expect(cmd).not.toContain('$env:OMC_TEAM_WORKER');
+    expect(cmd).not.toContain('$env:OMAC_TEAM_WORKER');
   });
 
   it('uses exec \"$@\" for launchBinary with non-fish shells', () => {
@@ -235,7 +235,7 @@ describe('buildWorkerStartCommand', () => {
     const cmd = buildWorkerStartCommand({
       teamName: 't',
       workerName: 'w',
-      envVars: { OMC_TEAM_WORKER: 't/w' },
+      envVars: { OMAC_TEAM_WORKER: 't/w' },
       launchBinary: 'codex',
       launchArgs: ['--full-auto'],
       cwd: '/tmp'
@@ -253,7 +253,7 @@ describe('buildWorkerStartCommand', () => {
     const cmd = buildWorkerStartCommand({
       teamName: 't',
       workerName: 'w',
-      envVars: { OMC_TEAM_WORKER: 't/w' },
+      envVars: { OMAC_TEAM_WORKER: 't/w' },
       launchBinary: 'codex',
       launchArgs: ['--full-auto'],
       cwd: '/tmp'
@@ -311,7 +311,7 @@ describe('buildWorkerStartCommand', () => {
       teamName: 't',
       workerName: 'w',
       envVars: {
-        OMC_TEAM_WORKER: 'my-team/worker-1',
+        OMAC_TEAM_WORKER: 'my-team/worker-1',
         ANTHROPIC_DEFAULT_SONNET_MODEL: 'global.anthropic.claude-sonnet-4-6[1m]',
       },
       launchBinary: '/usr/local/bin/claude',
@@ -320,7 +320,7 @@ describe('buildWorkerStartCommand', () => {
     });
 
     // Values with / and [] must be preserved without extra quoting
-    expect(cmd).toContain("OMC_TEAM_WORKER='my-team/worker-1'");
+    expect(cmd).toContain("OMAC_TEAM_WORKER='my-team/worker-1'");
     expect(cmd).toContain("ANTHROPIC_DEFAULT_SONNET_MODEL='global.anthropic.claude-sonnet-4-6[1m]'");
   });
 
@@ -351,7 +351,7 @@ describe('buildWorkerStartCommand', () => {
 
 describe('shouldAttemptAdaptiveRetry', () => {
   it('only enables adaptive retry for busy panes with visible unsent message', () => {
-    delete process.env.OMC_TEAM_AUTO_INTERRUPT_RETRY;
+    delete process.env.OMAC_TEAM_AUTO_INTERRUPT_RETRY;
     expect(shouldAttemptAdaptiveRetry({
       paneBusy: false,
       latestCapture: '❯ check-inbox',
@@ -389,8 +389,8 @@ describe('shouldAttemptAdaptiveRetry', () => {
     })).toBe(true);
   });
 
-  it('respects OMC_TEAM_AUTO_INTERRUPT_RETRY=0', () => {
-    process.env.OMC_TEAM_AUTO_INTERRUPT_RETRY = '0';
+  it('respects OMAC_TEAM_AUTO_INTERRUPT_RETRY=0', () => {
+    process.env.OMAC_TEAM_AUTO_INTERRUPT_RETRY = '0';
     expect(shouldAttemptAdaptiveRetry({
       paneBusy: true,
       latestCapture: '❯ check-inbox',
@@ -398,16 +398,16 @@ describe('shouldAttemptAdaptiveRetry', () => {
       paneInCopyMode: false,
       retriesAttempted: 0,
     })).toBe(false);
-    delete process.env.OMC_TEAM_AUTO_INTERRUPT_RETRY;
+    delete process.env.OMAC_TEAM_AUTO_INTERRUPT_RETRY;
   });
 });
 
 describe('pane readiness startup banners', () => {
   it('does not treat Claude bypass-permissions startup banner as ready', () => {
     const capture = [
-      'Read .omc/state/team/example/workers/worker-1/inbox.md, execute now, report concrete progress.',
+      'Read .omac/state/team/example/workers/worker-1/inbox.md, execute now, report concrete progress.',
       '─────────────────────────────────────────────',
-      '[OMC] Starting...',
+      '[OMAC] Starting...',
       '⏵⏵ bypass permissions on (shift+tab to cycle)',
     ].join('\n');
 
@@ -442,8 +442,8 @@ describe('pane readiness startup banners', () => {
     // Claude Code v2.1.142 renders the permission-mode indicator
     // ("⏵⏵ bypass permissions on (shift+tab to cycle)") *below* the prompt
     // as a persistent idle-state UI element. Before this fix, the pane was
-    // misread as still bootstrapping and OMC never dispatched the inbox to
-    // claude workers, leaving them hung with "[OMC] Starting..." forever.
+    // misread as still bootstrapping and OMAC never dispatched the inbox to
+    // claude workers, leaving them hung with "[OMAC] Starting..." forever.
     const capture = [
       '▐▛███▜▌   Claude Code v2.1.142',
       '▝▜█████▛▘  Opus 4.7 (1M context) · Claude Max',
@@ -494,7 +494,7 @@ describe('sendToWorker implementation guards', () => {
   const source = readFileSync(join(__dirname, '..', 'tmux-session.ts'), 'utf-8');
 
   it('uses a longer default readiness timeout for worker startup', () => {
-    expect(source).toContain('OMC_SHELL_READY_TIMEOUT_MS');
+    expect(source).toContain('OMAC_SHELL_READY_TIMEOUT_MS');
     expect(source).toContain('30_000');
   });
 
@@ -504,7 +504,7 @@ describe('sendToWorker implementation guards', () => {
   });
 
   it('supports env-gated adaptive interrupt retry', () => {
-    expect(source).toContain('OMC_TEAM_AUTO_INTERRUPT_RETRY');
+    expect(source).toContain('OMAC_TEAM_AUTO_INTERRUPT_RETRY');
     expect(source).toContain("await sendKey('C-u')");
   });
 
@@ -531,13 +531,13 @@ describe.skipIf(!hasTmux())('createSession with workingDirectory', () => {
   it('accepts optional workingDirectory param', () => {
     // Should not throw — workingDirectory is optional
     const name = createSession('tmuxtest', 'wdtest', '/tmp');
-    expect(name).toBe('omc-team-tmuxtest-wdtest');
+    expect(name).toBe('omac-team-tmuxtest-wdtest');
     killSession('tmuxtest', 'wdtest');
   });
 
   it('works without workingDirectory param', () => {
     const name = createSession('tmuxtest', 'nowd');
-    expect(name).toBe('omc-team-tmuxtest-nowd');
+    expect(name).toBe('omac-team-tmuxtest-nowd');
     killSession('tmuxtest', 'nowd');
   });
 });

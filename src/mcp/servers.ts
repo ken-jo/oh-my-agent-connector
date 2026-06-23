@@ -72,7 +72,7 @@ export function createMemoryServer(): McpServerConfig {
 }
 
 /**
- * Get all default MCP servers for the OMC system
+ * Get all default MCP servers for the OMAC system
  */
 export interface McpServersConfig {
   exa?: McpServerConfig;

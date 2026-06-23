@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// OMC Post-Tool-Use Hook (Node.js)
+// OMAC Post-Tool-Use Hook (Node.js)
 // Processes <remember> tags from Task agent output
-// Saves to .omc/notepad.md for compaction-resilient memory
+// Saves to .omac/notepad.md for compaction-resilient memory
 
 import { existsSync, readFileSync, mkdirSync, writeFileSync, unlinkSync } from 'fs';
 import { join, dirname } from 'path';
@@ -14,11 +14,11 @@ const __dirname = dirname(__filename);
 // Dynamic imports for shared modules (use pathToFileURL for Windows compatibility, #524)
 const { readStdin } = await import(pathToFileURL(join(__dirname, 'lib', 'stdin.mjs')).href);
 const { atomicWriteFileSync } = await import(pathToFileURL(join(__dirname, 'lib', 'atomic-write.mjs')).href);
-const { resolveSessionStatePathsForHook, resolveOmcStateRoot } = await import(pathToFileURL(join(__dirname, 'lib', 'state-root.mjs')).href);
+const { resolveSessionStatePathsForHook, resolveOmacStateRoot } = await import(pathToFileURL(join(__dirname, 'lib', 'state-root.mjs')).href);
 
 // Constants
 const NOTEPAD_TEMPLATE = '# Notepad\n' +
-  '<!-- Auto-managed by OMC. Manual edits preserved in MANUAL section. -->\n\n' +
+  '<!-- Auto-managed by OMAC. Manual edits preserved in MANUAL section. -->\n\n' +
   '## Priority Context\n' +
   '<!-- ALWAYS loaded. Keep under 500 chars. Critical discoveries only. -->\n\n' +
   '## Working Memory\n' +
@@ -28,11 +28,11 @@ const NOTEPAD_TEMPLATE = '# Notepad\n' +
 
 // Initialize notepad.md if needed
 async function initNotepad(directory) {
-  const omcDir = await resolveOmcStateRoot(directory);
-  const notepadPath = join(omcDir, 'notepad.md');
+  const omacDir = await resolveOmacStateRoot(directory);
+  const notepadPath = join(omacDir, 'notepad.md');
 
-  if (!existsSync(omcDir)) {
-    try { mkdirSync(omcDir, { recursive: true }); } catch {}
+  if (!existsSync(omacDir)) {
+    try { mkdirSync(omacDir, { recursive: true }); } catch {}
   }
 
   if (!existsSync(notepadPath)) {
@@ -75,7 +75,7 @@ function getSkillInvocationArgs(toolInput) {
 function isConsensusPlanningSkillInvocation(skillName, toolInput) {
   if (!skillName) return false;
   if (skillName === 'ralplan') return true;
-  if (skillName !== 'plan' && skillName !== 'omc-plan') return false;
+  if (skillName !== 'plan' && skillName !== 'omac-plan') return false;
   return getSkillInvocationArgs(toolInput).toLowerCase().includes('--consensus');
 }
 
@@ -167,7 +167,7 @@ async function activateState(directory, stateName, state, sessionId) {
   } catch {}
 
   // Also write to global fallback
-  const globalDir = join(homedir(), '.omc', 'state');
+  const globalDir = join(homedir(), '.omac', 'state');
   try {
     if (!existsSync(globalDir)) mkdirSync(globalDir, { recursive: true });
     atomicWriteFileSync(join(globalDir, `${stateName}-state.json`), JSON.stringify(state, null, 2));
@@ -250,7 +250,7 @@ async function main() {
     if (String(toolName).toLowerCase() === 'skill') {
       const skillName = getInvokedSkillName(toolInput);
       const currentState = await readSkillActiveState(directory, sessionId);
-      const completingSkill = (skillName || '').replace(/^oh-my-claudecode:/, '');
+      const completingSkill = (skillName || '').replace(/^oh-my-agent-connector:/, '');
       if (!currentState || !currentState.active || currentState.skill_name === completingSkill) {
         await clearSkillActiveState(directory, sessionId);
       }
