@@ -1,8 +1,7 @@
-# oh-my-claudecode-with-agent-connector
+# oh-my-agent-connector
 
 Apply **[`@ken-jo/agent-connector`](../agent-connector)** to the EXISTING
-**oh-my-claudecode** (OMC, MIT, ★36k — `../oh-my-claudecode-upstream`, a runtime
-dependency **by path**, nothing copied) and measure the efficiency: OMC
+**oh-my-claudecode** (OMC, MIT, ★36k — this fork, with the upstream runtime files in-repo) and measure the efficiency: OMC
 functionality runs UNCHANGED; only its deployment plumbing (installer /
 44-script hook entrypoint layer / hooks.json / plugin manifests) is replaced by
 one `defineConnector()`. Same playbook as the proven

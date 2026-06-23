@@ -2,7 +2,7 @@
 
 All evidence from real runs on this machine (2026-06-11). **Safety honored:** the OMC
 marketplace plugin is LIVE in the real `~/.claude`, so every install/probe/hook run below
-executed in an isolated home (`mkdtemp` → `/tmp/omc-ac-verify-IUMqih`, with `HOME`,
+executed in an isolated home (`mkdtemp` → `/tmp/oh-my-agent-connector-verify-IUMqih`, with `HOME`,
 `USERPROFILE`, `AGENT_CONNECTOR_DATA_DIR` overridden into it and a fake
 `~/.claude/settings.json {}` for detection) — the same pattern as
 `agent-connector/tests/cli/doctor-targets.test.ts`. Post-run audit: the real
@@ -156,7 +156,7 @@ Claude honors, with unit tests pinning both shapes
 agent-connector's E1 extension normalized **PermissionRequest /
 PostToolUseFailure / SubagentStart / SubagentStop** (8 → 12 canonical events),
 and the connector now bridges all 24/24 upstream command entries. Fresh
-isolated home (`mkdtemp` → `/tmp/omc-ac-e1-YX9Za2`, same
+isolated home (`mkdtemp` → `/tmp/oh-my-agent-connector-e1-YX9Za2`, same
 HOME/USERPROFILE/AGENT_CONNECTOR_DATA_DIR/CLAUDE_CONFIG_DIR/OMC_STATE_DIR
 overrides, `git init`-ed project for the workspace anchor):
 
@@ -223,6 +223,62 @@ Containment re-audited: real `~/.claude.json` has no omc `mcpServers` entries
 and the only `oh-my-claudecode` string in the real `settings.json` is the
 pre-existing marketplace `enabledPlugins` entry (mtime predates the run).
 
+## 8. New 0.3.x surfaces — memory + configPatch + marketplace (2026-06-14)
+
+Re-verified at the current agent-connector baseline (**0.3.1**), closing surface-map
+residues §4-4 (statusline HUD), §4-5 (CLAUDE.md block) and §4-6 (marketplace). Fresh
+isolated home (`mkdtemp` → `/tmp/oh-my-agent-connector-surfaces-…`, same
+HOME/USERPROFILE/CLAUDE_CONFIG_DIR/AGENT_CONNECTOR_DATA_DIR overrides, seeded empty
+`~/.claude/settings.json {}`).
+
+**Install** — `install --targets claude-code` → **`142 created, 0 warnings`** (the 140 of
+§7 + the two new surfaces, each on its create path):
+
+```
++ memory: created CLAUDE.md with block oh-my-claudecode/orchestrator (hash 0651f16a2c92)
++ configPatch statusLine: <absent> → {"type":"command","command":"node $OMC/dist/hud/index.js"}
+```
+
+- **memory** — `~/.claude/CLAUDE.md` written (3830 B), exactly one
+  `agent-connector:begin oh-my-claudecode/orchestrator` / `:end` marker pair, the upstream
+  heading `# oh-my-claudecode - Intelligent Multi-Agent Orchestration` inside it, and the
+  upstream `OMC:START` fence stripped (0 hits). Compiled at load from `$OMC/docs/CLAUDE.md`.
+  Per-host target verified by dry-run: `claude-code → CLAUDE.md`, `gemini-cli → GEMINI.md`,
+  `codex/opencode → AGENTS.md`; `cursor` honestly skip-warns ("no user-scope memory file …
+  app/UI-managed or undocumented").
+- **configPatch** — `settings.json.statusLine` set to the HUD command; ownership ledger at
+  `<dataRoot>/state/config-patches.json` records `prior.present:false` + the connector as
+  owner + a value hash. Piping a Claude-shaped status payload to `node $OMC/dist/hud/index.js`
+  renders a real status line.
+
+**Idempotent re-run:** `1 created (new backup), 141 skipped, 0 warnings` — both new surfaces
+skip cleanly (memory block hash-matches; configPatch already-owned-and-unchanged).
+
+**`doctor --probe --targets claude-code`:** all checks passed, including the two new health
+checks:
+
+```
+[pass] Claude Code: memory block oh-my-claudecode/orchestrator — intact in …/.claude/CLAUDE.md
+[pass] Claude Code: configPatch statusLine — ok — statusLine = {"type":"command","command":"node $OMC/dist/hud/index.js"}
+[pass] oh-my-claudecode: tools/list — 49 tool(s)
+```
+
+**Real-home safety (re-audited):** the real `~/.claude/CLAUDE.md` has **no** orchestrator
+block, and the real `settings.json.statusLine` is **unchanged** (still the live OMC plugin's
+`node …/hud/omc-hud.mjs`). A dry-run against the real home proved the ownership contract in
+the other direction: `configPatch statusLine skipped: already set … (not created by
+agent-connector)` — AC refuses to clobber a key it does not own.
+
+**Marketplace method** — `install --method marketplace --dry-run`:
+
+- **OMC:** `481 created` planned — bundle staged per drivable host under
+  `~/.agent-connector/marketplace/<host>/oh-my-claudecode/**` + the host-native registration
+  command (e.g. `gemini extensions install … --consent`).
+- **context-mode** (sibling port, already installed DIRECTLY on the real machine): `0 created,
+  4 warn + 1 skip` — the driver **refuses the marketplace install on every host where a direct
+  install exists** ("both at once duplicates hooks + the MCP server and corrupts telemetry")
+  and skip-warns the not-yet-drivable cursor flow. The double-install guard works.
+
 ## Score card
 
 | Check | Result |
@@ -232,4 +288,15 @@ pre-existing marketplace `enabledPlugins` entry (mtime predates the run).
 | doctor --probe | pass — 94/94, server `t@1.0.0`, 49 tools via telemetry wrapper |
 | Live hook bridge | pass — UserPromptSubmit (ralph keyword), SessionStart (context), Stop (state 1→2), PermissionRequest (allow + fall-through), PostToolUseFailure (guidance), SubagentStart (context), SubagentStop (clean + deliverables nudge) |
 | Multi-platform dry-run | 397 planned writes across codex/opencode/gemini-cli, 1 honest warn |
-| Real home untouched | confirmed — no omc entries; only pre-existing context-mode hooks |
+| New 0.3.x surfaces (§8) | pass — install 142/0; memory CLAUDE.md block intact, configPatch statusLine ok (+ownership ledger), HUD renders; idempotent; marketplace driver plan + double-install guard |
+| Real home untouched | confirmed — no omc entries; no orchestrator block; statusLine still the live plugin's; only pre-existing context-mode hooks |
+
+
+## OpenCode real-host proof — 2026-06-23
+
+See [OPENCODE_PROOF.md](./OPENCODE_PROOF.md). Real OpenCode 1.17.0 user install passed: 113 created, 18 updated, 0 warnings; mcp.oh-my-agent-connector registered; plugin module present; commands/skills/subagents/memory present; MCP probe initialize/ping/tools-list passed with 49 tools. The explain matrix honestly reports OpenCode SessionStart as degraded and unsupported events as dropped.
+
+
+### OpenCode CLI MCP-list smoke
+
+`opencode mcp list` on the real OpenCode CLI reports `oh-my-agent-connector` as connected via the agent-connector serve command. This is a no-model headless smoke of OpenCode's installed MCP registry.

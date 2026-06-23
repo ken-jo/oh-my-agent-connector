@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Branded CLI for the agent-connector port of oh-my-claudecode.
+// Branded CLI for the agent-connector fork of oh-my-claudecode.
 // createConnectorCli wraps every agent-connector subcommand (detect / install /
 // uninstall / upgrade / doctor / status / serve / hook / telemetry / leaderboard
 // / package) under this one bin, auto-scoped to the connector declared beside it.
@@ -20,12 +20,12 @@ const connector = fileURLToPath(
   new URL("./agent-connector.config.mjs", import.meta.url),
 );
 
-createConnectorCli({ name: "omc-ac", connector })
+createConnectorCli({ name: "oh-my-agent-connector", connector })
   .run()
   .then((code) => {
     process.exitCode = code;
   })
   .catch((err) => {
-    process.stderr.write(`omc-ac: fatal: ${err?.stack ?? err}\n`);
+    process.stderr.write(`oh-my-agent-connector: fatal: ${err?.stack ?? err}\n`);
     process.exitCode = 1;
   });

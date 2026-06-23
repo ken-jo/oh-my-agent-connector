@@ -1,6 +1,6 @@
 # Surface map — oh-my-claudecode → agent-connector
 
-Maps every deployment surface of upstream OMC (`/home/ubuntu/workspace/github/oh-my-claudecode-upstream`,
+Maps every deployment surface of upstream OMC (`/home/ubuntu/workspace/github/oh-my-agent-connector`,
 v4.14.6, MIT, runtime dependency **by path** — nothing copied) onto agent-connector's
 `defineConnector()` model (`/home/ubuntu/workspace/github/agent-connector`), following the proven
 context-mode playbook (`/home/ubuntu/workspace/github/context-mode-with-agent-connector`, P1a hook-bridge).
@@ -79,7 +79,7 @@ Each AC `HookDefinition.handler(evt)`:
 2. **Spawn each OMC script in upstream `hooks.json` order**, unchanged from the checkout:
    `node $OMC/scripts/run.cjs $OMC/scripts/<script>.mjs [args]`, env
    `{ ...process.env, CLAUDE_PLUGIN_ROOT: $OMC }` where
-   `$OMC = /home/ubuntu/workspace/github/oh-my-claudecode-upstream`. Going through `run.cjs`
+   `$OMC = /home/ubuntu/workspace/github/oh-my-agent-connector`. Going through `run.cjs`
    preserves the per-script `hooks.json` timeout enforcement for free; stdin pipes through
    (`stdio:'inherit'`), stdout is captured by the bridge.
 3. **Parse each script's stdout JSON → merge into one `HookResponse`:**
@@ -108,7 +108,7 @@ Upstream registration (`.claude-plugin/plugin.json` → `.mcp.json`): server **`
 **Verified standalone launch** (run live in an isolated `HOME`, mkdtemp):
 
 ```sh
-node /home/ubuntu/workspace/github/oh-my-claudecode-upstream/bridge/mcp-server.cjs
+node /home/ubuntu/workspace/github/oh-my-agent-connector/bridge/mcp-server.cjs
 ```
 
 - stdio MCP server; `serverInfo {"name":"t","version":"1.0.0"}`; **49 tools** in `tools/list`
@@ -171,16 +171,35 @@ from one declaration — upstream's answer to this was entire sibling projects (
    treated as optional on stop — the tracker's own state compensates, exactly as upstream).
    Subagent lifecycle accounting + the deliverables-verification nudge restored — verified live
    (tracker context on start; advisory deliverables warning on stop with seeded team state).
-4. **Statusline HUD.** OMC's `/hud` installs a `statusLine` command into settings.json
-   (~8.5k-LOC installer territory). AC has no statusline surface on any platform. The HUD remains
-   usable by running OMC's own setup manually; AC will not install/manage it.
-5. **`CLAUDE.md` managed block.** OMC's installer maintains a marker-fenced orchestrator block in
-   `~/.claude/CLAUDE.md`. AC has no memory-file surface. Partial substitute: the same text injected
-   per-session via the SessionStart handler's `additionalContext` (model-visible, not file-persistent).
-6. **Marketplace/plugin distribution UX.** `/plugin marketplace`, `enabledPlugins`, plugin-cache
-   healing (`repair-plugin-cache.mjs`, `run.cjs` stale-root scan) are Claude-plugin-system concepts;
-   AC replaces distribution with `install`/`upgrade`/`uninstall`/`doctor`. Not a behavior loss —
-   a different (and host-agnostic) lifecycle.
+4. **RESOLVED — Statusline HUD.** OMC's `/hud` installs a `statusLine` command into settings.json.
+   Bridged via agent-connector's 0.3.x **`configPatch`** surface (set-if-absent, ownership-tracked,
+   claude-code v1): `platforms["claude-code"].configPatch` declares `statusLine =
+   {type:"command", command:"node $OMC/dist/hud/index.js"}`, pointing at the upstream checkout's
+   PREBUILT HUD (same run-from-checkout idiom as the hooks/MCP — nothing copied). Verified live
+   (isolated home): `<absent> → set` with a recorded ownership-ledger entry, the HUD renders a real
+   status line, and `doctor` reports `configPatch statusLine — ok`. On the real machine — where the
+   live OMC plugin already owns a `statusLine` — the patch correctly **skip-warns** (never clobbers a
+   key it doesn't own) and prints the manual-edit fallback. See VERIFICATION.md §8.
+5. **RESOLVED — `CLAUDE.md` managed block.** OMC's installer maintains a marker-fenced orchestrator
+   block in `~/.claude/CLAUDE.md`. Bridged via agent-connector's 0.3.x **`memory`** surface: a
+   `MemoryDef` compiled at load from upstream `docs/CLAUDE.md` (the OMC:START/VERSION/END fence lines
+   stripped — AC owns the boundary with its own hash-stamped markers). AC writes it to the file each
+   host actually reads — **CLAUDE.md** (claude-code, which does NOT read AGENTS.md), **GEMINI.md**
+   (gemini-cli), **AGENTS.md** (codex/opencode) — so this goes ONE BETTER than upstream, which
+   could only ever write claude-code's CLAUDE.md. (cursor honestly **skip-warns**: "no user-scope
+   memory file on cursor (user rules are app/UI-managed or undocumented)".) File-persistent now
+   (not just per-session
+   `additionalContext`). Verified live (isolated home): block created, content intact, `doctor`
+   reports `memory block oh-my-claudecode/orchestrator — intact`. See VERIFICATION.md §8.
+6. **RESOLVED (driver) — Marketplace/plugin distribution UX.** Beyond the direct `install` path, the
+   0.3.x **marketplace driver** (`install --method marketplace`) now redeploys the connector through
+   the host's OWN plugin marketplace (claude-code/codex/gemini/antigravity), staging the bundle under
+   `<dataRoot>/marketplace/<host>/` and running the host's native install command. Verified
+   (dry-run): OMC projects the full multi-host staging + registration plan; context-mode's run
+   **refuses with a double-install guard** on every host where it is already installed DIRECTLY
+   (duplicate hooks + MCP would corrupt telemetry) and skip-warns the not-yet-drivable cursor flow.
+   The legacy plugin-cache healing concepts (`repair-plugin-cache.mjs`, `run.cjs` stale-root scan)
+   remain Claude-plugin-system internals AC does not need.
 7. **`systemMessage` (user-visible notices).** `session-start.mjs` emits top-level `systemMessage`
    (update notices). `HookResponse` has no user-channel field; folded into `additionalContext` or
    dropped. Cosmetic degradation.

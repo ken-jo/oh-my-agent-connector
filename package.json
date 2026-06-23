@@ -1,19 +1,55 @@
 {
-  "name": "omc-ac",
+  "name": "oh-my-agent-connector",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Dogfooding: deploy oh-my-claudecode's MCP server + 19 bridged hook scripts + 87 content surfaces (19 agents / 40 skills / 28 commands) across agent CLIs via @ken-jo/agent-connector, replacing OMC's installer / hooks.json / plugin manifests. OMC itself runs UNCHANGED from the upstream checkout (runtime dependency by path).",
+  "description": "Private agent-connector fork of oh-my-claudecode: OMC runtime plus one defineConnector() that deploys MCP, hooks, agents, skills, and commands across agent CLIs.",
   "bin": {
-    "omc-ac": "./bin.mjs"
+    "oh-my-claudecode": "bin/oh-my-claudecode.js",
+    "omc": "bin/oh-my-claudecode.js",
+    "omc-cli": "bridge/cli.cjs",
+    "oh-my-agent-connector": "./bin.mjs"
   },
   "scripts": {
     "detect": "node bin.mjs detect",
     "install:dry": "node bin.mjs install --dry-run",
-    "doctor": "node bin.mjs doctor --probe"
+    "doctor": "node bin.mjs doctor --probe",
+    "build": "tsc && node scripts/build-skill-bridge.mjs && node scripts/build-mcp-server.mjs && node scripts/build-bridge-entry.mjs && npm run compose-docs && npm run build:runtime-cli && npm run build:team-server && npm run build:cli",
+    "compose-docs": "node scripts/compose-docs.mjs",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "eslint src"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.0",
+    "@ast-grep/napi": "^0.31.0",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "ajv": "^8.17.1",
+    "better-sqlite3": "^12.6.2",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "jsonc-parser": "^3.3.1",
+    "safe-regex": "^2.1.1",
+    "vscode-languageserver-protocol": "^3.17.5",
+    "zod": "^3.23.8",
     "@ken-jo/agent-connector": "file:../agent-connector"
   },
-  "license": "Apache-2.0"
+  "license": "MIT AND Apache-2.0",
+  "devDependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^22.19.7",
+    "@typescript-eslint/eslint-plugin": "^8.18.2",
+    "@typescript-eslint/parser": "^8.18.2",
+    "@vitest/ui": "^4.0.17",
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.27.2",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.53.0",
+    "vitest": "^4.0.17"
+  }
 }

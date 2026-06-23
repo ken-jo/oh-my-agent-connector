@@ -1,8 +1,8 @@
 // oh-my-claudecode (OMC, MIT, ★36k), redeployed through agent-connector.
 //
 // OMC functionality runs UNCHANGED — every hook script, the MCP server bundle,
-// and all 128 content files execute/compile straight from the upstream checkout
-// (a runtime dependency BY PATH; nothing is copied into this repo). Only the
+// and all 128 content files execute/compile from this fork
+// (the upstream runtime is vendored at the repo root). Only the
 // deployment plumbing is replaced by this one defineConnector():
 //
 //   - src/installer/**            8,543 LOC  (settings.json/marketplace writers)
@@ -25,12 +25,13 @@
 // SubagentStop (8 → 12 canonical events), so ALL 11 of upstream's hooks.json
 // event keys (24/24 command entries) now route through this connector.
 import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { defineConnector } from "@ken-jo/agent-connector";
 
-/** Root of the upstream OMC checkout (pinned, ships prebuilt dist/ — R7). */
-const OMC = "/home/ubuntu/workspace/github/oh-my-claudecode-upstream";
+/** Root of this fork; it carries the upstream OMC runtime files in-repo. */
+const OMC = dirname(fileURLToPath(import.meta.url));
 
 /** OMC's own cross-platform hook runner — kept because going through it
  *  preserves upstream's per-script hooks.json timeout enforcement for free. */
@@ -424,12 +425,43 @@ function loadSkills() {
     });
 }
 
+/**
+ * docs/CLAUDE.md → one MemoryDef. Upstream OMC's installer maintains a
+ * marker-fenced orchestrator block in ~/.claude/CLAUDE.md (its OMC:START/END
+ * fence); the body is the package's docs/CLAUDE.md. agent-connector's memory
+ * surface (0.3.x) re-homes that body as a managed block written to the file
+ * EACH host actually reads — CLAUDE.md (claude-code, which does NOT read
+ * AGENTS.md), GEMINI.md (gemini-cli), AGENTS.md (codex/cursor/opencode) —
+ * closing surface-map residue §4-5 AND going one better than upstream, which
+ * could only ever write claude-code's CLAUDE.md. The upstream OMC:START /
+ * OMC:VERSION / OMC:END marker lines are stripped (agent-connector owns the
+ * block boundary now via its own hash-stamped markers); the guidance body is
+ * inlined verbatim. At 4.14.6 the body is ~3.4 KiB — under the 4 KiB
+ * per-prompt warn budget.
+ */
+function loadMemory() {
+  const raw = readFileSync(join(OMC, "docs", "CLAUDE.md"), "utf8");
+  const content = raw
+    .split(/\r?\n/)
+    .filter((l) => !/^\s*<!--\s*OMC:(START|END|VERSION[^>]*)\s*-->\s*$/.test(l))
+    .join("\n")
+    .trim();
+  return [
+    {
+      name: "orchestrator",
+      description:
+        "OMC multi-agent orchestration standing guidance (upstream docs/CLAUDE.md)",
+      content,
+    },
+  ];
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // The connector — replaces hooks.json + plugin.json + .mcp.json + installer.
 // ───────────────────────────────────────────────────────────────────────────
 
 export default defineConnector({
-  id: "oh-my-claudecode",
+  id: "oh-my-agent-connector",
   displayName: "oh-my-claudecode",
   version: "4.14.6", // upstream .claude-plugin/plugin.json
 
@@ -543,6 +575,10 @@ export default defineConnector({
   subagents: loadSubagents(),
   skills: loadSkills(),
   commands: loadCommands(),
+
+  // Standing guidance — upstream's ~/.claude/CLAUDE.md orchestrator block, now a
+  // managed block in each host's memory file (residue §4-5; 0.3.x memory surface).
+  memory: loadMemory(),
 
   telemetry: { enabled: true, modelFamilyHint: "auto" },
 
