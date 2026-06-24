@@ -124,8 +124,8 @@ Exit code 1 is by design: `src/cli/commands/install.ts:54` returns 1 whenever an
 plan entry is a `warn` — here exactly the one honest gemini Stop gap.
 
 This is the "platforms gained" evidence: upstream's answer to one extra CLI was an
-entire sibling project (oh-my-codex, oh-my-opencode); here three more hosts are one
-`--targets` flag against the same `defineConnector()`.
+entire host-specific sibling project; here three more hosts are one `--targets`
+flag against the same `defineConnector()`.
 
 ## 6. agent-connector defects — diagnosed, NOT fixed (per phase mandate)
 

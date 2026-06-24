@@ -461,10 +461,6 @@ function loadMemory() {
 // ───────────────────────────────────────────────────────────────────────────
 
 export default defineConnector({
-  id: "oh-my-agent-connector",
-  displayName: "oh-my-agent-connector",
-  version: "0.0.1",
-
   // OMAC's MCP server `t`: a self-contained 28,786-line CJS bundle, verified to
   // launch standalone (49 tools) with zero CLAUDE_PLUGIN_ROOT references — env
   // set anyway for defensive parity with the plugin launch context.

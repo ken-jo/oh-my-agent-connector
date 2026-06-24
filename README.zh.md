@@ -9,8 +9,6 @@
 [![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/Yeachan-Heo)
 [![Discord](https://img.shields.io/discord/1452487457085063218?color=5865F2&logo=discord&logoColor=white&label=Discord)](https://discord.gg/sj4exxQ9v)
 
-> **Codex 用户：** 查看 [oh-my-codex](https://github.com/Yeachan-Heo/oh-my-codex) — 为 OpenAI Codex CLI 提供同样的编排体验。
-
 **Claude Code 的多智能体编排系统。零学习曲线。**
 
 *无需学习 Claude Code，直接使用 OMAC。*

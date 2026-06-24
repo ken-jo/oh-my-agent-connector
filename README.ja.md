@@ -9,8 +9,6 @@
 [![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/Yeachan-Heo)
 [![Discord](https://img.shields.io/discord/1452487457085063218?color=5865F2&logo=discord&logoColor=white&label=Discord)](https://discord.gg/sj4exxQ9v)
 
-> **Codex ユーザーの方へ:** [oh-my-codex](https://github.com/Yeachan-Heo/oh-my-codex) をチェックしてください — OpenAI Codex CLI 向けの同じオーケストレーション体験を提供します。
-
 **Claude Code のためのマルチエージェント・オーケストレーション。学習コストゼロ。**
 
 *Claude Code を学ぶ必要はありません。OMAC を使うだけ。*

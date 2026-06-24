@@ -1,9 +1,8 @@
 {
   "name": "oh-my-agent-connector",
-  "private": true,
   "version": "0.0.1",
   "type": "module",
-  "description": "Private host-neutral OMAC runtime plus one defineConnector() that deploys MCP, hooks, agents, skills, and commands across agent CLIs.",
+  "description": "Host-neutral OMAC runtime plus one defineConnector() that deploys MCP, hooks, agents, skills, and commands across agent CLIs.",
   "bin": {
     "oh-my-agent-connector-runtime": "bin/oh-my-agent-connector-runtime.js",
     "omac": "bin/oh-my-agent-connector-runtime.js",
@@ -24,7 +23,7 @@
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.0",
     "@ast-grep/napi": "^0.31.0",
-    "@ken-jo/agent-connector": "^0.4.92",
+    "@ken-jo/agent-connector": "^0.4.94",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@types/better-sqlite3": "^7.6.13",
     "ajv": "^8.17.1",

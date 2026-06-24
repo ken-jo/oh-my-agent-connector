@@ -17,36 +17,43 @@ import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { createConnectorCli } from "@ken-jo/agent-connector/cli";
 
-const connector = fileURLToPath(
-  new URL("./agent-connector.config.mjs", import.meta.url),
-);
-
-const args = process.argv.slice(2);
 const runtimeDoctorArgs = new Set(["team-routing", "conflicts", "--team-routing"]);
 
-if (args[0] === "doctor" && runtimeDoctorArgs.has(args[1] ?? "")) {
-  const runtimeCli = fileURLToPath(
-    new URL("./bin/oh-my-agent-connector-runtime.js", import.meta.url),
-  );
-  const child = spawnSync(
-    process.execPath,
-    [runtimeCli, "doctor", ...args.slice(1)],
-    { stdio: "inherit" },
-  );
-  if (child.error) {
-    process.stderr.write(`oh-my-agent-connector: fatal: ${child.error.stack ?? child.error}\n`);
-    process.exitCode = 1;
-  } else {
-    process.exitCode = child.status ?? 1;
-  }
-} else {
-createConnectorCli({ name: "oh-my-agent-connector", connector })
+const cli = createConnectorCli({
+  packageJson: new URL("./package.json", import.meta.url),
+  connector: new URL("./agent-connector.config.mjs", import.meta.url),
+  passthrough: [
+    {
+      when(argv) {
+        return argv[0] === "doctor" && runtimeDoctorArgs.has(argv[1] ?? "");
+      },
+      run(argv, context) {
+        const runtimeCli = fileURLToPath(
+          new URL("./bin/oh-my-agent-connector-runtime.js", import.meta.url),
+        );
+        const child = spawnSync(
+          process.execPath,
+          [runtimeCli, "doctor", ...argv.slice(1)],
+          { stdio: "inherit" },
+        );
+        if (child.error) {
+          process.stderr.write(
+            `${context.programName}: fatal: ${child.error.stack ?? child.error}\n`,
+          );
+          return 1;
+        }
+        return child.status ?? 1;
+      },
+    },
+  ],
+});
+
+cli
   .run()
   .then((code) => {
     process.exitCode = code;
   })
   .catch((err) => {
-    process.stderr.write(`oh-my-agent-connector: fatal: ${err?.stack ?? err}\n`);
+    process.stderr.write(`${cli.name}: fatal: ${err?.stack ?? err}\n`);
     process.exitCode = 1;
   });
-}

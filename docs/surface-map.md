@@ -144,7 +144,7 @@ compiles **128 files → 87 defs** (frontmatter shapes verified on samples):
 | `commands/*.md` | 28 | `description` (often `""`); `compact.md` adds more keys; body uses `$ARGUMENTS` | `CommandDef` | filename stem → `name`; body → `prompt`; extra fm keys → `argumentHint`/`tools`/`model`/`extra` |
 | `skills/*/SKILL.md` | 40 | `name, description, argument-hint, level` | `SkillDef` | `name` (== dir, kebab ✓), `description` (≤1024 ✓), body; `argument-hint`+`level` → `extra` |
 | skill resource files | 40 (omac-setup 4, project-session-manager 18, self-improve 12, writer-memory 6) | — | `SkillDef.resources` | relpath → file contents, written beside SKILL.md |
-| `.claude-plugin/plugin.json` + `marketplace.json` | — | — | connector metadata | `id`/`displayName`/`version` in `defineConnector`; manifests retired |
+| `.claude-plugin/plugin.json` + `marketplace.json` | — | — | connector metadata | package identity/version in `package.json`; `defineConnector` only keeps explicit OMAC surfaces; manifests retired |
 
 Loader sketch: `readdir` + a 15-line frontmatter splitter (`---` fences, `key: value` pairs) — no
 YAML dependency needed for these flat shapes. Validation is then enforced by `defineConnector`
@@ -152,7 +152,7 @@ YAML dependency needed for these flat shapes. Validation is then enforced by `de
 
 What this buys: the same 87 surfaces land natively on claude-code (`.claude/{agents,commands,skills}`)
 **and** on gemini-cli/cursor/codex/opencode/copilot/… per the platform table in llms-full.txt §2.4,
-from one declaration — upstream's answer to this was entire sibling projects (oh-my-codex, oh-my-opencode).
+from one declaration — without needing separate host-specific sibling projects for each agent CLI.
 
 ## 4. Residue — what does NOT map (honest list)
 

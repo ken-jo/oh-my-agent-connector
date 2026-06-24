@@ -13,11 +13,11 @@ UNCHANGED — only the deployment plumbing is replaced.
 
 | Metric | OMAC upstream (before) | this repo (after) | Δ |
 |---|---:|---:|---|
-| **Deployment-plumbing bucket (BASELINE.md)** | **20,999** | **394 code** (584 with comments) | **−98.1% (53×)** |
-| Strictly eliminated layer only (honest subset, below) | 9,239 | 394 | −95.7% (23×) |
+| **Deployment-plumbing bucket (BASELINE.md)** | **20,999** | **442 code** (614 with comments) | **−97.9% (48×)** |
+| Strictly eliminated layer only (honest subset, below) | 9,239 | 442 | −95.2% (21×) |
 | Platforms for the mapped surfaces | **1** (claude-code only; one extra CLI = a whole sibling repo) | **5 targeted / 4 evidenced** (1 live isolated install + 3 dry-run planned; 29 in AC registry) | +3 evidenced, +28 addressable |
 | Hook events wired | 11 keys / 13 groups / 24 command entries (BASELINE's "12" rounds this) | **11/11 keys, 13/13 groups, 24/24 entries bridged** (since AC's E1 8→12-event extension) | full hook coverage |
-| Files to touch to add a platform | new sibling project (oh-my-codex, oh-my-opencode) | **0** (`--targets` flag) | — |
+| Files to touch to add a platform | new host-specific sibling project | **0** (`--targets` flag) | — |
 | MCP / agents / skills / commands parity (claude-code) | plugin install | 49/49 tools · 19/19 · 80/80 · 28/28 | exact |
 
 ## Strict accounting (eliminated vs reused vs dropped — the honest split)
@@ -59,17 +59,17 @@ Check: 9,239 + (8,445 + 801) + 2,514 = 20,999. ✓
 REPLACEMENT (this repo, total):
 | File | Lines | Code lines |
 |---|---:|---:|
-| `agent-connector.config.mjs` (defineConnector: server + 11 hook bridges + 87-def content compiler) | 553 | 379 |
-| `bin.mjs` (branded CLI via createConnectorCli) | 31 | 15 |
-| **Total** | **584** | **394** |
+| `agent-connector.config.mjs` (defineConnector: server + 11 hook bridges + 87-def content compiler) | 552 | 394 |
+| `bin.mjs` (branded CLI via createConnectorCli) | 62 | 48 |
+| **Total** | **614** | **442** |
 
 The port is ~5× larger than context-mode's 76 lines because OMAC's surface is
 ~5× bigger: 11 event chains × 23 scripts with per-script timeouts, deny/ask/
 context merge semantics (plus the PermissionRequest never-auto-grant merge),
-and a load-time compiler for 128 content files — still 23–53× smaller than
+and a load-time compiler for 128 content files — still 21–48× smaller than
 what it replaces.
 
-## What the 394 lines bought (verified, not claimed — VERIFICATION.md)
+## What the 442 lines bought (verified, not claimed — VERIFICATION.md)
 
 - **Isolated install (claude-code): 140 artifacts** — MCP registration in
   `~/.claude.json`, **11 settings.json hook events (11/11 upstream keys)**,
