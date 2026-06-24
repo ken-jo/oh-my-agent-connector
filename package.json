@@ -24,6 +24,7 @@
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.0",
     "@ast-grep/napi": "^0.31.0",
+    "@ken-jo/agent-connector": "^0.4.92",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@types/better-sqlite3": "^7.6.13",
     "ajv": "^8.17.1",
@@ -33,8 +34,7 @@
     "jsonc-parser": "^3.3.1",
     "safe-regex": "^2.1.1",
     "vscode-languageserver-protocol": "^3.17.5",
-    "zod": "^3.23.8",
-    "@ken-jo/agent-connector": "file:../agent-connector"
+    "zod": "^3.23.8"
   },
   "license": "MIT AND Apache-2.0",
   "devDependencies": {
