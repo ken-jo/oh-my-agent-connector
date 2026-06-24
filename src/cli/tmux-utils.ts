@@ -1,6 +1,6 @@
 /**
  * tmux utility functions for omac native shell launch
- * Adapted from oh-my-codex patterns for omac
+ * Adapted from the legacy OMAC tmux orchestration patterns.
  */
 
 import {

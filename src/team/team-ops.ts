@@ -6,7 +6,7 @@
  * corresponds to (or backs) an MCP tool with the same semantic name,
  * ensuring the runtime contract matches the external MCP surface.
  *
- * Modeled after oh-my-codex/src/team/team-ops.ts.
+ * Shared semantic gateway for OMAC team operations.
  */
 
 import { randomUUID } from 'node:crypto';

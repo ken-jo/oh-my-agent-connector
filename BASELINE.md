@@ -23,9 +23,8 @@ OMAC and measure the efficiency gain** — exactly the context-mode playbook
 
 ## The counterfactual
 
-Supporting ONE additional CLI by hand = an entire second project
-(`oh-my-codex`, a from-scratch Codex re-implementation; `oh-my-opencode`
-likewise for OpenCode). agent-connector's claim: the mappable surfaces
+Supporting ONE additional CLI by hand = an entire second host-specific project.
+agent-connector's claim: the mappable surfaces
 (MCP server + 8 normalized hook events + commands/skills/subagents) deploy to
 29 platforms from one `defineConnector()` — with an honest residue list for
 what only a native plugin can do (PermissionRequest, SubagentStart/Stop,

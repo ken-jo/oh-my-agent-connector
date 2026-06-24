@@ -2,7 +2,7 @@
 
 > Quick start guide: from installation to your first OMAC session.
 
-If you're new to Oh My ClaudeCode (OMAC), follow the steps below in order.
+If you're new to Oh My Agent Connector (OMAC), follow the steps below in order.
 
 1. [Installation](#installation) - Install the OMAC plugin and run initial setup
 2. [First Session](#first-session) - Run your first task with autopilot
@@ -31,6 +31,11 @@ OMAC ships two surfaces and they are designed to coexist:
 | **Terminal CLI** (`omac` binary, package `oh-my-agent-connector`) | Shell commands: `omac setup`, `omac update`, `omac team`, `omac ask`, and a hard-deprecated `omac autoresearch` shim | `npm i -g oh-my-agent-connector@latest` |
 
 Most users want **both**: the plugin for the in-session experience, and the npm CLI for shell-side automation and updates. Running them in parallel is fully supported — `omac update` and `omac setup` are idempotent and detect the plugin install to avoid duplicating in-session skills (#2252).
+
+Implementation note: OMAC is the branded package here. Its npm package depends
+on `@ken-jo/agent-connector` internally, so OMAC users should install
+`oh-my-agent-connector` / use `omac`; they do **not** need a separate global
+`@ken-jo/agent-connector` install for OMAC deployment.
 
 > Older versions of this doc said OMAC was "plugin-only". That was incorrect: the `omac` CLI is the canonical entry point for `omac setup`/`omac update` and is published on npm as `oh-my-agent-connector`. See the [Quick Start in README.md](../README.md#quick-start) for the same two-path layout.
 

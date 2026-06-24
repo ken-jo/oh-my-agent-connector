@@ -1,5 +1,5 @@
 /**
- * OMX Team State Layer (forked from oh-my-codex)
+ * OMX Team State Layer
  *
  * Provides read/write access to .omx/state/team/{name}/ directories,
  * enabling omac to communicate with omx teams using the native omx format.

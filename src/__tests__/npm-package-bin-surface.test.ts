@@ -134,7 +134,7 @@ describe('npm package bin surface regression', () => {
       },
     ).trim();
 
-    expect(stdout).toMatch(/^oh-my-agent-connector \d+\.\d+\.\d+/);
+    expect(stdout).toBe(`oh-my-agent-connector ${readPackageJson().version}`);
   });
 
   it('models npm shim generation for POSIX and Windows command names without installing globally', () => {

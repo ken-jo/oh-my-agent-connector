@@ -7,8 +7,13 @@ runtime. OMAC functionality runs unchanged; only its deployment plumbing
 by one `defineConnector()`. Same playbook as the proven
 [context-mode migration](../context-mode-with-agent-connector) (20,322 → 76).
 
-**Result: 20,999-LOC plumbing bucket → 394 code lines (−98.1%, 53×); strictly
-eliminated subset 9,239 → 394 (−95.7%, 23×); hook coverage 11/11 event keys /
+OMAC is the branded package. `@ken-jo/agent-connector` is an internal framework
+dependency/runtime underneath it: OMAC users install and run `oh-my-agent-connector`
+or `omac`, while `agent-connector.config.mjs` derives identity and version from
+`package.json` instead of repeating `id` / `displayName` / `version`.
+
+**Result: 20,999-LOC plumbing bucket → 442 code lines (−97.9%, 48×); strictly
+eliminated subset 9,239 → 442 (−95.2%, 21×); hook coverage 11/11 event keys /
 24/24 command entries since agent-connector's E1 8→12-event extension; honest
 reused/dropped split in [`EFFICIENCY.md`](./EFFICIENCY.md).**
 
@@ -20,7 +25,7 @@ reused/dropped split in [`EFFICIENCY.md`](./EFFICIENCY.md).**
 | 2. Surface map — 11 hook keys/24 entries → 8 AC events, MCP, 128→87 content defs, residue + risks | ✅ done | fea3c63 |
 | 3. The port — one `defineConnector()` (P1a bridge + load-time content compiler) + branded CLI | ✅ done | 8e0a013 |
 | 4. Verify — isolated-home install (136 artifacts, idempotent), doctor --probe 94/94 (49 tools), live hook bridge (ralph keyword / SessionStart / Stop state 1→2), multi-platform dry-run (397 writes, 1 honest warn) | ✅ done | 230f2b6 |
-| 5. Quantify efficiency (20,999 → 394 code lines; honest split) | ✅ done | 478be3a |
+| 5. Quantify efficiency (20,999 → 442 code lines; honest split) | ✅ done | 478be3a |
 | 6. Fix AC defect R1 upstream (Stop deny shape — event-aware `decision:"block"`) | ✅ done | AC `2c506ab` |
 | 6b. Bridge the last 4 hooks (AC E1: PermissionRequest/PostToolUseFailure/SubagentStart/SubagentStop, 8→12 events) — **11/11 keys, 24/24 entries**, live round-trips | ✅ done | this commit |
 | 7. Host-neutral verification follow-up — multi-platform dry-run, OpenCode real-host install/probe, OpenCode CLI MCP-list smoke | ✅ done | c55c74a / [`OPENCODE_PROOF.md`](./OPENCODE_PROOF.md) |

@@ -368,7 +368,7 @@ export const interopListOmxTeamsTool: ToolDefinition<{
   workingDirectory: z.ZodOptional<z.ZodString>;
 }> = {
   name: 'interop_list_omx_teams',
-  description: 'List active OMX (oh-my-codex) teams from .omx/state/team/. Shows team names and basic configuration.',
+  description: 'List active OMX/OMAC-compatible teams from .omx/state/team/. Shows team names and basic configuration.',
   schema: {
     workingDirectory: z.string().optional().describe('Working directory (defaults to cwd)'),
   },
